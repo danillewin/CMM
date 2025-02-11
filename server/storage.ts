@@ -1,4 +1,6 @@
-import { type Meeting, type InsertMeeting } from "@shared/schema";
+import { meetings, type Meeting, type InsertMeeting } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
@@ -8,40 +10,37 @@ export interface IStorage {
   deleteMeeting(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private meetings: Map<number, Meeting>;
-  private currentId: number;
-
-  constructor() {
-    this.meetings = new Map();
-    this.currentId = 1;
-  }
-
+export class DatabaseStorage implements IStorage {
   async getMeetings(): Promise<Meeting[]> {
-    return Array.from(this.meetings.values());
+    return db.select().from(meetings);
   }
 
   async getMeeting(id: number): Promise<Meeting | undefined> {
-    return this.meetings.get(id);
+    const [meeting] = await db.select().from(meetings).where(eq(meetings.id, id));
+    return meeting;
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
-    const id = this.currentId++;
-    const newMeeting = { ...meeting, id };
-    this.meetings.set(id, newMeeting);
+    const [newMeeting] = await db.insert(meetings).values(meeting).returning();
     return newMeeting;
   }
 
   async updateMeeting(id: number, meeting: InsertMeeting): Promise<Meeting | undefined> {
-    if (!this.meetings.has(id)) return undefined;
-    const updatedMeeting = { ...meeting, id };
-    this.meetings.set(id, updatedMeeting);
+    const [updatedMeeting] = await db
+      .update(meetings)
+      .set(meeting)
+      .where(eq(meetings.id, id))
+      .returning();
     return updatedMeeting;
   }
 
   async deleteMeeting(id: number): Promise<boolean> {
-    return this.meetings.delete(id);
+    const [deletedMeeting] = await db
+      .delete(meetings)
+      .where(eq(meetings.id, id))
+      .returning();
+    return !!deletedMeeting;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
