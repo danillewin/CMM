@@ -37,15 +37,15 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
         <FormField
           control={form.control}
           name="clientName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Client Name</FormLabel>
+              <FormLabel className="text-base">Client Name</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -57,9 +57,9 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="companyName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Name</FormLabel>
+              <FormLabel className="text-base">Company Name</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -71,9 +71,9 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date</FormLabel>
+              <FormLabel className="text-base">Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type="date" {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,16 +85,21 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="agenda"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Agenda</FormLabel>
+              <FormLabel className="text-base">Agenda</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          className="w-full mt-6" 
+          disabled={isLoading}
+          size="lg"
+        >
           {isLoading ? "Saving..." : "Save Meeting"}
         </Button>
       </form>

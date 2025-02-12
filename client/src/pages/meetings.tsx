@@ -138,25 +138,26 @@ export default function Meetings() {
   }
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">Client Meetings</h1>
+    <div className="container mx-auto px-4 py-6 md:py-10">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Client Meetings</h1>
 
-      <div className="flex justify-between mb-6">
-        <Input
-          placeholder="Search meetings..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-          icon={<Search className="h-4 w-4" />}
-        />
+      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6">
+        <div className="w-full md:w-auto">
+          <Input
+            placeholder="Search meetings..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80"
+          />
+        </div>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               New Meeting
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="w-[90vw] max-w-xl">
             <MeetingForm
               onSubmit={handleSubmit}
               initialData={editMeeting}
@@ -174,7 +175,7 @@ export default function Meetings() {
               A meeting with this client name or company name already exists. Would you like to create it anyway?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
             <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
           </AlertDialogFooter>
@@ -182,61 +183,66 @@ export default function Meetings() {
       </AlertDialog>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>
+                <TableHead className="min-w-[120px]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("clientName")}
+                    className="whitespace-nowrap"
                   >
                     Client Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Company Name</TableHead>
-                <TableHead>
+                <TableHead className="min-w-[120px]">Company Name</TableHead>
+                <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("date")}
+                    className="whitespace-nowrap"
                   >
                     Date
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead>Agenda</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="min-w-[200px]">Agenda</TableHead>
+                <TableHead className="min-w-[160px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
-                  <TableCell>{meeting.clientName}</TableCell>
+                  <TableCell className="font-medium">{meeting.clientName}</TableCell>
                   <TableCell>{meeting.companyName}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{meeting.agenda}</TableCell>
+                  <TableCell className="max-w-[300px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mr-2"
-                      onClick={() => {
-                        setEditMeeting(meeting);
-                        setShowForm(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => deleteMutation.mutate(meeting.id)}
-                    >
-                      Delete
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => {
+                          setEditMeeting(meeting);
+                          setShowForm(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="w-full sm:w-auto"
+                        onClick={() => deleteMutation.mutate(meeting.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
