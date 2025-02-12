@@ -16,6 +16,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 
@@ -25,6 +35,8 @@ export default function Meetings() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
+  const [pendingMeeting, setPendingMeeting] = useState<Omit<Meeting, "id"> | null>(null);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const { toast } = useToast();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
@@ -39,6 +51,7 @@ export default function Meetings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       setShowForm(false);
+      setPendingMeeting(null);
       toast({ title: "Meeting created successfully" });
     },
   });
@@ -65,6 +78,36 @@ export default function Meetings() {
       toast({ title: "Meeting deleted successfully" });
     },
   });
+
+  const handleSubmit = (data: Omit<Meeting, "id">) => {
+    if (editMeeting) {
+      updateMutation.mutate({ ...data, id: editMeeting.id });
+      return;
+    }
+
+    const duplicateMeeting = meetings.find(
+      m => m.clientName === data.clientName || m.companyName === data.companyName
+    );
+
+    if (duplicateMeeting) {
+      setPendingMeeting(data);
+      setShowDuplicateWarning(true);
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  const handleCreateAnyway = () => {
+    if (pendingMeeting) {
+      createMutation.mutate(pendingMeeting);
+    }
+    setShowDuplicateWarning(false);
+  };
+
+  const handleCancelCreate = () => {
+    setShowDuplicateWarning(false);
+    setPendingMeeting(null);
+  };
 
   const filteredMeetings = meetings
     .filter(
@@ -97,7 +140,7 @@ export default function Meetings() {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-8">Client Meetings</h1>
-      
+
       <div className="flex justify-between mb-6">
         <Input
           placeholder="Search meetings..."
@@ -115,17 +158,28 @@ export default function Meetings() {
           </DialogTrigger>
           <DialogContent>
             <MeetingForm
-              onSubmit={(data) =>
-                editMeeting
-                  ? updateMutation.mutate({ ...data, id: editMeeting.id })
-                  : createMutation.mutate(data)
-              }
+              onSubmit={handleSubmit}
               initialData={editMeeting}
               isLoading={createMutation.isPending || updateMutation.isPending}
             />
           </DialogContent>
         </Dialog>
       </div>
+
+      <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate Meeting Warning</AlertDialogTitle>
+            <AlertDialogDescription>
+              A meeting with this client name or company name already exists. Would you like to create it anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Card>
         <CardContent className="p-0">
