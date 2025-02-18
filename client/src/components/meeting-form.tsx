@@ -30,6 +30,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
       : {
           clientName: "",
           companyName: "",
+          cnum: "",
           date: new Date().toISOString().split("T")[0],
           agenda: "",
         },
@@ -58,6 +59,20 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Company Name</FormLabel>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="cnum"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">CNUM</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>

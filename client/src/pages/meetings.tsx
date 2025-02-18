@@ -114,6 +114,7 @@ export default function Meetings() {
     const csvContent = filteredMeetings.map(meeting => ({
       'Client Name': meeting.clientName,
       'Company Name': meeting.companyName,
+      'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda
     }));
@@ -134,6 +135,7 @@ export default function Meetings() {
     const excelData = filteredMeetings.map(meeting => ({
       'Client Name': meeting.clientName,
       'Company Name': meeting.companyName,
+      'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda
     }));
@@ -253,6 +255,7 @@ export default function Meetings() {
                   </Button>
                 </TableHead>
                 <TableHead className="min-w-[120px]">Company Name</TableHead>
+                <TableHead className="min-w-[100px]">CNUM</TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
@@ -272,6 +275,7 @@ export default function Meetings() {
                 <TableRow key={meeting.id}>
                   <TableCell className="font-medium">{meeting.clientName}</TableCell>
                   <TableCell>{meeting.companyName}</TableCell>
+                  <TableCell>{meeting.cnum}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
