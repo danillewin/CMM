@@ -59,7 +59,7 @@ const StatusDot = ({ status }: { status: string }) => (
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -204,16 +204,20 @@ export default function Meetings() {
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
         : sortBy === "cnum" ? a.cnum
+        : sortBy === "respondentPosition" ? (a.respondentPosition || "")
+        : sortBy === "companyName" ? (a.companyName || "")
         : a.respondentName;
       const bVal = sortBy === "date" ? new Date(b.date)
         : sortBy === "cnum" ? b.cnum
+        : sortBy === "respondentPosition" ? (b.respondentPosition || "")
+        : sortBy === "companyName" ? (b.companyName || "")
         : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;
     });
 
-  const toggleSort = (field: "date" | "respondentName" | "cnum") => {
+  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName") => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -334,7 +338,16 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Respondent Position</TableHead>
+                <TableHead className="min-w-[150px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("respondentPosition")}
+                    className="whitespace-nowrap"
+                  >
+                    Respondent Position
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
@@ -345,7 +358,16 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">Company Name</TableHead>
+                <TableHead className="min-w-[150px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("companyName")}
+                    className="whitespace-nowrap"
+                  >
+                    Company Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
