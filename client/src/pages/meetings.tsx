@@ -54,6 +54,7 @@ const getStatusColor = (status: string) => {
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"date" | "respondentName">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
@@ -153,7 +154,8 @@ export default function Meetings() {
       'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
-      'Agenda': meeting.agenda
+      'Agenda': meeting.agenda,
+      'Status': meeting.status
     }));
 
     const csvString = [
@@ -173,7 +175,8 @@ export default function Meetings() {
       'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
-      'Agenda': meeting.agenda
+      'Agenda': meeting.agenda,
+      'Status': meeting.status
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -185,8 +188,9 @@ export default function Meetings() {
   const filteredMeetings = meetings
     .filter(
       (meeting) =>
-        meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
-        meeting.agenda.toLowerCase().includes(search.toLowerCase())
+        (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
+         meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
+        (!statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? a.date : a.respondentName;
@@ -214,13 +218,26 @@ export default function Meetings() {
       <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Client Meetings</h1>
 
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6">
-        <div className="w-full md:w-auto">
+        <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
           <Input
             placeholder="Search meetings..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-80"
           />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Statuses</SelectItem>
+              {Object.values(MeetingStatus).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Dialog open={showForm} onOpenChange={setShowForm}>
