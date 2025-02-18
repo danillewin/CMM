@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertMeetingSchema, type InsertMeeting } from "@shared/schema";
+import { insertMeetingSchema, type InsertMeeting, MeetingStatus } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -9,6 +9,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Meeting } from "@shared/schema";
@@ -32,6 +39,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           cnum: "",
           date: new Date().toISOString().split("T")[0],
           agenda: "",
+          status: MeetingStatus.NEGOTIATION,
         },
   });
 
@@ -89,6 +97,31 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(MeetingStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

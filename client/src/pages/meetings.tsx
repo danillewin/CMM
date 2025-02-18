@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Meeting } from "@shared/schema";
+import { Meeting, MeetingStatus } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, ArrowUpDown, FileDown } from "lucide-react";
 import * as XLSX from 'xlsx';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -29,6 +36,21 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case MeetingStatus.NEGOTIATION:
+      return "bg-blue-500";
+    case MeetingStatus.SET:
+      return "bg-yellow-500";
+    case MeetingStatus.DONE:
+      return "bg-green-500";
+    case MeetingStatus.DECLINED:
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
@@ -77,6 +99,22 @@ export default function Meetings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       toast({ title: "Meeting deleted successfully" });
+    },
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      const meeting = meetings.find(m => m.id === id);
+      if (!meeting) return;
+      const res = await apiRequest("PATCH", `/api/meetings/${id}`, {
+        ...meeting,
+        status,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      toast({ title: "Meeting status updated successfully" });
     },
   });
 
@@ -241,6 +279,7 @@ export default function Meetings() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8"></TableHead>
                 <TableHead className="min-w-[150px]">
                   <Button
                     variant="ghost"
@@ -263,18 +302,41 @@ export default function Meetings() {
                   </Button>
                 </TableHead>
                 <TableHead className="min-w-[200px]">Agenda</TableHead>
+                <TableHead className="min-w-[150px]">Status</TableHead>
                 <TableHead className="min-w-[160px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
+                  <TableCell>
+                    <div className={`w-3 h-3 rounded-full ${getStatusColor(meeting.status)}`} />
+                  </TableCell>
                   <TableCell className="font-medium">{meeting.respondentName}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="max-w-[300px] truncate">{meeting.agenda}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={meeting.status}
+                      onValueChange={(value) =>
+                        updateStatusMutation.mutate({ id: meeting.id, status: value })
+                      }
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(MeetingStatus).map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Button
