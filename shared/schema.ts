@@ -24,7 +24,9 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
 }).extend({
   date: z.string().transform(str => new Date(str)),
-  cnum: z.string().min(1, "CNUM is required"),
+  cnum: z.string()
+    .min(1, "CNUM is required")
+    .transform(val => val.toUpperCase()),
   status: z.enum([MeetingStatus.NEGOTIATION, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.NEGOTIATION),
 });

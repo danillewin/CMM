@@ -67,7 +67,11 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
             <FormItem>
               <FormLabel className="text-base">CNUM</FormLabel>
               <FormControl>
-                <Input {...field} className="w-full" />
+                <Input 
+                  {...field} 
+                  className="w-full uppercase"
+                  onChange={e => field.onChange(e.target.value.toUpperCase())}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
