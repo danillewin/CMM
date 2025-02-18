@@ -43,7 +43,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="respondentName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">ФИО Респондента</FormLabel>
+              <FormLabel className="text-base">Respondent Name</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
@@ -71,7 +71,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Дата</FormLabel>
+              <FormLabel className="text-base">Date</FormLabel>
               <FormControl>
                 <Input type="date" {...field} className="w-full" />
               </FormControl>
@@ -85,7 +85,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="agenda"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Повестка</FormLabel>
+              <FormLabel className="text-base">Agenda</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
@@ -100,7 +100,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           disabled={isLoading}
           size="lg"
         >
-          {isLoading ? "Сохранение..." : "Сохранить Встречу"}
+          {isLoading ? "Saving..." : "Save Meeting"}
         </Button>
       </form>
     </Form>

@@ -53,7 +53,7 @@ export default function Meetings() {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       setShowForm(false);
       setPendingMeeting(null);
-      toast({ title: "Встреча успешно создана" });
+      toast({ title: "Meeting created successfully" });
     },
   });
 
@@ -66,7 +66,7 @@ export default function Meetings() {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       setShowForm(false);
       setEditMeeting(null);
-      toast({ title: "Встреча успешно обновлена" });
+      toast({ title: "Meeting updated successfully" });
     },
   });
 
@@ -76,7 +76,7 @@ export default function Meetings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: "Встреча успешно удалена" });
+      toast({ title: "Meeting deleted successfully" });
     },
   });
 
@@ -112,10 +112,10 @@ export default function Meetings() {
 
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
-      'ФИО Респондента': meeting.respondentName,
+      'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
-      'Дата': new Date(meeting.date).toLocaleDateString(),
-      'Повестка': meeting.agenda
+      'Date': new Date(meeting.date).toLocaleDateString(),
+      'Agenda': meeting.agenda
     }));
 
     const csvString = [
@@ -132,15 +132,15 @@ export default function Meetings() {
 
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
-      'ФИО Респондента': meeting.respondentName,
+      'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
-      'Дата': new Date(meeting.date).toLocaleDateString(),
-      'Повестка': meeting.agenda
+      'Date': new Date(meeting.date).toLocaleDateString(),
+      'Agenda': meeting.agenda
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Встречи');
+    XLSX.utils.book_append_sheet(wb, ws, 'Meetings');
     XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -168,17 +168,17 @@ export default function Meetings() {
   };
 
   if (isLoading) {
-    return <div>Загрузка...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-10">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Встречи с Клиентами</h1>
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Client Meetings</h1>
 
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6">
         <div className="w-full md:w-auto">
           <Input
-            placeholder="Поиск встреч..."
+            placeholder="Search meetings..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-80"
@@ -189,7 +189,7 @@ export default function Meetings() {
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
-                Новая Встреча
+                New Meeting
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[90vw] max-w-xl">
@@ -207,7 +207,7 @@ export default function Meetings() {
               onClick={exportToCSV}
             >
               <FileDown className="h-4 w-4 mr-2" />
-              Экспорт CSV
+              Export CSV
             </Button>
             <Button
               variant="outline"
@@ -215,7 +215,7 @@ export default function Meetings() {
               onClick={exportToExcel}
             >
               <FileDown className="h-4 w-4 mr-2" />
-              Экспорт Excel
+              Export Excel
             </Button>
           </div>
         </div>
@@ -224,14 +224,14 @@ export default function Meetings() {
       <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Предупреждение о дубликате CNUM</AlertDialogTitle>
+            <AlertDialogTitle>Duplicate CNUM Warning</AlertDialogTitle>
             <AlertDialogDescription>
-              Встреча с таким CNUM уже существует. Хотите создать ее anyway?
+              A meeting with this CNUM already exists. Would you like to create it anyway?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel onClick={handleCancelCreate}>Нет, не создавать</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCreateAnyway}>Создать anyway</AlertDialogAction>
+            <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -247,7 +247,7 @@ export default function Meetings() {
                     onClick={() => toggleSort("respondentName")}
                     className="whitespace-nowrap"
                   >
-                    ФИО Респондента
+                    Respondent Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
@@ -258,12 +258,12 @@ export default function Meetings() {
                     onClick={() => toggleSort("date")}
                     className="whitespace-nowrap"
                   >
-                    Дата
+                    Date
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[200px]">Повестка</TableHead>
-                <TableHead className="min-w-[160px]">Действия</TableHead>
+                <TableHead className="min-w-[200px]">Agenda</TableHead>
+                <TableHead className="min-w-[160px]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -286,7 +286,7 @@ export default function Meetings() {
                           setShowForm(true);
                         }}
                       >
-                        Изменить
+                        Edit
                       </Button>
                       <Button
                         variant="destructive"
@@ -294,7 +294,7 @@ export default function Meetings() {
                         className="w-full sm:w-auto"
                         onClick={() => deleteMutation.mutate(meeting.id)}
                       >
-                        Удалить
+                        Delete
                       </Button>
                     </div>
                   </TableCell>
