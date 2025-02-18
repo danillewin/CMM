@@ -4,8 +4,7 @@ import { z } from "zod";
 
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
-  clientName: text("client_name").notNull(),
-  companyName: text("company_name").notNull(),
+  respondentName: text("respondent_name").notNull(),
   cnum: text("cnum").notNull(),
   date: timestamp("date").notNull(),
   agenda: text("agenda").notNull(),

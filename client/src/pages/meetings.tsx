@@ -32,7 +32,7 @@ import MeetingForm from "@/components/meeting-form";
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "clientName">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -87,7 +87,7 @@ export default function Meetings() {
     }
 
     const duplicateMeeting = meetings.find(
-      m => m.clientName === data.clientName || m.companyName === data.companyName
+      m => m.respondentName === data.respondentName 
     );
 
     if (duplicateMeeting) {
@@ -112,8 +112,7 @@ export default function Meetings() {
 
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
-      'Client Name': meeting.clientName,
-      'Company Name': meeting.companyName,
+      'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda
@@ -133,8 +132,7 @@ export default function Meetings() {
 
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
-      'Client Name': meeting.clientName,
-      'Company Name': meeting.companyName,
+      'Respondent Name': meeting.respondentName,
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda
@@ -149,19 +147,18 @@ export default function Meetings() {
   const filteredMeetings = meetings
     .filter(
       (meeting) =>
-        meeting.clientName.toLowerCase().includes(search.toLowerCase()) ||
-        meeting.companyName.toLowerCase().includes(search.toLowerCase()) ||
+        meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
         meeting.agenda.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      const aVal = sortBy === "date" ? a.date : a.clientName;
-      const bVal = sortBy === "date" ? b.date : b.clientName;
+      const aVal = sortBy === "date" ? a.date : a.respondentName;
+      const bVal = sortBy === "date" ? b.date : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;
     });
 
-  const toggleSort = (field: "date" | "clientName") => {
+  const toggleSort = (field: "date" | "respondentName") => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -244,17 +241,16 @@ export default function Meetings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[120px]">
+                <TableHead className="min-w-[150px]">
                   <Button
                     variant="ghost"
-                    onClick={() => toggleSort("clientName")}
+                    onClick={() => toggleSort("respondentName")}
                     className="whitespace-nowrap"
                   >
-                    Client Name
+                    Respondent Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[120px]">Company Name</TableHead>
                 <TableHead className="min-w-[100px]">CNUM</TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
@@ -273,8 +269,7 @@ export default function Meetings() {
             <TableBody>
               {filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
-                  <TableCell className="font-medium">{meeting.clientName}</TableCell>
-                  <TableCell>{meeting.companyName}</TableCell>
+                  <TableCell className="font-medium">{meeting.respondentName}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
