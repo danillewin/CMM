@@ -52,6 +52,10 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const StatusDot = ({ status }: { status: string }) => (
+  <div className={`w-2 h-2 rounded-full ${getStatusColor(status)} inline-block mr-2`} />
+);
+
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -189,8 +193,8 @@ export default function Meetings() {
     .filter(
       (meeting) =>
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
-         meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
-         meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
+          meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
+          meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
@@ -232,13 +236,27 @@ export default function Meetings() {
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={
+                <div className="flex items-center">
+                  Filter by status
+                </div>
+              }>
+                {statusFilter && (
+                  <div className="flex items-center">
+                    <StatusDot status={statusFilter} />
+                    {statusFilter}
+                  </div>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Statuses</SelectItem>
               {Object.values(MeetingStatus).map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status}
+                  <div className="flex items-center">
+                    <StatusDot status={status} />
+                    {status}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -341,7 +359,7 @@ export default function Meetings() {
               {filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
                   <TableCell>
-                    <div className={`w-3 h-3 rounded-full ${getStatusColor(meeting.status)}`} />
+                    <StatusDot status={meeting.status} />
                   </TableCell>
                   <TableCell className="font-medium">{meeting.respondentName}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
@@ -357,12 +375,20 @@ export default function Meetings() {
                       }
                     >
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue>
+                          <div className="flex items-center">
+                            <StatusDot status={meeting.status} />
+                            {meeting.status}
+                          </div>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(MeetingStatus).map((status) => (
                           <SelectItem key={status} value={status}>
-                            {status}
+                            <div className="flex items-center">
+                              <StatusDot status={status} />
+                              {status}
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>
