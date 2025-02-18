@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const MeetingStatus = {
-  NEGOTIATION: "Meeting Negotiation",
+  NEGOTIATION: "Negotiation",
   SET: "Meeting Set",
   DONE: "Meeting Done",
   DECLINED: "Declined",
