@@ -55,7 +55,7 @@ const getStatusColor = (status: string) => {
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"date" | "respondentName">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -194,14 +194,18 @@ export default function Meetings() {
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
-      const aVal = sortBy === "date" ? new Date(a.date) : a.respondentName;
-      const bVal = sortBy === "date" ? new Date(b.date) : b.respondentName;
+      const aVal = sortBy === "date" ? new Date(a.date) 
+        : sortBy === "cnum" ? a.cnum 
+        : a.respondentName;
+      const bVal = sortBy === "date" ? new Date(b.date) 
+        : sortBy === "cnum" ? b.cnum 
+        : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;
     });
 
-  const toggleSort = (field: "date" | "respondentName") => {
+  const toggleSort = (field: "date" | "respondentName" | "cnum") => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -308,7 +312,16 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px]">CNUM</TableHead>
+                <TableHead className="min-w-[100px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("cnum")}
+                    className="whitespace-nowrap"
+                  >
+                    CNUM
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
