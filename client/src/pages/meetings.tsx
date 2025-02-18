@@ -191,7 +191,7 @@ export default function Meetings() {
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
          meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
          meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
-        (!statusFilter || meeting.status === statusFilter)
+        (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date) : a.respondentName;
@@ -231,7 +231,7 @@ export default function Meetings() {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="ALL">All Statuses</SelectItem>
               {Object.values(MeetingStatus).map((status) => (
                 <SelectItem key={status} value={status}>
                   {status}

@@ -33,8 +33,8 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
       respondentName: initialData?.respondentName ?? "",
       cnum: initialData?.cnum ?? "",
       date: initialData 
-        ? new Date(initialData.date).toISOString().split("T")[0]
-        : new Date().toISOString().split("T")[0],
+        ? new Date(initialData.date).toISOString().slice(0, 10)
+        : new Date().toISOString().slice(0, 10),
       agenda: initialData?.agenda ?? "",
       status: initialData?.status as typeof MeetingStatus[keyof typeof MeetingStatus] ?? MeetingStatus.NEGOTIATION,
     },
@@ -78,15 +78,14 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
         <FormField
           control={form.control}
           name="date"
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Date</FormLabel>
               <FormControl>
                 <Input 
                   type="date" 
-                  {...field}
-                  value={value}
-                  onChange={e => onChange(e.target.value)}
+                  value={field.value}
+                  onChange={e => field.onChange(e.target.value)}
                   className="w-full" 
                 />
               </FormControl>

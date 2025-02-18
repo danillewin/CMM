@@ -23,7 +23,7 @@ export const meetings = pgTable("meetings", {
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
 }).extend({
-  date: z.string().transform(str => new Date(str)),
+  date: z.coerce.date(),
   cnum: z.string()
     .min(1, "CNUM is required")
     .transform(val => val.toUpperCase()),
