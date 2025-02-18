@@ -189,12 +189,13 @@ export default function Meetings() {
     .filter(
       (meeting) =>
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
+         meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
          meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
         (!statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
-      const aVal = sortBy === "date" ? a.date : a.respondentName;
-      const bVal = sortBy === "date" ? b.date : b.respondentName;
+      const aVal = sortBy === "date" ? new Date(a.date) : a.respondentName;
+      const bVal = sortBy === "date" ? new Date(b.date) : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;

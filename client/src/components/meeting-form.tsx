@@ -29,18 +29,15 @@ interface MeetingFormProps {
 export default function MeetingForm({ onSubmit, initialData, isLoading }: MeetingFormProps) {
   const form = useForm<InsertMeeting>({
     resolver: zodResolver(insertMeetingSchema),
-    defaultValues: initialData
-      ? {
-          ...initialData,
-          date: new Date(initialData.date).toISOString().split("T")[0],
-        }
-      : {
-          respondentName: "",
-          cnum: "",
-          date: new Date().toISOString().split("T")[0],
-          agenda: "",
-          status: MeetingStatus.NEGOTIATION,
-        },
+    defaultValues: {
+      respondentName: initialData?.respondentName ?? "",
+      cnum: initialData?.cnum ?? "",
+      date: initialData 
+        ? new Date(initialData.date).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      agenda: initialData?.agenda ?? "",
+      status: initialData?.status ?? MeetingStatus.NEGOTIATION,
+    },
   });
 
   return (
@@ -85,7 +82,11 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
             <FormItem>
               <FormLabel className="text-base">Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} className="w-full" />
+                <Input 
+                  type="date" 
+                  {...field}
+                  className="w-full" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
