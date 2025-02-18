@@ -14,7 +14,9 @@ export type MeetingStatusType = typeof MeetingStatus[keyof typeof MeetingStatus]
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
   respondentName: text("respondent_name").notNull(),
+  respondentPosition: text("respondent_position"),
   cnum: text("cnum").notNull(),
+  companyName: text("company_name"),
   date: timestamp("date").notNull(),
   agenda: text("agenda").notNull(),
   status: text("status").notNull().default(MeetingStatus.NEGOTIATION),
@@ -29,6 +31,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
     .transform(val => val.toUpperCase()),
   status: z.enum([MeetingStatus.NEGOTIATION, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.NEGOTIATION),
+  respondentPosition: z.string().optional(),
+  companyName: z.string().optional(),
 });
 
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;

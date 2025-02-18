@@ -31,7 +31,9 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
     resolver: zodResolver(insertMeetingSchema),
     defaultValues: {
       respondentName: initialData?.respondentName ?? "",
+      respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
+      companyName: initialData?.companyName ?? "",
       date: initialData 
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
@@ -59,6 +61,20 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
 
         <FormField
           control={form.control}
+          name="respondentPosition"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Respondent Position</FormLabel>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="cnum"
           render={({ field }) => (
             <FormItem>
@@ -69,6 +85,20 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
                   className="w-full uppercase"
                   onChange={e => field.onChange(e.target.value.toUpperCase())}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="companyName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Company Name</FormLabel>
+              <FormControl>
+                <Input {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>

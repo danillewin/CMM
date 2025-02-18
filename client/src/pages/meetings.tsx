@@ -159,7 +159,9 @@ export default function Meetings() {
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
-      'Status': meeting.status
+      'Status': meeting.status,
+      'Respondent Position': meeting.respondentPosition,
+      'Company Name': meeting.companyName
     }));
 
     const csvString = [
@@ -180,7 +182,9 @@ export default function Meetings() {
       'CNUM': meeting.cnum,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
-      'Status': meeting.status
+      'Status': meeting.status,
+      'Respondent Position': meeting.respondentPosition,
+      'Company Name': meeting.companyName
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -330,6 +334,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead className="min-w-[150px]">Respondent Position</TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
@@ -340,6 +345,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead className="min-w-[150px]">Company Name</TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
@@ -362,7 +368,9 @@ export default function Meetings() {
                     <StatusDot status={meeting.status} />
                   </TableCell>
                   <TableCell className="font-medium">{meeting.respondentName}</TableCell>
+                  <TableCell>{meeting.respondentPosition}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
+                  <TableCell>{meeting.companyName}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
