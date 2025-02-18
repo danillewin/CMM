@@ -6,7 +6,8 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ArrowUpDown } from "lucide-react";
+import { Plus, Search, ArrowUpDown, FileDown } from "lucide-react";
+import * as XLSX from 'xlsx';
 import {
   Table,
   TableBody,
@@ -109,6 +110,40 @@ export default function Meetings() {
     setPendingMeeting(null);
   };
 
+  const exportToCSV = () => {
+    const csvContent = filteredMeetings.map(meeting => ({
+      'Client Name': meeting.clientName,
+      'Company Name': meeting.companyName,
+      'Date': new Date(meeting.date).toLocaleDateString(),
+      'Agenda': meeting.agenda
+    }));
+
+    const csvString = [
+      Object.keys(csvContent[0]).join(','),
+      ...csvContent.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `meetings_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
+
+  const exportToExcel = () => {
+    const excelData = filteredMeetings.map(meeting => ({
+      'Client Name': meeting.clientName,
+      'Company Name': meeting.companyName,
+      'Date': new Date(meeting.date).toLocaleDateString(),
+      'Agenda': meeting.agenda
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Meetings');
+    XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const filteredMeetings = meetings
     .filter(
       (meeting) =>
@@ -119,7 +154,7 @@ export default function Meetings() {
     .sort((a, b) => {
       const aVal = sortBy === "date" ? a.date : a.clientName;
       const bVal = sortBy === "date" ? b.date : b.clientName;
-      return sortDir === "asc" 
+      return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;
     });
@@ -150,21 +185,41 @@ export default function Meetings() {
             className="w-full md:w-80"
           />
         </div>
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogTrigger asChild>
-            <Button className="w-full md:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              New Meeting
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                New Meeting
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[90vw] max-w-xl">
+              <MeetingForm
+                onSubmit={handleSubmit}
+                initialData={editMeeting}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={exportToCSV}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export CSV
             </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[90vw] max-w-xl">
-            <MeetingForm
-              onSubmit={handleSubmit}
-              initialData={editMeeting}
-              isLoading={createMutation.isPending || updateMutation.isPending}
-            />
-          </DialogContent>
-        </Dialog>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={exportToExcel}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
+        </div>
       </div>
 
       <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
