@@ -14,6 +14,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
 }).extend({
   date: z.string().transform(str => new Date(str)),
+  cnum: z.string().min(1, "CNUM is required")
 });
 
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
