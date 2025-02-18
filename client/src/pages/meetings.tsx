@@ -87,7 +87,7 @@ export default function Meetings() {
     }
 
     const duplicateMeeting = meetings.find(
-      m => m.respondentName === data.respondentName 
+      m => m.cnum === data.cnum
     );
 
     if (duplicateMeeting) {
@@ -224,9 +224,9 @@ export default function Meetings() {
       <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Duplicate Meeting Warning</AlertDialogTitle>
+            <AlertDialogTitle>Duplicate CNUM Warning</AlertDialogTitle>
             <AlertDialogDescription>
-              A meeting with this client name or company name already exists. Would you like to create it anyway?
+              A meeting with this CNUM already exists. Would you like to create it anyway?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
