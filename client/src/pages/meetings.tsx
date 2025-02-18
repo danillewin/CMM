@@ -40,9 +40,9 @@ import MeetingForm from "@/components/meeting-form";
 const getStatusColor = (status: string) => {
   switch (status) {
     case MeetingStatus.NEGOTIATION:
-      return "bg-blue-500";
-    case MeetingStatus.SET:
       return "bg-yellow-500";
+    case MeetingStatus.SET:
+      return "bg-blue-500";
     case MeetingStatus.DONE:
       return "bg-green-500";
     case MeetingStatus.DECLINED:
@@ -194,11 +194,11 @@ export default function Meetings() {
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter)
     )
     .sort((a, b) => {
-      const aVal = sortBy === "date" ? new Date(a.date) 
-        : sortBy === "cnum" ? a.cnum 
+      const aVal = sortBy === "date" ? new Date(a.date)
+        : sortBy === "cnum" ? a.cnum
         : a.respondentName;
-      const bVal = sortBy === "date" ? new Date(b.date) 
-        : sortBy === "cnum" ? b.cnum 
+      const bVal = sortBy === "date" ? new Date(b.date)
+        : sortBy === "cnum" ? b.cnum
         : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
