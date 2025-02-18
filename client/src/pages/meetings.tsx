@@ -160,7 +160,7 @@ export default function Meetings() {
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
       'Status': meeting.status,
-      'Respondent Position': meeting.respondentPosition,
+      'Position': meeting.respondentPosition,
       'Company Name': meeting.companyName
     }));
 
@@ -183,7 +183,7 @@ export default function Meetings() {
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
       'Status': meeting.status,
-      'Respondent Position': meeting.respondentPosition,
+      'Position': meeting.respondentPosition,
       'Company Name': meeting.companyName
     }));
 
@@ -344,7 +344,7 @@ export default function Meetings() {
                     onClick={() => toggleSort("respondentPosition")}
                     className="whitespace-nowrap"
                   >
-                    Respondent Position
+                    Position
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>

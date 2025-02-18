@@ -34,7 +34,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
       respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
       companyName: initialData?.companyName ?? "",
-      date: initialData 
+      date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
       agenda: initialData?.agenda ?? "",
@@ -64,7 +64,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           name="respondentPosition"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Respondent Position</FormLabel>
+              <FormLabel className="text-base">Position</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
@@ -80,8 +80,8 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
             <FormItem>
               <FormLabel className="text-base">CNUM</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
+                <Input
+                  {...field}
                   className="w-full uppercase"
                   onChange={e => field.onChange(e.target.value.toUpperCase())}
                 />
@@ -112,11 +112,11 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
             <FormItem>
               <FormLabel className="text-base">Date</FormLabel>
               <FormControl>
-                <Input 
-                  type="date" 
+                <Input
+                  type="date"
                   value={field.value}
                   onChange={e => field.onChange(e.target.value)}
-                  className="w-full" 
+                  className="w-full"
                 />
               </FormControl>
               <FormMessage />
@@ -163,9 +163,9 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           )}
         />
 
-        <Button 
-          type="submit" 
-          className="w-full mt-6" 
+        <Button
+          type="submit"
+          className="w-full mt-6"
           disabled={isLoading}
           size="lg"
         >
