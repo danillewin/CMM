@@ -221,7 +221,7 @@ export default function Meetings() {
         : aVal > bVal ? -1 : 1;
     });
 
-  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager") => {
+  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status") => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -331,7 +331,16 @@ export default function Meetings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[30px]"></TableHead>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("status")}
+                    className="whitespace-nowrap"
+                  >
+                    Status
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="w-[15%]">
                   <Button
                     variant="ghost"
@@ -393,25 +402,12 @@ export default function Meetings() {
                   </Button>
                 </TableHead>
                 <TableHead className="w-[15%]">Agenda</TableHead>
-                <TableHead className="w-[12%]">Status</TableHead>
                 <TableHead className="w-[10%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredMeetings.map((meeting) => (
                 <TableRow key={meeting.id}>
-                  <TableCell>
-                    <StatusDot status={meeting.status} />
-                  </TableCell>
-                  <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
-                  <TableCell>{meeting.cnum}</TableCell>
-                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
-                  <TableCell>
-                    {new Date(meeting.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
                     <Select
                       value={meeting.status}
@@ -439,6 +435,15 @@ export default function Meetings() {
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
+                  <TableCell>{meeting.cnum}</TableCell>
+                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
+                  <TableCell>
+                    {new Date(meeting.date).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
