@@ -16,9 +16,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Meeting } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -27,6 +42,13 @@ interface MeetingFormProps {
 }
 
 export default function MeetingForm({ onSubmit, initialData, isLoading }: MeetingFormProps) {
+  const { data: meetings = [] } = useQuery<Meeting[]>({
+    queryKey: ["/api/meetings"],
+  });
+
+  // Get unique agendas from existing meetings
+  const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
+
   const form = useForm<InsertMeeting>({
     resolver: zodResolver(insertMeetingSchema),
     defaultValues: {
@@ -130,9 +152,56 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Agenda</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-full justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value || "Select or enter agenda"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search agenda..."
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    />
+                    <CommandEmpty>
+                      No matching agenda found. Press enter to create new.
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {uniqueAgendas.map((agenda) => (
+                        <CommandItem
+                          value={agenda}
+                          key={agenda}
+                          onSelect={() => {
+                            form.setValue("agenda", agenda);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              agenda === field.value
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {agenda}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
