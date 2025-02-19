@@ -341,6 +341,26 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead className="w-[10%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("cnum")}
+                    className="whitespace-nowrap"
+                  >
+                    CNUM
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[15%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("companyName")}
+                    className="whitespace-nowrap"
+                  >
+                    Company Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="w-[15%]">
                   <Button
                     variant="ghost"
@@ -371,26 +391,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="w-[10%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("cnum")}
-                    className="whitespace-nowrap"
-                  >
-                    CNUM
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[15%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("companyName")}
-                    className="whitespace-nowrap"
-                  >
-                    Company Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
+                <TableHead className="w-[15%]">Agenda</TableHead>
                 <TableHead className="w-[10%]">
                   <Button
                     variant="ghost"
@@ -401,7 +402,6 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="w-[15%]">Agenda</TableHead>
                 <TableHead className="w-[10%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -417,7 +417,7 @@ export default function Meetings() {
                     >
                       <SelectTrigger className="w-[140px]">
                         <SelectValue>
-                          <div className="flex items-center">
+                          <div className="flex items-center whitespace-nowrap">
                             <StatusDot status={meeting.status} />
                             {meeting.status}
                           </div>
@@ -426,7 +426,7 @@ export default function Meetings() {
                       <SelectContent>
                         {Object.values(MeetingStatus).map((status) => (
                           <SelectItem key={status} value={status}>
-                            <div className="flex items-center">
+                            <div className="flex items-center whitespace-nowrap">
                               <StatusDot status={status} />
                               {status}
                             </div>
@@ -435,15 +435,15 @@ export default function Meetings() {
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  <TableCell>{meeting.cnum}</TableCell>
+                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
                   <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
                   <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
                   <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
-                  <TableCell>{meeting.cnum}</TableCell>
-                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
