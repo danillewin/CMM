@@ -17,18 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -47,9 +35,8 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
   });
-  const { managers, lastUsedManager, addManager } = useManagers();
+  const { lastUsedManager, addManager } = useManagers();
   const [agendaOpen, setAgendaOpen] = useState(false);
-  const [managerOpen, setManagerOpen] = useState(false);
 
   // Get unique agendas from existing meetings
   const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
@@ -258,57 +245,9 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Manager</FormLabel>
-              <Popover open={managerOpen} onOpenChange={setManagerOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value || "Select or enter manager"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search manager..."
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    />
-                    <CommandEmpty>
-                      No matching manager found. Press enter to create new.
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {managers.map((manager) => (
-                        <CommandItem
-                          value={manager}
-                          key={manager}
-                          onSelect={() => {
-                            form.setValue("manager", manager);
-                            setManagerOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              manager === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {manager}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
