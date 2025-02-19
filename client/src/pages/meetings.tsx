@@ -112,7 +112,13 @@ export default function Meetings() {
       const meeting = meetings.find(m => m.id === id);
       if (!meeting) return;
       const res = await apiRequest("PATCH", `/api/meetings/${id}`, {
-        ...meeting,
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        companyName: meeting.companyName,
+        manager: meeting.manager,
+        date: meeting.date,
+        agenda: meeting.agenda,
         status,
       });
       return res.json();
