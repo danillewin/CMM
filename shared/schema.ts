@@ -5,7 +5,7 @@ import { z } from "zod";
 export const MeetingStatus = {
   NEGOTIATION: "Negotiation",
   SET: "Meeting Set",
-  DONE: "Meeting Done",
+  DONE: "Done",
   DECLINED: "Declined",
 } as const;
 
