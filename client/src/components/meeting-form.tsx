@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema, type InsertMeeting, MeetingStatus } from "@shared/schema";
@@ -47,6 +48,8 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
     queryKey: ["/api/meetings"],
   });
   const { managers, lastUsedManager, addManager } = useManagers();
+  const [agendaOpen, setAgendaOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
 
   // Get unique agendas from existing meetings
   const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
@@ -162,7 +165,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Agenda</FormLabel>
-              <Popover>
+              <Popover open={agendaOpen} onOpenChange={setAgendaOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -195,6 +198,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
                           key={agenda}
                           onSelect={() => {
                             form.setValue("agenda", agenda);
+                            setAgendaOpen(false);
                           }}
                         >
                           <Check
@@ -223,7 +227,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Manager</FormLabel>
-              <Popover>
+              <Popover open={managerOpen} onOpenChange={setManagerOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -256,6 +260,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
                           key={manager}
                           onSelect={() => {
                             form.setValue("manager", manager);
+                            setManagerOpen(false);
                           }}
                         >
                           <Check
