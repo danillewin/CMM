@@ -18,7 +18,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { startOfMonth, subMonths, format, isWithinInterval } from "date-fns";
+import { startOfDay, subDays, format, isWithinInterval } from "date-fns";
 
 const COLORS = {
   [MeetingStatus.NEGOTIATION]: "#eab308", // yellow-500
@@ -38,16 +38,16 @@ export default function Dashboard() {
     value: meetings.filter((m) => m.status === status).length,
   }));
 
-  // Calculate meetings over time (last 6 months)
-  const last6Months = Array.from({ length: 6 }, (_, i) => {
-    const date = subMonths(new Date(), i);
-    const monthStart = startOfMonth(date);
-    const monthEnd = subMonths(startOfMonth(date), -1);
-    
+  // Calculate meetings over time (last 30 days)
+  const last30Days = Array.from({ length: 30 }, (_, i) => {
+    const date = subDays(new Date(), i);
+    const dayStart = startOfDay(date);
+    const dayEnd = subDays(startOfDay(date), -1);
+
     return {
-      name: format(date, 'MMM'),
+      name: format(date, 'MMM dd'),
       total: meetings.filter(m => 
-        isWithinInterval(new Date(m.date), { start: monthStart, end: monthEnd })
+        isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd })
       ).length,
     };
   }).reverse();
@@ -75,7 +75,7 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto px-4 py-6 md:py-10">
       <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Meetings by Status */}
         <Card>
@@ -97,7 +97,7 @@ export default function Dashboard() {
                     label={({ name, value }) => `${name}: ${value}`}
                   >
                     {meetingsByStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[entry.name as MeetingStatus]} />
+                      <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -111,13 +111,19 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Meetings Over Time</CardTitle>
-            <CardDescription>Number of meetings in the last 6 months</CardDescription>
+            <CardDescription>Number of meetings in the last 30 days</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={last6Months}>
-                  <XAxis dataKey="name" />
+                <BarChart data={last30Days}>
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={70}
+                    interval={4}
+                  />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
                   <Bar dataKey="total" fill="#3b82f6" />
@@ -171,11 +177,9 @@ export default function Dashboard() {
                       {new Date(meeting.date).toLocaleDateString()}
                     </div>
                     <div
-                      className={`text-sm font-medium ${
-                        COLORS[meeting.status as MeetingStatus]
-                          ? `text-[${COLORS[meeting.status as MeetingStatus]}]`
-                          : ""
-                      }`}
+                      className={`text-sm font-medium text-[${
+                        COLORS[meeting.status as keyof typeof MeetingStatus]
+                      }]`}
                     >
                       {meeting.status}
                     </div>
