@@ -346,246 +346,248 @@ export default function Meetings() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <TableHead className="min-w-[150px]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("respondentName")}
-                    className="whitespace-nowrap"
-                  >
-                    Respondent Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[150px]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("respondentPosition")}
-                    className="whitespace-nowrap"
-                  >
-                    Position
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[100px]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("cnum")}
-                    className="whitespace-nowrap"
-                  >
-                    CNUM
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[150px]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("companyName")}
-                    className="whitespace-nowrap"
-                  >
-                    Company Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[100px]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("date")}
-                    className="whitespace-nowrap"
-                  >
-                    Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="min-w-[200px]">Agenda</TableHead>
-                <TableHead className="min-w-[150px]">Status</TableHead>
-                <TableHead className="min-w-[160px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMeetings.map((meeting) => (
-                <TableRow key={meeting.id}>
-                  <TableCell>
-                    <StatusDot status={meeting.status} />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {editingCell?.id === meeting.id && editingCell.field === "respondentName" ? (
-                      <EditableCell
-                        value={meeting.respondentName}
-                        onSave={(value) =>
-                          updateFieldMutation.mutate({
-                            id: meeting.id,
-                            field: "respondentName",
-                            value,
-                          })
-                        }
-                        onCancel={() => setEditingCell(null)}
-                      />
-                    ) : (
-                      <div
-                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                        onClick={() =>
-                          setEditingCell({ id: meeting.id, field: "respondentName" })
-                        }
-                      >
-                        {meeting.respondentName}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editingCell?.id === meeting.id && editingCell.field === "respondentPosition" ? (
-                      <EditableCell
-                        value={meeting.respondentPosition || ""}
-                        onSave={(value) =>
-                          updateFieldMutation.mutate({
-                            id: meeting.id,
-                            field: "respondentPosition",
-                            value,
-                          })
-                        }
-                        onCancel={() => setEditingCell(null)}
-                      />
-                    ) : (
-                      <div
-                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                        onClick={() =>
-                          setEditingCell({ id: meeting.id, field: "respondentPosition" })
-                        }
-                      >
-                        {meeting.respondentPosition}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editingCell?.id === meeting.id && editingCell.field === "cnum" ? (
-                      <EditableCell
-                        value={meeting.cnum}
-                        onSave={(value) =>
-                          updateFieldMutation.mutate({
-                            id: meeting.id,
-                            field: "cnum",
-                            value: value.toUpperCase(),
-                          })
-                        }
-                        onCancel={() => setEditingCell(null)}
-                      />
-                    ) : (
-                      <div
-                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                        onClick={() => setEditingCell({ id: meeting.id, field: "cnum" })}
-                      >
-                        {meeting.cnum}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {editingCell?.id === meeting.id && editingCell.field === "companyName" ? (
-                      <EditableCell
-                        value={meeting.companyName || ""}
-                        onSave={(value) =>
-                          updateFieldMutation.mutate({
-                            id: meeting.id,
-                            field: "companyName",
-                            value,
-                          })
-                        }
-                        onCancel={() => setEditingCell(null)}
-                      />
-                    ) : (
-                      <div
-                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                        onClick={() =>
-                          setEditingCell({ id: meeting.id, field: "companyName" })
-                        }
-                      >
-                        {meeting.companyName}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(meeting.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="max-w-[300px] truncate">
-                    {editingCell?.id === meeting.id && editingCell.field === "agenda" ? (
-                      <EditableCell
-                        value={meeting.agenda}
-                        onSave={(value) =>
-                          updateFieldMutation.mutate({
-                            id: meeting.id,
-                            field: "agenda",
-                            value,
-                          })
-                        }
-                        onCancel={() => setEditingCell(null)}
-                      />
-                    ) : (
-                      <div
-                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
-                        onClick={() => setEditingCell({ id: meeting.id, field: "agenda" })}
-                      >
-                        {meeting.agenda}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={meeting.status}
-                      onValueChange={(value) =>
-                        updateStatusMutation.mutate({ id: meeting.id, status: value })
-                      }
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead className="min-w-[150px]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("respondentName")}
+                      className="whitespace-nowrap"
                     >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue>
-                          <div className="flex items-center">
-                            <StatusDot status={meeting.status} />
-                            {meeting.status}
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(MeetingStatus).map((status) => (
-                          <SelectItem key={status} value={status}>
-                            <div className="flex items-center">
-                              <StatusDot status={status} />
-                              {status}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full sm:w-auto"
-                        onClick={() => {
-                          setEditMeeting(meeting);
-                          setShowForm(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="w-full sm:w-auto"
-                        onClick={() => deleteMutation.mutate(meeting.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
+                      Respondent Name
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[150px]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("respondentPosition")}
+                      className="whitespace-nowrap"
+                    >
+                      Position
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[100px]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("cnum")}
+                      className="whitespace-nowrap"
+                    >
+                      CNUM
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[150px]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("companyName")}
+                      className="whitespace-nowrap"
+                    >
+                      Company Name
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[100px]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("date")}
+                      className="whitespace-nowrap"
+                    >
+                      Date
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="min-w-[200px]">Agenda</TableHead>
+                  <TableHead className="min-w-[150px]">Status</TableHead>
+                  <TableHead className="min-w-[160px]">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredMeetings.map((meeting) => (
+                  <TableRow key={meeting.id}>
+                    <TableCell>
+                      <StatusDot status={meeting.status} />
+                    </TableCell>
+                    <TableCell className="font-medium min-w-[150px] p-4">
+                      {editingCell?.id === meeting.id && editingCell.field === "respondentName" ? (
+                        <EditableCell
+                          value={meeting.respondentName}
+                          onSave={(value) =>
+                            updateFieldMutation.mutate({
+                              id: meeting.id,
+                              field: "respondentName",
+                              value,
+                            })
+                          }
+                          onCancel={() => setEditingCell(null)}
+                        />
+                      ) : (
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded px-3 py-2 touch-manipulation"
+                          onClick={() =>
+                            setEditingCell({ id: meeting.id, field: "respondentName" })
+                          }
+                        >
+                          {meeting.respondentName}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-[150px] p-4">
+                      {editingCell?.id === meeting.id && editingCell.field === "respondentPosition" ? (
+                        <EditableCell
+                          value={meeting.respondentPosition || ""}
+                          onSave={(value) =>
+                            updateFieldMutation.mutate({
+                              id: meeting.id,
+                              field: "respondentPosition",
+                              value,
+                            })
+                          }
+                          onCancel={() => setEditingCell(null)}
+                        />
+                      ) : (
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded px-3 py-2 touch-manipulation"
+                          onClick={() =>
+                            setEditingCell({ id: meeting.id, field: "respondentPosition" })
+                          }
+                        >
+                          {meeting.respondentPosition}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-[100px] p-4">
+                      {editingCell?.id === meeting.id && editingCell.field === "cnum" ? (
+                        <EditableCell
+                          value={meeting.cnum}
+                          onSave={(value) =>
+                            updateFieldMutation.mutate({
+                              id: meeting.id,
+                              field: "cnum",
+                              value: value.toUpperCase(),
+                            })
+                          }
+                          onCancel={() => setEditingCell(null)}
+                        />
+                      ) : (
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded px-3 py-2 touch-manipulation"
+                          onClick={() => setEditingCell({ id: meeting.id, field: "cnum" })}
+                        >
+                          {meeting.cnum}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-[150px] p-4">
+                      {editingCell?.id === meeting.id && editingCell.field === "companyName" ? (
+                        <EditableCell
+                          value={meeting.companyName || ""}
+                          onSave={(value) =>
+                            updateFieldMutation.mutate({
+                              id: meeting.id,
+                              field: "companyName",
+                              value,
+                            })
+                          }
+                          onCancel={() => setEditingCell(null)}
+                        />
+                      ) : (
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded px-3 py-2 touch-manipulation"
+                          onClick={() =>
+                            setEditingCell({ id: meeting.id, field: "companyName" })
+                          }
+                        >
+                          {meeting.companyName}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-[100px] p-4">
+                      {new Date(meeting.date).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="max-w-[300px] truncate min-w-[200px] p-4">
+                      {editingCell?.id === meeting.id && editingCell.field === "agenda" ? (
+                        <EditableCell
+                          value={meeting.agenda}
+                          onSave={(value) =>
+                            updateFieldMutation.mutate({
+                              id: meeting.id,
+                              field: "agenda",
+                              value,
+                            })
+                          }
+                          onCancel={() => setEditingCell(null)}
+                        />
+                      ) : (
+                        <div
+                          className="cursor-pointer hover:bg-gray-100 rounded px-3 py-2 touch-manipulation"
+                          onClick={() => setEditingCell({ id: meeting.id, field: "agenda" })}
+                        >
+                          {meeting.agenda}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="min-w-[150px] p-4">
+                      <Select
+                        value={meeting.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({ id: meeting.id, status: value })
+                        }
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue>
+                            <div className="flex items-center">
+                              <StatusDot status={meeting.status} />
+                              {meeting.status}
+                            </div>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(MeetingStatus).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              <div className="flex items-center">
+                                <StatusDot status={status} />
+                                {status}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="min-w-[160px] p-4">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          onClick={() => {
+                            setEditMeeting(meeting);
+                            setShowForm(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          onClick={() => deleteMutation.mutate(meeting.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

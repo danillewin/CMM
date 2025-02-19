@@ -26,30 +26,32 @@ export function EditableCell({ value, onSave, onCancel }: EditableCellProps) {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full max-w-[300px]">
       <Input
         ref={inputRef}
         value={editedValue}
         onChange={(e) => setEditedValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="h-8"
+        className="h-9 w-full min-w-[120px]"
       />
-      <div className="flex gap-1">
+      <div className="flex gap-1 w-full sm:w-auto">
         <Button
           size="sm"
-          variant="ghost"
-          className="h-8 w-8 p-0"
+          variant="secondary"
+          className="flex-1 sm:flex-initial h-9 px-3"
           onClick={() => onSave(editedValue)}
         >
-          <CheckIcon className="h-4 w-4" />
+          <CheckIcon className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Save</span>
         </Button>
         <Button
           size="sm"
           variant="ghost"
-          className="h-8 w-8 p-0"
+          className="flex-1 sm:flex-initial h-9 px-3"
           onClick={onCancel}
         >
-          <XIcon className="h-4 w-4" />
+          <XIcon className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Cancel</span>
         </Button>
       </div>
     </div>
