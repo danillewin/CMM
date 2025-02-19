@@ -17,6 +17,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend,
 } from "recharts";
 import { startOfDay, subDays, format, isWithinInterval } from "date-fns";
 
@@ -44,24 +45,43 @@ export default function Dashboard() {
     const dayStart = startOfDay(date);
     const dayEnd = subDays(startOfDay(date), -1);
 
-    return {
+    const dayData = {
       name: format(date, 'MMM dd'),
-      total: meetings.filter(m => 
-        isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd })
-      ).length,
     };
+
+    // Add count for each status
+    Object.values(MeetingStatus).forEach(status => {
+      dayData[status] = meetings.filter(m => 
+        isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
+        m.status === status
+      ).length;
+    });
+
+    return dayData;
   }).reverse();
 
-  // Calculate top managers
+  // Calculate top managers with status breakdown
   const managerMeetings = meetings.reduce((acc, meeting) => {
-    acc[meeting.manager] = (acc[meeting.manager] || 0) + 1;
+    if (!acc[meeting.manager]) {
+      acc[meeting.manager] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
+        statusAcc[status] = 0;
+        return statusAcc;
+      }, {});
+    }
+    acc[meeting.manager][meeting.status]++;
     return acc;
-  }, {} as Record<string, number>);
+  }, {} as Record<string, Record<string, number>>);
 
   const topManagers = Object.entries(managerMeetings)
-    .sort(([, a], [, b]) => b - a)
+    .sort(([, a], [, b]) => 
+      Object.values(b).reduce((sum, val) => sum + val, 0) - 
+      Object.values(a).reduce((sum, val) => sum + val, 0)
+    )
     .slice(0, 5)
-    .map(([name, value]) => ({ name, value }));
+    .map(([name, statusCounts]) => ({
+      name,
+      ...statusCounts,
+    }));
 
   // Get recent meetings
   const recentMeetings = [...meetings]
@@ -111,7 +131,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Meetings Over Time</CardTitle>
-            <CardDescription>Number of meetings in the last 30 days</CardDescription>
+            <CardDescription>Number of meetings in the last 30 days by status</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -126,7 +146,16 @@ export default function Dashboard() {
                   />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
-                  <Bar dataKey="total" fill="#3b82f6" />
+                  <Legend />
+                  {Object.entries(MeetingStatus).map(([key, status]) => (
+                    <Bar 
+                      key={status}
+                      dataKey={status}
+                      stackId="status"
+                      fill={COLORS[status as keyof typeof MeetingStatus]}
+                      name={status}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -137,7 +166,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Top Managers</CardTitle>
-            <CardDescription>Managers with the most meetings</CardDescription>
+            <CardDescription>Managers with the most meetings by status</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -146,7 +175,16 @@ export default function Dashboard() {
                   <XAxis type="number" />
                   <YAxis dataKey="name" type="category" width={100} />
                   <Tooltip />
-                  <Bar dataKey="value" fill="#22c55e" />
+                  <Legend />
+                  {Object.entries(MeetingStatus).map(([key, status]) => (
+                    <Bar 
+                      key={status}
+                      dataKey={status}
+                      stackId="status"
+                      fill={COLORS[status as keyof typeof MeetingStatus]}
+                      name={status}
+                    />
+                  ))}
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -177,9 +215,8 @@ export default function Dashboard() {
                       {new Date(meeting.date).toLocaleDateString()}
                     </div>
                     <div
-                      className={`text-sm font-medium text-[${
-                        COLORS[meeting.status as keyof typeof MeetingStatus]
-                      }]`}
+                      style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
+                      className="text-sm font-medium"
                     >
                       {meeting.status}
                     </div>
