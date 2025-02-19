@@ -34,6 +34,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
     .default(MeetingStatus.NEGOTIATION),
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
+  manager: z.string().min(1, "Manager is required"),
+  agenda: z.string().min(1, "Agenda is required"),
 });
 
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
