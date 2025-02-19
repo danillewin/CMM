@@ -59,7 +59,7 @@ const StatusDot = ({ status }: { status: string }) => (
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -214,17 +214,19 @@ export default function Meetings() {
         : sortBy === "cnum" ? a.cnum
         : sortBy === "respondentPosition" ? (a.respondentPosition || "")
         : sortBy === "companyName" ? (a.companyName || "")
-        : sortBy === "manager" ? (a.manager || "")
+        : sortBy === "manager" ? a.manager
+        : sortBy === "status" ? a.status
         : a.respondentName;
       const bVal = sortBy === "date" ? new Date(b.date)
         : sortBy === "cnum" ? b.cnum
         : sortBy === "respondentPosition" ? (b.respondentPosition || "")
         : sortBy === "companyName" ? (b.companyName || "")
-        : sortBy === "manager" ? (a.manager || "")
+        : sortBy === "manager" ? b.manager
+        : sortBy === "status" ? b.status
         : b.respondentName;
       return sortDir === "asc"
-        ? aVal < bVal ? -1 : 1
-        : aVal > bVal ? -1 : 1;
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
     });
 
   const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status") => {
