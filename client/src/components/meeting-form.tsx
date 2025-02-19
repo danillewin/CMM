@@ -80,65 +80,69 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-4 p-4">
-        <FormField
-          control={form.control}
-          name="respondentName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Respondent Name</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="respondentName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Respondent Name</FormLabel>
+                <FormControl>
+                  <Input {...field} className="w-full" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="respondentPosition"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Position</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="respondentPosition"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Position</FormLabel>
+                <FormControl>
+                  <Input {...field} className="w-full" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <FormField
-          control={form.control}
-          name="cnum"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">CNUM</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  className="w-full uppercase"
-                  onChange={e => field.onChange(e.target.value.toUpperCase())}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="cnum"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">CNUM</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    className="w-full uppercase"
+                    onChange={e => field.onChange(e.target.value.toUpperCase())}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="companyName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Company Name</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="companyName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Company Name</FormLabel>
+                <FormControl>
+                  <Input {...field} className="w-full" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
