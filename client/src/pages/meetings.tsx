@@ -331,8 +331,8 @@ export default function Meetings() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <TableHead className="min-w-[150px]">
+                <TableHead className="w-[30px]"></TableHead>
+                <TableHead className="w-[15%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("respondentName")}
@@ -342,7 +342,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">
+                <TableHead className="w-[12%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("respondentPosition")}
@@ -352,7 +352,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">
+                <TableHead className="w-[12%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("manager")}
@@ -362,7 +362,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px]">
+                <TableHead className="w-[10%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("cnum")}
@@ -372,7 +372,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[150px]">
+                <TableHead className="w-[15%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("companyName")}
@@ -382,7 +382,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[100px]">
+                <TableHead className="w-[10%]">
                   <Button
                     variant="ghost"
                     onClick={() => toggleSort("date")}
@@ -392,9 +392,9 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="min-w-[200px]">Agenda</TableHead>
-                <TableHead className="min-w-[150px]">Status</TableHead>
-                <TableHead className="min-w-[160px]">Actions</TableHead>
+                <TableHead className="w-[15%]">Agenda</TableHead>
+                <TableHead className="w-[12%]">Status</TableHead>
+                <TableHead className="w-[10%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -403,15 +403,15 @@ export default function Meetings() {
                   <TableCell>
                     <StatusDot status={meeting.status} />
                   </TableCell>
-                  <TableCell className="font-medium">{meeting.respondentName}</TableCell>
-                  <TableCell>{meeting.respondentPosition}</TableCell>
-                  <TableCell>{meeting.manager}</TableCell>
+                  <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
-                  <TableCell>{meeting.companyName}</TableCell>
+                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="max-w-[300px] truncate">{meeting.agenda}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
                   <TableCell>
                     <Select
                       value={meeting.status}
@@ -419,7 +419,7 @@ export default function Meetings() {
                         updateStatusMutation.mutate({ id: meeting.id, status: value })
                       }
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-[140px]">
                         <SelectValue>
                           <div className="flex items-center">
                             <StatusDot status={meeting.status} />
@@ -440,11 +440,10 @@ export default function Meetings() {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full sm:w-auto"
                         onClick={() => {
                           setEditMeeting(meeting);
                           setShowForm(true);
@@ -455,7 +454,6 @@ export default function Meetings() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="w-full sm:w-auto"
                         onClick={() => deleteMutation.mutate(meeting.id)}
                       >
                         Delete
