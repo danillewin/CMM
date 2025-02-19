@@ -117,7 +117,7 @@ export default function Meetings() {
         cnum: meeting.cnum,
         companyName: meeting.companyName,
         manager: meeting.manager,
-        date: meeting.date,
+        date: new Date(meeting.date),
         agenda: meeting.agenda,
         status,
       });
