@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+import { EditableCell } from "@/components/editable-cell";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -56,6 +57,11 @@ const StatusDot = ({ status }: { status: string }) => (
   <div className={`w-2 h-2 rounded-full ${getStatusColor(status)} inline-block mr-2`} />
 );
 
+type EditingCell = {
+  id: number;
+  field: keyof Meeting;
+} | null;
+
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
@@ -65,6 +71,7 @@ export default function Meetings() {
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
   const [pendingMeeting, setPendingMeeting] = useState<Omit<Meeting, "id"> | null>(null);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [editingCell, setEditingCell] = useState<EditingCell>(null);
   const { toast } = useToast();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
@@ -120,6 +127,23 @@ export default function Meetings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       toast({ title: "Meeting status updated successfully" });
+    },
+  });
+
+  const updateFieldMutation = useMutation({
+    mutationFn: async ({ id, field, value }: { id: number; field: keyof Meeting; value: string }) => {
+      const meeting = meetings.find(m => m.id === id);
+      if (!meeting) return;
+      const res = await apiRequest("PATCH", `/api/meetings/${id}`, {
+        ...meeting,
+        [field]: value,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      setEditingCell(null);
+      toast({ title: "Meeting updated successfully" });
     },
   });
 
@@ -389,14 +413,125 @@ export default function Meetings() {
                   <TableCell>
                     <StatusDot status={meeting.status} />
                   </TableCell>
-                  <TableCell className="font-medium">{meeting.respondentName}</TableCell>
-                  <TableCell>{meeting.respondentPosition}</TableCell>
-                  <TableCell>{meeting.cnum}</TableCell>
-                  <TableCell>{meeting.companyName}</TableCell>
+                  <TableCell className="font-medium">
+                    {editingCell?.id === meeting.id && editingCell.field === "respondentName" ? (
+                      <EditableCell
+                        value={meeting.respondentName}
+                        onSave={(value) =>
+                          updateFieldMutation.mutate({
+                            id: meeting.id,
+                            field: "respondentName",
+                            value,
+                          })
+                        }
+                        onCancel={() => setEditingCell(null)}
+                      />
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                        onClick={() =>
+                          setEditingCell({ id: meeting.id, field: "respondentName" })
+                        }
+                      >
+                        {meeting.respondentName}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingCell?.id === meeting.id && editingCell.field === "respondentPosition" ? (
+                      <EditableCell
+                        value={meeting.respondentPosition || ""}
+                        onSave={(value) =>
+                          updateFieldMutation.mutate({
+                            id: meeting.id,
+                            field: "respondentPosition",
+                            value,
+                          })
+                        }
+                        onCancel={() => setEditingCell(null)}
+                      />
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                        onClick={() =>
+                          setEditingCell({ id: meeting.id, field: "respondentPosition" })
+                        }
+                      >
+                        {meeting.respondentPosition}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingCell?.id === meeting.id && editingCell.field === "cnum" ? (
+                      <EditableCell
+                        value={meeting.cnum}
+                        onSave={(value) =>
+                          updateFieldMutation.mutate({
+                            id: meeting.id,
+                            field: "cnum",
+                            value: value.toUpperCase(),
+                          })
+                        }
+                        onCancel={() => setEditingCell(null)}
+                      />
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                        onClick={() => setEditingCell({ id: meeting.id, field: "cnum" })}
+                      >
+                        {meeting.cnum}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {editingCell?.id === meeting.id && editingCell.field === "companyName" ? (
+                      <EditableCell
+                        value={meeting.companyName || ""}
+                        onSave={(value) =>
+                          updateFieldMutation.mutate({
+                            id: meeting.id,
+                            field: "companyName",
+                            value,
+                          })
+                        }
+                        onCancel={() => setEditingCell(null)}
+                      />
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                        onClick={() =>
+                          setEditingCell({ id: meeting.id, field: "companyName" })
+                        }
+                      >
+                        {meeting.companyName}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="max-w-[300px] truncate">{meeting.agenda}</TableCell>
+                  <TableCell className="max-w-[300px] truncate">
+                    {editingCell?.id === meeting.id && editingCell.field === "agenda" ? (
+                      <EditableCell
+                        value={meeting.agenda}
+                        onSave={(value) =>
+                          updateFieldMutation.mutate({
+                            id: meeting.id,
+                            field: "agenda",
+                            value,
+                          })
+                        }
+                        onCancel={() => setEditingCell(null)}
+                      />
+                    ) : (
+                      <div
+                        className="cursor-pointer hover:bg-gray-100 p-1 rounded"
+                        onClick={() => setEditingCell({ id: meeting.id, field: "agenda" })}
+                      >
+                        {meeting.agenda}
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Select
                       value={meeting.status}
