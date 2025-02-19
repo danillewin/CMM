@@ -59,7 +59,7 @@ const StatusDot = ({ status }: { status: string }) => (
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -156,12 +156,13 @@ export default function Meetings() {
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
       'Respondent Name': meeting.respondentName,
+      'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
+      'Company Name': meeting.companyName,
+      'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
       'Status': meeting.status,
-      'Position': meeting.respondentPosition,
-      'Company Name': meeting.companyName
     }));
 
     const csvString = [
@@ -179,12 +180,13 @@ export default function Meetings() {
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
       'Respondent Name': meeting.respondentName,
+      'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
+      'Company Name': meeting.companyName,
+      'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Agenda': meeting.agenda,
       'Status': meeting.status,
-      'Position': meeting.respondentPosition,
-      'Company Name': meeting.companyName
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -206,18 +208,20 @@ export default function Meetings() {
         : sortBy === "cnum" ? a.cnum
         : sortBy === "respondentPosition" ? (a.respondentPosition || "")
         : sortBy === "companyName" ? (a.companyName || "")
+        : sortBy === "manager" ? (a.manager || "")
         : a.respondentName;
       const bVal = sortBy === "date" ? new Date(b.date)
         : sortBy === "cnum" ? b.cnum
         : sortBy === "respondentPosition" ? (b.respondentPosition || "")
         : sortBy === "companyName" ? (b.companyName || "")
+        : sortBy === "manager" ? (a.manager || "")
         : b.respondentName;
       return sortDir === "asc"
         ? aVal < bVal ? -1 : 1
         : aVal > bVal ? -1 : 1;
     });
 
-  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName") => {
+  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager") => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -348,6 +352,16 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
+                <TableHead className="min-w-[150px]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("manager")}
+                    className="whitespace-nowrap"
+                  >
+                    Manager
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="min-w-[100px]">
                   <Button
                     variant="ghost"
@@ -391,6 +405,7 @@ export default function Meetings() {
                   </TableCell>
                   <TableCell className="font-medium">{meeting.respondentName}</TableCell>
                   <TableCell>{meeting.respondentPosition}</TableCell>
+                  <TableCell>{meeting.manager}</TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
                   <TableCell>{meeting.companyName}</TableCell>
                   <TableCell>

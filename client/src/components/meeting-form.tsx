@@ -34,6 +34,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Meeting } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
+import { useManagers } from "@/hooks/use-managers";
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -45,6 +46,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
   });
+  const { managers, addManager } = useManagers();
 
   // Get unique agendas from existing meetings
   const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
@@ -56,6 +58,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
       respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
       companyName: initialData?.companyName ?? "",
+      manager: initialData?.manager ?? "",
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
@@ -64,9 +67,16 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
     },
   });
 
+  const onSubmitWrapper = (data: InsertMeeting) => {
+    if (data.manager) {
+      addManager(data.manager);
+    }
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+      <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-4 p-4">
         <FormField
           control={form.control}
           name="respondentName"
@@ -196,6 +206,67 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
                             )}
                           />
                           {agenda}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="manager"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Manager</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-full justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value || "Select or enter manager"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search manager..."
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    />
+                    <CommandEmpty>
+                      No matching manager found. Press enter to create new.
+                    </CommandEmpty>
+                    <CommandGroup>
+                      {managers.map((manager) => (
+                        <CommandItem
+                          value={manager}
+                          key={manager}
+                          onSelect={() => {
+                            form.setValue("manager", manager);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              manager === field.value
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {manager}
                         </CommandItem>
                       ))}
                     </CommandGroup>
