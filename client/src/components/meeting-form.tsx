@@ -46,7 +46,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
   });
-  const { managers, addManager } = useManagers();
+  const { managers, lastUsedManager, addManager } = useManagers();
 
   // Get unique agendas from existing meetings
   const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
@@ -58,7 +58,7 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
       respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
       companyName: initialData?.companyName ?? "",
-      manager: initialData?.manager ?? "",
+      manager: initialData?.manager ?? (!initialData ? lastUsedManager : ""),
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
