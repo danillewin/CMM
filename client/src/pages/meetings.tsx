@@ -439,9 +439,14 @@ export default function Meetings() {
                       onValueChange={(value) =>
                         updateStatusMutation.mutate({ id: meeting.id, status: value })
                       }
+                      onClick={(e) => e.stopPropagation()}
                       onOpenChange={(open) => {
                         if (open) {
-                          event?.stopPropagation();
+                          // Use the correct event parameter
+                          const e = window.event;
+                          if (e) {
+                            e.stopPropagation();
+                          }
                         }
                       }}
                     >
