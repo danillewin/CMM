@@ -238,6 +238,11 @@ export default function Meetings() {
     }
   };
 
+  const handleRowClick = (meeting: Meeting) => {
+    setEditMeeting(meeting);
+    setShowForm(true);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -295,6 +300,15 @@ export default function Meetings() {
                 onSubmit={handleSubmit}
                 initialData={editMeeting}
                 isLoading={createMutation.isPending || updateMutation.isPending}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditMeeting(null);
+                }}
+                onDelete={editMeeting ? () => {
+                  deleteMutation.mutate(editMeeting.id);
+                  setShowForm(false);
+                  setEditMeeting(null);
+                } : undefined}
               />
             </DialogContent>
           </Dialog>
@@ -410,18 +424,26 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="w-[10%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredMeetings.map((meeting) => (
-                <TableRow key={meeting.id}>
+                <TableRow
+                  key={meeting.id}
+                  className="cursor-pointer hover:bg-accent/50"
+                  onClick={() => handleRowClick(meeting)}
+                >
                   <TableCell>
                     <Select
                       value={meeting.status}
                       onValueChange={(value) =>
                         updateStatusMutation.mutate({ id: meeting.id, status: value })
                       }
+                      onOpenChange={(open) => {
+                        if (open) {
+                          event?.stopPropagation();
+                        }
+                      }}
                     >
                       <SelectTrigger className="w-[140px]">
                         <SelectValue>
@@ -452,27 +474,7 @@ export default function Meetings() {
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditMeeting(meeting);
-                          setShowForm(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteMutation.mutate(meeting.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
+                  {/*Removed Actions column*/}
                 </TableRow>
               ))}
             </TableBody>

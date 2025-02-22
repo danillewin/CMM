@@ -41,9 +41,17 @@ interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
   initialData?: Meeting | null;
   isLoading?: boolean;
+  onCancel?: () => void;
+  onDelete?: () => void;
 }
 
-export default function MeetingForm({ onSubmit, initialData, isLoading }: MeetingFormProps) {
+export default function MeetingForm({ 
+  onSubmit, 
+  initialData, 
+  isLoading,
+  onCancel,
+  onDelete 
+}: MeetingFormProps) {
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
   });
@@ -265,14 +273,38 @@ export default function MeetingForm({ onSubmit, initialData, isLoading }: Meetin
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full mt-6"
-          disabled={isLoading}
-          size="lg"
-        >
-          {isLoading ? "Saving..." : "Save Meeting"}
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 mt-6">
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={isLoading}
+            size="lg"
+          >
+            {isLoading ? "Saving..." : "Save Meeting"}
+          </Button>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCancel}
+              size="lg"
+            >
+              Cancel
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              onClick={onDelete}
+              size="lg"
+            >
+              Delete Meeting
+            </Button>
+          )}
+        </div>
       </form>
     </Form>
   );
