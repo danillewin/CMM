@@ -434,41 +434,36 @@ export default function Meetings() {
                   onClick={() => handleRowClick(meeting)}
                 >
                   <TableCell>
-                    <Select
-                      value={meeting.status}
-                      onValueChange={(value) =>
-                        updateStatusMutation.mutate({ id: meeting.id, status: value })
-                      }
-                      onClick={(e) => e.stopPropagation()}
-                      onOpenChange={(open) => {
-                        if (open) {
-                          // Use the correct event parameter
-                          const e = window.event;
-                          if (e) {
-                            e.stopPropagation();
-                          }
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={meeting.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({ id: meeting.id, status: value })
                         }
-                      }}
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue>
-                          <div className="flex items-center whitespace-nowrap">
-                            <StatusDot status={meeting.status} />
-                            {meeting.status}
-                          </div>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(MeetingStatus).map((status) => (
-                          <SelectItem key={status} value={status}>
+                      >
+                        <SelectTrigger
+                          className="w-[140px]"
+                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        >
+                          <SelectValue>
                             <div className="flex items-center whitespace-nowrap">
-                              <StatusDot status={status} />
-                              {status}
+                              <StatusDot status={meeting.status} />
+                              {meeting.status}
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(MeetingStatus).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              <div className="flex items-center whitespace-nowrap">
+                                <StatusDot status={status} />
+                                {status}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </TableCell>
                   <TableCell>{meeting.cnum}</TableCell>
                   <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
