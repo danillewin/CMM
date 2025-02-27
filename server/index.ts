@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import path from "path";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
@@ -59,10 +61,24 @@ app.use((req, res, next) => {
       throw new Error("DATABASE_URL environment variable is not set");
     }
 
+    // Log presence of database environment variables (without exposing values)
+    const dbEnvVars = ['PGHOST', 'PGDATABASE', 'PGUSER', 'PGPASSWORD', 'PGPORT'];
+    const missingVars = dbEnvVars.filter(v => !process.env[v]);
+    if (missingVars.length > 0) {
+      log(`Warning: Missing database environment variables: ${missingVars.join(', ')}`);
+    } else {
+      log("All required database environment variables are present");
+    }
+
     log("Testing database connection...");
-    // Test query to verify database connection
-    await pool.query('SELECT 1');
-    log("Database connection successful");
+    try {
+      // Test query to verify database connection
+      await pool.query('SELECT 1');
+      log("Database connection successful");
+    } catch (dbError) {
+      log(`Database connection test failed: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+      throw dbError;
+    }
 
     log("Setting up routes...");
     const server = registerRoutes(app);
@@ -80,25 +96,16 @@ app.use((req, res, next) => {
       });
     });
 
-    // Setup vite only in development
-    const env = app.get("env");
-    log(`Current environment: ${env}`);
-
-    if (env === "development") {
-      log("Setting up Vite development server...");
-      await setupVite(app, server);
-      log("Vite setup complete");
-    } else {
-      log("Setting up static file serving...");
-      serveStatic(app);
-      log("Static file serving setup complete");
-    }
+    // Force production mode temporarily to bypass Vite
+    log("Setting up static file serving...");
+    serveStatic(app);
+    log("Static file serving setup complete");
 
     // ALWAYS serve the app on port 5000
     const PORT = 5000;
     server.listen(PORT, "0.0.0.0", () => {
       log(`Server is running on port ${PORT}`);
-      log(`Environment: ${env}`);
+      log("Environment: production");
     });
   } catch (error) {
     log(`Failed to start server: ${error instanceof Error ? error.message : String(error)}`);
