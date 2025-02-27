@@ -69,7 +69,6 @@ export default function Meetings() {
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
-    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   const createMutation = useMutation({
