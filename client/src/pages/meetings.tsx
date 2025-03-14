@@ -413,7 +413,7 @@ export default function Meetings() {
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="w-[15%]">Agenda</TableHead>
+                <TableHead className="w-[15%]">Research</TableHead>
                 <TableHead className="w-[10%]">
                   <Button
                     variant="ghost"

@@ -45,21 +45,21 @@ interface MeetingFormProps {
   onDelete?: () => void;
 }
 
-export default function MeetingForm({ 
-  onSubmit, 
-  initialData, 
+export default function MeetingForm({
+  onSubmit,
+  initialData,
   isLoading,
   onCancel,
-  onDelete 
+  onDelete
 }: MeetingFormProps) {
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
   });
   const { lastUsedManager, addManager } = useManagers();
-  const [agendaOpen, setAgendaOpen] = useState(false);
+  const [researchOpen, setResearchOpen] = useState(false);
 
-  // Get unique agendas from existing meetings
-  const uniqueAgendas = Array.from(new Set(meetings.map(m => m.agenda)));
+  // Get unique research entries from existing meetings
+  const uniqueResearch = Array.from(new Set(meetings.map(m => m.research)));
 
   const form = useForm<InsertMeeting>({
     resolver: zodResolver(insertMeetingSchema),
@@ -72,7 +72,7 @@ export default function MeetingForm({
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-      agenda: initialData?.agenda ?? "",
+      research: initialData?.research ?? "",
       status: initialData?.status as typeof MeetingStatus[keyof typeof MeetingStatus] ?? MeetingStatus.NEGOTIATION,
     },
   });
@@ -199,11 +199,11 @@ export default function MeetingForm({
 
         <FormField
           control={form.control}
-          name="agenda"
+          name="research"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Agenda</FormLabel>
-              <Popover open={agendaOpen} onOpenChange={setAgendaOpen}>
+              <FormLabel className="text-base">Research</FormLabel>
+              <Popover open={researchOpen} onOpenChange={setResearchOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -214,7 +214,7 @@ export default function MeetingForm({
                         !field.value && "text-muted-foreground"
                       )}
                     >
-                      {field.value || "Select or enter agenda"}
+                      {field.value || "Select or enter research"}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </FormControl>
@@ -222,32 +222,32 @@ export default function MeetingForm({
                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                   <Command>
                     <CommandInput
-                      placeholder="Search agenda..."
+                      placeholder="Search research..."
                       onValueChange={field.onChange}
                       value={field.value}
                     />
                     <CommandEmpty>
-                      No matching agenda found. Press enter to create new.
+                      No matching research found. Press enter to create new.
                     </CommandEmpty>
                     <CommandGroup>
-                      {uniqueAgendas.map((agenda) => (
+                      {uniqueResearch.map((research) => (
                         <CommandItem
-                          value={agenda}
-                          key={agenda}
+                          value={research}
+                          key={research}
                           onSelect={() => {
-                            form.setValue("agenda", agenda);
-                            setAgendaOpen(false);
+                            form.setValue("research", research);
+                            setResearchOpen(false);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              agenda === field.value
+                              research === field.value
                                 ? "opacity-100"
                                 : "opacity-0"
                             )}
                           />
-                          {agenda}
+                          {research}
                         </CommandItem>
                       ))}
                     </CommandGroup>

@@ -19,7 +19,7 @@ export const meetings = pgTable("meetings", {
   companyName: text("company_name"),
   manager: text("manager").notNull(),
   date: timestamp("date").notNull(),
-  agenda: text("agenda").notNull(),
+  research: text("research").notNull(),
   status: text("status").notNull().default(MeetingStatus.NEGOTIATION),
 });
 
@@ -35,7 +35,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),
-  agenda: z.string().min(1, "Agenda is required"),
+  research: z.string().min(1, "Research is required"),
 });
 
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
