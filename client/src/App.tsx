@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Meetings from "@/pages/meetings";
 import Researches from "@/pages/researches";
+import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -26,6 +27,11 @@ function Navigation() {
               Researches
             </Button>
           </Link>
+          <Link href="/calendar">
+            <Button variant={location === "/calendar" ? "default" : "ghost"}>
+              Calendar
+            </Button>
+          </Link>
           <Link href="/dashboard">
             <Button variant={location === "/dashboard" ? "default" : "ghost"}>
               Dashboard
@@ -42,6 +48,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Meetings} />
       <Route path="/researches" component={Researches} />
+      <Route path="/calendar" component={Calendar} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
