@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Meetings from "@/pages/meetings";
+import Researches from "@/pages/researches";
 import Dashboard from "@/pages/dashboard";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -18,6 +19,11 @@ function Navigation() {
           <Link href="/">
             <Button variant={location === "/" ? "default" : "ghost"}>
               Meetings
+            </Button>
+          </Link>
+          <Link href="/researches">
+            <Button variant={location === "/researches" ? "default" : "ghost"}>
+              Researches
             </Button>
           </Link>
           <Link href="/dashboard">
@@ -35,6 +41,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Meetings} />
+      <Route path="/researches" component={Researches} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertMeetingSchema, type InsertMeeting, MeetingStatus } from "@shared/schema";
+import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -17,23 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Meeting } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 
@@ -52,14 +37,10 @@ export default function MeetingForm({
   onCancel,
   onDelete
 }: MeetingFormProps) {
-  const { data: meetings = [] } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
+  const { data: researches = [] } = useQuery<Research[]>({
+    queryKey: ["/api/researches"],
   });
   const { lastUsedManager, addManager } = useManagers();
-  const [researchOpen, setResearchOpen] = useState(false);
-
-  // Get unique research entries from existing meetings
-  const uniqueResearch = Array.from(new Set(meetings.map(m => m.research)));
 
   const form = useForm<InsertMeeting>({
     resolver: zodResolver(insertMeetingSchema),
@@ -72,7 +53,7 @@ export default function MeetingForm({
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-      research: initialData?.research ?? "",
+      researchId: initialData?.researchId ?? undefined,
       status: initialData?.status as typeof MeetingStatus[keyof typeof MeetingStatus] ?? MeetingStatus.NEGOTIATION,
     },
   });
@@ -199,61 +180,27 @@ export default function MeetingForm({
 
         <FormField
           control={form.control}
-          name="research"
+          name="researchId"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Research</FormLabel>
-              <Popover open={researchOpen} onOpenChange={setResearchOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value || "Select or enter research"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search research..."
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    />
-                    <CommandEmpty>
-                      No matching research found. Press enter to create new.
-                    </CommandEmpty>
-                    <CommandGroup>
-                      {uniqueResearch.map((research) => (
-                        <CommandItem
-                          value={research}
-                          key={research}
-                          onSelect={() => {
-                            form.setValue("research", research);
-                            setResearchOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              research === field.value
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
-                          {research}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value?.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select research" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {researches.map((research) => (
+                    <SelectItem key={research.id} value={research.id.toString()}>
+                      {research.name} - {research.team}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
