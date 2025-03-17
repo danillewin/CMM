@@ -97,7 +97,7 @@ export default function Calendar() {
                       <div className="flex items-center space-x-2 w-full">
                         <Checkbox
                           id={`research-${research.id}`}
-                          checked={selectedResearchIds.size === 0 || selectedResearchIds.has(research.id)}
+                          checked={selectedResearchIds.has(research.id)}
                           onCheckedChange={() => toggleResearchFilter(research.id)}
                         />
                         <div className="flex items-center flex-1 space-x-2">
