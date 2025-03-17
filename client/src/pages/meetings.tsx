@@ -71,6 +71,10 @@ export default function Meetings() {
     queryKey: ["/api/meetings"],
   });
 
+  const { data: researches = [] } = useQuery({
+    queryKey: ["/api/researches"],
+  });
+
   const createMutation = useMutation({
     mutationFn: async (meeting: Omit<Meeting, "id">) => {
       const res = await apiRequest("POST", "/api/meetings", meeting);
@@ -470,11 +474,12 @@ export default function Meetings() {
                   <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
                   <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
                   <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">{meeting.agenda}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">
+                    {meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'}
+                  </TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
                   </TableCell>
-                  {/*Removed Actions column*/}
                 </TableRow>
               ))}
             </TableBody>
