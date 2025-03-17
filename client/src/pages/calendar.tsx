@@ -23,12 +23,23 @@ import {
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedResearchIds, setSelectedResearchIds] = useState<Set<number>>(new Set());
   const [selectedResearch, setSelectedResearch] = useState<Research | null>(null);
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
+
+  // Initialize with all research IDs selected
+  const [selectedResearchIds, setSelectedResearchIds] = useState<Set<number>>(
+    () => new Set(researches.map(r => r.id))
+  );
+
+  // Update selectedResearchIds when researches data is loaded
+  useMemo(() => {
+    if (researches.length > 0) {
+      setSelectedResearchIds(new Set(researches.map(r => r.id)));
+    }
+  }, [researches]);
 
   // Calculate calendar days for current month
   const calendarDays = useMemo(() => {
@@ -40,7 +51,10 @@ export default function Calendar() {
   // Get active researches for a specific day
   const getResearchesForDay = (date: Date) => {
     return researches.filter(research => {
-      if (selectedResearchIds.size > 0 && !selectedResearchIds.has(research.id)) {
+      if (selectedResearchIds.size === 0) {
+        return false;
+      }
+      if (!selectedResearchIds.has(research.id)) {
         return false;
       }
       return isWithinInterval(date, {
