@@ -50,7 +50,7 @@ export default function Calendar() {
     });
   };
 
-  // Generate random color for research (you might want to store this in the database later)
+  // Generate color for research (consistent colors)
   const getResearchColor = (id: number) => {
     const colors = [
       "bg-blue-500",
@@ -94,17 +94,22 @@ export default function Calendar() {
                 <div className="space-y-4">
                   {researches.map((research) => (
                     <div key={research.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`research-${research.id}`}
-                        checked={selectedResearchIds.size === 0 || selectedResearchIds.has(research.id)}
-                        onCheckedChange={() => toggleResearchFilter(research.id)}
-                      />
-                      <Label
-                        htmlFor={`research-${research.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {research.name}
-                      </Label>
+                      <div className="flex items-center space-x-2 w-full">
+                        <Checkbox
+                          id={`research-${research.id}`}
+                          checked={selectedResearchIds.size === 0 || selectedResearchIds.has(research.id)}
+                          onCheckedChange={() => toggleResearchFilter(research.id)}
+                        />
+                        <div className="flex items-center flex-1 space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${getResearchColor(research.id)}`} />
+                          <Label
+                            htmlFor={`research-${research.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {research.name}
+                          </Label>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
