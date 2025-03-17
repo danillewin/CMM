@@ -33,6 +33,16 @@ export default function Calendar() {
       )
     : [];
 
+  // Function to check if a date has any active researches
+  const hasActiveResearches = (date: Date) => {
+    return researches.some((research) =>
+      isWithinInterval(date, {
+        start: parseISO(research.dateStart),
+        end: parseISO(research.dateEnd),
+      })
+    );
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -43,52 +53,75 @@ export default function Calendar() {
 
       <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
         <div className="space-y-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+          {/* Full Calendar View */}
+          <Card>
+            <CardContent className="p-4">
               <CalendarComponent
                 mode="single"
                 selected={date}
                 onSelect={setDate}
-                initialFocus
+                modifiers={{
+                  hasResearch: (date) => hasActiveResearches(date),
+                }}
+                modifiersStyles={{
+                  hasResearch: {
+                    backgroundColor: "var(--primary)",
+                    color: "white",
+                    borderRadius: "50%",
+                  },
+                }}
+                className="rounded-md border w-full"
+                components={{
+                  Day: ({ date, ...props }) => (
+                    <button
+                      {...props}
+                      className={cn(
+                        props.className,
+                        "relative hover:bg-accent",
+                        hasActiveResearches(date) && "font-bold text-accent-foreground",
+                        props.selected && "text-primary-foreground"
+                      )}
+                    >
+                      {format(date, "d")}
+                      {hasActiveResearches(date) && (
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                      )}
+                    </button>
+                  ),
+                }}
               />
-            </PopoverContent>
-          </Popover>
+            </CardContent>
+          </Card>
 
-          <div className="p-4 border rounded-lg">
-            <Label className="text-sm font-medium">Active Researches</Label>
-            <div className="mt-2 space-y-2">
-              {activeResearches.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No active researches on this date
-                </p>
-              ) : (
-                activeResearches.map((research) => (
-                  <Button
-                    key={research.id}
-                    variant="ghost"
-                    className="w-full justify-start text-left"
-                    onClick={() => setSelectedResearch(research)}
-                  >
-                    {research.name}
-                  </Button>
-                ))
-              )}
-            </div>
-          </div>
+          {/* Active Researches List */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Active Researches</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {activeResearches.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No active researches on {date ? format(date, "PPP") : "selected date"}
+                  </p>
+                ) : (
+                  activeResearches.map((research) => (
+                    <Button
+                      key={research.id}
+                      variant={selectedResearch?.id === research.id ? "default" : "ghost"}
+                      className="w-full justify-start text-left"
+                      onClick={() => setSelectedResearch(research)}
+                    >
+                      {research.name}
+                    </Button>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
+        {/* Research Details */}
         <Card>
           {selectedResearch ? (
             <>
