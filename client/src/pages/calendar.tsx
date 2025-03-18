@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { type Research } from "@shared/schema";
+import { type Research, type Meeting } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   format,
   startOfMonth,
@@ -19,14 +20,23 @@ import {
   isWithinInterval,
   parseISO
 } from "date-fns";
+import MeetingForm from "@/components/meeting-form";
+
+type ViewMode = "researches" | "meetings";
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedResearch, setSelectedResearch] = useState<Research | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("researches");
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
 
-  const { data: researches = [], isLoading } = useQuery<Research[]>({
+  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
+  });
+
+  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
+    queryKey: ["/api/meetings"],
   });
 
   // Initialize with all research IDs selected
@@ -58,9 +68,19 @@ export default function Calendar() {
         return false;
       }
       return isWithinInterval(date, {
-        start: parseISO(research.dateStart),
-        end: parseISO(research.dateEnd)
+        start: parseISO(research.dateStart.toString()),
+        end: parseISO(research.dateEnd.toString())
       });
+    });
+  };
+
+  // Get meetings for a specific day
+  const getMeetingsForDay = (date: Date) => {
+    return meetings.filter(meeting => {
+      if (selectedResearchIds.size > 0 && meeting.researchId && !selectedResearchIds.has(meeting.researchId)) {
+        return false;
+      }
+      return isSameDay(new Date(meeting.date), date);
     });
   };
 
@@ -90,7 +110,7 @@ export default function Calendar() {
     setSelectedResearchIds(newIds);
   };
 
-  if (isLoading) {
+  if (researchesLoading || meetingsLoading) {
     return <div>Loading...</div>;
   }
 
@@ -101,10 +121,34 @@ export default function Calendar() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
+              <CardTitle>View Mode</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant={viewMode === "researches" ? "default" : "outline"}
+                  onClick={() => setViewMode("researches")}
+                  className="w-full justify-start"
+                >
+                  Researches
+                </Button>
+                <Button 
+                  variant={viewMode === "meetings" ? "default" : "outline"}
+                  onClick={() => setViewMode("meetings")}
+                  className="w-full justify-start"
+                >
+                  Meetings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Researches</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-[calc(100vh-300px)]">
+              <ScrollArea className="h-[calc(100vh-400px)]">
                 <div className="space-y-4">
                   {researches.map((research) => (
                     <div key={research.id} className="flex items-center space-x-2">
@@ -156,8 +200,10 @@ export default function Calendar() {
               ))}
             </div>
             <div className="grid grid-cols-7 gap-px bg-muted">
-              {calendarDays.map((day, index) => {
-                const dayResearches = getResearchesForDay(day);
+              {calendarDays.map((day) => {
+                const dayResearches = viewMode === "researches" ? getResearchesForDay(day) : [];
+                const dayMeetings = viewMode === "meetings" ? getMeetingsForDay(day) : [];
+
                 return (
                   <div
                     key={day.toISOString()}
@@ -172,7 +218,7 @@ export default function Calendar() {
                   >
                     <div className="font-medium">{format(day, "d")}</div>
                     <div className="mt-1 space-y-1">
-                      {dayResearches.map((research) => (
+                      {viewMode === "researches" && dayResearches.map((research) => (
                         <div
                           key={research.id}
                           className={`${getResearchColor(
@@ -184,6 +230,19 @@ export default function Calendar() {
                           }}
                         >
                           {research.name}
+                        </div>
+                      ))}
+                      {viewMode === "meetings" && dayMeetings.map((meeting) => (
+                        <div
+                          key={meeting.id}
+                          className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} 
+                            text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMeeting(meeting);
+                          }}
+                        >
+                          {meeting.respondentName} - {meeting.companyName || 'No company'}
                         </div>
                       ))}
                     </div>
@@ -224,13 +283,13 @@ export default function Calendar() {
                 <div>
                   <Label>Start Date</Label>
                   <p className="text-sm">
-                    {format(parseISO(selectedResearch.dateStart), "PP")}
+                    {format(parseISO(selectedResearch.dateStart.toString()), "PP")}
                   </p>
                 </div>
                 <div>
                   <Label>End Date</Label>
                   <p className="text-sm">
-                    {format(parseISO(selectedResearch.dateEnd), "PP")}
+                    {format(parseISO(selectedResearch.dateEnd.toString()), "PP")}
                   </p>
                 </div>
               </div>
@@ -238,6 +297,17 @@ export default function Calendar() {
           </CardContent>
         </Card>
       )}
+
+      {/* Meeting Details Dialog */}
+      <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
+        <DialogContent className="w-[90vw] max-w-xl">
+          <MeetingForm
+            initialData={selectedMeeting}
+            onSubmit={() => {}} // Read-only mode
+            onCancel={() => setSelectedMeeting(null)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
