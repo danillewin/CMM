@@ -29,6 +29,7 @@ import {
 export default function Researches() {
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
+  const [teamFilter, setTeamFilter] = useState<string>("ALL"); // Added teamFilter state
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
@@ -80,15 +81,17 @@ export default function Researches() {
     }
   };
 
-  // Get unique researchers for filter
+  // Get unique researchers and teams for filters
   const researchers = [...new Set(researches.map(r => r.researcher))].sort();
+  const teams = [...new Set(researches.map(r => r.team))].sort(); // Added teams array
 
   const filteredResearches = researches.filter(
     (research) =>
       (research.name.toLowerCase().includes(search.toLowerCase()) ||
         research.team.toLowerCase().includes(search.toLowerCase()) ||
         research.description.toLowerCase().includes(search.toLowerCase())) &&
-      (researcherFilter === "ALL" || research.researcher === researcherFilter)
+      (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
+      (teamFilter === "ALL" || research.team === teamFilter) // Added team filter condition
   );
 
   const handleRowClick = (research: Research) => {
@@ -124,6 +127,22 @@ export default function Researches() {
               {researchers.map((researcher) => (
                 <SelectItem key={researcher} value={researcher}>
                   {researcher}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select 
+            value={teamFilter} 
+            onValueChange={setTeamFilter}
+          > {/* Added team filter select */}
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Filter by team" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Teams</SelectItem>
+              {teams.map((team) => (
+                <SelectItem key={team} value={team}>
+                  {team}
                 </SelectItem>
               ))}
             </SelectContent>

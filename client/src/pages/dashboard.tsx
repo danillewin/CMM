@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Meeting, MeetingStatus } from "@shared/schema";
+import { Meeting, MeetingStatus, Research } from "@shared/schema";
 import {
   Card,
   CardContent,
@@ -20,6 +21,13 @@ import {
   Legend,
 } from "recharts";
 import { startOfDay, subDays, format, isWithinInterval } from "date-fns";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const COLORS = {
   [MeetingStatus.NEGOTIATION]: "#eab308", // yellow-500
@@ -29,14 +37,38 @@ const COLORS = {
 };
 
 export default function Dashboard() {
-  const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
+  const [researchFilter, setResearchFilter] = useState<number | null>(null);
+  const [teamFilter, setTeamFilter] = useState<string>("ALL");
+
+  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
+  });
+
+  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
+    queryKey: ["/api/researches"],
+  });
+
+  // Get unique teams for filter
+  const teams = [...new Set(researches.map(r => r.team))].sort();
+
+  // Filter meetings based on selected research and team
+  const filteredMeetings = meetings.filter(meeting => {
+    if (researchFilter && meeting.researchId !== researchFilter) {
+      return false;
+    }
+    if (teamFilter !== "ALL") {
+      const meetingResearch = researches.find(r => r.id === meeting.researchId);
+      if (!meetingResearch || meetingResearch.team !== teamFilter) {
+        return false;
+      }
+    }
+    return true;
   });
 
   // Calculate meetings by status
   const meetingsByStatus = Object.values(MeetingStatus).map((status) => ({
     name: status,
-    value: meetings.filter((m) => m.status === status).length,
+    value: filteredMeetings.filter((m) => m.status === status).length,
   }));
 
   // Calculate meetings over time (last 30 days)
@@ -51,7 +83,7 @@ export default function Dashboard() {
 
     // Add count for each status
     Object.values(MeetingStatus).forEach(status => {
-      dayData[status] = meetings.filter(m => 
+      dayData[status] = filteredMeetings.filter(m => 
         isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
         m.status === status
       ).length;
@@ -61,7 +93,7 @@ export default function Dashboard() {
   }).reverse();
 
   // Calculate top managers with status breakdown
-  const managerMeetings = meetings.reduce((acc, meeting) => {
+  const managerMeetings = filteredMeetings.reduce((acc, meeting) => {
     if (!acc[meeting.manager]) {
       acc[meeting.manager] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
         statusAcc[status] = 0;
@@ -84,11 +116,11 @@ export default function Dashboard() {
     }));
 
   // Get recent meetings
-  const recentMeetings = [...meetings]
+  const recentMeetings = [...filteredMeetings]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
-  if (isLoading) {
+  if (meetingsLoading || researchesLoading) {
     return <div>Loading...</div>;
   }
 
@@ -96,8 +128,44 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-6 md:py-10">
       <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h1>
 
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <Select 
+          value={researchFilter?.toString() ?? "ALL"} 
+          onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
+        >
+          <SelectTrigger className="w-full md:w-60">
+            <SelectValue placeholder="Filter by research" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Researches</SelectItem>
+            {researches.map((research) => (
+              <SelectItem key={research.id} value={research.id.toString()}>
+                {research.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select 
+          value={teamFilter} 
+          onValueChange={setTeamFilter}
+        >
+          <SelectTrigger className="w-full md:w-60">
+            <SelectValue placeholder="Filter by team" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Teams</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team} value={team}>
+                {team}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Meetings by Status */}
+        {/* Rest of the dashboard components remain the same, they now use filteredMeetings instead of meetings */}
         <Card>
           <CardHeader>
             <CardTitle>Meetings by Status</CardTitle>
@@ -127,7 +195,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Meetings Over Time */}
         <Card>
           <CardHeader>
             <CardTitle>Meetings Over Time</CardTitle>
@@ -162,7 +229,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Top Managers */}
         <Card>
           <CardHeader>
             <CardTitle>Top Managers</CardTitle>
@@ -191,7 +257,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent Meetings */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Meetings</CardTitle>
