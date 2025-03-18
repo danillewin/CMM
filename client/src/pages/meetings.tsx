@@ -6,8 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, ArrowUpDown, FileDown } from "lucide-react";
-import * as XLSX from 'xlsx';
+import { Plus, ArrowUpDown, FileDown } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -36,25 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case MeetingStatus.NEGOTIATION:
-      return "bg-yellow-500";
-    case MeetingStatus.SET:
-      return "bg-blue-500";
-    case MeetingStatus.DONE:
-      return "bg-green-500";
-    case MeetingStatus.DECLINED:
-      return "bg-red-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
-const StatusDot = ({ status }: { status: string }) => (
-  <div className={`w-2 h-2 rounded-full ${getStatusColor(status)} inline-block mr-2`} />
-);
+import * as XLSX from 'xlsx';
 
 const getResearchColor = (id: number) => {
   const colors = [
@@ -262,258 +243,241 @@ export default function Meetings() {
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-10">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">Client Meetings</h1>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Meeting
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[90vw] max-w-xl">
-                <MeetingForm
-                  onSubmit={handleSubmit}
-                  initialData={editMeeting}
-                  isLoading={createMutation.isPending || updateMutation.isPending}
-                  onCancel={() => {
-                    setShowForm(false);
-                    setEditMeeting(null);
-                  }}
-                  onDelete={editMeeting ? () => {
-                    deleteMutation.mutate(editMeeting.id);
-                    setShowForm(false);
-                    setEditMeeting(null);
-                  } : undefined}
-                />
-              </DialogContent>
-            </Dialog>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={exportToCSV}
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">Client Meetings</h1>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                New Meeting
               </Button>
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto"
-                onClick={exportToExcel}
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export Excel
-              </Button>
-            </div>
+            </DialogTrigger>
+            <DialogContent className="w-[90vw] max-w-xl">
+              <MeetingForm
+                onSubmit={handleSubmit}
+                initialData={editMeeting}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditMeeting(null);
+                }}
+                onDelete={editMeeting ? () => {
+                  deleteMutation.mutate(editMeeting.id);
+                  setShowForm(false);
+                  setEditMeeting(null);
+                } : undefined}
+              />
+            </DialogContent>
+          </Dialog>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={exportToCSV}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={exportToExcel}
+            >
+              <FileDown className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Input
-            placeholder="Search meetings..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full"
-          />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by status">
-                {statusFilter && (
-                  <div className="flex items-center">
-                    <StatusDot status={statusFilter} />
-                    {statusFilter}
-                  </div>
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              {Object.values(MeetingStatus).map((status) => (
-                <SelectItem key={status} value={status}>
-                  <div className="flex items-center">
-                    <StatusDot status={status} />
-                    {status}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select 
-            value={researchFilter?.toString() ?? "ALL"} 
-            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Filter by research" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Researches</SelectItem>
-              {researches.map((research) => (
-                <SelectItem key={research.id} value={research.id.toString()}>
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
-                    {research.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Card>
-          <CardContent className="p-0 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[12%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("status")}
-                      className="whitespace-nowrap"
-                    >
-                      Status
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[10%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("cnum")}
-                      className="whitespace-nowrap"
-                    >
-                      CNUM
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[15%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("companyName")}
-                      className="whitespace-nowrap"
-                    >
-                      Company Name
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[15%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("respondentName")}
-                      className="whitespace-nowrap"
-                    >
-                      Respondent Name
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[12%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("respondentPosition")}
-                      className="whitespace-nowrap"
-                    >
-                      Position
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[12%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("manager")}
-                      className="whitespace-nowrap"
-                    >
-                      Manager
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="w-[15%]">Research</TableHead>
-                  <TableHead className="w-[10%]">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleSort("date")}
-                      className="whitespace-nowrap"
-                    >
-                      Date
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMeetings.map((meeting) => (
-                  <TableRow
-                    key={meeting.id}
-                    className="cursor-pointer hover:bg-accent/50"
-                    onClick={() => handleRowClick(meeting)}
-                  >
-                    <TableCell>
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <Select
-                          value={meeting.status}
-                          onValueChange={(value) =>
-                            updateStatusMutation.mutate({ id: meeting.id, status: value })
-                          }
-                        >
-                          <SelectTrigger
-                            className="w-[140px]"
-                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                          >
-                            <SelectValue>
-                              <div className="flex items-center whitespace-nowrap">
-                                <StatusDot status={meeting.status} />
-                                {meeting.status}
-                              </div>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.values(MeetingStatus).map((status) => (
-                              <SelectItem key={status} value={status}>
-                                <div className="flex items-center whitespace-nowrap">
-                                  <StatusDot status={status} />
-                                  {status}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </TableCell>
-                    <TableCell>{meeting.cnum}</TableCell>
-                    <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
-                    <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
-                    <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
-                    <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {meeting.researchId ? (
-                        <div className="flex items-center">
-                          <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2`} />
-                          {researches.find(r => r.id === meeting.researchId)?.name}
-                        </div>
-                      ) : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(meeting.date).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Duplicate CNUM Warning</AlertDialogTitle>
-              <AlertDialogDescription>
-                A meeting with this CNUM already exists. Would you like to create it anyway?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Input
+          placeholder="Search meetings..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Statuses</SelectItem>
+            {Object.values(MeetingStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select 
+          value={researchFilter?.toString() ?? "ALL"} 
+          onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by research" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Researches</SelectItem>
+            {researches.map((research) => (
+              <SelectItem key={research.id} value={research.id.toString()}>
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
+                  {research.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Card>
+        <CardContent className="p-0 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("status")}
+                    className="whitespace-nowrap"
+                  >
+                    Status
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[10%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("cnum")}
+                    className="whitespace-nowrap"
+                  >
+                    CNUM
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[15%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("companyName")}
+                    className="whitespace-nowrap"
+                  >
+                    Company Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[15%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("respondentName")}
+                    className="whitespace-nowrap"
+                  >
+                    Respondent Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("respondentPosition")}
+                    className="whitespace-nowrap"
+                  >
+                    Position
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[12%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("manager")}
+                    className="whitespace-nowrap"
+                  >
+                    Manager
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+                <TableHead className="w-[15%]">Research</TableHead>
+                <TableHead className="w-[10%]">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleSort("date")}
+                    className="whitespace-nowrap"
+                  >
+                    Date
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredMeetings.map((meeting) => (
+                <TableRow
+                  key={meeting.id}
+                  className="cursor-pointer hover:bg-accent/50"
+                  onClick={() => handleRowClick(meeting)}
+                >
+                  <TableCell>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={meeting.status}
+                        onValueChange={(value) =>
+                          updateStatusMutation.mutate({ id: meeting.id, status: value })
+                        }
+                      >
+                        <SelectTrigger
+                          className="w-[140px]"
+                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        >
+                          <SelectValue>{meeting.status}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(MeetingStatus).map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableCell>
+                  <TableCell>{meeting.cnum}</TableCell>
+                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
+                  <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
+                  <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">
+                    {meeting.researchId ? (
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2`} />
+                        {researches.find(r => r.id === meeting.researchId)?.name}
+                      </div>
+                    ) : '—'}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(meeting.date).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Duplicate CNUM Warning</AlertDialogTitle>
+            <AlertDialogDescription>
+              A meeting with this CNUM already exists. Would you like to create it anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
