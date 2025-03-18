@@ -310,15 +310,15 @@ export default function Meetings() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Input
             placeholder="Search meetings..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-80"
+            className="w-full"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full md:w-60">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by status">
                 {statusFilter && (
                   <div className="flex items-center">
@@ -344,7 +344,7 @@ export default function Meetings() {
             value={researchFilter?.toString() ?? "ALL"} 
             onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
           >
-            <SelectTrigger className="w-full md:w-60">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Filter by research" />
             </SelectTrigger>
             <SelectContent>
