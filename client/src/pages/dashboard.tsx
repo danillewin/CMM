@@ -83,7 +83,7 @@ export default function Dashboard() {
 
     // Add count for each status
     Object.values(MeetingStatus).forEach(status => {
-      dayData[status] = filteredMeetings.filter(m =>
+      dayData[status] = filteredMeetings.filter(m => 
         isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
         m.status === status
       ).length;
@@ -105,8 +105,8 @@ export default function Dashboard() {
   }, {} as Record<string, Record<string, number>>);
 
   const topManagers = Object.entries(managerMeetings)
-    .sort(([, a], [, b]) =>
-      Object.values(b).reduce((sum, val) => sum + val, 0) -
+    .sort(([, a], [, b]) => 
+      Object.values(b).reduce((sum, val) => sum + val, 0) - 
       Object.values(a).reduce((sum, val) => sum + val, 0)
     )
     .slice(0, 5)
@@ -125,173 +125,172 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-4 sm:px-6 py-8">
-      <div className="container mx-auto max-w-[1400px] space-y-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h1>
+    <div className="container mx-auto px-4 py-6 md:py-10">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h1>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <Select
-            value={researchFilter?.toString() ?? "ALL"}
-            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
-          >
-            <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder="Filter by research" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Researches</SelectItem>
-              {researches.map((research) => (
-                <SelectItem key={research.id} value={research.id.toString()}>
-                  {research.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <Select 
+          value={researchFilter?.toString() ?? "ALL"} 
+          onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
+        >
+          <SelectTrigger className="w-full md:w-60">
+            <SelectValue placeholder="Filter by research" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Researches</SelectItem>
+            {researches.map((research) => (
+              <SelectItem key={research.id} value={research.id.toString()}>
+                {research.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Select
-            value={teamFilter}
-            onValueChange={setTeamFilter}
-          >
-            <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder="Filter by team" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
-                <SelectItem key={team} value={team}>
-                  {team}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select 
+          value={teamFilter} 
+          onValueChange={setTeamFilter}
+        >
+          <SelectTrigger className="w-full md:w-60">
+            <SelectValue placeholder="Filter by team" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Teams</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team} value={team}>
+                {team}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Meetings by Status</CardTitle>
-              <CardDescription>Distribution of meetings across different statuses</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={meetingsByStatus}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
-                      {meetingsByStatus.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Meetings Over Time</CardTitle>
-              <CardDescription>Number of meetings in the last 30 days by status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={last30Days}>
-                    <XAxis
-                      dataKey="name"
-                      angle={-45}
-                      textAnchor="end"
-                      height={70}
-                      interval={4}
-                    />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    {Object.entries(MeetingStatus).map(([key, status]) => (
-                      <Bar
-                        key={status}
-                        dataKey={status}
-                        stackId="status"
-                        fill={COLORS[status as keyof typeof MeetingStatus]}
-                        name={status}
-                      />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Managers</CardTitle>
-              <CardDescription>Managers with the most meetings by status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topManagers} layout="vertical">
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={100} />
-                    <Tooltip />
-                    <Legend />
-                    {Object.entries(MeetingStatus).map(([key, status]) => (
-                      <Bar
-                        key={status}
-                        dataKey={status}
-                        stackId="status"
-                        fill={COLORS[status as keyof typeof MeetingStatus]}
-                        name={status}
-                      />
-                    ))}
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Meetings</CardTitle>
-              <CardDescription>Last 5 scheduled meetings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentMeetings.map((meeting) => (
-                  <div
-                    key={meeting.id}
-                    className="flex items-center justify-between border-b pb-2 last:border-0"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Rest of the dashboard components remain the same, they now use filteredMeetings instead of meetings */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Meetings by Status</CardTitle>
+            <CardDescription>Distribution of meetings across different statuses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={meetingsByStatus}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({ name, value }) => `${name}: ${value}`}
                   >
-                    <div>
-                      <div className="font-medium">{meeting.respondentName}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {meeting.companyName}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm">
-                        {new Date(meeting.date).toLocaleDateString()}
-                      </div>
-                      <div
-                        style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
-                        className="text-sm font-medium"
-                      >
-                        {meeting.status}
-                      </div>
+                    {meetingsByStatus.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Meetings Over Time</CardTitle>
+            <CardDescription>Number of meetings in the last 30 days by status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={last30Days}>
+                  <XAxis 
+                    dataKey="name" 
+                    angle={-45}
+                    textAnchor="end"
+                    height={70}
+                    interval={4}
+                  />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Legend />
+                  {Object.entries(MeetingStatus).map(([key, status]) => (
+                    <Bar 
+                      key={status}
+                      dataKey={status}
+                      stackId="status"
+                      fill={COLORS[status as keyof typeof MeetingStatus]}
+                      name={status}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Managers</CardTitle>
+            <CardDescription>Managers with the most meetings by status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topManagers} layout="vertical">
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={100} />
+                  <Tooltip />
+                  <Legend />
+                  {Object.entries(MeetingStatus).map(([key, status]) => (
+                    <Bar 
+                      key={status}
+                      dataKey={status}
+                      stackId="status"
+                      fill={COLORS[status as keyof typeof MeetingStatus]}
+                      name={status}
+                    />
+                  ))}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Meetings</CardTitle>
+            <CardDescription>Last 5 scheduled meetings</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentMeetings.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="flex items-center justify-between border-b pb-2 last:border-0"
+                >
+                  <div>
+                    <div className="font-medium">{meeting.respondentName}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {meeting.companyName}
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                  <div className="text-right">
+                    <div className="text-sm">
+                      {new Date(meeting.date).toLocaleDateString()}
+                    </div>
+                    <div
+                      style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
+                      className="text-sm font-medium"
+                    >
+                      {meeting.status}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

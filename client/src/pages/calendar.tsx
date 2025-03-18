@@ -104,198 +104,196 @@ export default function Calendar() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-4 sm:px-6 py-8">
-      <div className="container mx-auto max-w-[1400px] space-y-8">
-        <div className="grid grid-cols-[250px_1fr] gap-6">
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>View Mode</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-2">
-                  <Button 
-                    variant={viewMode === "researches" ? "default" : "outline"}
-                    onClick={() => setViewMode("researches")}
-                    className="w-full justify-start"
-                  >
-                    Researches
-                  </Button>
-                  <Button 
-                    variant={viewMode === "meetings" ? "default" : "outline"}
-                    onClick={() => setViewMode("meetings")}
-                    className="w-full justify-start"
-                  >
-                    Meetings
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Researches</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-400px)]">
-                  <div className="space-y-4">
-                    {researches.map((research) => (
-                      <div key={research.id} className="flex items-center space-x-2">
-                        <div className="flex items-center space-x-2 w-full">
-                          <Checkbox
-                            id={`research-${research.id}`}
-                            checked={selectedResearchIds.has(research.id)}
-                            onCheckedChange={() => toggleResearchFilter(research.id)}
-                          />
-                          <div className="flex items-center flex-1 space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${getResearchColor(research.id)}`} />
-                            <Label
-                              htmlFor={`research-${research.id}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {research.name}
-                            </Label>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Calendar */}
+    <div className="container mx-auto px-4 py-6">
+      <div className="grid grid-cols-[250px_1fr] gap-6">
+        {/* Sidebar */}
+        <div className="space-y-6">
           <Card>
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <CardTitle>{format(currentDate, "MMMM yyyy")}</CardTitle>
-                  <Button variant="outline" size="icon" onClick={handleNextMonth}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+            <CardHeader>
+              <CardTitle>View Mode</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="grid grid-cols-7 gap-px bg-muted">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                  <div key={day} className="p-3 text-center text-sm font-medium">
-                    {day}
-                  </div>
-                ))}
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant={viewMode === "researches" ? "default" : "outline"}
+                  onClick={() => setViewMode("researches")}
+                  className="w-full justify-start"
+                >
+                  Researches
+                </Button>
+                <Button 
+                  variant={viewMode === "meetings" ? "default" : "outline"}
+                  onClick={() => setViewMode("meetings")}
+                  className="w-full justify-start"
+                >
+                  Meetings
+                </Button>
               </div>
-              <div className="grid grid-cols-7 gap-px bg-muted">
-                {calendarDays.map((day) => {
-                  const dayResearches = viewMode === "researches" ? getResearchesForDay(day) : [];
-                  const dayMeetings = viewMode === "meetings" ? getMeetingsForDay(day) : [];
+            </CardContent>
+          </Card>
 
-                  return (
-                    <div
-                      key={day.toISOString()}
-                      className={`min-h-[120px] bg-card p-2 ${
-                        !isSameMonth(day, currentDate) ? "text-muted-foreground" : ""
-                      } ${
-                        isSameDay(day, selectedDate || new Date())
-                          ? "bg-accent"
-                          : ""
-                      }`}
-                      onClick={() => setSelectedDate(day)}
-                    >
-                      <div className="font-medium">{format(day, "d")}</div>
-                      <div className="mt-1 space-y-1">
-                        {viewMode === "researches" && dayResearches.map((research) => (
-                          <div
-                            key={research.id}
-                            className={`${getResearchColor(research.id)} text-white text-xs p-1 rounded truncate cursor-pointer`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedResearch(research);
-                            }}
+          <Card>
+            <CardHeader>
+              <CardTitle>Researches</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[calc(100vh-400px)]">
+                <div className="space-y-4">
+                  {researches.map((research) => (
+                    <div key={research.id} className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 w-full">
+                        <Checkbox
+                          id={`research-${research.id}`}
+                          checked={selectedResearchIds.has(research.id)}
+                          onCheckedChange={() => toggleResearchFilter(research.id)}
+                        />
+                        <div className="flex items-center flex-1 space-x-2">
+                          <div className={`w-3 h-3 rounded-full ${getResearchColor(research.id)}`} />
+                          <Label
+                            htmlFor={`research-${research.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                           >
                             {research.name}
-                          </div>
-                        ))}
-                        {viewMode === "meetings" && dayMeetings.map((meeting) => (
-                          <div
-                            key={meeting.id}
-                            className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} text-white text-xs p-1 rounded truncate cursor-pointer`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedMeeting(meeting);
-                            }}
-                          >
-                            {meeting.respondentName} - {meeting.companyName || 'No company'}
-                          </div>
-                        ))}
+                          </Label>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
 
-        {/* Research Details Dialog */}
-        {selectedResearch && (
-          <Card className="fixed bottom-4 right-4 w-96">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{selectedResearch.name}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedResearch(null)}
-                >
-                  ✕
+        {/* Calendar */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <CardTitle>{format(currentDate, "MMMM yyyy")}</CardTitle>
+                <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="grid grid-cols-7 gap-px bg-muted">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div key={day} className="p-3 text-center text-sm font-medium">
+                  {day}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-px bg-muted">
+              {calendarDays.map((day) => {
+                const dayResearches = viewMode === "researches" ? getResearchesForDay(day) : [];
+                const dayMeetings = viewMode === "meetings" ? getMeetingsForDay(day) : [];
+
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className={`min-h-[120px] bg-card p-2 ${
+                      !isSameMonth(day, currentDate) ? "text-muted-foreground" : ""
+                    } ${
+                      isSameDay(day, selectedDate || new Date())
+                        ? "bg-accent"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedDate(day)}
+                  >
+                    <div className="font-medium">{format(day, "d")}</div>
+                    <div className="mt-1 space-y-1">
+                      {viewMode === "researches" && dayResearches.map((research) => (
+                        <div
+                          key={research.id}
+                          className={`${getResearchColor(research.id)} text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedResearch(research);
+                          }}
+                        >
+                          {research.name}
+                        </div>
+                      ))}
+                      {viewMode === "meetings" && dayMeetings.map((meeting) => (
+                        <div
+                          key={meeting.id}
+                          className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedMeeting(meeting);
+                          }}
+                        >
+                          {meeting.respondentName} - {meeting.companyName || 'No company'}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Research Details Dialog */}
+      {selectedResearch && (
+        <Card className="fixed bottom-4 right-4 w-96">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>{selectedResearch.name}</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedResearch(null)}
+              >
+                ✕
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div>
+                <Label>Team</Label>
+                <p className="text-sm">{selectedResearch.team}</p>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <p className="text-sm">{selectedResearch.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label>Team</Label>
-                  <p className="text-sm">{selectedResearch.team}</p>
+                  <Label>Start Date</Label>
+                  <p className="text-sm">
+                    {format(parseISO(selectedResearch.dateStart.toString()), "PP")}
+                  </p>
                 </div>
                 <div>
-                  <Label>Description</Label>
-                  <p className="text-sm">{selectedResearch.description}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label>Start Date</Label>
-                    <p className="text-sm">
-                      {format(parseISO(selectedResearch.dateStart.toString()), "PP")}
-                    </p>
-                  </div>
-                  <div>
-                    <Label>End Date</Label>
-                    <p className="text-sm">
-                      {format(parseISO(selectedResearch.dateEnd.toString()), "PP")}
-                    </p>
-                  </div>
+                  <Label>End Date</Label>
+                  <p className="text-sm">
+                    {format(parseISO(selectedResearch.dateEnd.toString()), "PP")}
+                  </p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Meeting Details Dialog */}
-        <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
-          <DialogContent className="w-[90vw] max-w-xl">
-            <MeetingForm
-              initialData={selectedMeeting}
-              onSubmit={() => {}} // Read-only mode
-              onCancel={() => setSelectedMeeting(null)}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      {/* Meeting Details Dialog */}
+      <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
+        <DialogContent className="w-[90vw] max-w-xl">
+          <MeetingForm
+            initialData={selectedMeeting}
+            onSubmit={() => {}} // Read-only mode
+            onCancel={() => setSelectedMeeting(null)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
