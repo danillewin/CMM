@@ -21,6 +21,7 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
+import { getResearchColor } from "@/lib/colors";
 
 type ViewMode = "researches" | "meetings";
 
@@ -84,18 +85,6 @@ export default function Calendar() {
     });
   };
 
-  // Generate color for research (consistent colors)
-  const getResearchColor = (id: number) => {
-    const colors = [
-      "bg-blue-500",
-      "bg-green-500",
-      "bg-yellow-500",
-      "bg-purple-500",
-      "bg-pink-500",
-      "bg-indigo-500"
-    ];
-    return colors[id % colors.length];
-  };
 
   const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
@@ -221,9 +210,7 @@ export default function Calendar() {
                       {viewMode === "researches" && dayResearches.map((research) => (
                         <div
                           key={research.id}
-                          className={`${getResearchColor(
-                            research.id
-                          )} text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          className={`${getResearchColor(research.id)} text-white text-xs p-1 rounded truncate cursor-pointer`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedResearch(research);
@@ -235,8 +222,7 @@ export default function Calendar() {
                       {viewMode === "meetings" && dayMeetings.map((meeting) => (
                         <div
                           key={meeting.id}
-                          className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} 
-                            text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} text-white text-xs p-1 rounded truncate cursor-pointer`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedMeeting(meeting);
