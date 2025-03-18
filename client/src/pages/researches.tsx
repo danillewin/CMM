@@ -107,7 +107,7 @@ export default function Researches() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
-      <div className="container mx-auto max-w-[1400px] space-y-8">
+      <div className="container mx-auto max-w-[1200px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Researches</h1>
           <Dialog open={showForm} onOpenChange={setShowForm}>

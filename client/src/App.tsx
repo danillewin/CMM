@@ -15,7 +15,7 @@ function Navigation() {
 
   return (
     <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-6 max-w-[1400px]">
+      <div className="container mx-auto px-6 max-w-[1200px]">
         <div className="flex gap-4 py-3">
           <Link href="/">
             <Button variant={location === "/" ? "default" : "ghost"} className="transition-colors duration-200">
