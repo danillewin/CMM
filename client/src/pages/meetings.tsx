@@ -36,18 +36,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import * as XLSX from 'xlsx';
+import { getResearchColor } from "@/lib/colors";
 
-const getResearchColor = (id: number) => {
-  const colors = [
-    "bg-blue-400/80",
-    "bg-green-400/80",
-    "bg-purple-400/80",
-    "bg-amber-400/80",
-    "bg-rose-400/80",
-    "bg-indigo-400/80"
-  ];
-  return colors[id % colors.length];
-};
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
