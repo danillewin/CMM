@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ArrowUpDown } from "lucide-react";
 
 export default function Researches() {
   const [search, setSearch] = useState("");
@@ -34,6 +35,7 @@ export default function Researches() {
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
+  const [sort, setSort] = useState<{ field: string; direction: "asc" | "desc" } | null>(null);
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -101,6 +103,16 @@ export default function Researches() {
     setShowForm(true);
   };
 
+  const toggleSort = (field: string) => {
+    setSort((prevSort) => {
+      if (prevSort && prevSort.field === field) {
+        return { ...prevSort, direction: prevSort.direction === "asc" ? "desc" : "asc" };
+      } else {
+        return { field, direction: "asc" };
+      }
+    });
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -143,8 +155,8 @@ export default function Researches() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
-          <Select 
-            value={researcherFilter} 
+          <Select
+            value={researcherFilter}
             onValueChange={setResearcherFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -159,8 +171,8 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={teamFilter} 
+          <Select
+            value={teamFilter}
             onValueChange={setTeamFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -175,8 +187,8 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={statusFilter} 
+          <Select
+            value={statusFilter}
             onValueChange={setStatusFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -199,13 +211,76 @@ export default function Researches() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
-                    <TableHead className="w-[20%]">Name</TableHead>
-                    <TableHead className="w-[15%]">Team</TableHead>
-                    <TableHead className="w-[15%]">Researcher</TableHead>
-                    <TableHead className="w-[20%]">Description</TableHead>
-                    <TableHead className="w-[10%]">Status</TableHead>
-                    <TableHead className="w-[10%]">Start Date</TableHead>
-                    <TableHead className="w-[10%]">End Date</TableHead>
+                    <TableHead className="w-[20%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("name")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Name
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[15%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("team")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Team
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[15%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("researcher")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Researcher
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[20%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("description")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Description
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[10%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("status")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Status
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[10%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("dateStart")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        Start Date
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[10%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("dateEnd")}
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
+                      >
+                        End Date
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
+                      </Button>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

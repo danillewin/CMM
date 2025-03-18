@@ -333,60 +333,60 @@ export default function Meetings() {
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("status")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Status
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[10%]">
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("cnum")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         CNUM
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[15%]">
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("companyName")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Company
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[15%]">
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("respondentName")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Respondent
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[12%]">
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("respondentPosition")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Position
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[12%]">
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("manager")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Manager
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                     <TableHead className="w-[15%]">Research</TableHead>
@@ -394,10 +394,10 @@ export default function Meetings() {
                       <Button
                         variant="ghost"
                         onClick={() => toggleSort("date")}
-                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                        className="w-full justify-start font-medium text-sm text-gray-500 hover:bg-transparent"
                       >
                         Date
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                        <ArrowUpDown className="ml-2 h-4 w-4 text-gray-400" />
                       </Button>
                     </TableHead>
                   </TableRow>
