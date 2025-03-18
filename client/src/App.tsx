@@ -14,26 +14,26 @@ function Navigation() {
   const [location] = useLocation();
 
   return (
-    <nav className="border-b mb-4">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex gap-4">
+    <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <div className="container mx-auto px-6 max-w-[1400px]">
+        <div className="flex gap-4 py-3">
           <Link href="/">
-            <Button variant={location === "/" ? "default" : "ghost"}>
+            <Button variant={location === "/" ? "default" : "ghost"} className="transition-colors duration-200">
               Meetings
             </Button>
           </Link>
           <Link href="/researches">
-            <Button variant={location === "/researches" ? "default" : "ghost"}>
+            <Button variant={location === "/researches" ? "default" : "ghost"} className="transition-colors duration-200">
               Researches
             </Button>
           </Link>
           <Link href="/calendar">
-            <Button variant={location === "/calendar" ? "default" : "ghost"}>
+            <Button variant={location === "/calendar" ? "default" : "ghost"} className="transition-colors duration-200">
               Calendar
             </Button>
           </Link>
           <Link href="/dashboard">
-            <Button variant={location === "/dashboard" ? "default" : "ghost"}>
+            <Button variant={location === "/dashboard" ? "default" : "ghost"} className="transition-colors duration-200">
               Dashboard
             </Button>
           </Link>
