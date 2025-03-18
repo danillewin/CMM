@@ -56,9 +56,16 @@ const StatusDot = ({ status }: { status: string }) => (
   <div className={`w-2 h-2 rounded-full ${getStatusColor(status)} inline-block mr-2`} />
 );
 
+const getResearchColor = (researchId: number): string => {
+  // Placeholder -  Replace with actual logic to determine color based on researchId
+  return researchId % 2 === 0 ? "bg-blue-300" : "bg-green-300";
+};
+
+
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [researchFilter, setResearchFilter] = useState<string>(""); // Add research filter state
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
@@ -210,8 +217,9 @@ export default function Meetings() {
       (meeting) =>
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
           meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
-          meeting.agenda.toLowerCase().includes(search.toLowerCase())) &&
-        (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter)
+          (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase())) &&
+        (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
+        (!researchFilter || meeting.researchId === Number(researchFilter)) // Add research filter condition
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
@@ -285,6 +293,22 @@ export default function Meetings() {
                   <div className="flex items-center">
                     <StatusDot status={status} />
                     {status}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={researchFilter} onValueChange={setResearchFilter}>
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Filter by research" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Researches</SelectItem>
+              {researches.map((research) => (
+                <SelectItem key={research.id} value={research.id.toString()}>
+                  <div className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
+                    {research.name}
                   </div>
                 </SelectItem>
               ))}
