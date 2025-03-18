@@ -71,7 +71,7 @@ const getResearchColor = (id: number) => {
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [researchFilter, setResearchFilter] = useState<string>("");
+  const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
@@ -220,7 +220,7 @@ export default function Meetings() {
           meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
           (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase())) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
-        (!researchFilter || meeting.researchId === Number(researchFilter))
+        (!researchFilter || meeting.researchId === researchFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
@@ -274,11 +274,7 @@ export default function Meetings() {
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder={
-                <div className="flex items-center">
-                  Filter by status
-                </div>
-              }>
+              <SelectValue placeholder="Filter by status">
                 {statusFilter && (
                   <div className="flex items-center">
                     <StatusDot status={statusFilter} />
@@ -299,12 +295,15 @@ export default function Meetings() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={researchFilter} onValueChange={setResearchFilter}>
+          <Select 
+            value={researchFilter?.toString() ?? "ALL"} 
+            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
+          >
             <SelectTrigger className="w-full md:w-60">
               <SelectValue placeholder="Filter by research" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Researches</SelectItem>
+              <SelectItem value="ALL">All Researches</SelectItem>
               {researches.map((research) => (
                 <SelectItem key={research.id} value={research.id.toString()}>
                   <div className="flex items-center">
