@@ -242,13 +242,13 @@ export default function Meetings() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-10">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">Client Meetings</h1>
-        <div className="flex flex-col sm:flex-row gap-2">
+    <div className="container mx-auto px-6 py-8 max-w-[1400px]">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-3xl font-semibold text-gray-900 mb-4 md:mb-0">Client Meetings</h1>
+        <div className="flex flex-col sm:flex-row gap-3">
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
-              <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 transition-colors">
                 <Plus className="h-4 w-4 mr-2" />
                 New Meeting
               </Button>
@@ -270,10 +270,10 @@ export default function Meetings() {
               />
             </DialogContent>
           </Dialog>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto hover:bg-gray-50 transition-colors"
               onClick={exportToCSV}
             >
               <FileDown className="h-4 w-4 mr-2" />
@@ -281,7 +281,7 @@ export default function Meetings() {
             </Button>
             <Button
               variant="outline"
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto hover:bg-gray-50 transition-colors"
               onClick={exportToExcel}
             >
               <FileDown className="h-4 w-4 mr-2" />
@@ -291,15 +291,15 @@ export default function Meetings() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Input
           placeholder="Search meetings..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full"
+          className="w-full bg-white shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-shadow"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white shadow-sm border-gray-200">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -311,11 +311,11 @@ export default function Meetings() {
             ))}
           </SelectContent>
         </Select>
-        <Select 
-          value={researchFilter?.toString() ?? "ALL"} 
+        <Select
+          value={researchFilter?.toString() ?? "ALL"}
           onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white shadow-sm border-gray-200">
             <SelectValue placeholder="Filter by research" />
           </SelectTrigger>
           <SelectContent>
@@ -332,140 +332,142 @@ export default function Meetings() {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[12%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("status")}
-                    className="whitespace-nowrap"
-                  >
-                    Status
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[10%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("cnum")}
-                    className="whitespace-nowrap"
-                  >
-                    CNUM
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[15%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("companyName")}
-                    className="whitespace-nowrap"
-                  >
-                    Company Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[15%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("respondentName")}
-                    className="whitespace-nowrap"
-                  >
-                    Respondent Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[12%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("respondentPosition")}
-                    className="whitespace-nowrap"
-                  >
-                    Position
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[12%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("manager")}
-                    className="whitespace-nowrap"
-                  >
-                    Manager
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead className="w-[15%]">Research</TableHead>
-                <TableHead className="w-[10%]">
-                  <Button
-                    variant="ghost"
-                    onClick={() => toggleSort("date")}
-                    className="whitespace-nowrap"
-                  >
-                    Date
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMeetings.map((meeting) => (
-                <TableRow
-                  key={meeting.id}
-                  className="cursor-pointer hover:bg-accent/50"
-                  onClick={() => handleRowClick(meeting)}
-                >
-                  <TableCell>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <Select
-                        value={meeting.status}
-                        onValueChange={(value) =>
-                          updateStatusMutation.mutate({ id: meeting.id, status: value })
-                        }
-                      >
-                        <SelectTrigger
-                          className="w-[140px]"
-                          onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        >
-                          <SelectValue>{meeting.status}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(MeetingStatus).map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </TableCell>
-                  <TableCell>{meeting.cnum}</TableCell>
-                  <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
-                  <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
-                  <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
-                  <TableCell className="max-w-[200px] truncate">
-                    {meeting.researchId ? (
-                      <div className="flex items-center">
-                        <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2`} />
-                        {researches.find(r => r.id === meeting.researchId)?.name}
-                      </div>
-                    ) : '—'}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(meeting.date).toLocaleDateString()}
-                  </TableCell>
+      <Card className="shadow-sm border-gray-200 bg-white overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50/80">
+                  <TableHead className="w-[12%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("status")}
+                      className="whitespace-nowrap"
+                    >
+                      Status
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[10%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("cnum")}
+                      className="whitespace-nowrap"
+                    >
+                      CNUM
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[15%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("companyName")}
+                      className="whitespace-nowrap"
+                    >
+                      Company Name
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[15%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("respondentName")}
+                      className="whitespace-nowrap"
+                    >
+                      Respondent Name
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[12%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("respondentPosition")}
+                      className="whitespace-nowrap"
+                    >
+                      Position
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[12%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("manager")}
+                      className="whitespace-nowrap"
+                    >
+                      Manager
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="w-[15%]">Research</TableHead>
+                  <TableHead className="w-[10%]">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleSort("date")}
+                      className="whitespace-nowrap"
+                    >
+                      Date
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredMeetings.map((meeting) => (
+                  <TableRow
+                    key={meeting.id}
+                    className="cursor-pointer hover:bg-gray-50/80 transition-colors"
+                    onClick={() => handleRowClick(meeting)}
+                  >
+                    <TableCell>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Select
+                          value={meeting.status}
+                          onValueChange={(value) =>
+                            updateStatusMutation.mutate({ id: meeting.id, status: value })
+                          }
+                        >
+                          <SelectTrigger
+                            className="w-[140px] bg-white"
+                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                          >
+                            <SelectValue>{meeting.status}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(MeetingStatus).map((status) => (
+                              <SelectItem key={status} value={status}>
+                                {status}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{meeting.cnum}</TableCell>
+                    <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
+                    <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
+                    <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
+                    <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {meeting.researchId ? (
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2`} />
+                          {researches.find(r => r.id === meeting.researchId)?.name}
+                        </div>
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(meeting.date).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Duplicate CNUM Warning</AlertDialogTitle>
             <AlertDialogDescription>
@@ -473,8 +475,8 @@ export default function Meetings() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel onClick={handleCancelCreate}>No, don't create</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCreateAnyway}>Create Anyway</AlertDialogAction>
+            <AlertDialogCancel className="hover:bg-gray-50 transition-colors">No, don't create</AlertDialogCancel>
+            <AlertDialogAction className="bg-primary hover:bg-primary/90 transition-colors">Create Anyway</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

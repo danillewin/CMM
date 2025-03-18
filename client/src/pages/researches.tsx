@@ -106,12 +106,12 @@ export default function Researches() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-10">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">Researches</h1>
+    <div className="container mx-auto px-6 py-8 max-w-[1400px]">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <h1 className="text-3xl font-semibold text-gray-900 mb-4 md:mb-0">Researches</h1>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 transition-colors">
               <Plus className="h-4 w-4 mr-2" />
               New Research
             </Button>
@@ -135,18 +135,18 @@ export default function Researches() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Input
           placeholder="Search researches..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full"
+          className="w-full bg-white shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-shadow"
         />
         <Select 
           value={researcherFilter} 
           onValueChange={setResearcherFilter}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white shadow-sm border-gray-200">
             <SelectValue placeholder="Filter by researcher" />
           </SelectTrigger>
           <SelectContent>
@@ -162,7 +162,7 @@ export default function Researches() {
           value={teamFilter} 
           onValueChange={setTeamFilter}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white shadow-sm border-gray-200">
             <SelectValue placeholder="Filter by team" />
           </SelectTrigger>
           <SelectContent>
@@ -178,7 +178,7 @@ export default function Researches() {
           value={statusFilter} 
           onValueChange={setStatusFilter}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full bg-white shadow-sm border-gray-200">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -192,38 +192,40 @@ export default function Researches() {
         </Select>
       </div>
 
-      <Card>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[20%]">Name</TableHead>
-                <TableHead className="w-[15%]">Team</TableHead>
-                <TableHead className="w-[15%]">Researcher</TableHead>
-                <TableHead className="w-[20%]">Description</TableHead>
-                <TableHead className="w-[10%]">Status</TableHead>
-                <TableHead className="w-[10%]">Start Date</TableHead>
-                <TableHead className="w-[10%]">End Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredResearches.map((research) => (
-                <TableRow
-                  key={research.id}
-                  className="cursor-pointer hover:bg-accent/50"
-                  onClick={() => handleRowClick(research)}
-                >
-                  <TableCell className="font-medium">{research.name}</TableCell>
-                  <TableCell>{research.team}</TableCell>
-                  <TableCell>{research.researcher}</TableCell>
-                  <TableCell className="truncate max-w-[400px]">{research.description}</TableCell>
-                  <TableCell>{research.status}</TableCell>
-                  <TableCell>{new Date(research.dateStart).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
+      <Card className="shadow-sm border-gray-200 bg-white overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 hover:bg-gray-50/80">
+                  <TableHead className="w-[20%]">Name</TableHead>
+                  <TableHead className="w-[15%]">Team</TableHead>
+                  <TableHead className="w-[15%]">Researcher</TableHead>
+                  <TableHead className="w-[20%]">Description</TableHead>
+                  <TableHead className="w-[10%]">Status</TableHead>
+                  <TableHead className="w-[10%]">Start Date</TableHead>
+                  <TableHead className="w-[10%]">End Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredResearches.map((research) => (
+                  <TableRow
+                    key={research.id}
+                    className="cursor-pointer hover:bg-gray-50/80 transition-colors"
+                    onClick={() => handleRowClick(research)}
+                  >
+                    <TableCell className="font-medium">{research.name}</TableCell>
+                    <TableCell>{research.team}</TableCell>
+                    <TableCell>{research.researcher}</TableCell>
+                    <TableCell className="truncate max-w-[400px]">{research.description}</TableCell>
+                    <TableCell>{research.status}</TableCell>
+                    <TableCell>{new Date(research.dateStart).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
