@@ -144,10 +144,10 @@ export default function Meetings() {
 
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
-      'Respondent Name': meeting.respondentName,
+      'Respondent': meeting.respondentName,
       'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
-      'Company Name': meeting.companyName,
+      'Company': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
@@ -168,10 +168,10 @@ export default function Meetings() {
 
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
-      'Respondent Name': meeting.respondentName,
+      'Respondent': meeting.respondentName,
       'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
-      'Company Name': meeting.companyName,
+      'Company': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
@@ -355,7 +355,7 @@ export default function Meetings() {
                         onClick={() => toggleSort("companyName")}
                         className="whitespace-nowrap hover:text-primary transition-colors duration-200"
                       >
-                        Company Name
+                        Company
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
