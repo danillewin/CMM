@@ -15,6 +15,7 @@ export const researches = pgTable("researches", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   team: text("team").notNull(),
+  researcher: text("researcher").notNull(),
   description: text("description").notNull(),
   dateStart: timestamp("date_start").notNull(),
   dateEnd: timestamp("date_end").notNull(),
@@ -37,6 +38,7 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
 }).extend({
   dateStart: z.coerce.date(),
   dateEnd: z.coerce.date(),
+  researcher: z.string().min(1, "Researcher is required"),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({

@@ -18,9 +18,17 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Researches() {
   const [search, setSearch] = useState("");
+  const [researcherFilter, setResearcherFilter] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
@@ -72,11 +80,15 @@ export default function Researches() {
     }
   };
 
+  // Get unique researchers for filter
+  const researchers = [...new Set(researches.map(r => r.researcher))].sort();
+
   const filteredResearches = researches.filter(
     (research) =>
-      research.name.toLowerCase().includes(search.toLowerCase()) ||
-      research.team.toLowerCase().includes(search.toLowerCase()) ||
-      research.description.toLowerCase().includes(search.toLowerCase())
+      (research.name.toLowerCase().includes(search.toLowerCase()) ||
+        research.team.toLowerCase().includes(search.toLowerCase()) ||
+        research.description.toLowerCase().includes(search.toLowerCase())) &&
+      (!researcherFilter || research.researcher === researcherFilter)
   );
 
   const handleRowClick = (research: Research) => {
@@ -93,12 +105,30 @@ export default function Researches() {
       <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Researches</h1>
 
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6">
-        <Input
-          placeholder="Search researches..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full md:w-80"
-        />
+        <div className="flex flex-col md:flex-row gap-4">
+          <Input
+            placeholder="Search researches..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full md:w-80"
+          />
+          <Select 
+            value={researcherFilter} 
+            onValueChange={setResearcherFilter}
+          >
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Filter by researcher" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Researchers</SelectItem>
+              {researchers.map((researcher) => (
+                <SelectItem key={researcher} value={researcher}>
+                  {researcher}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
@@ -133,7 +163,8 @@ export default function Researches() {
               <TableRow>
                 <TableHead className="w-[20%]">Name</TableHead>
                 <TableHead className="w-[15%]">Team</TableHead>
-                <TableHead className="w-[35%]">Description</TableHead>
+                <TableHead className="w-[15%]">Researcher</TableHead>
+                <TableHead className="w-[20%]">Description</TableHead>
                 <TableHead className="w-[15%]">Start Date</TableHead>
                 <TableHead className="w-[15%]">End Date</TableHead>
               </TableRow>
@@ -147,6 +178,7 @@ export default function Researches() {
                 >
                   <TableCell className="font-medium">{research.name}</TableCell>
                   <TableCell>{research.team}</TableCell>
+                  <TableCell>{research.researcher}</TableCell>
                   <TableCell className="truncate max-w-[400px]">{research.description}</TableCell>
                   <TableCell>{new Date(research.dateStart).toLocaleDateString()}</TableCell>
                   <TableCell>{new Date(research.dateEnd).toLocaleDateString()}</TableCell>

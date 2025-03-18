@@ -34,6 +34,7 @@ export default function ResearchForm({
     defaultValues: {
       name: initialData?.name ?? "",
       team: initialData?.team ?? "",
+      researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
       dateStart: initialData
         ? new Date(initialData.dateStart).toISOString().slice(0, 10)
@@ -67,6 +68,20 @@ export default function ResearchForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Team</FormLabel>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="researcher"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Researcher</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
