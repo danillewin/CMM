@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertResearchSchema, type InsertResearch, type Research } from "@shared/schema";
+import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -13,6 +13,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -36,12 +43,13 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
+      status: initialData?.status ?? ResearchStatus.PLANNED,
       dateStart: initialData
-        ? new Date(initialData.dateStart).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
+        ? new Date(initialData.dateStart).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
       dateEnd: initialData
-        ? new Date(initialData.dateEnd).toISOString().slice(0, 10)
-        : new Date().toISOString().slice(0, 10),
+        ? new Date(initialData.dateEnd).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0],
     },
   });
 
@@ -85,6 +93,31 @@ export default function ResearchForm({
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Status</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(ResearchStatus).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Research } from "@shared/schema";
+import { Research, ResearchStatus } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,6 +30,7 @@ export default function Researches() {
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
@@ -91,7 +92,8 @@ export default function Researches() {
         research.team.toLowerCase().includes(search.toLowerCase()) ||
         research.description.toLowerCase().includes(search.toLowerCase())) &&
       (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
-      (teamFilter === "ALL" || research.team === teamFilter)
+      (teamFilter === "ALL" || research.team === teamFilter) &&
+      (statusFilter === "ALL" || research.status === statusFilter)
   );
 
   const handleRowClick = (research: Research) => {
@@ -133,7 +135,7 @@ export default function Researches() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Input
           placeholder="Search researches..."
           value={search}
@@ -172,6 +174,22 @@ export default function Researches() {
             ))}
           </SelectContent>
         </Select>
+        <Select 
+          value={statusFilter} 
+          onValueChange={setStatusFilter}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Statuses</SelectItem>
+            {Object.values(ResearchStatus).map((status) => (
+              <SelectItem key={status} value={status}>
+                {status}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -183,8 +201,9 @@ export default function Researches() {
                 <TableHead className="w-[15%]">Team</TableHead>
                 <TableHead className="w-[15%]">Researcher</TableHead>
                 <TableHead className="w-[20%]">Description</TableHead>
-                <TableHead className="w-[15%]">Start Date</TableHead>
-                <TableHead className="w-[15%]">End Date</TableHead>
+                <TableHead className="w-[10%]">Status</TableHead>
+                <TableHead className="w-[10%]">Start Date</TableHead>
+                <TableHead className="w-[10%]">End Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -198,6 +217,7 @@ export default function Researches() {
                   <TableCell>{research.team}</TableCell>
                   <TableCell>{research.researcher}</TableCell>
                   <TableCell className="truncate max-w-[400px]">{research.description}</TableCell>
+                  <TableCell>{research.status}</TableCell>
                   <TableCell>{new Date(research.dateStart).toLocaleDateString()}</TableCell>
                   <TableCell>{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
                 </TableRow>

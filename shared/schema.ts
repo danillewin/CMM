@@ -9,7 +9,14 @@ export const MeetingStatus = {
   DECLINED: "Declined",
 } as const;
 
+export const ResearchStatus = {
+  PLANNED: "Planned",
+  IN_PROGRESS: "In Progress",
+  DONE: "Done",
+} as const;
+
 export type MeetingStatusType = typeof MeetingStatus[keyof typeof MeetingStatus];
+export type ResearchStatusType = typeof ResearchStatus[keyof typeof ResearchStatus];
 
 export const researches = pgTable("researches", {
   id: serial("id").primaryKey(),
@@ -19,6 +26,7 @@ export const researches = pgTable("researches", {
   description: text("description").notNull(),
   dateStart: timestamp("date_start").notNull(),
   dateEnd: timestamp("date_end").notNull(),
+  status: text("status").notNull().default(ResearchStatus.PLANNED),
 });
 
 export const meetings = pgTable("meetings", {
@@ -39,6 +47,8 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   dateStart: z.coerce.date(),
   dateEnd: z.coerce.date(),
   researcher: z.string().min(1, "Researcher is required"),
+  status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
+    .default(ResearchStatus.PLANNED),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
