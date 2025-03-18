@@ -6,7 +6,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import {
 
 export default function Researches() {
   const [search, setSearch] = useState("");
-  const [researcherFilter, setResearcherFilter] = useState<string>("");
+  const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
@@ -88,7 +88,7 @@ export default function Researches() {
       (research.name.toLowerCase().includes(search.toLowerCase()) ||
         research.team.toLowerCase().includes(search.toLowerCase()) ||
         research.description.toLowerCase().includes(search.toLowerCase())) &&
-      (!researcherFilter || research.researcher === researcherFilter)
+      (researcherFilter === "ALL" || research.researcher === researcherFilter)
   );
 
   const handleRowClick = (research: Research) => {
@@ -120,7 +120,7 @@ export default function Researches() {
               <SelectValue placeholder="Filter by researcher" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Researchers</SelectItem>
+              <SelectItem value="ALL">All Researchers</SelectItem>
               {researchers.map((researcher) => (
                 <SelectItem key={researcher} value={researcher}>
                   {researcher}
