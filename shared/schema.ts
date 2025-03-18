@@ -31,7 +31,7 @@ export const researches = pgTable("researches", {
 
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
-  respondentName: text("respondent_name").notNull(),
+  respondentName: text("respondent_name").notNull(), // Keep the database column name the same
   respondentPosition: text("respondent_position"),
   cnum: text("cnum").notNull(),
   companyName: text("company_name"),
@@ -60,6 +60,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
     .transform(val => val.toUpperCase()),
   status: z.enum([MeetingStatus.NEGOTIATION, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.NEGOTIATION),
+  respondentName: z.string().min(1, "Respondent is required"),
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),

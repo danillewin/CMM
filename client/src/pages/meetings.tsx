@@ -365,7 +365,7 @@ export default function Meetings() {
                         onClick={() => toggleSort("respondentName")}
                         className="whitespace-nowrap hover:text-primary transition-colors duration-200"
                       >
-                        Respondent Name
+                        Respondent
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
