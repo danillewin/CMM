@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Meeting, MeetingStatus } from "@shared/schema";
+import { Meeting, MeetingStatus, Research } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,16 +56,22 @@ const StatusDot = ({ status }: { status: string }) => (
   <div className={`w-2 h-2 rounded-full ${getStatusColor(status)} inline-block mr-2`} />
 );
 
-const getResearchColor = (researchId: number): string => {
-  // Placeholder -  Replace with actual logic to determine color based on researchId
-  return researchId % 2 === 0 ? "bg-blue-300" : "bg-green-300";
+const getResearchColor = (id: number) => {
+  const colors = [
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500"
+  ];
+  return colors[id % colors.length];
 };
-
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [researchFilter, setResearchFilter] = useState<string>(""); // Add research filter state
+  const [researchFilter, setResearchFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
@@ -78,7 +84,7 @@ export default function Meetings() {
     queryKey: ["/api/meetings"],
   });
 
-  const { data: researches = [] } = useQuery({
+  const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
 
@@ -123,14 +129,9 @@ export default function Meetings() {
       const meeting = meetings.find(m => m.id === id);
       if (!meeting) return;
       const res = await apiRequest("PATCH", `/api/meetings/${id}`, {
-        respondentName: meeting.respondentName,
-        respondentPosition: meeting.respondentPosition,
-        cnum: meeting.cnum,
-        companyName: meeting.companyName,
-        manager: meeting.manager,
-        date: new Date(meeting.date),
-        agenda: meeting.agenda,
+        ...meeting,
         status,
+        date: new Date(meeting.date),
       });
       return res.json();
     },
@@ -178,8 +179,8 @@ export default function Meetings() {
       'Company Name': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
-      'Agenda': meeting.agenda,
       'Status': meeting.status,
+      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const csvString = [
@@ -202,8 +203,8 @@ export default function Meetings() {
       'Company Name': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
-      'Agenda': meeting.agenda,
       'Status': meeting.status,
+      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -219,7 +220,7 @@ export default function Meetings() {
           meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
           (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase())) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
-        (!researchFilter || meeting.researchId === Number(researchFilter)) // Add research filter condition
+        (!researchFilter || meeting.researchId === Number(researchFilter))
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
@@ -241,7 +242,7 @@ export default function Meetings() {
         : String(bVal).localeCompare(String(aVal));
     });
 
-  const toggleSort = (field: "date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status") => {
+  const toggleSort = (field: typeof sortBy) => {
     if (sortBy === field) {
       setSortDir(sortDir === "asc" ? "desc" : "asc");
     } else {
@@ -315,6 +316,7 @@ export default function Meetings() {
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <Dialog open={showForm} onOpenChange={setShowForm}>
             <DialogTrigger asChild>
@@ -499,7 +501,12 @@ export default function Meetings() {
                   <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
                   <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'}
+                    {meeting.researchId ? (
+                      <div className="flex items-center">
+                        <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2`} />
+                        {researches.find(r => r.id === meeting.researchId)?.name}
+                      </div>
+                    ) : '—'}
                   </TableCell>
                   <TableCell>
                     {new Date(meeting.date).toLocaleDateString()}
