@@ -29,7 +29,7 @@ import {
 export default function Researches() {
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
-  const [teamFilter, setTeamFilter] = useState<string>("ALL"); // Added teamFilter state
+  const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [showForm, setShowForm] = useState(false);
   const [editResearch, setEditResearch] = useState<Research | null>(null);
   const { toast } = useToast();
@@ -83,7 +83,7 @@ export default function Researches() {
 
   // Get unique researchers and teams for filters
   const researchers = [...new Set(researches.map(r => r.researcher))].sort();
-  const teams = [...new Set(researches.map(r => r.team))].sort(); // Added teams array
+  const teams = [...new Set(researches.map(r => r.team))].sort();
 
   const filteredResearches = researches.filter(
     (research) =>
@@ -91,7 +91,7 @@ export default function Researches() {
         research.team.toLowerCase().includes(search.toLowerCase()) ||
         research.description.toLowerCase().includes(search.toLowerCase())) &&
       (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
-      (teamFilter === "ALL" || research.team === teamFilter) // Added team filter condition
+      (teamFilter === "ALL" || research.team === teamFilter)
   );
 
   const handleRowClick = (research: Research) => {
@@ -105,50 +105,8 @@ export default function Researches() {
 
   return (
     <div className="container mx-auto px-4 py-6 md:py-10">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Researches</h1>
-
-      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <Input
-            placeholder="Search researches..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full md:w-80"
-          />
-          <Select 
-            value={researcherFilter} 
-            onValueChange={setResearcherFilter}
-          >
-            <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder="Filter by researcher" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Researchers</SelectItem>
-              {researchers.map((researcher) => (
-                <SelectItem key={researcher} value={researcher}>
-                  {researcher}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select 
-            value={teamFilter} 
-            onValueChange={setTeamFilter}
-          > {/* Added team filter select */}
-            <SelectTrigger className="w-full md:w-60">
-              <SelectValue placeholder="Filter by team" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
-                <SelectItem key={team} value={team}>
-                  {team}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold mb-4 md:mb-0">Researches</h1>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
             <Button>
@@ -173,6 +131,47 @@ export default function Researches() {
             />
           </DialogContent>
         </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Input
+          placeholder="Search researches..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full"
+        />
+        <Select 
+          value={researcherFilter} 
+          onValueChange={setResearcherFilter}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by researcher" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Researchers</SelectItem>
+            {researchers.map((researcher) => (
+              <SelectItem key={researcher} value={researcher}>
+                {researcher}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select 
+          value={teamFilter} 
+          onValueChange={setTeamFilter}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Filter by team" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Teams</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team} value={team}>
+                {team}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
