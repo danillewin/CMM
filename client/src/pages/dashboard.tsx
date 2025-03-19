@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
 import {
@@ -20,7 +20,18 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { startOfDay, subDays, format, isWithinInterval } from "date-fns";
+import {
+  format,
+  startOfDay,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  isWithinInterval,
+  parseISO
+} from "date-fns";
 import {
   Select,
   SelectContent,
@@ -39,6 +50,8 @@ const COLORS = {
 export default function Dashboard() {
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
+  const [managerFilter, setManagerFilter] = useState<string>("ALL");
+  const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
 
   const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
@@ -48,10 +61,20 @@ export default function Dashboard() {
     queryKey: ["/api/researches"],
   });
 
-  // Get unique teams for filter
+  // Get unique teams, managers, and researchers for filters
   const teams = [...new Set(researches.map(r => r.team))].sort();
+  const managers = [...new Set(meetings.map(m => m.manager))].sort();
 
-  // Filter meetings based on selected research and team
+  // Get researchers from researches that have associated meetings
+  const researchersWithMeetings = useMemo(() => {
+    const meetingResearchIds = new Set(meetings.filter(m => m.researchId).map(m => m.researchId));
+    return [...new Set(researches
+      .filter(r => meetingResearchIds.has(r.id))
+      .map(r => r.researcher))]
+      .sort();
+  }, [meetings, researches]);
+
+  // Filter meetings based on selected filters
   const filteredMeetings = meetings.filter(meeting => {
     if (researchFilter && meeting.researchId !== researchFilter) {
       return false;
@@ -59,6 +82,15 @@ export default function Dashboard() {
     if (teamFilter !== "ALL") {
       const meetingResearch = researches.find(r => r.id === meeting.researchId);
       if (!meetingResearch || meetingResearch.team !== teamFilter) {
+        return false;
+      }
+    }
+    if (managerFilter !== "ALL" && meeting.manager !== managerFilter) {
+      return false;
+    }
+    if (researcherFilter !== "ALL") {
+      const meetingResearch = researches.find(r => r.id === meeting.researchId);
+      if (!meetingResearch || meetingResearch.researcher !== researcherFilter) {
         return false;
       }
     }
@@ -73,15 +105,14 @@ export default function Dashboard() {
 
   // Calculate meetings over time (last 30 days)
   const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subDays(new Date(), i);
+    const date = subMonths(new Date(), i);
     const dayStart = startOfDay(date);
-    const dayEnd = subDays(startOfDay(date), -1);
+    const dayEnd = subMonths(startOfDay(date), -1);
 
     const dayData = {
       name: format(date, 'MMM dd'),
     };
 
-    // Add count for each status
     Object.values(MeetingStatus).forEach(status => {
       dayData[status] = filteredMeetings.filter(m => 
         isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
@@ -125,171 +156,207 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-10">
-      <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
+      <div className="container mx-auto max-w-[1400px] space-y-8">
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <Select 
-          value={researchFilter?.toString() ?? "ALL"} 
-          onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
-        >
-          <SelectTrigger className="w-full md:w-60">
-            <SelectValue placeholder="Filter by research" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Researches</SelectItem>
-            {researches.map((research) => (
-              <SelectItem key={research.id} value={research.id.toString()}>
-                {research.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select 
-          value={teamFilter} 
-          onValueChange={setTeamFilter}
-        >
-          <SelectTrigger className="w-full md:w-60">
-            <SelectValue placeholder="Filter by team" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Teams</SelectItem>
-            {teams.map((team) => (
-              <SelectItem key={team} value={team}>
-                {team}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Meetings by Status</CardTitle>
-            <CardDescription>Distribution of meetings across different statuses</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={meetingsByStatus}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {meetingsByStatus.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Meetings Over Time</CardTitle>
-            <CardDescription>Number of meetings in the last 30 days by status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={last30Days}>
-                  <XAxis 
-                    dataKey="name" 
-                    angle={-45}
-                    textAnchor="end"
-                    height={70}
-                    interval={4}
-                  />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Legend />
-                  {Object.entries(MeetingStatus).map(([key, status]) => (
-                    <Bar 
-                      key={status}
-                      dataKey={status}
-                      stackId="status"
-                      fill={COLORS[status as keyof typeof MeetingStatus]}
-                      name={status}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Managers</CardTitle>
-            <CardDescription>Managers with the most meetings by status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topManagers} layout="vertical">
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" width={100} />
-                  <Tooltip />
-                  <Legend />
-                  {Object.entries(MeetingStatus).map(([key, status]) => (
-                    <Bar 
-                      key={status}
-                      dataKey={status}
-                      stackId="status"
-                      fill={COLORS[status as keyof typeof MeetingStatus]}
-                      name={status}
-                    />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Meetings</CardTitle>
-            <CardDescription>Last 5 scheduled meetings</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentMeetings.map((meeting) => (
-                <div
-                  key={meeting.id}
-                  className="flex items-center justify-between border-b pb-2 last:border-0"
-                >
-                  <div>
-                    <div className="font-medium">{meeting.respondentName}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {meeting.companyName}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm">
-                      {new Date(meeting.date).toLocaleDateString()}
-                    </div>
-                    <div
-                      style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
-                      className="text-sm font-medium"
-                    >
-                      {meeting.status}
-                    </div>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Select 
+            value={researchFilter?.toString() ?? "ALL"} 
+            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
+          >
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by research" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Researches</SelectItem>
+              {researches.map((research) => (
+                <SelectItem key={research.id} value={research.id.toString()}>
+                  {research.name}
+                </SelectItem>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={teamFilter} 
+            onValueChange={setTeamFilter}
+          >
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by team" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Teams</SelectItem>
+              {teams.map((team) => (
+                <SelectItem key={team} value={team}>
+                  {team}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={managerFilter} 
+            onValueChange={setManagerFilter}
+          >
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by manager" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Managers</SelectItem>
+              {managers.map((manager) => (
+                <SelectItem key={manager} value={manager}>
+                  {manager}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select 
+            value={researcherFilter} 
+            onValueChange={setResearcherFilter}
+          >
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by researcher" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Researchers</SelectItem>
+              {researchersWithMeetings.map((researcher) => (
+                <SelectItem key={researcher} value={researcher}>
+                  {researcher}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Meetings by Status</CardTitle>
+              <CardDescription>Distribution of meetings across different statuses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={meetingsByStatus}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {meetingsByStatus.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Meetings Over Time</CardTitle>
+              <CardDescription>Number of meetings in the last 30 days by status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={last30Days}>
+                    <XAxis 
+                      dataKey="name" 
+                      angle={-45}
+                      textAnchor="end"
+                      height={70}
+                      interval={4}
+                    />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Legend />
+                    {Object.entries(MeetingStatus).map(([key, status]) => (
+                      <Bar 
+                        key={status}
+                        dataKey={status}
+                        stackId="status"
+                        fill={COLORS[status as keyof typeof MeetingStatus]}
+                        name={status}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Top Managers</CardTitle>
+              <CardDescription>Managers with the most meetings by status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topManagers} layout="vertical">
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={100} />
+                    <Tooltip />
+                    <Legend />
+                    {Object.entries(MeetingStatus).map(([key, status]) => (
+                      <Bar 
+                        key={status}
+                        dataKey={status}
+                        stackId="status"
+                        fill={COLORS[status as keyof typeof MeetingStatus]}
+                        name={status}
+                      />
+                    ))}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Recent Meetings</CardTitle>
+              <CardDescription>Last 5 scheduled meetings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentMeetings.map((meeting) => (
+                  <div
+                    key={meeting.id}
+                    className="flex items-center justify-between border-b pb-2 last:border-0"
+                  >
+                    <div>
+                      <div className="font-medium">{meeting.respondentName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {meeting.companyName}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">
+                        {new Date(meeting.date).toLocaleDateString()}
+                      </div>
+                      <div
+                        style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
+                        className="text-sm font-medium"
+                      >
+                        {meeting.status}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
