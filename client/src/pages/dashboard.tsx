@@ -30,8 +30,8 @@ import {
 } from "@/components/ui/select";
 
 const COLORS = {
-  [MeetingStatus.NEGOTIATION]: "#eab308", // yellow-500
-  [MeetingStatus.SET]: "#3b82f6", // blue-500
+  [MeetingStatus.NEGOTIATION]: "#3b82f6", // blue-500
+  [MeetingStatus.SET]: "#6366f1", // indigo-500
   [MeetingStatus.DONE]: "#22c55e", // green-500
   [MeetingStatus.DECLINED]: "#ef4444", // red-500
 };
@@ -165,7 +165,6 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Rest of the dashboard components remain the same, they now use filteredMeetings instead of meetings */}
         <Card>
           <CardHeader>
             <CardTitle>Meetings by Status</CardTitle>
