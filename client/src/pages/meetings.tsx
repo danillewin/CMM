@@ -466,8 +466,18 @@ export default function Meetings() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="bg-white hover:bg-gray-50/80 transition-all duration-200">No, don't create</AlertDialogCancel>
-              <AlertDialogAction className="bg-primary hover:bg-primary/90 transition-all duration-200">Create Anyway</AlertDialogAction>
+              <AlertDialogCancel 
+                onClick={handleCancelCreate}
+                className="bg-white hover:bg-gray-50/80 transition-all duration-200"
+              >
+                No, don't create
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleCreateAnyway}
+                className="bg-primary hover:bg-primary/90 transition-all duration-200"
+              >
+                Create Anyway
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
