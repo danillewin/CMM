@@ -135,17 +135,16 @@ export default function ResearchForm({
             <FormItem>
               <FormLabel className="text-base">Description</FormLabel>
               <FormControl>
-                {initialData ? (
-                  <div className="mt-2">
-                    <LinkifiedText
-                      text={initialData.description}
-                      className="text-sm text-muted-foreground"
-                    />
-                  </div>
-                ) : (
-                  <Textarea {...field} className="w-full min-h-[100px]" />
-                )}
+                <Textarea {...field} className="w-full min-h-[100px]" />
               </FormControl>
+              {field.value && (
+                <div className="mt-2">
+                  <LinkifiedText
+                    text={field.value}
+                    className="text-sm text-muted-foreground"
+                  />
+                </div>
+              )}
               <FormMessage />
             </FormItem>
           )}
