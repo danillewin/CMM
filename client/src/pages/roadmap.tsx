@@ -257,7 +257,7 @@ export default function RoadmapPage() {
                               left: `${left}px`,
                               width: `${width}px`,
                               top: `${top}px`,
-                              backgroundColor: `${getResearchColor(research.status)}cc`,
+                              backgroundColor: `${research.color}cc`,
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
