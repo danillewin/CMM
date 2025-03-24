@@ -236,23 +236,24 @@ export default function RoadmapPage() {
                         return (
                           <Card
                             key={research.id}
-                            className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
+                            className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow`}
                             style={{
                               left: left,
                               width: `${width}px`,
                               top: `${top}px`,
+                              backgroundColor: `${research.color}cc`, // Add 80% opacity
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
-                            <div className="font-medium truncate">{research.name}</div>
-                            <div className="text-sm opacity-90 truncate">
+                            <div className="font-medium truncate text-white">{research.name}</div>
+                            <div className="text-sm opacity-90 truncate text-white">
                               {viewMode === "teams" ? (
                                 <>Researcher: {research.researcher}</>
                               ) : (
                                 <>Team: {research.team}</>
                               )}
                             </div>
-                            <div className="text-sm opacity-90 truncate">
+                            <div className="text-sm opacity-90 truncate text-white">
                               Status: {research.status}
                             </div>
                           </Card>

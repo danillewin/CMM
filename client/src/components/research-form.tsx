@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TeamAutocomplete } from "./team-autocomplete";
+import { RESEARCH_COLORS } from "@/lib/colors";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -51,6 +52,7 @@ export default function ResearchForm({
       dateEnd: initialData
         ? new Date(initialData.dateEnd).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0],
+      color: initialData?.color ?? RESEARCH_COLORS[0],
     },
   });
 
@@ -136,6 +138,30 @@ export default function ResearchForm({
               <FormControl>
                 <Textarea {...field} className="w-full min-h-[100px]" />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Color</FormLabel>
+              <div className="grid grid-cols-6 gap-2 mt-2">
+                {RESEARCH_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full ring-offset-2 ${
+                      field.value === color ? 'ring-2 ring-primary' : ''
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => field.onChange(color)}
+                  />
+                ))}
+              </div>
               <FormMessage />
             </FormItem>
           )}
