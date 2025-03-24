@@ -20,7 +20,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-//import { LinkifiedText } from "@/components/linkified-text"; //Removed
 
 type ViewMode = "teams" | "researchers";
 
@@ -28,14 +27,20 @@ function getMonthsBetween(startDate: Date, endDate: Date) {
   return eachMonthOfInterval({ start: startDate, end: endDate });
 }
 
-function getCardPosition(research: Research, monthWidth: number) {
+function getCardPosition(research: Research, monthWidth: number, timelineStart: Date) {
   const start = new Date(research.dateStart);
   const end = new Date(research.dateEnd);
-  const left = start.getDate() * (monthWidth / 31);
-  const width = Math.max(
-    100,
-    (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) * (monthWidth / 31)
-  );
+
+  // Calculate days from timeline start to research start
+  const daysFromStart = (start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
+
+  // Calculate the width based on the actual duration in days
+  const durationInDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+
+  // Convert days to pixels based on month width (assuming 30 days per month)
+  const left = (daysFromStart * monthWidth) / 30;
+  const width = Math.max(100, (durationInDays * monthWidth) / 30);
+
   return { left, width };
 }
 
@@ -54,7 +59,7 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
   });
 
   // Return position based on number of overlaps, with more vertical spacing
-  return overlapping.length * 100 + 20; 
+  return overlapping.length * 100 + 20;
 }
 
 export default function RoadmapPage() {
@@ -121,7 +126,7 @@ export default function RoadmapPage() {
   const maxDate = dates.length ? endOfMonth(new Date(Math.max(...dates.map(d => d.getTime())))) : addMonths(new Date(), 3);
   const months = getMonthsBetween(minDate, maxDate);
 
-  const monthWidth = 300; 
+  const monthWidth = 300;
 
   const handleResearchClick = (research: Research) => {
     setEditResearch(research);
@@ -231,17 +236,17 @@ export default function RoadmapPage() {
                       style={{ height: `${maxOverlap + 100}px` }}
                     >
                       {groupResearches.map((research, index) => {
-                        const { left, width } = getCardPosition(research, monthWidth);
+                        const { left, width } = getCardPosition(research, monthWidth, minDate);
                         const top = getVerticalPosition(research, groupResearches, index);
                         return (
                           <Card
                             key={research.id}
-                            className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow`}
+                            className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                             style={{
-                              left: left,
+                              left: `${left}px`,
                               width: `${width}px`,
                               top: `${top}px`,
-                              backgroundColor: `${research.color}cc`, // Add 80% opacity
+                              backgroundColor: `${research.color}cc`,
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
