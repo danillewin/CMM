@@ -17,9 +17,11 @@ export interface IStorage {
 
   getPositions(): Promise<Position[]>;
   createPosition(position: InsertPosition): Promise<Position>;
+  deletePosition(id: number): Promise<boolean>;
 
   getTeams(): Promise<Team[]>;
   createTeam(team: InsertTeam): Promise<Team>;
+  deleteTeam(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -94,6 +96,21 @@ export class DatabaseStorage implements IStorage {
     return newPosition;
   }
 
+  async deletePosition(id: number): Promise<boolean> {
+    // First update all meetings that reference this position to have null position
+    await db
+      .update(meetings)
+      .set({ respondentPosition: null })
+      .where(eq(meetings.respondentPosition, (await this.getPositions()).find(p => p.id === id)?.name ?? ''));
+
+    // Then delete the position
+    const [deletedPosition] = await db
+      .delete(positions)
+      .where(eq(positions.id, id))
+      .returning();
+    return !!deletedPosition;
+  }
+
   async getTeams(): Promise<Team[]> {
     return db.select().from(teams);
   }
@@ -101,6 +118,27 @@ export class DatabaseStorage implements IStorage {
   async createTeam(team: InsertTeam): Promise<Team> {
     const [newTeam] = await db.insert(teams).values(team).returning();
     return newTeam;
+  }
+
+  async deleteTeam(id: number): Promise<boolean> {
+    const team = (await this.getTeams()).find(t => t.id === id);
+    if (!team) return false;
+
+    // Check if team has any associated researches
+    const teamResearches = await db
+      .select()
+      .from(researches)
+      .where(eq(researches.team, team.name));
+
+    if (teamResearches.length > 0) {
+      throw new Error("Cannot delete team that has associated researches");
+    }
+
+    const [deletedTeam] = await db
+      .delete(teams)
+      .where(eq(teams.id, id))
+      .returning();
+    return !!deletedTeam;
   }
 }
 

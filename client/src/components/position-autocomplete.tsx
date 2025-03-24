@@ -108,6 +108,7 @@ export function PositionAutocomplete({
   };
 
   const handleDelete = async (e: React.MouseEvent, position: Position) => {
+    e.preventDefault();
     e.stopPropagation();
     try {
       if (confirm(`Are you sure you want to delete position "${position.name}"? Associated meetings will have their position set to "Unknown".`)) {
@@ -171,7 +172,7 @@ export function PositionAutocomplete({
                   onChange(currentValue);
                   setOpen(false);
                 }}
-                className="flex justify-between"
+                className="flex justify-between items-center pr-2"
               >
                 <div className="flex items-center">
                   <Check
@@ -182,10 +183,14 @@ export function PositionAutocomplete({
                   />
                   {position.name}
                 </div>
-                <Trash2
-                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer text-destructive"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
                   onClick={(e) => handleDelete(e, position)}
-                />
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </CommandItem>
             ))}
           </CommandGroup>

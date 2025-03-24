@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Team } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -108,6 +108,7 @@ export function TeamAutocomplete({
   };
 
   const handleDelete = async (e: React.MouseEvent, team: Team) => {
+    e.preventDefault();
     e.stopPropagation();
     try {
       if (confirm(`Are you sure you want to delete team "${team.name}"? This will affect all associated researches.`)) {
@@ -150,15 +151,17 @@ export function TeamAutocomplete({
             onValueChange={setInputValue}
           />
           <CommandEmpty>
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              onClick={() => createTeam(inputValue)}
-              disabled={!inputValue.trim()}
-            >
-              Create "{inputValue}"
-            </Button>
+            <div className="p-2">
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() => createTeam(inputValue)}
+                disabled={!inputValue.trim()}
+              >
+                Create "{inputValue}"
+              </Button>
+            </div>
           </CommandEmpty>
           <CommandGroup>
             {teams.map((team) => (
@@ -169,7 +172,7 @@ export function TeamAutocomplete({
                   onChange(currentValue);
                   setOpen(false);
                 }}
-                className="flex justify-between"
+                className="flex justify-between items-center pr-2"
               >
                 <div className="flex items-center">
                   <Check
@@ -180,10 +183,14 @@ export function TeamAutocomplete({
                   />
                   {team.name}
                 </div>
-                <Trash2
-                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer text-destructive"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
                   onClick={(e) => handleDelete(e, team)}
-                />
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </CommandItem>
             ))}
           </CommandGroup>

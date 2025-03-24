@@ -99,6 +99,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/teams/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteTeam(Number(req.params.id));
+      if (!success) {
+        res.status(404).json({ message: "Team not found" });
+        return;
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      console.error("Error deleting team:", error);
+      res.status(error.message.includes("associated") ? 400 : 500)
+        .json({ message: error.message || "Failed to delete team" });
+    }
+  });
+
   // Position routes
   app.get("/api/positions", async (_req, res) => {
     try {
@@ -122,6 +137,20 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error creating position:", error);
       res.status(500).json({ message: "Failed to create position" });
+    }
+  });
+
+  app.delete("/api/positions/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePosition(Number(req.params.id));
+      if (!success) {
+        res.status(404).json({ message: "Position not found" });
+        return;
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting position:", error);
+      res.status(500).json({ message: "Failed to delete position" });
     }
   });
 
