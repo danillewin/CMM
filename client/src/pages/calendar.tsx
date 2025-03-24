@@ -28,7 +28,6 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
-import { getResearchColor } from "@/lib/colors";
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -190,7 +189,10 @@ export default function Calendar() {
                           }}
                         />
                         <div className="flex items-center flex-1 space-x-2">
-                          <div className={`w-3 h-3 rounded-full ${getResearchColor(research.id)}`} />
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: research.color }}
+                          />
                           <Label
                             htmlFor={`research-${research.id}`}
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
