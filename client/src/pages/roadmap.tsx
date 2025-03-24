@@ -81,68 +81,77 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="container py-6">
-      <h1 className="text-2xl font-bold mb-6">Research Roadmap</h1>
-
-      {/* Months header */}
-      <div className="flex border-b sticky top-0 bg-background z-10">
-        <div className="w-48 shrink-0 border-r p-4 font-medium">Team</div>
-        <div className="flex">
-          {months.map((month, i) => (
-            <div
-              key={i}
-              className="border-r p-4 font-medium text-center"
-              style={{ width: monthWidth }}
-            >
-              {format(month, 'MMMM yyyy')}
-            </div>
-          ))}
-        </div>
+    <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="container py-6">
+        <h1 className="text-2xl font-bold mb-6">Research Roadmap</h1>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-12rem)]">
-        {/* Teams and their researches */}
-        {Object.entries(researchesByTeam).map(([team, teamResearches]) => (
-          <div key={team} className="flex border-b min-h-[200px]">
-            <div className="w-48 shrink-0 border-r p-4 font-medium">
-              {team}
-            </div>
-            <div className="relative flex">
-              {months.map((month, i) => (
-                <div
-                  key={i}
-                  className="border-r"
-                  style={{ width: monthWidth }}
-                />
-              ))}
-              {/* Research cards */}
-              {teamResearches.map((research, index) => {
-                const { left, width } = getCardPosition(research, monthWidth);
-                return (
-                  <Card
-                    key={research.id}
-                    className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
-                    style={{
-                      left: left,
-                      width: `${width}px`,
-                      top: `${(index % 2) * 60 + 20}px`,
-                    }}
-                    onClick={() => handleResearchClick(research)}
+      <div className="flex-1 overflow-hidden">
+        {/* Fixed header */}
+        <div className="sticky top-0 z-10 bg-background shadow-sm">
+          <div className="flex">
+            <div className="w-48 shrink-0 border-r p-4 font-medium bg-background">Team</div>
+            <ScrollArea className="w-[calc(100vw-12rem)]" orientation="horizontal">
+              <div className="flex border-b">
+                {months.map((month, i) => (
+                  <div
+                    key={i}
+                    className="border-r p-4 font-medium text-center bg-background"
+                    style={{ width: monthWidth }}
                   >
-                    <div className="font-medium truncate">{research.name}</div>
-                    <div className="text-sm opacity-90 truncate">
-                      {format(new Date(research.dateStart), 'MMM d')} - {format(new Date(research.dateEnd), 'MMM d')}
-                    </div>
-                    <div className="text-sm opacity-90 truncate">
-                      Status: {research.status}
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
+                    {format(month, 'MMMM yyyy')}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
-        ))}
-      </ScrollArea>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex">
+          {/* Fixed team names column */}
+          <div className="w-48 shrink-0 border-r">
+            {Object.keys(researchesByTeam).map((team) => (
+              <div key={team} className="p-4 font-medium border-b min-h-[200px]">
+                {team}
+              </div>
+            ))}
+          </div>
+
+          {/* Scrollable timeline */}
+          <ScrollArea className="w-[calc(100vw-12rem)]" orientation="horizontal">
+            <div style={{ width: `${monthWidth * months.length}px` }}>
+              {Object.entries(researchesByTeam).map(([team, teamResearches]) => (
+                <div key={team} className="relative border-b min-h-[200px]">
+                  {teamResearches.map((research, index) => {
+                    const { left, width } = getCardPosition(research, monthWidth);
+                    return (
+                      <Card
+                        key={research.id}
+                        className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
+                        style={{
+                          left: left,
+                          width: `${width}px`,
+                          top: `${(index % 2) * 60 + 20}px`,
+                        }}
+                        onClick={() => handleResearchClick(research)}
+                      >
+                        <div className="font-medium truncate">{research.name}</div>
+                        <div className="text-sm opacity-90 truncate">
+                          {format(new Date(research.dateStart), 'MMM d')} - {format(new Date(research.dateEnd), 'MMM d')}
+                        </div>
+                        <div className="text-sm opacity-90 truncate">
+                          Status: {research.status}
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
 
       {/* Research Edit Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
