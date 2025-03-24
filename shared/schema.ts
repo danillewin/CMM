@@ -45,7 +45,7 @@ export const meetings = pgTable("meetings", {
   companyName: text("company_name"),
   manager: text("manager").notNull(),
   date: timestamp("date").notNull(),
-  researchId: integer("research_id").references(() => researches.id),
+  researchId: integer("research_id").notNull().references(() => researches.id),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
 });
 
@@ -78,7 +78,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),
-  researchId: z.number().optional(),
+  researchId: z.number().min(1, "Research is required"),
 });
 
 export type InsertResearch = z.infer<typeof insertResearchSchema>;
