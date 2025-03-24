@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TeamAutocomplete } from "./team-autocomplete";
+import { LinkifiedText } from "@/components/linkified-text";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -134,7 +135,16 @@ export default function ResearchForm({
             <FormItem>
               <FormLabel className="text-base">Description</FormLabel>
               <FormControl>
-                <Textarea {...field} className="w-full min-h-[100px]" />
+                {initialData ? (
+                  <div className="mt-2">
+                    <LinkifiedText
+                      text={initialData.description}
+                      className="text-sm text-muted-foreground"
+                    />
+                  </div>
+                ) : (
+                  <Textarea {...field} className="w-full min-h-[100px]" />
+                )}
               </FormControl>
               <FormMessage />
             </FormItem>
