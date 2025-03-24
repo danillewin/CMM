@@ -43,7 +43,7 @@ export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "respondentPosition" | "companyName" | "manager" | "status">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
   const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
@@ -198,6 +198,7 @@ export default function Meetings() {
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
         : sortBy === "cnum" ? a.cnum
+        : sortBy === "gcc" ? (a.gcc || "")
         : sortBy === "respondentPosition" ? (a.respondentPosition || "")
         : sortBy === "companyName" ? (a.companyName || "")
         : sortBy === "manager" ? a.manager
@@ -205,6 +206,7 @@ export default function Meetings() {
         : a.respondentName;
       const bVal = sortBy === "date" ? new Date(b.date)
         : sortBy === "cnum" ? b.cnum
+        : sortBy === "gcc" ? (b.gcc || "")
         : sortBy === "respondentPosition" ? (b.respondentPosition || "")
         : sortBy === "companyName" ? (b.companyName || "")
         : sortBy === "manager" ? b.manager
@@ -351,7 +353,16 @@ export default function Meetings() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="w-[8%]">GCC</TableHead>
+                    <TableHead className="w-[8%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("gcc")}
+                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                      >
+                        GCC
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
                     <TableHead className="w-[15%]">
                       <Button
                         variant="ghost"
