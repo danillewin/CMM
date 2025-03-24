@@ -75,6 +75,8 @@ export default function Researches() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      setShowForm(false);
+      setEditResearch(null);
       toast({ title: "Research deleted successfully" });
     },
   });
