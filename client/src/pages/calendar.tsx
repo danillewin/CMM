@@ -79,8 +79,8 @@ export default function Calendar() {
   // Get meetings for a specific day
   const getMeetingsForDay = (date: Date) => {
     return meetings.filter(meeting => {
-      // First check if the meeting is on the selected day
-      if (!isSameDay(new Date(meeting.date), date)) {
+      const meetingDate = new Date(meeting.date);
+      if (!isSameDay(meetingDate, date)) {
         return false;
       }
 
@@ -251,7 +251,10 @@ export default function Calendar() {
                       {dayMeetings.map((meeting) => (
                         <div
                           key={meeting.id}
-                          className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          className={`text-white text-xs p-1 rounded truncate cursor-pointer`}
+                          style={{ 
+                            backgroundColor: `${researches.find(r => r.id === meeting.researchId)?.color ?? '#3b82f6'}cc`
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedMeeting(meeting);

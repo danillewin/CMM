@@ -462,7 +462,10 @@ export default function Meetings() {
                       <TableCell className="max-w-[200px] truncate">
                         {meeting.researchId ? (
                           <div className="flex items-center">
-                            <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2 shadow-sm`} />
+                            <div
+                              className="w-2 h-2 rounded-full mr-2 shadow-sm"
+                              style={{ backgroundColor: researches.find(r => r.id === meeting.researchId)?.color ?? '#3b82f6' }}
+                            />
                             {researches.find(r => r.id === meeting.researchId)?.name}
                           </div>
                         ) : '—'}
