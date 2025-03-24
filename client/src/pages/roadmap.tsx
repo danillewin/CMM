@@ -3,7 +3,17 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Research, ResearchStatus } from "@shared/schema";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO } from "date-fns";
+import { 
+  format, 
+  addMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  eachMonthOfInterval, 
+  isWithinInterval, 
+  eachWeekOfInterval,
+  startOfWeek,
+  differenceInDays
+} from "date-fns";
 import { getResearchColor } from "@/lib/colors";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
@@ -60,6 +70,17 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
 
   // Return position based on number of overlaps, with more vertical spacing
   return overlapping.length * 100 + 20;
+}
+
+function getWeeksInMonth(month: Date, monthWidth: number) {
+  const start = startOfMonth(month);
+  const end = endOfMonth(month);
+  const weeks = eachWeekOfInterval({ start, end });
+
+  return weeks.map(week => {
+    const dayOffset = differenceInDays(startOfWeek(week), start);
+    return (dayOffset * monthWidth) / 30;
+  });
 }
 
 export default function RoadmapPage() {
@@ -216,10 +237,18 @@ export default function RoadmapPage() {
                   {months.map((month, i) => (
                     <div
                       key={i}
-                      className="border-r p-4 font-medium text-center shrink-0"
+                      className="border-r p-4 font-medium text-center shrink-0 relative"
                       style={{ width: monthWidth }}
                     >
                       {format(month, 'MMMM yyyy')}
+                      {/* Week dotted lines */}
+                      {getWeeksInMonth(month, monthWidth).map((offset, weekIndex) => (
+                        <div
+                          key={weekIndex}
+                          className="absolute bottom-0 w-px h-[calc(100vh-12rem)] border-l border-dotted border-gray-200"
+                          style={{ left: `${offset}px` }}
+                        />
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -246,7 +275,7 @@ export default function RoadmapPage() {
                               left: `${left}px`,
                               width: `${width}px`,
                               top: `${top}px`,
-                              backgroundColor: `${research.color}cc`,
+                              backgroundColor: `${getResearchColor(research.status)}cc`,
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
