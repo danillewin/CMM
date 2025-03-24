@@ -67,7 +67,11 @@ export default function Researches() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/researches/${id}`);
+      const res = await apiRequest("DELETE", `/api/researches/${id}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete research');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
@@ -128,9 +132,7 @@ export default function Researches() {
                   setEditResearch(null);
                 }}
                 onDelete={editResearch ? () => {
-                  deleteMutation.mutate(editResearch.id);
-                  setShowForm(false);
-                  setEditResearch(null);
+                  return deleteMutation.mutateAsync(editResearch.id);
                 } : undefined}
               />
             </DialogContent>
@@ -144,8 +146,8 @@ export default function Researches() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
-          <Select 
-            value={researcherFilter} 
+          <Select
+            value={researcherFilter}
             onValueChange={setResearcherFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -160,8 +162,8 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={teamFilter} 
+          <Select
+            value={teamFilter}
             onValueChange={setTeamFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -176,8 +178,8 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={statusFilter} 
+          <Select
+            value={statusFilter}
             onValueChange={setStatusFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
