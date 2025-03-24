@@ -42,7 +42,7 @@ import {
 
 const COLORS = {
   [MeetingStatus.IN_PROGRESS]: "#3b82f6", // blue-500
-  [MeetingStatus.MEETING_SET]: "#6366f1", // indigo-500
+  [MeetingStatus.MEETING_SET]: "#eab308", // yellow-500
   [MeetingStatus.DONE]: "#22c55e", // green-500
   [MeetingStatus.DECLINED]: "#ef4444", // red-500
 };
@@ -114,7 +114,7 @@ export default function Dashboard() {
     };
 
     Object.values(MeetingStatus).forEach(status => {
-      dayData[status] = filteredMeetings.filter(m => 
+      dayData[status] = filteredMeetings.filter(m =>
         isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
         m.status === status
       ).length;
@@ -136,8 +136,8 @@ export default function Dashboard() {
   }, {} as Record<string, Record<string, number>>);
 
   const topManagers = Object.entries(managerMeetings)
-    .sort(([, a], [, b]) => 
-      Object.values(b).reduce((sum, val) => sum + val, 0) - 
+    .sort(([, a], [, b]) =>
+      Object.values(b).reduce((sum, val) => sum + val, 0) -
       Object.values(a).reduce((sum, val) => sum + val, 0)
     )
     .slice(0, 5)
@@ -161,8 +161,8 @@ export default function Dashboard() {
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Select 
-            value={researchFilter?.toString() ?? "ALL"} 
+          <Select
+            value={researchFilter?.toString() ?? "ALL"}
             onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -178,8 +178,8 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          <Select 
-            value={teamFilter} 
+          <Select
+            value={teamFilter}
             onValueChange={setTeamFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -195,8 +195,8 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          <Select 
-            value={managerFilter} 
+          <Select
+            value={managerFilter}
             onValueChange={setManagerFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -212,8 +212,8 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
 
-          <Select 
-            value={researcherFilter} 
+          <Select
+            value={researcherFilter}
             onValueChange={setResearcherFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -269,8 +269,8 @@ export default function Dashboard() {
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={last30Days}>
-                    <XAxis 
-                      dataKey="name" 
+                    <XAxis
+                      dataKey="name"
                       angle={-45}
                       textAnchor="end"
                       height={70}
@@ -280,7 +280,7 @@ export default function Dashboard() {
                     <Tooltip />
                     <Legend />
                     {Object.entries(MeetingStatus).map(([key, status]) => (
-                      <Bar 
+                      <Bar
                         key={status}
                         dataKey={status}
                         stackId="status"
@@ -308,7 +308,7 @@ export default function Dashboard() {
                     <Tooltip />
                     <Legend />
                     {Object.entries(MeetingStatus).map(([key, status]) => (
-                      <Bar 
+                      <Bar
                         key={status}
                         dataKey={status}
                         stackId="status"
