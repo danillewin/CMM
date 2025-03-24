@@ -42,7 +42,7 @@ import {
 
 const COLORS = {
   [MeetingStatus.IN_PROGRESS]: "#3b82f6", // blue-500
-  [MeetingStatus.MEETING_SET]: "#eab308", // yellow-500
+  [MeetingStatus.SET]: "#eab308", // yellow-500
   [MeetingStatus.DONE]: "#22c55e", // green-500
   [MeetingStatus.DECLINED]: "#ef4444", // red-500
 };
