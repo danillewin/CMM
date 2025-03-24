@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LinkifiedText } from "@/components/linkified-text"; 
 
 type ViewMode = "teams" | "researchers";
 
@@ -272,6 +273,11 @@ export default function RoadmapPage() {
                             <div className="text-sm opacity-90 truncate text-white">
                               Status: {research.status}
                             </div>
+                            {research.description && (
+                              <div className="mt-1 text-xs text-white/90">
+                                <LinkifiedText text={research.description} />
+                              </div>
+                            )}
                           </Card>
                         );
                       })}

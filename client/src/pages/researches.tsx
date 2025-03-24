@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LinkifiedText } from "@/components/linkified-text";
 
 export default function Researches() {
   const [search, setSearch] = useState("");
@@ -218,7 +219,9 @@ export default function Researches() {
                       <TableCell className="font-medium text-gray-900">{research.name}</TableCell>
                       <TableCell className="text-gray-700">{research.team}</TableCell>
                       <TableCell className="text-gray-700">{research.researcher}</TableCell>
-                      <TableCell className="truncate max-w-[400px] text-gray-600">{research.description}</TableCell>
+                      <TableCell className="truncate max-w-[400px] text-gray-600">
+                        <LinkifiedText text={research.description} />
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                           ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
