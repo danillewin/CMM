@@ -27,7 +27,7 @@ export const positions = pgTable("positions", {
 
 export const researches = pgTable("researches", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(),
+  title: text("title").notNull(),
   team: text("team").notNull(),
   researcher: text("researcher").notNull(),
   description: text("description").notNull(),
