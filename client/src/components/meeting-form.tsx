@@ -55,7 +55,7 @@ export default function MeetingForm({
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
-      researchId: initialData?.researchId ?? undefined,
+      researchId: initialData?.researchId ?? null,
       status: initialData?.status ?? MeetingStatus.IN_PROGRESS,
     },
   });
@@ -205,7 +205,7 @@ export default function MeetingForm({
               <FormLabel className="text-base">Research</FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value?.toString()}
+                value={field.value?.toString() ?? ""}
               >
                 <FormControl>
                   <SelectTrigger>

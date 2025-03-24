@@ -91,7 +91,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),
-  researchId: z.number().optional(),
+  researchId: z.number({ required_error: "Research is required" }),
 });
 
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
