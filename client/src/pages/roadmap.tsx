@@ -40,8 +40,8 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
            isWithinInterval(start, { start: current, end: currentEnd });
   });
 
-  // Return position based on number of overlaps
-  return overlapping.length * 80 + 20;
+  // Return position based on number of overlaps, with more vertical spacing
+  return overlapping.length * 100 + 20; // Increased from 80 to 100
 }
 
 export default function RoadmapPage() {
@@ -104,12 +104,32 @@ export default function RoadmapPage() {
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Research Roadmap</h1>
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
-          {/* Fixed header */}
-          <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b">
-            <div className="flex">
-              <div className="w-48 shrink-0 border-r p-4 font-medium">Team</div>
-              <div className="flex-1 overflow-hidden">
-                <div className="flex">
+          <div className="flex flex-1 overflow-hidden">
+            {/* Fixed team names column */}
+            <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
+              <div className="h-14 border-b p-4 font-medium">Team</div>
+              {Object.keys(researchesByTeam).map((team) => {
+                const teamResearches = researchesByTeam[team];
+                const maxOverlap = Math.max(...teamResearches.map((_, i) => 
+                  getVerticalPosition(teamResearches[i], teamResearches, i)
+                ));
+                return (
+                  <div 
+                    key={team} 
+                    className="p-4 font-medium border-b"
+                    style={{ height: `${maxOverlap + 100}px` }}
+                  >
+                    {team}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Scrollable area for both header and content */}
+            <ScrollArea className="flex-1">
+              <div style={{ width: `${monthWidth * months.length}px` }}>
+                {/* Months header */}
+                <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10 h-14">
                   {months.map((month, i) => (
                     <div
                       key={i}
@@ -120,76 +140,48 @@ export default function RoadmapPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Scrollable content */}
-          <div className="flex-1 overflow-hidden">
-            <div className="flex h-full">
-              {/* Fixed team names column */}
-              <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
-                {Object.keys(researchesByTeam).map((team) => {
-                  const teamResearches = researchesByTeam[team];
+                {/* Timeline content */}
+                {Object.entries(researchesByTeam).map(([team, teamResearches]) => {
                   const maxOverlap = Math.max(...teamResearches.map((_, i) => 
                     getVerticalPosition(teamResearches[i], teamResearches, i)
                   ));
                   return (
                     <div 
                       key={team} 
-                      className="p-4 font-medium border-b"
+                      className="relative border-b" 
                       style={{ height: `${maxOverlap + 100}px` }}
                     >
-                      {team}
+                      {teamResearches.map((research, index) => {
+                        const { left, width } = getCardPosition(research, monthWidth);
+                        const top = getVerticalPosition(research, teamResearches, index);
+                        return (
+                          <Card
+                            key={research.id}
+                            className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
+                            style={{
+                              left: left,
+                              width: `${width}px`,
+                              top: `${top}px`,
+                            }}
+                            onClick={() => handleResearchClick(research)}
+                          >
+                            <div className="font-medium truncate">{research.name}</div>
+                            <div className="text-sm opacity-90 truncate">
+                              {format(new Date(research.dateStart), 'MMM d')} - {format(new Date(research.dateEnd), 'MMM d')}
+                            </div>
+                            <div className="text-sm opacity-90 truncate">
+                              Status: {research.status}
+                            </div>
+                          </Card>
+                        );
+                      })}
                     </div>
                   );
                 })}
               </div>
-
-              {/* Scrollable timeline */}
-              <ScrollArea className="flex-1 h-full">
-                <div style={{ width: `${monthWidth * months.length}px` }}>
-                  {Object.entries(researchesByTeam).map(([team, teamResearches]) => {
-                    const maxOverlap = Math.max(...teamResearches.map((_, i) => 
-                      getVerticalPosition(teamResearches[i], teamResearches, i)
-                    ));
-                    return (
-                      <div 
-                        key={team} 
-                        className="relative border-b" 
-                        style={{ height: `${maxOverlap + 100}px` }}
-                      >
-                        {teamResearches.map((research, index) => {
-                          const { left, width } = getCardPosition(research, monthWidth);
-                          const top = getVerticalPosition(research, teamResearches, index);
-                          return (
-                            <Card
-                              key={research.id}
-                              className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
-                              style={{
-                                left: left,
-                                width: `${width}px`,
-                                top: `${top}px`,
-                              }}
-                              onClick={() => handleResearchClick(research)}
-                            >
-                              <div className="font-medium truncate">{research.name}</div>
-                              <div className="text-sm opacity-90 truncate">
-                                {format(new Date(research.dateStart), 'MMM d')} - {format(new Date(research.dateEnd), 'MMM d')}
-                              </div>
-                              <div className="text-sm opacity-90 truncate">
-                                Status: {research.status}
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           </div>
         </div>
 
