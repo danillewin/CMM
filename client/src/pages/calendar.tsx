@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { type Research, type Meeting } from "@shared/schema";
+import { type Research, type Meeting, ResearchStatus } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -8,6 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   format,
   startOfMonth,
@@ -31,6 +38,9 @@ export default function Calendar() {
   const [selectedResearch, setSelectedResearch] = useState<Research | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("researches");
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [teamFilter, setTeamFilter] = useState<string>("ALL");
+  const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -44,6 +54,10 @@ export default function Calendar() {
   const [selectedResearchIds, setSelectedResearchIds] = useState<Set<number>>(
     () => new Set(researches.map(r => r.id))
   );
+
+  // Get unique teams and researchers for filters
+  const teams = [...new Set(researches.map(r => r.team))].sort();
+  const researchers = [...new Set(researches.map(r => r.researcher))].sort();
 
   // Update selectedResearchIds when researches data is loaded
   useMemo(() => {
@@ -59,9 +73,16 @@ export default function Calendar() {
     return eachDayOfInterval({ start, end });
   }, [currentDate]);
 
+  // Filter researches based on selected filters
+  const filteredResearches = researches.filter(research =>
+    (teamFilter === "ALL" || research.team === teamFilter) &&
+    (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
+    (statusFilter === "ALL" || research.status === statusFilter)
+  );
+
   // Get active researches for a specific day
   const getResearchesForDay = (date: Date) => {
-    return researches.filter(research => {
+    return filteredResearches.filter(research => {
       if (selectedResearchIds.size === 0) {
         return false;
       }
@@ -132,6 +153,51 @@ export default function Calendar() {
             </CardContent>
           </Card>
 
+          {viewMode === "researches" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Filters</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Select value={teamFilter} onValueChange={setTeamFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter by team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Teams</SelectItem>
+                    {teams.map((team) => (
+                      <SelectItem key={team} value={team}>{team}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={researcherFilter} onValueChange={setResearcherFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter by researcher" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Researchers</SelectItem>
+                    {researchers.map((researcher) => (
+                      <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Statuses</SelectItem>
+                    {Object.values(ResearchStatus).map((status) => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Researches</CardTitle>
@@ -139,13 +205,21 @@ export default function Calendar() {
             <CardContent>
               <ScrollArea className="h-[calc(100vh-400px)]">
                 <div className="space-y-4">
-                  {researches.map((research) => (
+                  {filteredResearches.map((research) => (
                     <div key={research.id} className="flex items-center space-x-2">
                       <div className="flex items-center space-x-2 w-full">
                         <Checkbox
                           id={`research-${research.id}`}
                           checked={selectedResearchIds.has(research.id)}
-                          onCheckedChange={() => toggleResearchFilter(research.id)}
+                          onCheckedChange={() => {
+                            const newIds = new Set(selectedResearchIds);
+                            if (newIds.has(research.id)) {
+                              newIds.delete(research.id);
+                            } else {
+                              newIds.add(research.id);
+                            }
+                            setSelectedResearchIds(newIds);
+                          }}
                         />
                         <div className="flex items-center flex-1 space-x-2">
                           <div className={`w-3 h-3 rounded-full ${getResearchColor(research.id)}`} />
