@@ -2,18 +2,6 @@ import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const teams = pgTable("teams", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(),
-});
-
-export const insertTeamSchema = createInsertSchema(teams).omit({
-  id: true,
-});
-
-export type InsertTeam = z.infer<typeof insertTeamSchema>;
-export type Team = typeof teams.$inferSelect;
-
 export const MeetingStatus = {
   NEGOTIATION: "Negotiation",
   SET: "Meeting Set",

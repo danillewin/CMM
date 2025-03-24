@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus } from "@shared/schema";
@@ -20,24 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { DEFAULT_TEAMS } from "@/lib/constants";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -54,25 +36,6 @@ export default function ResearchForm({
   onCancel,
   onDelete
 }: ResearchFormProps) {
-  const [open, setOpen] = useState(false);
-  const [customTeam, setCustomTeam] = useState("");
-
-  // Fetch existing teams
-  const { data: dbTeams = [] } = useQuery({
-    queryKey: ["/api/teams"],
-  });
-
-  // Create new team mutation
-  const createTeamMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const res = await apiRequest("POST", "/api/teams", { name });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-    },
-  });
-
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
@@ -89,12 +52,6 @@ export default function ResearchForm({
         : new Date().toISOString().split('T')[0],
     },
   });
-
-  // Get all available teams (combine default and DB teams)
-  const allTeams = useMemo(() => {
-    const teamSet = new Set([...DEFAULT_TEAMS, ...(dbTeams?.map(t => t.name) || [])]);
-    return Array.from(teamSet).sort();
-  }, [dbTeams]);
 
   return (
     <Form {...form}>
@@ -119,94 +76,9 @@ export default function ResearchForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Team</FormLabel>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className={cn(
-                        "w-full justify-between",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value || "Select team..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search team..." />
-                    <CommandEmpty>No team found.</CommandEmpty>
-                    <CommandGroup>
-                      {allTeams.map((team) => (
-                        <CommandItem
-                          key={team}
-                          value={team}
-                          onSelect={(currentValue) => {
-                            form.setValue("team", currentValue);
-                            setOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value === team ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {team}
-                        </CommandItem>
-                      ))}
-                      <CommandItem
-                        value="custom"
-                        onSelect={(e) => e.preventDefault()}
-                        className="text-muted-foreground"
-                      >
-                        <div className="w-full flex items-center gap-2">
-                          <Input
-                            value={customTeam}
-                            onChange={(e) => {
-                              setCustomTeam(e.target.value);
-                              form.setValue("team", e.target.value);
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                if (customTeam.trim()) {
-                                  createTeamMutation.mutate(customTeam.trim());
-                                  form.setValue("team", customTeam.trim());
-                                  setOpen(false);
-                                }
-                              }
-                            }}
-                            placeholder="Enter custom team..."
-                            className="w-full"
-                          />
-                          {customTeam && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                if (customTeam.trim()) {
-                                  createTeamMutation.mutate(customTeam.trim());
-                                  form.setValue("team", customTeam.trim());
-                                  setOpen(false);
-                                }
-                              }}
-                            >
-                              Use
-                            </Button>
-                          )}
-                        </div>
-                      </CommandItem>
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
