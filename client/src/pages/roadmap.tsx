@@ -44,6 +44,12 @@ function getCardPosition(research: Research, monthWidth: number, timelineStart: 
   return { left, width };
 }
 
+function getCurrentDatePosition(monthWidth: number, timelineStart: Date) {
+  const today = new Date();
+  const daysFromStart = (today.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
+  return (daysFromStart * monthWidth) / 30;
+}
+
 function getVerticalPosition(research: Research, existingResearches: Research[], index: number): number {
   const current = new Date(research.dateStart);
   const currentEnd = new Date(research.dateEnd);
@@ -133,6 +139,9 @@ export default function RoadmapPage() {
     setShowForm(true);
   };
 
+  // Calculate current date line position
+  const currentDatePosition = getCurrentDatePosition(monthWidth, minDate);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
@@ -186,7 +195,6 @@ export default function RoadmapPage() {
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
           <div className="flex flex-1 overflow-hidden">
-            {/* Fixed names column */}
             <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
               <div className="h-14 border-b p-4 font-medium">
                 {viewMode === "teams" ? "Team" : "Researcher"}
@@ -208,10 +216,8 @@ export default function RoadmapPage() {
               })}
             </div>
 
-            {/* Scrollable area for both header and content */}
             <ScrollArea className="flex-1">
-              <div style={{ width: `${monthWidth * months.length}px` }}>
-                {/* Months header */}
+              <div style={{ width: `${monthWidth * months.length}px` }} className="relative">
                 <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10 h-14">
                   {months.map((month, i) => (
                     <div
@@ -224,7 +230,12 @@ export default function RoadmapPage() {
                   ))}
                 </div>
 
-                {/* Timeline content */}
+                {/* Current date line */}
+                <div
+                  className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-20"
+                  style={{ left: `${currentDatePosition}px` }}
+                />
+
                 {Object.entries(groupedResearches).map(([group, groupResearches]) => {
                   const maxOverlap = Math.max(...groupResearches.map((_, i) => 
                     getVerticalPosition(groupResearches[i], groupResearches, i)
@@ -246,7 +257,7 @@ export default function RoadmapPage() {
                               left: `${left}px`,
                               width: `${width}px`,
                               top: `${top}px`,
-                              backgroundColor: `${research.color}cc`,
+                              backgroundColor: `${getResearchColor(research.status)}cc`,
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
@@ -273,7 +284,6 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        {/* Research Edit Dialog */}
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogContent className="w-[90vw] max-w-xl">
             <ResearchForm
