@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/select";
 import { TeamAutocomplete } from "./team-autocomplete";
 import { RESEARCH_COLORS } from "@/lib/colors";
-import { LinkifiedText } from "@/components/linkified-text"; 
-import { type } from "os";
+import { LinkifiedText } from "@/components/linkified-text";
+import { Pencil } from "lucide-react";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -40,6 +40,8 @@ export default function ResearchForm({
   onCancel,
   onDelete
 }: ResearchFormProps) {
+  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
@@ -57,6 +59,8 @@ export default function ResearchForm({
       color: initialData?.color ?? RESEARCH_COLORS[0],
     },
   });
+
+  const description = form.watch("description");
 
   return (
     <Form {...form}>
@@ -140,14 +144,43 @@ export default function ResearchForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} className="w-full min-h-[100px]" />
-              </FormControl>
-              {field.value && (
-                <div className="mt-2 p-3 bg-muted rounded-md">
-                  <div className="text-sm text-muted-foreground mb-1">Preview:</div>
-                  <LinkifiedText text={field.value} className="text-sm" />
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-base">Description</FormLabel>
+                {!isDescriptionEditing && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2"
+                    onClick={() => setIsDescriptionEditing(true)}
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                )}
+              </div>
+              {isDescriptionEditing ? (
+                <>
+                  <FormControl>
+                    <Textarea {...field} className="w-full min-h-[100px]" />
+                  </FormControl>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => setIsDescriptionEditing(false)}
+                  >
+                    Done Editing
+                  </Button>
+                </>
+              ) : (
+                <div className="p-3 bg-muted rounded-md min-h-[100px]">
+                  {description ? (
+                    <LinkifiedText text={description} className="text-sm" />
+                  ) : (
+                    <span className="text-sm text-muted-foreground">No description provided</span>
+                  )}
                 </div>
               )}
               <FormMessage />
