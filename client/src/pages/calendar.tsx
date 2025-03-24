@@ -30,13 +30,9 @@ import {
 import MeetingForm from "@/components/meeting-form";
 import { getResearchColor } from "@/lib/colors";
 
-type ViewMode = "researches" | "meetings";
-
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedResearch, setSelectedResearch] = useState<Research | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("researches");
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
@@ -80,22 +76,6 @@ export default function Calendar() {
     (statusFilter === "ALL" || research.status === statusFilter)
   );
 
-  // Get active researches for a specific day
-  const getResearchesForDay = (date: Date) => {
-    return filteredResearches.filter(research => {
-      if (selectedResearchIds.size === 0) {
-        return false;
-      }
-      if (!selectedResearchIds.has(research.id)) {
-        return false;
-      }
-      return isWithinInterval(date, {
-        start: parseISO(research.dateStart.toString()),
-        end: parseISO(research.dateEnd.toString())
-      });
-    });
-  };
-
   // Get meetings for a specific day
   const getMeetingsForDay = (date: Date) => {
     return meetings.filter(meeting => {
@@ -106,19 +86,8 @@ export default function Calendar() {
     });
   };
 
-
   const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-
-  const toggleResearchFilter = (id: number) => {
-    const newIds = new Set(selectedResearchIds);
-    if (newIds.has(id)) {
-      newIds.delete(id);
-    } else {
-      newIds.add(id);
-    }
-    setSelectedResearchIds(newIds);
-  };
 
   if (researchesLoading || meetingsLoading) {
     return <div>Loading...</div>;
@@ -131,72 +100,46 @@ export default function Calendar() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>View Mode</CardTitle>
+              <CardTitle>Filters</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2">
-                <Button 
-                  variant={viewMode === "researches" ? "default" : "outline"}
-                  onClick={() => setViewMode("researches")}
-                  className="w-full justify-start"
-                >
-                  Researches
-                </Button>
-                <Button 
-                  variant={viewMode === "meetings" ? "default" : "outline"}
-                  onClick={() => setViewMode("meetings")}
-                  className="w-full justify-start"
-                >
-                  Meetings
-                </Button>
-              </div>
+            <CardContent className="space-y-4">
+              <Select value={teamFilter} onValueChange={setTeamFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filter by team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Teams</SelectItem>
+                  {teams.map((team) => (
+                    <SelectItem key={team} value={team}>{team}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={researcherFilter} onValueChange={setResearcherFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filter by researcher" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Researchers</SelectItem>
+                  {researchers.map((researcher) => (
+                    <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  {Object.values(ResearchStatus).map((status) => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
-
-          {viewMode === "researches" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Filters</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Select value={teamFilter} onValueChange={setTeamFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filter by team" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Teams</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team} value={team}>{team}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={researcherFilter} onValueChange={setResearcherFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filter by researcher" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Researchers</SelectItem>
-                    {researchers.map((researcher) => (
-                      <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Statuses</SelectItem>
-                    {Object.values(ResearchStatus).map((status) => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          )}
 
           <Card>
             <CardHeader>
@@ -264,8 +207,7 @@ export default function Calendar() {
             </div>
             <div className="grid grid-cols-7 gap-px bg-muted">
               {calendarDays.map((day) => {
-                const dayResearches = viewMode === "researches" ? getResearchesForDay(day) : [];
-                const dayMeetings = viewMode === "meetings" ? getMeetingsForDay(day) : [];
+                const dayMeetings = getMeetingsForDay(day);
 
                 return (
                   <div
@@ -281,19 +223,7 @@ export default function Calendar() {
                   >
                     <div className="font-medium">{format(day, "d")}</div>
                     <div className="mt-1 space-y-1">
-                      {viewMode === "researches" && dayResearches.map((research) => (
-                        <div
-                          key={research.id}
-                          className={`${getResearchColor(research.id)} text-white text-xs p-1 rounded truncate cursor-pointer`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedResearch(research);
-                          }}
-                        >
-                          {research.name}
-                        </div>
-                      ))}
-                      {viewMode === "meetings" && dayMeetings.map((meeting) => (
+                      {dayMeetings.map((meeting) => (
                         <div
                           key={meeting.id}
                           className={`${meeting.researchId ? getResearchColor(meeting.researchId) : 'bg-gray-500'} text-white text-xs p-1 rounded truncate cursor-pointer`}
@@ -313,50 +243,6 @@ export default function Calendar() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Research Details Dialog */}
-      {selectedResearch && (
-        <Card className="fixed bottom-4 right-4 w-96">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>{selectedResearch.name}</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedResearch(null)}
-              >
-                ✕
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div>
-                <Label>Team</Label>
-                <p className="text-sm">{selectedResearch.team}</p>
-              </div>
-              <div>
-                <Label>Description</Label>
-                <p className="text-sm">{selectedResearch.description}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Start Date</Label>
-                  <p className="text-sm">
-                    {format(parseISO(selectedResearch.dateStart.toString()), "PP")}
-                  </p>
-                </div>
-                <div>
-                  <Label>End Date</Label>
-                  <p className="text-sm">
-                    {format(parseISO(selectedResearch.dateEnd.toString()), "PP")}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Meeting Details Dialog */}
       <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
