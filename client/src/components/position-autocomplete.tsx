@@ -40,7 +40,11 @@ export function PositionAutocomplete({
   const createPositionMutation = useMutation({
     mutationFn: async (name: string) => {
       const res = await apiRequest("POST", "/api/positions", { name });
-      return res.json();
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to create position');
+      }
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/positions"] });
@@ -57,13 +61,24 @@ export function PositionAutocomplete({
 
   const createPosition = useCallback(async (name: string) => {
     try {
-      await createPositionMutation.mutateAsync(name);
-      onChange(name);
+      const trimmedName = name.trim();
+      if (!trimmedName) return;
+
+      // Check if position already exists
+      if (positions.some(p => p.name.toLowerCase() === trimmedName.toLowerCase())) {
+        onChange(trimmedName);
+        setOpen(false);
+        return;
+      }
+
+      await createPositionMutation.mutateAsync(trimmedName);
+      onChange(trimmedName);
       setOpen(false);
+      setInputValue("");
     } catch (error) {
       console.error("Failed to create position:", error);
     }
-  }, [createPositionMutation, onChange]);
+  }, [createPositionMutation, onChange, positions]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
