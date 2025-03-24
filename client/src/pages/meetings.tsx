@@ -152,7 +152,7 @@ export default function Meetings() {
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
-      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.title : '—'
+      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const csvString = [
@@ -177,7 +177,7 @@ export default function Meetings() {
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
-      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.title : '—'
+      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -197,7 +197,7 @@ export default function Meetings() {
           meeting.manager.toLowerCase().includes(search.toLowerCase()) ||
           meeting.status.toLowerCase().includes(search.toLowerCase()) ||
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.title.toLowerCase().includes(search.toLowerCase()))) &&
+          (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter)
     )
@@ -325,7 +325,7 @@ export default function Meetings() {
                 <SelectItem key={research.id} value={research.id.toString()}>
                   <div className="flex items-center">
                     <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
-                    {research.title}
+                    {research.name}
                   </div>
                 </SelectItem>
               ))}
@@ -460,7 +460,12 @@ export default function Meetings() {
                       <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
-                        {meeting.researchId && researches.find(r => r.id === meeting.researchId)?.title || '—'}
+                        {meeting.researchId ? (
+                          <div className="flex items-center">
+                            <div className={`w-2 h-2 rounded-full ${getResearchColor(meeting.researchId)} mr-2 shadow-sm`} />
+                            {researches.find(r => r.id === meeting.researchId)?.name}
+                          </div>
+                        ) : '—'}
                       </TableCell>
                       <TableCell>
                         {new Date(meeting.date).toLocaleDateString()}

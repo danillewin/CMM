@@ -20,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TeamAutocomplete } from "./team-autocomplete";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -40,7 +39,7 @@ export default function ResearchForm({
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
-      title: initialData?.title ?? "",
+      name: initialData?.name ?? "",
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
@@ -59,10 +58,10 @@ export default function ResearchForm({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
         <FormField
           control={form.control}
-          name="title"
+          name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Research Title</FormLabel>
+              <FormLabel className="text-base">Research Name</FormLabel>
               <FormControl>
                 <Input {...field} className="w-full" />
               </FormControl>
@@ -78,10 +77,7 @@ export default function ResearchForm({
             <FormItem>
               <FormLabel className="text-base">Team</FormLabel>
               <FormControl>
-                <TeamAutocomplete 
-                  value={field.value}
-                  onChange={field.onChange}
-                />
+                <Input {...field} className="w-full" />
               </FormControl>
               <FormMessage />
             </FormItem>

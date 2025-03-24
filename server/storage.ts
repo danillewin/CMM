@@ -1,4 +1,4 @@
-import { meetings, researches, positions, teams, type Meeting, type InsertMeeting, type Research, type InsertResearch, type Position, type InsertPosition, type Team, type InsertTeam } from "@shared/schema";
+import { meetings, researches, positions, type Meeting, type InsertMeeting, type Research, type InsertResearch, type Position, type InsertPosition } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -17,9 +17,6 @@ export interface IStorage {
 
   getPositions(): Promise<Position[]>;
   createPosition(position: InsertPosition): Promise<Position>;
-
-  getTeams(): Promise<Team[]>;
-  createTeam(team: InsertTeam): Promise<Team>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -92,15 +89,6 @@ export class DatabaseStorage implements IStorage {
   async createPosition(position: InsertPosition): Promise<Position> {
     const [newPosition] = await db.insert(positions).values(position).returning();
     return newPosition;
-  }
-
-  async getTeams(): Promise<Team[]> {
-    return db.select().from(teams);
-  }
-
-  async createTeam(team: InsertTeam): Promise<Team> {
-    const [newTeam] = await db.insert(teams).values(team).returning();
-    return newTeam;
   }
 }
 

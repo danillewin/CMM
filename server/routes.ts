@@ -12,15 +12,6 @@ const db = drizzle(sql);
 // Initialize database
 async function initializeDatabase() {
   try {
-    // Create teams table if it doesn't exist
-    await sql`
-      CREATE TABLE IF NOT EXISTS teams (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      )
-    `;
-
     // Create positions table if it doesn't exist
     await sql`
       CREATE TABLE IF NOT EXISTS positions (
@@ -34,7 +25,7 @@ async function initializeDatabase() {
     await sql`
       CREATE TABLE IF NOT EXISTS researches (
         id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
+        name TEXT NOT NULL,
         team TEXT NOT NULL,
         researcher TEXT NOT NULL,
         description TEXT NOT NULL,
@@ -55,7 +46,7 @@ async function initializeDatabase() {
         company_name TEXT,
         manager TEXT NOT NULL,
         date TIMESTAMP NOT NULL,
-        research_id INTEGER NOT NULL REFERENCES researches(id),
+        research_id INTEGER REFERENCES researches(id),
         status TEXT NOT NULL DEFAULT 'In Progress'
       )
     `;
@@ -73,37 +64,11 @@ export function registerRoutes(app: Express): Server {
     process.exit(1);
   });
 
-  // Team routes
-  app.get("/api/teams", async (_req, res) => {
-    try {
-      const teams = await storage.getTeams();
-      res.json(teams.map(team => team.name));
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-      res.status(500).json({ message: "Failed to fetch teams" });
-    }
-  });
-
-  app.post("/api/teams", async (req, res) => {
-    try {
-      const { name } = req.body;
-      if (!name || typeof name !== 'string') {
-        res.status(400).json({ message: "Invalid team name" });
-        return;
-      }
-      const team = await storage.createTeam({ name });
-      res.status(201).json(team);
-    } catch (error) {
-      console.error("Error creating team:", error);
-      res.status(500).json({ message: "Failed to create team" });
-    }
-  });
-
   // Position routes
   app.get("/api/positions", async (_req, res) => {
     try {
       const positions = await storage.getPositions();
-      res.json(positions.map(position => position.name));
+      res.json(positions);
     } catch (error) {
       console.error("Error fetching positions:", error);
       res.status(500).json({ message: "Failed to fetch positions" });
