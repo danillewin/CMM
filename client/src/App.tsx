@@ -28,6 +28,11 @@ function Navigation() {
               Researches
             </Button>
           </Link>
+          <Link href="/roadmap">
+            <Button variant={location === "/roadmap" ? "default" : "ghost"}>
+              Roadmap
+            </Button>
+          </Link>
           <Link href="/calendar">
             <Button variant={location === "/calendar" ? "default" : "ghost"}>
               Calendar
@@ -36,11 +41,6 @@ function Navigation() {
           <Link href="/dashboard">
             <Button variant={location === "/dashboard" ? "default" : "ghost"}>
               Dashboard
-            </Button>
-          </Link>
-          <Link href="/roadmap">
-            <Button variant={location === "/roadmap" ? "default" : "ghost"}>
-              Roadmap
             </Button>
           </Link>
         </div>
@@ -54,9 +54,9 @@ function Router() {
     <Switch>
       <Route path="/" component={Meetings} />
       <Route path="/researches" component={Researches} />
+      <Route path="/roadmap" component={Roadmap} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/dashboard" component={Dashboard} />
-      <Route path="/roadmap" component={Roadmap} />
       <Route component={NotFound} />
     </Switch>
   );
