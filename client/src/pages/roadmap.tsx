@@ -3,7 +3,7 @@ import { type Research } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
-import { getResearchColorWithoutOpacity } from "@/lib/colors";
+import { getResearchColor } from "@/lib/colors";
 
 function getMonthsBetween(startDate: Date, endDate: Date) {
   return eachMonthOfInterval({ start: startDate, end: endDate });
@@ -83,7 +83,7 @@ export default function RoadmapPage() {
                 return (
                   <Card
                     key={research.id}
-                    className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColorWithoutOpacity(index)} text-white`}
+                    className={`absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow ${getResearchColor(research.id)} text-white`}
                     style={{
                       left: left,
                       width: `${width}px`,
