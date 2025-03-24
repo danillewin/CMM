@@ -52,7 +52,7 @@ export default function ResearchForm({
   onDelete
 }: ResearchFormProps) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
+  const [customTeam, setCustomTeam] = useState("");
 
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
@@ -135,19 +135,46 @@ export default function ResearchForm({
                         </CommandItem>
                       ))}
                       <CommandItem
-                        value={field.value}
-                        onSelect={(currentValue) => {
-                          form.setValue("team", currentValue);
-                          setOpen(false);
-                        }}
+                        value="custom"
+                        onSelect={(e) => e.preventDefault()}
                         className="text-muted-foreground"
                       >
-                        <Input
-                          value={field.value}
-                          onChange={(e) => form.setValue("team", e.target.value)}
-                          placeholder="Enter custom team..."
-                          className="w-full"
-                        />
+                        <div className="w-full flex items-center gap-2">
+                          <Input
+                            value={customTeam}
+                            onChange={(e) => {
+                              setCustomTeam(e.target.value);
+                              form.setValue("team", e.target.value);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (customTeam.trim()) {
+                                  form.setValue("team", customTeam.trim());
+                                  setOpen(false);
+                                }
+                              }
+                            }}
+                            placeholder="Enter custom team..."
+                            className="w-full"
+                          />
+                          {customTeam && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (customTeam.trim()) {
+                                  form.setValue("team", customTeam.trim());
+                                  setOpen(false);
+                                }
+                              }}
+                            >
+                              Use
+                            </Button>
+                          )}
+                        </div>
                       </CommandItem>
                     </CommandGroup>
                   </Command>
