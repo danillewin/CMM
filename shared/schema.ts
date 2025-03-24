@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const MeetingStatus = {
-  NEGOTIATION: "Negotiation",
+  IN_PROGRESS: "In Progress",
   SET: "Meeting Set",
   DONE: "Done",
   DECLINED: "Declined",
@@ -39,7 +39,7 @@ export const meetings = pgTable("meetings", {
   manager: text("manager").notNull(),
   date: timestamp("date").notNull(),
   researchId: integer("research_id").references(() => researches.id),
-  status: text("status").notNull().default(MeetingStatus.NEGOTIATION),
+  status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
 });
 
 export const insertResearchSchema = createInsertSchema(researches).omit({
@@ -60,8 +60,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
     .min(1, "CNUM is required")
     .transform(val => val.toUpperCase()),
   gcc: z.string().optional(),
-  status: z.enum([MeetingStatus.NEGOTIATION, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
-    .default(MeetingStatus.NEGOTIATION),
+  status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
+    .default(MeetingStatus.IN_PROGRESS),
   respondentName: z.string().min(1, "Respondent is required"),
   respondentPosition: z.string().optional(),
   companyName: z.string().optional(),
