@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Check } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +80,11 @@ export function TeamAutocomplete({
     }
   }, [createTeamMutation, onChange, teams]);
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange("");
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -90,6 +95,15 @@ export function TeamAutocomplete({
           className="w-full justify-between"
         >
           {value || "Select team..."}
+          <div className="flex items-center gap-1">
+            {value && (
+              <X 
+                className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer" 
+                onClick={handleClear}
+              />
+            )}
+            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
