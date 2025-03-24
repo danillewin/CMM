@@ -7,6 +7,7 @@ import Meetings from "@/pages/meetings";
 import Researches from "@/pages/researches";
 import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
+import Roadmap from "@/pages/roadmap";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 
@@ -37,6 +38,11 @@ function Navigation() {
               Dashboard
             </Button>
           </Link>
+          <Link href="/roadmap">
+            <Button variant={location === "/roadmap" ? "default" : "ghost"}>
+              Roadmap
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
@@ -50,6 +56,7 @@ function Router() {
       <Route path="/researches" component={Researches} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/roadmap" component={Roadmap} />
       <Route component={NotFound} />
     </Switch>
   );
