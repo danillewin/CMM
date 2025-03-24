@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, X, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,11 +102,6 @@ export function PositionAutocomplete({
     }
   }, [createPositionMutation, onChange, positions]);
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("");
-  };
-
   const handleDelete = async (e: React.MouseEvent, position: Position) => {
     e.preventDefault();
     e.stopPropagation();
@@ -132,15 +127,7 @@ export function PositionAutocomplete({
           className="w-full justify-between"
         >
           {value || "Select position..."}
-          <div className="flex items-center gap-1">
-            {value && (
-              <X 
-                className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer" 
-                onClick={handleClear}
-              />
-            )}
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-          </div>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
