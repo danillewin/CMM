@@ -18,6 +18,13 @@ export const ResearchStatus = {
 export type MeetingStatusType = typeof MeetingStatus[keyof typeof MeetingStatus];
 export type ResearchStatusType = typeof ResearchStatus[keyof typeof ResearchStatus];
 
+// Add teams table
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Add positions table
 export const positions = pgTable("positions", {
   id: serial("id").primaryKey(),
@@ -49,19 +56,25 @@ export const meetings = pgTable("meetings", {
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
 });
 
-export const insertResearchSchema = createInsertSchema(researches).omit({
+export const insertTeamSchema = createInsertSchema(teams).omit({
   id: true,
-}).extend({
-  dateStart: z.coerce.date(),
-  dateEnd: z.coerce.date(),
-  researcher: z.string().min(1, "Researcher is required"),
-  status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
-    .default(ResearchStatus.PLANNED),
+  createdAt: true,
 });
 
 export const insertPositionSchema = createInsertSchema(positions).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertResearchSchema = createInsertSchema(researches).omit({
+  id: true,
+}).extend({
+  dateStart: z.coerce.date(),
+  dateEnd: z.coerce.date(),
+  team: z.string().min(1, "Team is required"),
+  researcher: z.string().min(1, "Researcher is required"),
+  status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
+    .default(ResearchStatus.PLANNED),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
@@ -81,9 +94,11 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   researchId: z.number().min(1, "Research is required"),
 });
 
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+export type Team = typeof teams.$inferSelect;
+export type InsertPosition = z.infer<typeof insertPositionSchema>;
+export type Position = typeof positions.$inferSelect;
 export type InsertResearch = z.infer<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect;
-export type InsertPosition = z.infer<typeof insertPositionSchema>;
-export type Position = typeof positions.$inferSelect;
