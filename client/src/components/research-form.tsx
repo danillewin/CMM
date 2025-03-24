@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus } from "@shared/schema";
@@ -35,6 +35,9 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TEAMS } from "@/lib/constants";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -54,6 +57,22 @@ export default function ResearchForm({
   const [open, setOpen] = useState(false);
   const [customTeam, setCustomTeam] = useState("");
 
+  // Fetch existing teams
+  const { data: dbTeams = [] } = useQuery({
+    queryKey: ["/api/teams"],
+  });
+
+  // Create new team mutation
+  const createTeamMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const res = await apiRequest("POST", "/api/teams", { name });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+    },
+  });
+
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
@@ -70,6 +89,12 @@ export default function ResearchForm({
         : new Date().toISOString().split('T')[0],
     },
   });
+
+  // Get all available teams (combine default and DB teams)
+  const allTeams = useMemo(() => {
+    const teamSet = new Set([...DEFAULT_TEAMS, ...(dbTeams?.map(t => t.name) || [])]);
+    return Array.from(teamSet).sort();
+  }, [dbTeams]);
 
   return (
     <Form {...form}>
@@ -116,7 +141,7 @@ export default function ResearchForm({
                     <CommandInput placeholder="Search team..." />
                     <CommandEmpty>No team found.</CommandEmpty>
                     <CommandGroup>
-                      {DEFAULT_TEAMS.map((team) => (
+                      {allTeams.map((team) => (
                         <CommandItem
                           key={team}
                           value={team}
@@ -151,6 +176,7 @@ export default function ResearchForm({
                               if (e.key === 'Enter') {
                                 e.preventDefault();
                                 if (customTeam.trim()) {
+                                  createTeamMutation.mutate(customTeam.trim());
                                   form.setValue("team", customTeam.trim());
                                   setOpen(false);
                                 }
@@ -166,6 +192,7 @@ export default function ResearchForm({
                               size="sm"
                               onClick={() => {
                                 if (customTeam.trim()) {
+                                  createTeamMutation.mutate(customTeam.trim());
                                   form.setValue("team", customTeam.trim());
                                   setOpen(false);
                                 }
