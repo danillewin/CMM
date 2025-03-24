@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMeetingSchema, insertResearchSchema, insertPositionSchema } from "@shared/schema";
+import { insertMeetingSchema, insertResearchSchema, insertPositionSchema, insertTeamSchema } from "@shared/schema";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { neon } from "@neondatabase/serverless";
-import { meetings, researches, positions } from "@shared/schema";
+import { meetings, researches, positions, teams } from "@shared/schema";
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);
@@ -12,6 +12,15 @@ const db = drizzle(sql);
 // Initialize database
 async function initializeDatabase() {
   try {
+    // Create teams table if it doesn't exist
+    await sql`
+      CREATE TABLE IF NOT EXISTS teams (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `;
+
     // Create positions table if it doesn't exist
     await sql`
       CREATE TABLE IF NOT EXISTS positions (
@@ -26,7 +35,7 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS researches (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
-        team TEXT NOT NULL,
+        team TEXT NOT NULL REFERENCES teams(name),
         researcher TEXT NOT NULL,
         description TEXT NOT NULL,
         date_start TIMESTAMP NOT NULL,
@@ -62,6 +71,32 @@ export function registerRoutes(app: Express): Server {
   initializeDatabase().catch(error => {
     console.error("Failed to initialize database:", error);
     process.exit(1);
+  });
+
+  // Team routes
+  app.get("/api/teams", async (_req, res) => {
+    try {
+      const teams = await storage.getTeams();
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.post("/api/teams", async (req, res) => {
+    try {
+      const result = insertTeamSchema.safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid team data", errors: result.error.errors });
+        return;
+      }
+      const team = await storage.createTeam(result.data);
+      res.status(201).json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ message: "Failed to create team" });
+    }
   });
 
   // Position routes

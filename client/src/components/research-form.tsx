@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TeamAutocomplete } from "./team-autocomplete";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -77,7 +78,10 @@ export default function ResearchForm({
             <FormItem>
               <FormLabel className="text-base">Team</FormLabel>
               <FormControl>
-                <Input {...field} className="w-full" />
+                <TeamAutocomplete
+                  value={field.value}
+                  onChange={field.onChange}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -147,8 +151,7 @@ export default function ResearchForm({
                 <FormControl>
                   <Input
                     type="date"
-                    value={field.value}
-                    onChange={e => field.onChange(e.target.value)}
+                    {...field}
                     className="w-full"
                   />
                 </FormControl>
@@ -166,8 +169,7 @@ export default function ResearchForm({
                 <FormControl>
                   <Input
                     type="date"
-                    value={field.value}
-                    onChange={e => field.onChange(e.target.value)}
+                    {...field}
                     className="w-full"
                   />
                 </FormControl>
