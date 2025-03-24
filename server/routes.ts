@@ -207,9 +207,10 @@ export function registerRoutes(app: Express): Server {
         return;
       }
       res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting research:", error);
-      res.status(500).json({ message: "Failed to delete research" });
+      res.status(error.message.includes("associated") ? 400 : 500)
+        .json({ message: error.message || "Failed to delete research" });
     }
   });
 

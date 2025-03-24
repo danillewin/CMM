@@ -80,6 +80,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteResearch(id: number): Promise<boolean> {
+    // First check if there are any meetings associated with this research
+    const associatedMeetings = await db
+      .select()
+      .from(meetings)
+      .where(eq(meetings.researchId, id));
+
+    if (associatedMeetings.length > 0) {
+      throw new Error("Cannot delete research that has associated meetings");
+    }
+
     const [deletedResearch] = await db
       .delete(researches)
       .where(eq(researches.id, id))
