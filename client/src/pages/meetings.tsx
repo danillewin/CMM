@@ -147,6 +147,7 @@ export default function Meetings() {
       'Respondent': meeting.respondentName,
       'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
+      'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
@@ -171,6 +172,7 @@ export default function Meetings() {
       'Respondent': meeting.respondentName,
       'Position': meeting.respondentPosition,
       'CNUM': meeting.cnum,
+      'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
       'Manager': meeting.manager,
       'Date': new Date(meeting.date).toLocaleDateString(),
@@ -349,6 +351,7 @@ export default function Meetings() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
+                    <TableHead className="w-[8%]">GCC</TableHead>
                     <TableHead className="w-[15%]">
                       <Button
                         variant="ghost"
@@ -434,6 +437,7 @@ export default function Meetings() {
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">{meeting.cnum}</TableCell>
+                      <TableCell className="font-medium">{meeting.gcc || '—'}</TableCell>
                       <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
                       <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
@@ -466,13 +470,13 @@ export default function Meetings() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel 
+              <AlertDialogCancel
                 onClick={handleCancelCreate}
                 className="bg-white hover:bg-gray-50/80 transition-all duration-200"
               >
                 No, don't create
               </AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogAction
                 onClick={handleCreateAnyway}
                 className="bg-primary hover:bg-primary/90 transition-all duration-200"
               >

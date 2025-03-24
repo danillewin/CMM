@@ -34,6 +34,7 @@ export const meetings = pgTable("meetings", {
   respondentName: text("respondent_name").notNull(), // Keep the database column name the same
   respondentPosition: text("respondent_position"),
   cnum: text("cnum").notNull(),
+  gcc: text("gcc"),
   companyName: text("company_name"),
   manager: text("manager").notNull(),
   date: timestamp("date").notNull(),
@@ -58,6 +59,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   cnum: z.string()
     .min(1, "CNUM is required")
     .transform(val => val.toUpperCase()),
+  gcc: z.string().optional(),
   status: z.enum([MeetingStatus.NEGOTIATION, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.NEGOTIATION),
   respondentName: z.string().min(1, "Respondent is required"),

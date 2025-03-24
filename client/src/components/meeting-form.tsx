@@ -48,6 +48,7 @@ export default function MeetingForm({
       respondentName: initialData?.respondentName ?? "",
       respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
+      gcc: initialData?.gcc ?? "", //Added gcc default value
       companyName: initialData?.companyName ?? "",
       manager: initialData?.manager ?? (!initialData ? lastUsedManager : ""),
       date: initialData
@@ -98,7 +99,7 @@ export default function MeetingForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Changed to 3 columns */}
           <FormField
             control={form.control}
             name="cnum"
@@ -119,10 +120,24 @@ export default function MeetingForm({
 
           <FormField
             control={form.control}
+            name="gcc"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">GCC</FormLabel>
+                <FormControl>
+                  <Input {...field} className="w-full" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="companyName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-base">Company Name</FormLabel>
+                <FormLabel className="text-base">Company</FormLabel>
                 <FormControl>
                   <Input {...field} className="w-full" />
                 </FormControl>
