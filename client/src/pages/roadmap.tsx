@@ -216,37 +216,12 @@ export default function RoadmapPage() {
                   {months.map((month, i) => (
                     <div
                       key={i}
-                      className="border-r p-4 font-medium text-center shrink-0 relative"
+                      className="border-r p-4 font-medium text-center shrink-0"
                       style={{ width: monthWidth }}
                     >
                       {format(month, 'MMMM yyyy')}
                     </div>
                   ))}
-                </div>
-
-                {/* Timeline grid */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="flex h-full" style={{ marginTop: '3.5rem' }}>
-                    {months.map((_, i) => (
-                      <div
-                        key={i}
-                        className="relative"
-                        style={{ width: monthWidth }}
-                      >
-                        {/* Month separator */}
-                        <div className="absolute inset-y-0 right-0 w-px bg-gray-200" />
-
-                        {/* Weekly ticks */}
-                        {[1, 2, 3].map((week) => (
-                          <div
-                            key={week}
-                            className="absolute inset-y-0 w-px bg-gray-100"
-                            style={{ left: `${(week * monthWidth) / 4}px` }}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Timeline content */}
@@ -272,7 +247,6 @@ export default function RoadmapPage() {
                               width: `${width}px`,
                               top: `${top}px`,
                               backgroundColor: `${research.color}cc`,
-                              zIndex: 10
                             }}
                             onClick={() => handleResearchClick(research)}
                           >
