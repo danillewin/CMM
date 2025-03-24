@@ -79,10 +79,35 @@ export default function Calendar() {
   // Get meetings for a specific day
   const getMeetingsForDay = (date: Date) => {
     return meetings.filter(meeting => {
-      if (selectedResearchIds.size > 0 && meeting.researchId && !selectedResearchIds.has(meeting.researchId)) {
+      // First check if the meeting is on the selected day
+      if (!isSameDay(new Date(meeting.date), date)) {
         return false;
       }
-      return isSameDay(new Date(meeting.date), date);
+
+      // If there's no associated research, skip filter checks
+      if (!meeting.researchId) {
+        return false;
+      }
+
+      // Find the associated research
+      const research = researches.find(r => r.id === meeting.researchId);
+      if (!research) {
+        return false;
+      }
+
+      // Apply filters
+      if (teamFilter !== "ALL" && research.team !== teamFilter) {
+        return false;
+      }
+      if (researcherFilter !== "ALL" && research.researcher !== researcherFilter) {
+        return false;
+      }
+      if (statusFilter !== "ALL" && research.status !== statusFilter) {
+        return false;
+      }
+
+      // Check if the research is selected in the checkbox list
+      return selectedResearchIds.has(meeting.researchId);
     });
   };
 
