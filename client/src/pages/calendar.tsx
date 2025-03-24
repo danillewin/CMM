@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Research, type Meeting, ResearchStatus } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -36,6 +39,7 @@ export default function Calendar() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const { toast } = useToast();
 
   const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -43,6 +47,25 @@ export default function Calendar() {
 
   const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...meeting }: Meeting) => {
+      const res = await apiRequest("PATCH", `/api/meetings/${id}`, meeting);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      setSelectedMeeting(null);
+      toast({ title: "Meeting updated successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to update meeting",
+        description: error.message,
+        variant: "destructive"
+      });
+    },
   });
 
   // Initialize with all research IDs selected
@@ -279,7 +302,12 @@ export default function Calendar() {
         <DialogContent className="w-[90vw] max-w-xl">
           <MeetingForm
             initialData={selectedMeeting}
-            onSubmit={() => {}} // Read-only mode
+            onSubmit={(data) => {
+              if (selectedMeeting) {
+                updateMutation.mutate({ ...data, id: selectedMeeting.id });
+              }
+            }}
+            isLoading={updateMutation.isPending}
             onCancel={() => setSelectedMeeting(null)}
           />
         </DialogContent>
