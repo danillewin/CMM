@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,6 +59,28 @@ export function TeamAutocomplete({
     }
   });
 
+  const deleteTeamMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/teams/${id}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete team');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      toast({ title: "Team deleted successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to delete team",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const createTeam = useCallback(async (name: string) => {
     try {
       const trimmedName = name.trim();
@@ -83,6 +105,20 @@ export function TeamAutocomplete({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange("");
+  };
+
+  const handleDelete = async (e: React.MouseEvent, team: Team) => {
+    e.stopPropagation();
+    try {
+      if (confirm(`Are you sure you want to delete team "${team.name}"? This will affect all associated researches.`)) {
+        await deleteTeamMutation.mutateAsync(team.id);
+        if (value === team.name) {
+          onChange("");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete team:", error);
+    }
   };
 
   return (
@@ -133,14 +169,21 @@ export function TeamAutocomplete({
                   onChange(currentValue);
                   setOpen(false);
                 }}
+                className="flex justify-between"
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === team.name ? "opacity-100" : "opacity-0"
-                  )}
+                <div className="flex items-center">
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === team.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {team.name}
+                </div>
+                <Trash2
+                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer text-destructive"
+                  onClick={(e) => handleDelete(e, team)}
                 />
-                {team.name}
               </CommandItem>
             ))}
           </CommandGroup>

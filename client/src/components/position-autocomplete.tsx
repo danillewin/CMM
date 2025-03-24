@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,6 +59,28 @@ export function PositionAutocomplete({
     }
   });
 
+  const deletePositionMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/positions/${id}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete position');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/positions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      toast({ title: "Position deleted successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to delete position",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
   const createPosition = useCallback(async (name: string) => {
     try {
       const trimmedName = name.trim();
@@ -83,6 +105,20 @@ export function PositionAutocomplete({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onChange("");
+  };
+
+  const handleDelete = async (e: React.MouseEvent, position: Position) => {
+    e.stopPropagation();
+    try {
+      if (confirm(`Are you sure you want to delete position "${position.name}"? Associated meetings will have their position set to "Unknown".`)) {
+        await deletePositionMutation.mutateAsync(position.id);
+        if (value === position.name) {
+          onChange("");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete position:", error);
+    }
   };
 
   return (
@@ -135,14 +171,21 @@ export function PositionAutocomplete({
                   onChange(currentValue);
                   setOpen(false);
                 }}
+                className="flex justify-between"
               >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === position.name ? "opacity-100" : "opacity-0"
-                  )}
+                <div className="flex items-center">
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === position.name ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {position.name}
+                </div>
+                <Trash2
+                  className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100 cursor-pointer text-destructive"
+                  onClick={(e) => handleDelete(e, position)}
                 />
-                {position.name}
               </CommandItem>
             ))}
           </CommandGroup>
