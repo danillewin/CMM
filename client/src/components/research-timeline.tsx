@@ -1,5 +1,5 @@
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { getResearchColor } from "@/lib/colors";
+import { ChartContainer } from "@/components/ui/chart";
+import { getResearchColor, getResearchColorWithoutOpacity } from "@/lib/colors";
 import { Research } from "@shared/schema";
 import { format } from "date-fns";
 import {
@@ -9,6 +9,8 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
+  Tooltip,
+  Cell,
 } from "recharts";
 
 interface ResearchTimelineProps {
@@ -16,7 +18,12 @@ interface ResearchTimelineProps {
 }
 
 export function ResearchTimeline({ researches }: ResearchTimelineProps) {
-  const data = researches.map((research) => ({
+  // Sort researches by start date
+  const sortedResearches = [...researches].sort((a, b) => 
+    new Date(a.dateStart).getTime() - new Date(b.dateStart).getTime()
+  );
+
+  const data = sortedResearches.map((research) => ({
     ...research,
     start: new Date(research.dateStart).getTime(),
     end: new Date(research.dateEnd).getTime(),
@@ -26,60 +33,63 @@ export function ResearchTimeline({ researches }: ResearchTimelineProps) {
   const minDate = Math.min(...data.map(d => d.start));
   const maxDate = Math.max(...data.map(d => d.end));
 
+  // Prepare data for the Gantt chart
   const chartData = data.map((research, index) => ({
     name: research.name,
     team: research.team,
+    researcher: research.researcher,
     start: research.start,
     end: research.end,
     index,
     duration: research.end - research.start,
     status: research.status,
+    color: getResearchColorWithoutOpacity(index),
   }));
 
-  const config = chartData.reduce((acc, item, index) => ({
-    ...acc,
-    [item.name]: {
-      color: getResearchColor(index),
-    },
-  }), {});
-
   return (
-    <div className="w-full h-[400px]">
-      <ChartContainer config={config}>
+    <div className="w-full h-[600px] mt-4">
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           layout="vertical"
-          barGap={10}
-          barSize={20}
-          margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+          barSize={30}
+          margin={{ top: 20, right: 50, left: 150, bottom: 20 }}
         >
           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
           <XAxis
             type="number"
             domain={[minDate, maxDate]}
             tickFormatter={(value) => format(value, "MM/dd/yyyy")}
+            padding={{ left: 20, right: 20 }}
           />
           <YAxis
             type="category"
             dataKey="name"
             tick={{ fontSize: 12 }}
+            width={140}
           />
-          <ChartTooltip
+          <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               const data = payload[0].payload;
               return (
-                <div className="rounded-lg border bg-background p-2 shadow-sm">
+                <div className="rounded-lg border bg-background p-4 shadow-sm">
                   <div className="grid gap-2">
-                    <div className="font-medium">{data.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Team: {data.team}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {format(data.start, "MM/dd/yyyy")} - {format(data.end, "MM/dd/yyyy")}
-                    </div>
-                    <div className="text-xs font-medium">
-                      Status: {data.status}
+                    <div className="font-medium text-lg">{data.name}</div>
+                    <div className="grid gap-1">
+                      <div className="text-sm">
+                        <span className="font-medium">Team:</span> {data.team}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Researcher:</span> {data.researcher}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Status:</span> {data.status}
+                      </div>
+                      <div className="text-sm">
+                        <span className="font-medium">Duration:</span><br />
+                        {format(data.start, "MM/dd/yyyy")} - {format(data.end, "MM/dd/yyyy")}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -89,11 +99,14 @@ export function ResearchTimeline({ researches }: ResearchTimelineProps) {
           <Bar
             dataKey="duration"
             name="Duration"
-            fill="var(--color)"
             radius={[4, 4, 4, 4]}
-          />
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Bar>
         </BarChart>
-      </ChartContainer>
+      </ResponsiveContainer>
     </div>
   );
 }

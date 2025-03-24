@@ -10,11 +10,11 @@ export default function ResearchView() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Research Timeline</CardTitle>
+          <CardTitle className="text-2xl">Research Timeline</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResearchTimeline researches={researches} />
         </CardContent>
       </Card>
