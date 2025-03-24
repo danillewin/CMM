@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
+import { DEFAULT_TEAMS } from "@/lib/constants";
 import {
   Card,
   CardContent,

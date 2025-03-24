@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DEFAULT_TEAMS } from "@/lib/constants";
 
 export default function Researches() {
   const [search, setSearch] = useState("");
