@@ -191,7 +191,13 @@ export default function Meetings() {
       (meeting) =>
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
           meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase())) &&
+          (meeting.gcc?.toLowerCase() || "").includes(search.toLowerCase()) ||
+          (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase()) ||
+          (meeting.respondentPosition?.toLowerCase() || "").includes(search.toLowerCase()) ||
+          meeting.manager.toLowerCase().includes(search.toLowerCase()) ||
+          meeting.status.toLowerCase().includes(search.toLowerCase()) ||
+          new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
+          (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter)
     )
