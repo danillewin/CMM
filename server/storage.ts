@@ -1,4 +1,4 @@
-import { meetings, researches, type Meeting, type InsertMeeting, type Research, type InsertResearch } from "@shared/schema";
+import { meetings, researches, positions, type Meeting, type InsertMeeting, type Research, type InsertResearch, type Position, type InsertPosition } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -14,6 +14,9 @@ export interface IStorage {
   createResearch(research: InsertResearch): Promise<Research>;
   updateResearch(id: number, research: InsertResearch): Promise<Research | undefined>;
   deleteResearch(id: number): Promise<boolean>;
+
+  getPositions(): Promise<Position[]>;
+  createPosition(position: InsertPosition): Promise<Position>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -77,6 +80,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(researches.id, id))
       .returning();
     return !!deletedResearch;
+  }
+
+  async getPositions(): Promise<Position[]> {
+    return db.select().from(positions);
+  }
+
+  async createPosition(position: InsertPosition): Promise<Position> {
+    const [newPosition] = await db.insert(positions).values(position).returning();
+    return newPosition;
   }
 }
 

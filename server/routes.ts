@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMeetingSchema, insertResearchSchema } from "@shared/schema";
+import { insertMeetingSchema, insertResearchSchema, insertPositionSchema } from "@shared/schema";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { neon } from "@neondatabase/serverless";
-import { meetings, researches } from "@shared/schema";
+import { meetings, researches, positions } from "@shared/schema";
 
 const sql = neon(process.env.DATABASE_URL!);
 const db = drizzle(sql);
@@ -12,15 +12,26 @@ const db = drizzle(sql);
 // Initialize database
 async function initializeDatabase() {
   try {
+    // Create positions table if it doesn't exist
+    await sql`
+      CREATE TABLE IF NOT EXISTS positions (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `;
+
     // Create researches table if it doesn't exist
     await sql`
       CREATE TABLE IF NOT EXISTS researches (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         team TEXT NOT NULL,
+        researcher TEXT NOT NULL,
         description TEXT NOT NULL,
         date_start TIMESTAMP NOT NULL,
-        date_end TIMESTAMP NOT NULL
+        date_end TIMESTAMP NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Planned'
       )
     `;
 
@@ -29,13 +40,14 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS meetings (
         id SERIAL PRIMARY KEY,
         respondent_name TEXT NOT NULL,
-        respondent_position TEXT,
+        respondent_position TEXT REFERENCES positions(name),
         cnum TEXT NOT NULL,
+        gcc TEXT,
         company_name TEXT,
         manager TEXT NOT NULL,
         date TIMESTAMP NOT NULL,
         research_id INTEGER REFERENCES researches(id),
-        status TEXT NOT NULL DEFAULT 'Negotiation'
+        status TEXT NOT NULL DEFAULT 'In Progress'
       )
     `;
     console.log("Database initialized successfully");
@@ -50,6 +62,32 @@ export function registerRoutes(app: Express): Server {
   initializeDatabase().catch(error => {
     console.error("Failed to initialize database:", error);
     process.exit(1);
+  });
+
+  // Position routes
+  app.get("/api/positions", async (_req, res) => {
+    try {
+      const positions = await storage.getPositions();
+      res.json(positions);
+    } catch (error) {
+      console.error("Error fetching positions:", error);
+      res.status(500).json({ message: "Failed to fetch positions" });
+    }
+  });
+
+  app.post("/api/positions", async (req, res) => {
+    try {
+      const result = insertPositionSchema.safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid position data", errors: result.error.errors });
+        return;
+      }
+      const position = await storage.createPosition(result.data);
+      res.status(201).json(position);
+    } catch (error) {
+      console.error("Error creating position:", error);
+      res.status(500).json({ message: "Failed to create position" });
+    }
   });
 
   // Research routes
