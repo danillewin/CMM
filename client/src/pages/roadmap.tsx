@@ -245,7 +245,11 @@ export default function RoadmapPage() {
                           >
                             <div className="font-medium truncate">{research.name}</div>
                             <div className="text-sm opacity-90 truncate">
-                              {format(new Date(research.dateStart), 'MMM d')} - {format(new Date(research.dateEnd), 'MMM d')}
+                              {viewMode === "teams" ? (
+                                <>Researcher: {research.researcher}</>
+                              ) : (
+                                <>Team: {research.team}</>
+                              )}
                             </div>
                             <div className="text-sm opacity-90 truncate">
                               Status: {research.status}
