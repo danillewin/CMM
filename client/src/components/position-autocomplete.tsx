@@ -18,6 +18,7 @@ import {
 import { type Position } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface PositionAutocompleteProps {
   value?: string;
@@ -30,6 +31,7 @@ export function PositionAutocomplete({
 }: PositionAutocompleteProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const { toast } = useToast();
 
   const { data: positions = [] } = useQuery<Position[]>({
     queryKey: ["/api/positions"],
@@ -42,13 +44,25 @@ export function PositionAutocomplete({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/positions"] });
+      toast({ title: "Position created successfully" });
     },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Failed to create position",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
   });
 
   const createPosition = useCallback(async (name: string) => {
-    await createPositionMutation.mutateAsync(name);
-    onChange(name);
-    setOpen(false);
+    try {
+      await createPositionMutation.mutateAsync(name);
+      onChange(name);
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to create position:", error);
+    }
   }, [createPositionMutation, onChange]);
 
   return (
@@ -78,6 +92,7 @@ export function PositionAutocomplete({
                 variant="secondary"
                 className="w-full"
                 onClick={() => createPosition(inputValue)}
+                disabled={!inputValue.trim()}
               >
                 Create "{inputValue}"
               </Button>
