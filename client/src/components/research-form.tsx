@@ -20,6 +20,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { DEFAULT_TEAMS } from "@/lib/constants";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -36,6 +51,9 @@ export default function ResearchForm({
   onCancel,
   onDelete
 }: ResearchFormProps) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
@@ -76,9 +94,65 @@ export default function ResearchForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base">Team</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className={cn(
+                        "w-full justify-between",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value || "Select team..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search team..." />
+                    <CommandEmpty>No team found.</CommandEmpty>
+                    <CommandGroup>
+                      {DEFAULT_TEAMS.map((team) => (
+                        <CommandItem
+                          key={team}
+                          value={team}
+                          onSelect={(currentValue) => {
+                            form.setValue("team", currentValue);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === team ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {team}
+                        </CommandItem>
+                      ))}
+                      <CommandItem
+                        value={field.value}
+                        onSelect={(currentValue) => {
+                          form.setValue("team", currentValue);
+                          setOpen(false);
+                        }}
+                        className="text-muted-foreground"
+                      >
+                        <Input
+                          value={field.value}
+                          onChange={(e) => form.setValue("team", e.target.value)}
+                          placeholder="Enter custom team..."
+                          className="w-full"
+                        />
+                      </CommandItem>
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}

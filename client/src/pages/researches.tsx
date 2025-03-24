@@ -143,8 +143,8 @@ export default function Researches() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
-          <Select 
-            value={researcherFilter} 
+          <Select
+            value={researcherFilter}
             onValueChange={setResearcherFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -159,8 +159,8 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={teamFilter} 
+          <Select
+            value={teamFilter}
             onValueChange={setTeamFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
@@ -168,15 +168,15 @@ export default function Researches() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
+              {[...new Set([...DEFAULT_TEAMS, ...teams])].map((team) => (
                 <SelectItem key={team} value={team}>
                   {team}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select 
-            value={statusFilter} 
+          <Select
+            value={statusFilter}
             onValueChange={setStatusFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
