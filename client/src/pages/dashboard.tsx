@@ -41,8 +41,8 @@ import {
 } from "@/components/ui/select";
 
 const COLORS = {
-  [MeetingStatus.NEGOTIATION]: "#3b82f6", // blue-500
-  [MeetingStatus.SET]: "#6366f1", // indigo-500
+  [MeetingStatus.IN_PROGRESS]: "#3b82f6", // blue-500
+  [MeetingStatus.MEETING_SET]: "#6366f1", // indigo-500
   [MeetingStatus.DONE]: "#22c55e", // green-500
   [MeetingStatus.DECLINED]: "#ef4444", // red-500
 };
