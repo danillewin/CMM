@@ -1,9 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Research } from "@shared/schema";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from "date-fns";
 import { getResearchColor } from "@/lib/colors";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import ResearchForm from "@/components/research-form";
 
 function getMonthsBetween(startDate: Date, endDate: Date) {
   return eachMonthOfInterval({ start: startDate, end: endDate });
@@ -21,8 +27,35 @@ function getCardPosition(research: Research, monthWidth: number) {
 }
 
 export default function RoadmapPage() {
+  const [showForm, setShowForm] = useState(false);
+  const [editResearch, setEditResearch] = useState<Research | null>(null);
+  const { toast } = useToast();
+
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...research }: Research) => {
+      const res = await apiRequest("PATCH", `/api/researches/${id}`, research);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      setShowForm(false);
+      setEditResearch(null);
+      toast({ title: "Research updated successfully" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/researches/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      toast({ title: "Research deleted successfully" });
+    },
   });
 
   // Group researches by team
@@ -41,6 +74,11 @@ export default function RoadmapPage() {
   const months = getMonthsBetween(minDate, maxDate);
 
   const monthWidth = 300; // Width in pixels for each month column
+
+  const handleResearchClick = (research: Research) => {
+    setEditResearch(research);
+    setShowForm(true);
+  };
 
   return (
     <div className="container py-6">
@@ -89,6 +127,7 @@ export default function RoadmapPage() {
                       width: `${width}px`,
                       top: `${(index % 2) * 60 + 20}px`,
                     }}
+                    onClick={() => handleResearchClick(research)}
                   >
                     <div className="font-medium truncate">{research.name}</div>
                     <div className="text-sm opacity-90 truncate">
@@ -104,6 +143,30 @@ export default function RoadmapPage() {
           </div>
         ))}
       </ScrollArea>
+
+      {/* Research Edit Dialog */}
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="w-[90vw] max-w-xl">
+          <ResearchForm
+            onSubmit={(data) => {
+              if (editResearch) {
+                updateMutation.mutate({ ...data, id: editResearch.id });
+              }
+            }}
+            initialData={editResearch}
+            isLoading={updateMutation.isPending}
+            onCancel={() => {
+              setShowForm(false);
+              setEditResearch(null);
+            }}
+            onDelete={editResearch ? () => {
+              deleteMutation.mutate(editResearch.id);
+              setShowForm(false);
+              setEditResearch(null);
+            } : undefined}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
