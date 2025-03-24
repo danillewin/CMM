@@ -10,6 +10,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,10 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
+import { PositionAutocomplete } from "./position-autocomplete";
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -48,14 +49,14 @@ export default function MeetingForm({
       respondentName: initialData?.respondentName ?? "",
       respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
-      gcc: initialData?.gcc ?? "", //Added gcc default value
+      gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
       manager: initialData?.manager ?? (!initialData ? lastUsedManager : ""),
       date: initialData
         ? new Date(initialData.date).toISOString().slice(0, 10)
         : new Date().toISOString().slice(0, 10),
       researchId: initialData?.researchId ?? undefined,
-      status: initialData?.status as typeof MeetingStatus[keyof typeof MeetingStatus] ?? MeetingStatus.NEGOTIATION,
+      status: initialData?.status ?? MeetingStatus.IN_PROGRESS,
     },
   });
 
@@ -91,7 +92,10 @@ export default function MeetingForm({
               <FormItem>
                 <FormLabel className="text-base">Position</FormLabel>
                 <FormControl>
-                  <Input {...field} className="w-full" />
+                  <PositionAutocomplete
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -99,7 +103,7 @@ export default function MeetingForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> {/* Changed to 3 columns */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <FormField
             control={form.control}
             name="cnum"

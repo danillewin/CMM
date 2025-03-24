@@ -18,6 +18,13 @@ export const ResearchStatus = {
 export type MeetingStatusType = typeof MeetingStatus[keyof typeof MeetingStatus];
 export type ResearchStatusType = typeof ResearchStatus[keyof typeof ResearchStatus];
 
+// Add positions table
+export const positions = pgTable("positions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const researches = pgTable("researches", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -31,8 +38,8 @@ export const researches = pgTable("researches", {
 
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
-  respondentName: text("respondent_name").notNull(), // Keep the database column name the same
-  respondentPosition: text("respondent_position"),
+  respondentName: text("respondent_name").notNull(),
+  respondentPosition: text("respondent_position").references(() => positions.name),
   cnum: text("cnum").notNull(),
   gcc: text("gcc"),
   companyName: text("company_name"),
@@ -50,6 +57,11 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   researcher: z.string().min(1, "Researcher is required"),
   status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
     .default(ResearchStatus.PLANNED),
+});
+
+export const insertPositionSchema = createInsertSchema(positions).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
@@ -73,3 +85,5 @@ export type InsertResearch = z.infer<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect;
+export type InsertPosition = z.infer<typeof insertPositionSchema>;
+export type Position = typeof positions.$inferSelect;
