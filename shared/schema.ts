@@ -52,7 +52,7 @@ export const meetings = pgTable("meetings", {
   companyName: text("company_name"),
   manager: text("manager").notNull(),
   date: timestamp("date").notNull(),
-  researchId: integer("research_id").references(() => researches.id),
+  researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
 });
 
@@ -88,7 +88,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.IN_PROGRESS),
   respondentName: z.string().min(1, "Respondent is required"),
-  respondentPosition: z.string().optional(),
+  respondentPosition: z.string().nullish(),
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),
   researchId: z.number({ required_error: "Research is required" }),

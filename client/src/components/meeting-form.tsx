@@ -47,7 +47,7 @@ export default function MeetingForm({
     resolver: zodResolver(insertMeetingSchema),
     defaultValues: {
       respondentName: initialData?.respondentName ?? "",
-      respondentPosition: initialData?.respondentPosition ?? "",
+      respondentPosition: initialData?.respondentPosition ?? null,
       cnum: initialData?.cnum ?? "",
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
@@ -93,8 +93,8 @@ export default function MeetingForm({
                 <FormLabel className="text-base">Position</FormLabel>
                 <FormControl>
                   <PositionAutocomplete
-                    value={field.value}
-                    onChange={field.onChange}
+                    value={field.value ?? ""}
+                    onChange={(value) => field.onChange(value || null)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -151,6 +151,34 @@ export default function MeetingForm({
           />
         </div>
 
+        <FormField
+          control={form.control}
+          name="researchId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base">Research *</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(Number(value))}
+                value={field.value?.toString() ?? ""}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select research" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {researches.map((research) => (
+                    <SelectItem key={research.id} value={research.id.toString()}>
+                      {research.name} - {research.team}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -161,8 +189,7 @@ export default function MeetingForm({
                 <FormControl>
                   <Input
                     type="date"
-                    value={field.value}
-                    onChange={e => field.onChange(e.target.value)}
+                    {...field}
                     className="w-full"
                   />
                 </FormControl>
@@ -199,45 +226,17 @@ export default function MeetingForm({
 
         <FormField
           control={form.control}
-          name="researchId"
+          name="manager"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base">Research</FormLabel>
-              <Select
-                onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value?.toString() ?? ""}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select research" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {researches.map((research) => (
-                    <SelectItem key={research.id} value={research.id.toString()}>
-                      {research.name} - {research.team}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel className="text-base">RM / Sales</FormLabel>
+              <FormControl>
+                <Input {...field} className="w-full" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
-        <FormField
-            control={form.control}
-            name="manager"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">RM / Sales</FormLabel>
-                <FormControl>
-                  <Input {...field} className="w-full" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
         <div className="flex flex-col sm:flex-row gap-2 mt-6">
           <Button
