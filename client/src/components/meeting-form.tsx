@@ -222,18 +222,18 @@ export default function MeetingForm({
         />
 
         <FormField
-          control={form.control}
-          name="manager"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Manager</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            control={form.control}
+            name="manager"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">RM / Sales</FormLabel>
+                <FormControl>
+                  <Input {...field} className="w-full" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
         <div className="flex flex-col sm:flex-row gap-2 mt-6">
           <Button
