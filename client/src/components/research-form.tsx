@@ -20,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { TeamAutocomplete } from "./team-autocomplete";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { LinkifiedText } from "@/components/linkified-text";
@@ -41,6 +48,8 @@ export default function ResearchForm({
   onDelete
 }: ResearchFormProps) {
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
@@ -62,227 +71,259 @@ export default function ResearchForm({
 
   const description = form.watch("description");
 
+  const handleDelete = async () => {
+    try {
+      if (onDelete) {
+        await onDelete();
+      }
+    } catch (error: any) {
+      if (error.message?.includes("associated meetings")) {
+        setErrorMessage("This research cannot be deleted because it has associated meetings. Please delete all related meetings first.");
+        setErrorDialogOpen(true);
+      } else {
+        setErrorMessage("An error occurred while deleting the research.");
+        setErrorDialogOpen(true);
+      }
+    }
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Research Name</FormLabel>
-                <FormControl>
-                  <Input {...field} className="w-full" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="team"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Team</FormLabel>
-                <FormControl>
-                  <TeamAutocomplete
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="researcher"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Researcher</FormLabel>
-                <FormControl>
-                  <Input {...field} className="w-full" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Research Name</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
+                    <Input {...field} className="w-full" />
                   </FormControl>
-                  <SelectContent>
-                    {Object.values(ResearchStatus).map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel className="text-base">Description</FormLabel>
-                {!isDescriptionEditing && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2"
-                    onClick={() => setIsDescriptionEditing(true)}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                )}
-              </div>
-              {isDescriptionEditing ? (
-                <>
+            <FormField
+              control={form.control}
+              name="team"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Team</FormLabel>
                   <FormControl>
-                    <Textarea {...field} className="w-full min-h-[100px]" />
+                    <TeamAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => setIsDescriptionEditing(false)}
-                  >
-                    Done Editing
-                  </Button>
-                </>
-              ) : (
-                <div className="p-3 bg-muted rounded-md min-h-[100px]">
-                  {description ? (
-                    <LinkifiedText text={description} className="text-sm" />
-                  ) : (
-                    <span className="text-sm text-muted-foreground">No description provided</span>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="researcher"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Researcher</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(ResearchStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">Description</FormLabel>
+                  {!isDescriptionEditing && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={() => setIsDescriptionEditing(true)}
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
                   )}
                 </div>
+                {isDescriptionEditing ? (
+                  <>
+                    <FormControl>
+                      <Textarea {...field} className="w-full min-h-[100px]" />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="mt-2"
+                      onClick={() => setIsDescriptionEditing(false)}
+                    >
+                      Done Editing
+                    </Button>
+                  </>
+                ) : (
+                  <div className="p-3 bg-muted rounded-md min-h-[100px]">
+                    {description ? (
+                      <LinkifiedText text={description} className="text-sm" />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No description provided</span>
+                    )}
+                  </div>
+                )}
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Color</FormLabel>
+                <div className="grid grid-cols-6 gap-2 mt-2">
+                  {RESEARCH_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-8 h-8 rounded-full ring-offset-2 ${
+                        field.value === color ? 'ring-2 ring-primary' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => field.onChange(color)}
+                    />
+                  ))}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="dateStart"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Start Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            />
 
-        <FormField
-          control={form.control}
-          name="color"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Color</FormLabel>
-              <div className="grid grid-cols-6 gap-2 mt-2">
-                {RESEARCH_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full ring-offset-2 ${
-                      field.value === color ? 'ring-2 ring-primary' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => field.onChange(color)}
-                  />
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="dateEnd"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">End Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dateStart"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Start Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="dateEnd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">End Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2 mt-6">
-          <Button
-            type="submit"
-            className="flex-1"
-            disabled={isLoading}
-            size="lg"
-          >
-            {isLoading ? "Saving..." : "Save Research"}
-          </Button>
-          {onCancel && (
+          <div className="flex flex-col sm:flex-row gap-2 mt-6">
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
               className="flex-1"
-              onClick={onCancel}
+              disabled={isLoading}
               size="lg"
             >
-              Cancel
+              {isLoading ? "Saving..." : "Save Research"}
             </Button>
-          )}
-          {onDelete && (
-            <Button
-              type="button"
-              variant="destructive"
-              className="flex-1"
-              onClick={onDelete}
-              size="lg"
-            >
-              Delete Research
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={onCancel}
+                size="lg"
+              >
+                Cancel
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                type="button"
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDelete}
+                size="lg"
+              >
+                Delete Research
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cannot Delete Research</DialogTitle>
+            <DialogDescription>{errorMessage}</DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button variant="secondary" onClick={() => setErrorDialogOpen(false)}>
+              Close
             </Button>
-          )}
-        </div>
-      </form>
-    </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

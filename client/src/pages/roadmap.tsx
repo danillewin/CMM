@@ -97,10 +97,16 @@ export default function RoadmapPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/researches/${id}`);
+      const res = await apiRequest("DELETE", `/api/researches/${id}`);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to delete research');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      setShowForm(false);
+      setEditResearch(null);
       toast({ title: "Research deleted successfully" });
     },
   });
@@ -300,9 +306,7 @@ export default function RoadmapPage() {
                 setEditResearch(null);
               }}
               onDelete={editResearch ? () => {
-                deleteMutation.mutate(editResearch.id);
-                setShowForm(false);
-                setEditResearch(null);
+                return deleteMutation.mutateAsync(editResearch.id);
               } : undefined}
             />
           </DialogContent>
