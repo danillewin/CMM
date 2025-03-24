@@ -59,185 +59,189 @@ export default function ResearchForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Research Name</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Research Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="team"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Team</FormLabel>
-              <FormControl>
-                <TeamAutocomplete
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="team"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Team</FormLabel>
+                  <FormControl>
+                    <TeamAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <FormField
-          control={form.control}
-          name="researcher"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Researcher</FormLabel>
-              <FormControl>
-                <Input {...field} className="w-full" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="researcher"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Researcher</FormLabel>
+                  <FormControl>
+                    <Input {...field} className="w-full" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Status</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Status</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(ResearchStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Description</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
+                  <Textarea {...field} className="w-full min-h-[100px]" />
                 </FormControl>
-                <SelectContent>
-                  {Object.values(ResearchStatus).map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base">Color</FormLabel>
+                <div className="grid grid-cols-6 gap-2 mt-2">
+                  {RESEARCH_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-8 h-8 rounded-full ring-offset-2 ${
+                        field.value === color ? 'ring-2 ring-primary' : ''
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => field.onChange(color)}
+                    />
                   ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} className="w-full min-h-[100px]" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="color"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base">Color</FormLabel>
-              <div className="grid grid-cols-6 gap-2 mt-2">
-                {RESEARCH_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full ring-offset-2 ${
-                      field.value === color ? 'ring-2 ring-primary' : ''
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => field.onChange(color)}
-                  />
-                ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="dateStart"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">Start Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="dateEnd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-base">End Date</FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="dateStart"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Start Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="flex flex-col sm:flex-row gap-2 mt-6">
-          <Button
-            type="submit"
-            className="flex-1"
-            disabled={isLoading}
-            size="lg"
-          >
-            {isLoading ? "Saving..." : "Save Research"}
-          </Button>
-          {onCancel && (
+            <FormField
+              control={form.control}
+              name="dateEnd"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">End Date</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 mt-6">
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
               className="flex-1"
-              onClick={onCancel}
+              disabled={isLoading}
               size="lg"
             >
-              Cancel
+              {isLoading ? "Saving..." : "Save Research"}
             </Button>
-          )}
-          {onDelete && (
-            <Button
-              type="button"
-              variant="destructive"
-              className="flex-1"
-              onClick={onDelete}
-              size="lg"
-            >
-              Delete Research
-            </Button>
-          )}
-        </div>
-      </form>
+            {onCancel && (
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={onCancel}
+                size="lg"
+              >
+                Cancel
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                type="button"
+                variant="destructive"
+                className="flex-1"
+                onClick={onDelete}
+                size="lg"
+              >
+                Delete Research
+              </Button>
+            )}
+          </div>
+        </form>
     </Form>
   );
 }
