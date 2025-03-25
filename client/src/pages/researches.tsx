@@ -3,18 +3,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Research, ResearchStatus } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
@@ -103,7 +95,7 @@ export default function Researches() {
       (statusFilter === "ALL" || research.status === statusFilter)
   );
 
-  const handleRowClick = (research: Research) => {
+  const handleCardClick = (research: Research) => {
     setEditResearch(research);
     setShowForm(true);
   };
@@ -133,9 +125,7 @@ export default function Researches() {
                   setShowForm(false);
                   setEditResearch(null);
                 }}
-                onDelete={editResearch ? () => {
-                  return deleteMutation.mutateAsync(editResearch.id);
-                } : undefined}
+                onDelete={editResearch ? () => deleteMutation.mutateAsync(editResearch.id) : undefined}
               />
             </DialogContent>
           </Dialog>
@@ -198,51 +188,60 @@ export default function Researches() {
           </Select>
         </div>
 
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
-                    <TableHead className="w-[20%]">Name</TableHead>
-                    <TableHead className="w-[15%]">Team</TableHead>
-                    <TableHead className="w-[15%]">Researcher</TableHead>
-                    <TableHead className="w-[20%]">Description</TableHead>
-                    <TableHead className="w-[10%]">Status</TableHead>
-                    <TableHead className="w-[10%]">Start Date</TableHead>
-                    <TableHead className="w-[10%]">End Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredResearches.map((research) => (
-                    <TableRow
-                      key={research.id}
-                      className="cursor-pointer hover:bg-gray-50/80 transition-all duration-200"
-                      onClick={() => handleRowClick(research)}
-                    >
-                      <TableCell className="font-medium text-gray-900">{research.name}</TableCell>
-                      <TableCell className="text-gray-700">{research.team}</TableCell>
-                      <TableCell className="text-gray-700">{research.researcher}</TableCell>
-                      <TableCell className="truncate max-w-[400px] text-gray-600">
-                        <LinkifiedText text={research.description} />
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                          ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
-                            research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'}`}>
-                          {research.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-gray-600">{new Date(research.dateStart).toLocaleDateString()}</TableCell>
-                      <TableCell className="text-gray-600">{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredResearches.map((research) => (
+            <Card
+              key={research.id}
+              className="cursor-pointer hover:shadow-lg transition-shadow duration-200 overflow-hidden border-0 bg-white/80 backdrop-blur-sm"
+              onClick={() => handleCardClick(research)}
+            >
+              <div className="h-2" style={{ backgroundColor: research.color }} />
+              <CardHeader className="p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <h3 className="font-semibold text-lg text-gray-900 truncate">
+                    {research.name}
+                  </h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
+                      research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'}`}>
+                    {research.status}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-0 space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Team</p>
+                  <p className="text-sm text-gray-900">{research.team}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Researcher</p>
+                  <p className="text-sm text-gray-900">{research.researcher}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Description</p>
+                  <div className="text-sm text-gray-900 line-clamp-3">
+                    <LinkifiedText text={research.description} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Start Date</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(research.dateStart).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">End Date</p>
+                    <p className="text-sm text-gray-900">
+                      {new Date(research.dateEnd).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );
