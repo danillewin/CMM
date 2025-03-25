@@ -122,12 +122,6 @@ export default function Researches() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Researches</h1>
           <div className="flex items-center gap-4">
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-              <TabsList>
-                <TabsTrigger value="table">Table View</TabsTrigger>
-                <TabsTrigger value="cards">Card View</TabsTrigger>
-              </TabsList>
-            </Tabs>
             <Dialog open={showForm} onOpenChange={setShowForm}>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200">
@@ -148,6 +142,12 @@ export default function Researches() {
                 />
               </DialogContent>
             </Dialog>
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+              <TabsList>
+                <TabsTrigger value="table">Table View</TabsTrigger>
+                <TabsTrigger value="cards">Card View</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </div>
 
