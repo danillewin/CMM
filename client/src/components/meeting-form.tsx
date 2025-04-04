@@ -21,6 +21,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
+import MDEditor from '@uiw/react-md-editor';
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -59,6 +60,7 @@ export default function MeetingForm({
       date: new Date(defaultDate),
       researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
+      notes: initialData?.notes ?? "",
     },
   });
 
@@ -278,6 +280,34 @@ export default function MeetingForm({
               )}
             />
           </div>
+        </div>
+
+        {/* Meeting Notes Section */}
+        <div className="mb-8">
+          <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+            Meeting Notes
+          </div>
+          
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value={field.value}
+                      onChange={(value) => field.onChange(value || '')}
+                      preview="edit"
+                      height={300}
+                      className="border border-gray-200 rounded-md overflow-hidden"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Action Buttons - styled for Notion look */}

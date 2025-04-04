@@ -55,6 +55,7 @@ export const meetings = pgTable("meetings", {
   date: timestamp("date").notNull(),
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
+  notes: text("notes"),
 });
 
 export const insertTeamSchema = createInsertSchema(teams).omit({
@@ -94,6 +95,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   companyName: z.string().optional(),
   manager: z.string().min(1, "Manager is required"),
   researchId: z.number({ required_error: "Research is required" }),
+  notes: z.string().optional(),
 });
 
 export type InsertTeam = z.infer<typeof insertTeamSchema>;

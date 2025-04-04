@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+import ReactMarkdown from 'react-markdown';
+import MDEditor from '@uiw/react-md-editor';
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
@@ -173,10 +175,12 @@ export default function MeetingDetail() {
 
         {/* Main content container */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Document title - Notion style */}
+          {/* Document title - Notion style with Company Name (CNUM or GCC): Respondent Name format */}
           <div className="px-8 pt-8 pb-4">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
-              {isNew ? "Create New Meeting" : (meeting?.respondentName || "Meeting Details")}
+              {isNew ? "Create New Meeting" : (
+                `${meeting?.companyName || ''} (${meeting?.cnum || meeting?.gcc || ''}): ${meeting?.respondentName || ''}`
+              )}
             </h1>
             <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
               <div className="flex items-center gap-1">
