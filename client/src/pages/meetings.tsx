@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -22,22 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import MeetingForm from "@/components/meeting-form";
 import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
-
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
@@ -46,11 +34,8 @@ export default function Meetings() {
   const [managerFilter, setManagerFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const [showForm, setShowForm] = useState(false);
-  const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
-  const [pendingMeeting, setPendingMeeting] = useState<Omit<Meeting, "id"> | null>(null);
-  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
@@ -60,42 +45,7 @@ export default function Meetings() {
     queryKey: ["/api/researches"],
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (meeting: Omit<Meeting, "id">) => {
-      const res = await apiRequest("POST", "/api/meetings", meeting);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      setShowForm(false);
-      setPendingMeeting(null);
-      toast({ title: "Meeting created successfully" });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...meeting }: Meeting) => {
-      const res = await apiRequest("PATCH", `/api/meetings/${id}`, meeting);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      setShowForm(false);
-      setEditMeeting(null);
-      toast({ title: "Meeting updated successfully" });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/meetings/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: "Meeting deleted successfully" });
-    },
-  });
-
+  // Status update mutation for the dropdown in the table
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       const meeting = meetings.find(m => m.id === id);
@@ -111,38 +61,16 @@ export default function Meetings() {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       toast({ title: "Meeting status updated successfully" });
     },
+    onError: (error) => {
+      toast({ 
+        title: "Error updating meeting status", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
   });
 
-  const handleSubmit = (data: Omit<Meeting, "id">) => {
-    if (editMeeting) {
-      updateMutation.mutate({ ...data, id: editMeeting.id });
-      return;
-    }
-
-    const duplicateMeeting = meetings.find(
-      m => m.cnum === data.cnum
-    );
-
-    if (duplicateMeeting) {
-      setPendingMeeting(data);
-      setShowDuplicateWarning(true);
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const handleCreateAnyway = () => {
-    if (pendingMeeting) {
-      createMutation.mutate(pendingMeeting);
-    }
-    setShowDuplicateWarning(false);
-  };
-
-  const handleCancelCreate = () => {
-    setShowDuplicateWarning(false);
-    setPendingMeeting(null);
-  };
-
+  // Export functions
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
       'Respondent': meeting.respondentName,
@@ -187,6 +115,7 @@ export default function Meetings() {
     XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
+  // Filter and sort meetings
   const filteredMeetings = meetings
     .filter(
       (meeting) =>
@@ -233,10 +162,10 @@ export default function Meetings() {
       setSortDir("asc");
     }
   };
-
+  
   const handleRowClick = (meeting: Meeting) => {
-    setEditMeeting(meeting);
-    setShowForm(true);
+    // Navigate to the meeting detail page
+    setLocation(`/meetings/${meeting.id}`);
   };
 
   if (isLoading) {
@@ -249,30 +178,13 @@ export default function Meetings() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Client Meetings</h1>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Meeting
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[90vw] max-w-xl">
-                <MeetingForm
-                  onSubmit={handleSubmit}
-                  initialData={editMeeting}
-                  isLoading={createMutation.isPending || updateMutation.isPending}
-                  onCancel={() => {
-                    setShowForm(false);
-                    setEditMeeting(null);
-                  }}
-                  onDelete={editMeeting ? () => {
-                    deleteMutation.mutate(editMeeting.id);
-                    setShowForm(false);
-                    setEditMeeting(null);
-                  } : undefined}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
+              onClick={() => setLocation("/meetings/new")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Meeting
+            </Button>
             <div className="flex gap-3">
               <Button
                 variant="outline"
@@ -495,31 +407,6 @@ export default function Meetings() {
             </div>
           </CardContent>
         </Card>
-
-        <AlertDialog open={showDuplicateWarning} onOpenChange={setShowDuplicateWarning}>
-          <AlertDialogContent className="bg-white/90 backdrop-blur-sm shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold tracking-tight">Duplicate CNUM Warning</AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-600">
-                A meeting with this CNUM already exists. Would you like to create it anyway?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel
-                onClick={handleCancelCreate}
-                className="bg-white hover:bg-gray-50/80 transition-all duration-200"
-              >
-                No, don't create
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleCreateAnyway}
-                className="bg-primary hover:bg-primary/90 transition-all duration-200"
-              >
-                Create Anyway
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
     </div>
   );

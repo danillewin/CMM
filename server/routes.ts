@@ -2,36 +2,29 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertMeetingSchema, insertResearchSchema, insertPositionSchema, insertTeamSchema } from "@shared/schema";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { neon } from "@neondatabase/serverless";
 import { meetings, researches, positions, teams } from "@shared/schema";
-
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+import { db, pool } from "./db";
 
 // Initialize database
 async function initializeDatabase() {
   try {
-    // Create teams table if it doesn't exist
-    await sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS teams (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
-    `;
+    `);
 
-    // Create positions table if it doesn't exist
-    await sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS positions (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL UNIQUE,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
-    `;
+    `);
 
-    // Create researches table if it doesn't exist
-    await sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS researches (
         id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
@@ -42,10 +35,9 @@ async function initializeDatabase() {
         date_end TIMESTAMP NOT NULL,
         status TEXT NOT NULL DEFAULT 'Planned'
       )
-    `;
+    `);
 
-    // Create meetings table if it doesn't exist
-    await sql`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS meetings (
         id SERIAL PRIMARY KEY,
         respondent_name TEXT NOT NULL,
@@ -58,7 +50,7 @@ async function initializeDatabase() {
         research_id INTEGER REFERENCES researches(id),
         status TEXT NOT NULL DEFAULT 'In Progress'
       )
-    `;
+    `);
     console.log("Database initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database:", error);
@@ -222,6 +214,25 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching meetings:", error);
       res.status(500).json({ message: "Failed to fetch meetings" });
+    }
+  });
+
+  app.get("/api/meetings/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+      
+      const meeting = await storage.getMeeting(id);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+      
+      res.json(meeting);
+    } catch (error) {
+      console.error("Error fetching meeting:", error);
+      res.status(500).json({ message: "Failed to fetch meeting" });
     }
   });
 

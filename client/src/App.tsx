@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Meetings from "@/pages/meetings";
+import MeetingDetail from "@/pages/meeting-detail";
 import Researches from "@/pages/researches";
 import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
@@ -53,6 +54,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Meetings} />
+      <Route path="/meetings/:id" component={MeetingDetail} />
       <Route path="/researches" component={Researches} />
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/calendar" component={Calendar} />
