@@ -43,6 +43,7 @@ export default function Meetings() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
+  const [managerFilter, setManagerFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "manager" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showForm, setShowForm] = useState(false);
@@ -199,7 +200,8 @@ export default function Meetings() {
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
           (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
-        (!researchFilter || meeting.researchId === researchFilter)
+        (!researchFilter || meeting.researchId === researchFilter) &&
+        (managerFilter === "ALL" || !managerFilter || meeting.manager === managerFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
@@ -292,7 +294,7 @@ export default function Meetings() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Input
             placeholder="Search meetings..."
             value={search}
@@ -327,6 +329,19 @@ export default function Meetings() {
                     <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
                     {research.name}
                   </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={managerFilter} onValueChange={setManagerFilter}>
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by RM / Sales" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All RM / Sales</SelectItem>
+              {Array.from(new Set(meetings.map(m => m.manager))).sort().map((manager) => (
+                <SelectItem key={manager} value={manager}>
+                  {manager}
                 </SelectItem>
               ))}
             </SelectContent>
