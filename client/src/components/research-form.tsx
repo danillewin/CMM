@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus } from "@shared/schema";
+import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -59,7 +59,7 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
-      status: initialData?.status as any || ResearchStatus.PLANNED,
+      status: (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
       dateStart: initialData
         ? initialData.dateStart
         : new Date(),
