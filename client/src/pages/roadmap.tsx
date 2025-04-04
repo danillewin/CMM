@@ -112,8 +112,8 @@ export default function RoadmapPage() {
   });
 
   // Get unique teams and researchers for filters
-  const teams = [...new Set(researches.map(r => r.team))].sort();
-  const researchers = [...new Set(researches.map(r => r.researcher))].sort();
+  const teams = [...new Set(researches.map(r => r.team))].filter(Boolean).sort();
+  const researchers = [...new Set(researches.map(r => r.researcher))].filter(Boolean).sort();
 
   // Filter researches
   const filteredResearches = researches.filter(research => 

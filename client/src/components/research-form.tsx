@@ -59,7 +59,7 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
-      status: initialData?.status || ResearchStatus.PLANNED,
+      status: initialData?.status as any || ResearchStatus.PLANNED,
       dateStart: initialData
         ? initialData.dateStart
         : new Date(),

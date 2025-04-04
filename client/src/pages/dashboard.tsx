@@ -62,8 +62,11 @@ export default function Dashboard() {
   });
 
   // Get unique teams, managers, and researchers for filters
-  const teams = [...new Set(researches.map(r => r.team))].sort();
-  const managers = [...new Set(meetings.map(m => m.manager))].sort();
+  const teams = [...new Set(researches.map(r => r.team))].filter(Boolean).sort();
+  const managers = [...new Set([
+    ...meetings.map(m => m.relationshipManager),
+    ...meetings.map(m => m.salesPerson)
+  ])].filter(Boolean).sort();
 
   // Get researchers from researches that have associated meetings
   const researchersWithMeetings = useMemo(() => {
@@ -71,6 +74,7 @@ export default function Dashboard() {
     return [...new Set(researches
       .filter(r => meetingResearchIds.has(r.id))
       .map(r => r.researcher))]
+      .filter(Boolean)
       .sort();
   }, [meetings, researches]);
 
@@ -85,7 +89,7 @@ export default function Dashboard() {
         return false;
       }
     }
-    if (managerFilter !== "ALL" && meeting.manager !== managerFilter) {
+    if (managerFilter !== "ALL" && meeting.relationshipManager !== managerFilter && meeting.salesPerson !== managerFilter) {
       return false;
     }
     if (researcherFilter !== "ALL") {
@@ -125,13 +129,28 @@ export default function Dashboard() {
 
   // Calculate top managers with status breakdown
   const managerMeetings = filteredMeetings.reduce((acc, meeting) => {
-    if (!acc[meeting.manager]) {
-      acc[meeting.manager] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
-        statusAcc[status] = 0;
-        return statusAcc;
-      }, {});
+    // Process RM
+    if (meeting.relationshipManager) {
+      if (!acc[meeting.relationshipManager]) {
+        acc[meeting.relationshipManager] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
+          statusAcc[status] = 0;
+          return statusAcc;
+        }, {});
+      }
+      acc[meeting.relationshipManager][meeting.status]++;
     }
-    acc[meeting.manager][meeting.status]++;
+    
+    // Process Sales
+    if (meeting.salesPerson) {
+      if (!acc[meeting.salesPerson]) {
+        acc[meeting.salesPerson] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
+          statusAcc[status] = 0;
+          return statusAcc;
+        }, {});
+      }
+      acc[meeting.salesPerson][meeting.status]++;
+    }
+    
     return acc;
   }, {} as Record<string, Record<string, number>>);
 

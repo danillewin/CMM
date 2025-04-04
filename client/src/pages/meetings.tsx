@@ -32,7 +32,7 @@ export default function Meetings() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [managerFilter, setManagerFilter] = useState<string>("");
-  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "manager" | "status">("date");
+  const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "relationshipManager" | "salesPerson" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -78,7 +78,8 @@ export default function Meetings() {
       'CNUM': meeting.cnum,
       'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
-      'Manager': meeting.manager,
+      'RM': meeting.relationshipManager,
+      'Sales': meeting.salesPerson,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -103,7 +104,8 @@ export default function Meetings() {
       'CNUM': meeting.cnum,
       'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
-      'Manager': meeting.manager,
+      'RM': meeting.relationshipManager,
+      'Sales': meeting.salesPerson,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -124,13 +126,14 @@ export default function Meetings() {
           (meeting.gcc?.toLowerCase() || "").includes(search.toLowerCase()) ||
           (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase()) ||
           (meeting.respondentPosition?.toLowerCase() || "").includes(search.toLowerCase()) ||
-          meeting.manager.toLowerCase().includes(search.toLowerCase()) ||
+          meeting.relationshipManager.toLowerCase().includes(search.toLowerCase()) ||
+          meeting.salesPerson.toLowerCase().includes(search.toLowerCase()) ||
           meeting.status.toLowerCase().includes(search.toLowerCase()) ||
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
           (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter) &&
-        (managerFilter === "ALL" || !managerFilter || meeting.manager === managerFilter)
+        (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter || meeting.salesPerson === managerFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
@@ -138,7 +141,8 @@ export default function Meetings() {
         : sortBy === "gcc" ? (a.gcc || "")
         : sortBy === "respondentPosition" ? (a.respondentPosition || "")
         : sortBy === "companyName" ? (a.companyName || "")
-        : sortBy === "manager" ? a.manager
+        : sortBy === "relationshipManager" ? a.relationshipManager
+        : sortBy === "salesPerson" ? a.salesPerson
         : sortBy === "status" ? a.status
         : a.respondentName;
       const bVal = sortBy === "date" ? new Date(b.date)
@@ -146,7 +150,8 @@ export default function Meetings() {
         : sortBy === "gcc" ? (b.gcc || "")
         : sortBy === "respondentPosition" ? (b.respondentPosition || "")
         : sortBy === "companyName" ? (b.companyName || "")
-        : sortBy === "manager" ? b.manager
+        : sortBy === "relationshipManager" ? b.relationshipManager
+        : sortBy === "salesPerson" ? b.salesPerson
         : sortBy === "status" ? b.status
         : b.respondentName;
       return sortDir === "asc"
@@ -251,7 +256,10 @@ export default function Meetings() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All RM / Sales</SelectItem>
-              {Array.from(new Set(meetings.map(m => m.manager))).sort().map((manager) => (
+              {Array.from(new Set([
+                ...meetings.map(m => m.relationshipManager),
+                ...meetings.map(m => m.salesPerson)
+              ])).filter(Boolean).sort().map((manager) => (
                 <SelectItem key={manager} value={manager}>
                   {manager}
                 </SelectItem>
@@ -326,13 +334,23 @@ export default function Meetings() {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="w-[12%]">
+                    <TableHead className="w-[10%]">
                       <Button
                         variant="ghost"
-                        onClick={() => toggleSort("manager")}
+                        onClick={() => toggleSort("relationshipManager")}
                         className="whitespace-nowrap hover:text-primary transition-colors duration-200"
                       >
-                        RM / Sales
+                        RM
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="w-[10%]">
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleSort("salesPerson")}
+                        className="whitespace-nowrap hover:text-primary transition-colors duration-200"
+                      >
+                        Sales
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -385,7 +403,8 @@ export default function Meetings() {
                       <TableCell className="truncate max-w-[200px]">{meeting.companyName}</TableCell>
                       <TableCell className="font-medium truncate max-w-[200px]">{meeting.respondentName}</TableCell>
                       <TableCell className="truncate max-w-[150px]">{meeting.respondentPosition}</TableCell>
-                      <TableCell className="truncate max-w-[150px]">{meeting.manager}</TableCell>
+                      <TableCell className="truncate max-w-[120px]">{meeting.relationshipManager}</TableCell>
+                      <TableCell className="truncate max-w-[120px]">{meeting.salesPerson}</TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {meeting.researchId ? (
                           <div className="flex items-center">

@@ -57,7 +57,8 @@ export default function MeetingForm({
       cnum: initialData?.cnum ?? "",
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
-      manager: initialData?.manager ?? (!initialData ? lastUsedManager : ""),
+      relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
+      salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
       researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
@@ -66,8 +67,8 @@ export default function MeetingForm({
   });
 
   const onSubmitWrapper = (data: InsertMeeting) => {
-    if (data.manager) {
-      addManager(data.manager);
+    if (data.relationshipManager) {
+      addManager(data.relationshipManager);
     }
     onSubmit(data);
   };
@@ -217,26 +218,49 @@ export default function MeetingForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="manager"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
-                    RM / Sales
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
-                      placeholder="Manager name..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="relationshipManager"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-600">
+                      Relationship Manager
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                        placeholder="RM name..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="salesPerson"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-600">
+                      Sales Person
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                        placeholder="Sales person name..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
