@@ -52,7 +52,7 @@ export default function MeetingForm({
     resolver: zodResolver(insertMeetingSchema),
     defaultValues: {
       respondentName: initialData?.respondentName ?? "",
-      respondentPosition: initialData?.respondentPosition ?? null,
+      respondentPosition: initialData?.respondentPosition ?? "",
       cnum: initialData?.cnum ?? "",
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
@@ -108,7 +108,7 @@ export default function MeetingForm({
                   <FormControl>
                     <PositionAutocomplete
                       value={field.value ?? ""}
-                      onChange={(value) => field.onChange(value || null)}
+                      onChange={(value) => field.onChange(value || "")}
                     />
                   </FormControl>
                   <FormMessage />
