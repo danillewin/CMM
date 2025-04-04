@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
 import MDEditor from '@uiw/react-md-editor';
+import { RequiredFieldIndicator } from "./required-field-indicator";
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -86,7 +87,10 @@ export default function MeetingForm({
               name="respondentName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Respondent Name</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    Respondent Name
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
@@ -104,7 +108,10 @@ export default function MeetingForm({
               name="respondentPosition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Position</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    Position
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <PositionAutocomplete
                       value={field.value ?? ""}
@@ -141,7 +148,10 @@ export default function MeetingForm({
               name="cnum"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">CNUM</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    CNUM
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -187,7 +197,10 @@ export default function MeetingForm({
               name="date"
               render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Date</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    Date
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -209,7 +222,10 @@ export default function MeetingForm({
               name="manager"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">RM / Sales</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    RM / Sales
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
@@ -229,7 +245,10 @@ export default function MeetingForm({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Status</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    Status
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(value)} 
                     value={field.value}
@@ -257,7 +276,10 @@ export default function MeetingForm({
               name="researchId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Research</FormLabel>
+                  <FormLabel className="text-sm font-medium text-gray-600">
+                    Research
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(Number(value))}
                     value={field.value ? field.value.toString() : ""}

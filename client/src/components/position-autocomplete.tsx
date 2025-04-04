@@ -126,7 +126,7 @@ export function PositionAutocomplete({
           aria-expanded={open}
           className="w-full justify-between border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus:ring-0 text-left font-normal h-10 hover:bg-transparent"
         >
-          <span className="truncate">{value || "Select position... (required)"}</span>
+          <span className="truncate">{value || "Select position..."}</span>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
         </Button>
       </PopoverTrigger>

@@ -30,6 +30,7 @@ import {
 import { TeamAutocomplete } from "./team-autocomplete";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { LinkifiedText } from "@/components/linkified-text";
+import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { Pencil } from "lucide-react";
 
 interface ResearchFormProps {
@@ -58,13 +59,13 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
-      status: initialData?.status ?? ResearchStatus.PLANNED,
+      status: initialData?.status || ResearchStatus.PLANNED,
       dateStart: initialData
-        ? new Date(initialData.dateStart).toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0],
+        ? initialData.dateStart
+        : new Date(),
       dateEnd: initialData
-        ? new Date(initialData.dateEnd).toISOString().split('T')[0]
-        : new Date().toISOString().split('T')[0],
+        ? initialData.dateEnd
+        : new Date(),
       color: initialData?.color ?? RESEARCH_COLORS[0],
     },
   });
@@ -97,7 +98,10 @@ export default function ResearchForm({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Research Name</FormLabel>
+                  <FormLabel className="text-base">
+                    Research Name
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>
@@ -111,7 +115,10 @@ export default function ResearchForm({
               name="team"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Team</FormLabel>
+                  <FormLabel className="text-base">
+                    Team
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <TeamAutocomplete
                       value={field.value}
@@ -130,7 +137,10 @@ export default function ResearchForm({
               name="researcher"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Researcher</FormLabel>
+                  <FormLabel className="text-base">
+                    Researcher
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>
@@ -144,7 +154,10 @@ export default function ResearchForm({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Status</FormLabel>
+                  <FormLabel className="text-base">
+                    Status
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -244,11 +257,17 @@ export default function ResearchForm({
               name="dateStart"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Start Date</FormLabel>
+                  <FormLabel className="text-base">
+                    Start Date
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
-                      {...field}
+                      value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : String(field.value)}
+                      onChange={(e) => {
+                        field.onChange(new Date(e.target.value));
+                      }}
                       className="w-full"
                     />
                   </FormControl>
@@ -262,11 +281,17 @@ export default function ResearchForm({
               name="dateEnd"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">End Date</FormLabel>
+                  <FormLabel className="text-base">
+                    End Date
+                    <RequiredFieldIndicator />
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="date"
-                      {...field}
+                      value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : String(field.value)}
+                      onChange={(e) => {
+                        field.onChange(new Date(e.target.value));
+                      }}
                       className="w-full"
                     />
                   </FormControl>
