@@ -152,23 +152,52 @@ export default function MeetingDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
-      <div className="container mx-auto max-w-4xl space-y-8">
-        <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-[#f7f7f7] px-4 py-6">
+      <div className="container mx-auto max-w-4xl">
+        {/* Header with breadcrumb-style navigation */}
+        <div className="mb-8 flex items-center text-sm text-gray-500">
           <Button 
             variant="ghost" 
-            className="p-2" 
+            className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
             onClick={() => setLocation("/")}
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-            {isNew ? "Create New Meeting" : "Edit Meeting"}
-          </h1>
+          <span className="mx-2 text-gray-300">/</span>
+          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Meetings</span>
+          <span className="mx-2 text-gray-300">/</span>
+          <span className="text-gray-800 font-medium truncate">
+            {isNew ? "New Meeting" : meeting?.respondentName || "Meeting Details"}
+          </span>
         </div>
 
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-          <CardContent className="p-6">
+        {/* Main content container */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Document title - Notion style */}
+          <div className="px-8 pt-8 pb-4">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
+              {isNew ? "Create New Meeting" : (meeting?.respondentName || "Meeting Details")}
+            </h1>
+            <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
+              <div className="flex items-center gap-1">
+                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded">
+                  {isNew ? MeetingStatus.IN_PROGRESS : meeting?.status}
+                </span>
+              </div>
+              {!isNew && meeting?.date && (
+                <div className="text-gray-400 text-sm">
+                  {new Date(meeting.date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Main form area */}
+          <div className="px-8 py-4">
             <MeetingForm
               onSubmit={handleSubmit}
               initialData={meeting || undefined}
@@ -176,24 +205,24 @@ export default function MeetingDetail() {
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-          <AlertDialogContent className="bg-white/90 backdrop-blur-sm shadow-lg">
+          <AlertDialogContent className="bg-white rounded-lg border-0 shadow-lg">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold tracking-tight">Confirm Deletion</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl font-semibold">Delete Meeting</AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600">
                 Are you sure you want to delete this meeting? This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="bg-white hover:bg-gray-50/80 transition-all duration-200">
+              <AlertDialogCancel className="bg-white border border-gray-200 hover:bg-gray-50">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDelete}
-                className="bg-red-500 hover:bg-red-600 text-white transition-all duration-200"
+                className="bg-red-500 hover:bg-red-600 text-white border-0"
               >
                 Delete
               </AlertDialogAction>

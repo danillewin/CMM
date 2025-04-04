@@ -47,7 +47,7 @@ async function initializeDatabase() {
         company_name TEXT,
         manager TEXT NOT NULL,
         date TIMESTAMP NOT NULL,
-        research_id INTEGER REFERENCES researches(id),
+        research_id INTEGER NOT NULL REFERENCES researches(id),
         status TEXT NOT NULL DEFAULT 'In Progress'
       )
     `);

@@ -124,25 +124,26 @@ export function PositionAutocomplete({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className="w-full justify-between border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus:ring-0 text-left font-normal h-10 hover:bg-transparent"
         >
-          {value || "Select position..."}
-          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+          <span className="truncate">{value || "Select position..."}</span>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
-        <Command>
+      <PopoverContent className="w-full p-0 shadow-md border border-gray-100 rounded-md">
+        <Command className="rounded-lg">
           <CommandInput
             placeholder="Search position..."
             value={inputValue}
             onValueChange={setInputValue}
+            className="h-9 border-0 focus:ring-0"
           />
           <CommandEmpty>
             <div className="p-2">
               <Button
                 type="button"
-                variant="secondary"
-                className="w-full"
+                variant="outline"
+                className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50/80 hover:text-gray-900 shadow-none"
                 onClick={() => createPosition(inputValue)}
                 disabled={!inputValue.trim()}
               >
@@ -150,7 +151,7 @@ export function PositionAutocomplete({
               </Button>
             </div>
           </CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-[200px] overflow-auto">
             {positions.map((position) => (
               <CommandItem
                 key={position.id}
@@ -159,12 +160,12 @@ export function PositionAutocomplete({
                   onChange(currentValue);
                   setOpen(false);
                 }}
-                className="flex justify-between items-center pr-2"
+                className="flex justify-between items-center pr-2 py-1.5 text-gray-700 hover:bg-gray-50/80"
               >
                 <div className="flex items-center">
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 h-4 w-4 text-gray-600",
                       value === position.name ? "opacity-100" : "opacity-0"
                     )}
                   />
@@ -173,10 +174,10 @@ export function PositionAutocomplete({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                  className="h-7 w-7 p-0 rounded-full hover:bg-red-50 hover:text-red-600"
                   onClick={(e) => handleDelete(e, position)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </CommandItem>
             ))}
