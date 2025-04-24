@@ -202,44 +202,51 @@ export default function RoadmapPage() {
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
           <div className="flex flex-1 overflow-hidden">
+            {/* Sticky header for team/researcher column */}
             <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
               <div className="h-14 border-b p-4 font-medium sticky top-0 z-10">
                 {viewMode === "teams" ? "Team" : "Researcher"}
               </div>
-              <ScrollArea className="h-[calc(100vh-16rem)]">
-                {Object.keys(groupedResearches).map((group) => {
-                  const groupResearches = groupedResearches[group];
-                  const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                    getVerticalPosition(groupResearches[i], groupResearches, i)
-                  ));
-                  return (
-                    <div 
-                      key={group} 
-                      className="p-4 font-medium border-b"
-                      style={{ height: `${maxOverlap + 100}px` }}
-                    >
-                      {group}
-                    </div>
-                  );
-                })}
-                <ScrollBar orientation="vertical" />
-              </ScrollArea>
             </div>
 
-            <ScrollArea className="flex-1">
-              <div style={{ width: `${monthWidth * months.length}px` }} className="relative">
-                <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10 h-14">
-                  {months.map((month, i) => (
-                    <div
-                      key={i}
-                      className="border-r p-4 font-medium text-center shrink-0"
-                      style={{ width: monthWidth }}
-                    >
-                      {format(month, 'MMMM yyyy')}
-                    </div>
-                  ))}
-                </div>
+            {/* Sticky header for timeline */}
+            <div className="flex-1">
+              <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10 h-14">
+                {months.map((month, i) => (
+                  <div
+                    key={i}
+                    className="border-r p-4 font-medium text-center shrink-0"
+                    style={{ width: monthWidth }}
+                  >
+                    {format(month, 'MMMM yyyy')}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
+          {/* Scrollable content area with synchronized scrolling */}
+          <div className="flex flex-1 overflow-auto">
+            <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
+              {Object.keys(groupedResearches).map((group) => {
+                const groupResearches = groupedResearches[group];
+                const maxOverlap = Math.max(...groupResearches.map((_, i) => 
+                  getVerticalPosition(groupResearches[i], groupResearches, i)
+                ));
+                return (
+                  <div 
+                    key={group} 
+                    className="p-4 font-medium border-b"
+                    style={{ height: `${maxOverlap + 100}px` }}
+                  >
+                    {group}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex-1 overflow-x-auto relative">
+              <div style={{ width: `${monthWidth * months.length}px` }} className="relative">
                 {/* Current date line */}
                 <div
                   className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-20"
@@ -289,8 +296,7 @@ export default function RoadmapPage() {
                   );
                 })}
               </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
