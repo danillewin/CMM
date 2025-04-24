@@ -140,7 +140,7 @@ export default function Dashboard() {
       acc[meeting.relationshipManager][meeting.status]++;
     }
     
-    // Process Sales
+    // Process Recruiters
     if (meeting.salesPerson) {
       if (!acc[meeting.salesPerson]) {
         acc[meeting.salesPerson] = Object.values(MeetingStatus).reduce((statusAcc, status) => {

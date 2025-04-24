@@ -79,7 +79,7 @@ export default function Meetings() {
       'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
-      'Sales': meeting.salesPerson,
+      'Recruiter': meeting.salesPerson,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -105,7 +105,7 @@ export default function Meetings() {
       'GCC': meeting.gcc || '—',
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
-      'Sales': meeting.salesPerson,
+      'Recruiter': meeting.salesPerson,
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
