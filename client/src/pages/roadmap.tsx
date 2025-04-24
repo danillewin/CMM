@@ -201,21 +201,17 @@ export default function RoadmapPage() {
         </div>
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
-          <div className="flex flex-1 overflow-hidden">
-            {/* Sticky header for team/researcher column */}
-            <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
-              <div className="h-14 border-b p-4 font-medium sticky top-0 z-10">
-                {viewMode === "teams" ? "Team" : "Researcher"}
-              </div>
+          {/* Headers */}
+          <div className="flex border-b">
+            <div className="w-48 p-4 font-medium border-r bg-white/90 backdrop-blur-sm">
+              {viewMode === "teams" ? "Team" : "Researcher"}
             </div>
-
-            {/* Sticky header for timeline */}
-            <div className="flex-1">
-              <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10 h-14">
+            <div className="flex-1 overflow-hidden">
+              <div className="flex">
                 {months.map((month, i) => (
                   <div
                     key={i}
-                    className="border-r p-4 font-medium text-center shrink-0"
+                    className="border-r p-4 font-medium text-center"
                     style={{ width: monthWidth }}
                   >
                     {format(month, 'MMMM yyyy')}
@@ -224,9 +220,10 @@ export default function RoadmapPage() {
               </div>
             </div>
           </div>
-
-          {/* Scrollable content area with synchronized scrolling */}
-          <div className="flex flex-1 overflow-auto">
+          
+          {/* Main content with synchronized scrolling */}
+          <div className="flex overflow-auto flex-1">
+            {/* Team/Researcher column */}
             <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
               {Object.keys(groupedResearches).map((group) => {
                 const groupResearches = groupedResearches[group];
@@ -245,6 +242,7 @@ export default function RoadmapPage() {
               })}
             </div>
 
+            {/* Timeline content */}
             <div className="flex-1 overflow-x-auto relative">
               <div style={{ width: `${monthWidth * months.length}px` }} className="relative">
                 {/* Current date line */}
