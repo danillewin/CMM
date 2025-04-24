@@ -201,9 +201,8 @@ export default function RoadmapPage() {
         </div>
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
-          {/* Headers */}
-          <div className="flex border-b">
-            <div className="w-48 p-4 font-medium border-r bg-white/90 backdrop-blur-sm">
+          <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10">
+            <div className="w-48 p-4 font-medium border-r">
               {viewMode === "teams" ? "Team" : "Researcher"}
             </div>
             <div className="flex-1 overflow-hidden">
@@ -221,79 +220,64 @@ export default function RoadmapPage() {
             </div>
           </div>
           
-          {/* Main content with synchronized scrolling */}
-          <div className="flex overflow-auto flex-1">
-            {/* Team/Researcher column */}
-            <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
-              {Object.keys(groupedResearches).map((group) => {
-                const groupResearches = groupedResearches[group];
-                const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                  getVerticalPosition(groupResearches[i], groupResearches, i)
-                ));
-                return (
-                  <div 
-                    key={group} 
-                    className="p-4 font-medium border-b"
-                    style={{ height: `${maxOverlap + 100}px` }}
-                  >
-                    {group}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Timeline content */}
-            <div className="flex-1 overflow-x-auto relative">
-              <div style={{ width: `${monthWidth * months.length}px` }} className="relative">
-                {/* Current date line */}
-                <div
-                  className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-20"
-                  style={{ left: `${currentDatePosition}px` }}
-                />
-
-                {Object.entries(groupedResearches).map(([group, groupResearches]) => {
-                  const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                    getVerticalPosition(groupResearches[i], groupResearches, i)
-                  ));
-                  return (
-                    <div 
-                      key={group} 
-                      className="relative border-b" 
-                      style={{ height: `${maxOverlap + 100}px` }}
-                    >
-                      {groupResearches.map((research, index) => {
-                        const { left, width } = getCardPosition(research, monthWidth, minDate);
-                        const top = getVerticalPosition(research, groupResearches, index);
-                        return (
-                          <Card
-                            key={research.id}
-                            className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
-                            style={{
-                              left: `${left}px`,
-                              width: `${width}px`,
-                              top: `${top}px`,
-                              backgroundColor: `${research.color}cc`,
-                            }}
-                            onClick={() => handleResearchClick(research)}
-                          >
-                            <div className="font-medium truncate text-white">{research.name}</div>
-                            <div className="text-sm opacity-90 truncate text-white">
-                              {viewMode === "teams" ? (
-                                <>Researcher: {research.researcher}</>
-                              ) : (
-                                <>Team: {research.team}</>
-                              )}
-                            </div>
-                            <div className="text-sm opacity-90 truncate text-white">
-                              Status: {research.status}
-                            </div>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
+          <div className="overflow-auto flex-1">
+            <div className="flex min-w-full">
+              <table className="min-w-full">
+                <tbody>
+                  {Object.entries(groupedResearches).map(([group, groupResearches]) => {
+                    const maxOverlap = Math.max(...groupResearches.map((_, i) => 
+                      getVerticalPosition(groupResearches[i], groupResearches, i)
+                    ));
+                    return (
+                      <tr key={group}>
+                        <td 
+                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0"
+                          style={{ height: `${maxOverlap + 100}px` }}
+                        >
+                          {group}
+                        </td>
+                        <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + 100}px` }}>
+                          {/* Current date line */}
+                          <div
+                            className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-20"
+                            style={{ left: `${currentDatePosition}px` }}
+                          />
+                          
+                          {groupResearches.map((research, index) => {
+                            const { left, width } = getCardPosition(research, monthWidth, minDate);
+                            const top = getVerticalPosition(research, groupResearches, index);
+                            return (
+                              <Card
+                                key={research.id}
+                                className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                                style={{
+                                  left: `${left}px`,
+                                  width: `${width}px`,
+                                  top: `${top}px`,
+                                  backgroundColor: `${research.color}cc`,
+                                }}
+                                onClick={() => handleResearchClick(research)}
+                              >
+                                <div className="font-medium truncate text-white">{research.name}</div>
+                                <div className="text-sm opacity-90 truncate text-white">
+                                  {viewMode === "teams" ? (
+                                    <>Researcher: {research.researcher}</>
+                                  ) : (
+                                    <>Team: {research.team}</>
+                                  )}
+                                </div>
+                                <div className="text-sm opacity-90 truncate text-white">
+                                  Status: {research.status}
+                                </div>
+                              </Card>
+                            );
+                          })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
