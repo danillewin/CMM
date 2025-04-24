@@ -203,24 +203,27 @@ export default function RoadmapPage() {
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
           <div className="flex flex-1 overflow-hidden">
             <div className="w-48 shrink-0 border-r bg-white/90 backdrop-blur-sm">
-              <div className="h-14 border-b p-4 font-medium">
+              <div className="h-14 border-b p-4 font-medium sticky top-0 z-10">
                 {viewMode === "teams" ? "Team" : "Researcher"}
               </div>
-              {Object.keys(groupedResearches).map((group) => {
-                const groupResearches = groupedResearches[group];
-                const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                  getVerticalPosition(groupResearches[i], groupResearches, i)
-                ));
-                return (
-                  <div 
-                    key={group} 
-                    className="p-4 font-medium border-b"
-                    style={{ height: `${maxOverlap + 100}px` }}
-                  >
-                    {group}
-                  </div>
-                );
-              })}
+              <ScrollArea className="h-[calc(100vh-16rem)]">
+                {Object.keys(groupedResearches).map((group) => {
+                  const groupResearches = groupedResearches[group];
+                  const maxOverlap = Math.max(...groupResearches.map((_, i) => 
+                    getVerticalPosition(groupResearches[i], groupResearches, i)
+                  ));
+                  return (
+                    <div 
+                      key={group} 
+                      className="p-4 font-medium border-b"
+                      style={{ height: `${maxOverlap + 100}px` }}
+                    >
+                      {group}
+                    </div>
+                  );
+                })}
+                <ScrollBar orientation="vertical" />
+              </ScrollArea>
             </div>
 
             <ScrollArea className="flex-1">
