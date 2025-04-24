@@ -350,7 +350,7 @@ export default function Meetings() {
                         onClick={() => toggleSort("salesPerson")}
                         className="whitespace-nowrap hover:text-primary transition-colors duration-200"
                       >
-                        Sales
+                        Recruiter
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
