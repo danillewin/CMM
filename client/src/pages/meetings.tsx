@@ -252,10 +252,10 @@ export default function Meetings() {
           </Select>
           <Select value={managerFilter} onValueChange={setManagerFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by RM / Sales" />
+              <SelectValue placeholder="Filter by RM" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All RM / Sales</SelectItem>
+              <SelectItem value="ALL">All RM</SelectItem>
               {Array.from(new Set([
                 ...meetings.map(m => m.relationshipManager),
                 ...meetings.map(m => m.salesPerson)

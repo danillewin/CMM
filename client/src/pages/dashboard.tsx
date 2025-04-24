@@ -219,10 +219,10 @@ export default function Dashboard() {
             onValueChange={setManagerFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by RM / Sales" />
+              <SelectValue placeholder="Filter by RM" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All RM / Sales</SelectItem>
+              <SelectItem value="ALL">All RM</SelectItem>
               {managers.map((manager) => (
                 <SelectItem key={manager} value={manager}>
                   {manager}
@@ -315,8 +315,8 @@ export default function Dashboard() {
 
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Top RM / Sales</CardTitle>
-              <CardDescription>RM / Sales with the most meetings by status</CardDescription>
+              <CardTitle>Top RM</CardTitle>
+              <CardDescription>RM with the most meetings by status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
