@@ -52,7 +52,7 @@ export const meetings = pgTable("meetings", {
   gcc: text("gcc"),
   companyName: text("company_name"),
   relationshipManager: text("relationship_manager").notNull(),
-  salesPerson: text("sales_person").notNull(),
+  salesPerson: text("recruiter").notNull(),
   date: timestamp("date").notNull(),
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
@@ -95,7 +95,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentPosition: z.string().min(1, "Position is required"),
   companyName: z.string().optional(),
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
-  salesPerson: z.string().min(1, "Sales Person is required"),
+  salesPerson: z.string().min(1, "Recruiter is required"),
   researchId: z.number({ required_error: "Research is required" }),
   notes: z.string().optional(),
 });

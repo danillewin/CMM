@@ -246,14 +246,14 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-600">
-                      Sales Person
+                      Recruiter
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
-                        placeholder="Sales person name..."
+                        placeholder="Recruiter name..."
                       />
                     </FormControl>
                     <FormMessage />
