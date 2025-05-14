@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema";
@@ -20,8 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import MDEditor from '@uiw/react-md-editor';
-import { useAutosave } from "@/hooks/use-autosave";
-import { AutosaveIndicator } from "@/components/autosave-indicator";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
@@ -33,9 +31,6 @@ export default function MeetingDetail() {
   const id = isNew ? null : parseInt(params.id);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
-  
-  // Reference to the form inside the MeetingForm component
-  const formRef = useRef<{ form: any }>(null);
 
   const { data: meeting, isLoading: isMeetingLoading } = useQuery<Meeting>({
     queryKey: ["/api/meetings", id],
@@ -147,29 +142,8 @@ export default function MeetingDetail() {
     setLocation("/");
   };
 
-  // Set up autosave (only if we're editing an existing meeting)
-  const { isSaving, lastSaved } = useAutosave(
-    formRef.current?.form,
-    (formData: InsertMeeting) => {
-      if (!isNew && id) {
-        updateMutation.mutate({ ...formData, id } as MeetingWithId, {
-          // Use different options when it's an autosave vs a manual save
-          onSuccess: () => {
-            // Just invalidate the queries, don't show a toast (the autosave indicator will show)
-            queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/meetings", id] });
-          },
-        });
-      }
-    },
-    { 
-      enabled: !isNew && !!id && !!formRef.current?.form,
-      debounceMs: 3000, // Autosave after 3 seconds of inactivity
-    }
-  );
-
   const isLoading = isMeetingLoading || isResearchesLoading;
-  const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isSaving;
+  const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   if (isLoading && !isNew) {
     return (
@@ -253,24 +227,12 @@ export default function MeetingDetail() {
 
           {/* Main form area - More Notion-like with generous spacing */}
           <div className="px-8 py-6">
-            {/* Autosave indicator */}
-            {!isNew && (
-              <div className="flex justify-end mb-4">
-                <AutosaveIndicator 
-                  isSaving={isSaving} 
-                  lastSaved={lastSaved} 
-                  className="text-xs text-gray-500"
-                />
-              </div>
-            )}
-            
             <MeetingForm
               onSubmit={handleSubmit}
               initialData={meeting || undefined}
               isLoading={isPending}
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
-              formRef={formRef}
             />
           </div>
         </div>

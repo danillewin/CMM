@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType } from "@shared/schema";
 import {
@@ -31,8 +30,6 @@ interface MeetingFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
-  /** Ref callback to access the form from parent component */
-  formRef?: React.MutableRefObject<{ form: any } | null>;
 }
 
 export default function MeetingForm({
@@ -40,8 +37,7 @@ export default function MeetingForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete,
-  formRef
+  onDelete
 }: MeetingFormProps) {
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -69,13 +65,6 @@ export default function MeetingForm({
       notes: initialData?.notes ?? "",
     },
   });
-
-  // Expose the form to the parent component via the ref for autosave
-  useEffect(() => {
-    if (formRef && form) {
-      formRef.current = { form };
-    }
-  }, [form, formRef]);
 
   const onSubmitWrapper = (data: InsertMeeting) => {
     if (data.relationshipManager) {

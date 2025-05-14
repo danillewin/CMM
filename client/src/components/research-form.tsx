@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType } from "@shared/schema";
@@ -44,8 +44,6 @@ interface ResearchFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
-  /** Ref callback to access the form from parent component */
-  formRef?: React.MutableRefObject<{ form: any } | null>;
 }
 
 export default function ResearchForm({
@@ -53,8 +51,7 @@ export default function ResearchForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete,
-  formRef
+  onDelete
 }: ResearchFormProps) {
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -105,13 +102,6 @@ export default function ResearchForm({
       }
     }
   };
-  
-  // Expose the form to the parent component via the ref for autosave
-  useEffect(() => {
-    if (formRef && form) {
-      formRef.current = { form };
-    }
-  }, [form, formRef]);
 
   // Helper function to format dates consistently
   const formatDateForInput = (date: Date | string) => {
