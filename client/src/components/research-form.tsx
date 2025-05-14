@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -29,14 +28,14 @@ import {
 } from "@/components/ui/dialog";
 import { TeamAutocomplete } from "./team-autocomplete";
 import { RESEARCH_COLORS } from "@/lib/colors";
-import { LinkifiedText } from "@/components/linkified-text";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
-import { Pencil, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import MDEditor from '@uiw/react-md-editor';
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -53,7 +52,7 @@ export default function ResearchForm({
   onCancel,
   onDelete
 }: ResearchFormProps) {
-  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
+  // We don't need the editing state with MDEditor
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -274,48 +273,32 @@ export default function ResearchForm({
             <div className="hidden md:block"></div> {/* Spacer for grid alignment */}
           </div>
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-base">Description</FormLabel>
-                  {!isDescriptionEditing && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2"
-                      onClick={() => setIsDescriptionEditing(true)}
-                    >
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                  )}
-                </div>
-                <FormControl>
-                  {isDescriptionEditing ? (
-                    <Textarea
-                      {...field}
-                      rows={5}
-                      className="resize-none"
-                      onBlur={() => setIsDescriptionEditing(false)}
-                    />
-                  ) : (
-                    <div className="min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2">
-                      {description ? (
-                        <LinkifiedText text={description} />
-                      ) : (
-                        <span className="text-sm text-muted-foreground">No description provided</span>
-                      )}
+          <div className="mb-8">
+            <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+              Description
+            </div>
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <div data-color-mode="light">
+                      <MDEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        preview="edit"
+                        height={300}
+                        className="border border-gray-200 rounded-md overflow-hidden"
+                      />
                     </div>
-                  )}
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
