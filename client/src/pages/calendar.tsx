@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SectionLoader } from "@/components/ui/loading-spinner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -201,7 +202,11 @@ export default function Calendar() {
 
 
   if (researchesLoading || meetingsLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <SectionLoader text="Loading calendar data..." />
+      </div>
+    );
   }
 
   return (
