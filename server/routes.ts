@@ -164,8 +164,12 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Invalid research ID" });
       }
       
+      console.log(`Fetching research with ID: ${id}`);
       const research = await storage.getResearch(id);
+      console.log("Research data:", research);
+      
       if (!research) {
+        console.log(`Research with ID ${id} not found`);
         return res.status(404).json({ message: "Research not found" });
       }
       

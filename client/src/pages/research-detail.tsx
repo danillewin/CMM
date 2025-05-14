@@ -37,9 +37,23 @@ export default function ResearchDetail() {
     queryKey: ["/api/researches", id],
     queryFn: async () => {
       if (isNew) return undefined;
-      const res = await fetch(`/api/researches/${id}`);
-      if (!res.ok) throw new Error("Research not found");
-      return res.json();
+      console.log(`Fetching research with ID: ${id}`);
+      try {
+        const res = await apiRequest("GET", `/api/researches/${id}`);
+        console.log("Response status:", res.status);
+        
+        if (!res.ok) {
+          console.error("Error in response:", await res.text());
+          throw new Error("Research not found");
+        }
+        
+        const data = await res.json();
+        console.log("Fetched research data:", data);
+        return data;
+      } catch (error) {
+        console.error("Error fetching research:", error);
+        throw error;
+      }
     },
     enabled: !isNew && !!id,
   });

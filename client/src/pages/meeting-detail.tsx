@@ -209,9 +209,9 @@ export default function MeetingDetail() {
               )}
 
               {/* Position information */}
-              {!isNew && meeting?.position && (
+              {!isNew && meeting?.respondentPosition && (
                 <div className="px-2.5 py-0.5 rounded-md text-xs bg-amber-100 text-amber-800 font-medium">
-                  {meeting.position}
+                  {meeting.respondentPosition}
                 </div>
               )}
             </div>
