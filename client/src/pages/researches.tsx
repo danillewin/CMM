@@ -95,13 +95,16 @@ export default function Researches() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mb-4">
           <Input
             placeholder="Search researches..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select value={researcherFilter} onValueChange={setResearcherFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by researcher" />
