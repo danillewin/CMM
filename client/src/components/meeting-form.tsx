@@ -131,11 +131,11 @@ export default function MeetingForm({
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">Company</FormLabel>
+                  <FormLabel className="text-base">Company</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                      className="w-full" 
                       placeholder="Company name..."
                     />
                   </FormControl>
@@ -149,14 +149,14 @@ export default function MeetingForm({
               name="cnum"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     CNUM
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
-                      className="w-full uppercase border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base"
+                      className="w-full uppercase"
                       onChange={e => field.onChange(e.target.value.toUpperCase())}
                       placeholder="CNUM..."
                     />
@@ -171,11 +171,11 @@ export default function MeetingForm({
               name="gcc"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">GCC</FormLabel>
+                  <FormLabel className="text-base">GCC</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                      className="w-full" 
                       placeholder="GCC..."
                     />
                   </FormControl>
@@ -198,7 +198,7 @@ export default function MeetingForm({
               name="date"
               render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     Date
                     <RequiredFieldIndicator />
                   </FormLabel>
@@ -209,7 +209,7 @@ export default function MeetingForm({
                       onChange={(e) => {
                         onChange(new Date(e.target.value));
                       }}
-                      className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base"
+                      className="w-full"
                       {...rest}
                     />
                   </FormControl>
@@ -224,14 +224,14 @@ export default function MeetingForm({
                 name="relationshipManager"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-600">
+                    <FormLabel className="text-base">
                       Relationship Manager
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                        className="w-full" 
                         placeholder="RM name..."
                       />
                     </FormControl>
@@ -245,14 +245,14 @@ export default function MeetingForm({
                 name="salesPerson"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-600">
+                    <FormLabel className="text-base">
                       Recruiter
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
-                        className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                        className="w-full" 
                         placeholder="Recruiter name..."
                       />
                     </FormControl>
