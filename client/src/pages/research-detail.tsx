@@ -40,6 +40,9 @@ export default function ResearchDetail() {
   const id = isNew ? null : parseInt(params.id);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  
+  // Reference to the form inside the ResearchForm component
+  const formRef = useRef<{ form: any }>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
 
@@ -182,8 +185,29 @@ export default function ResearchDetail() {
     setLocation("/researches");
   };
 
+  // Set up autosave (only if we're editing an existing research)
+  const { isSaving, lastSaved } = useAutosave(
+    formRef.current?.form,
+    (formData: InsertResearch) => {
+      if (!isNew && id) {
+        updateMutation.mutate({ ...formData, id } as ResearchWithId, {
+          // Use different options when it's an autosave vs a manual save
+          onSuccess: () => {
+            // Just invalidate the queries, don't show a toast (the autosave indicator will show)
+            queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/researches", id] });
+          },
+        });
+      }
+    },
+    { 
+      enabled: !isNew && !!id && !!formRef.current?.form,
+      debounceMs: 3000, // Autosave after 3 seconds of inactivity
+    }
+  );
+
   const isLoading = isResearchLoading || isMeetingsLoading;
-  const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending || isSaving;
 
   if (isLoading && !isNew) {
     return (
@@ -251,12 +275,24 @@ export default function ResearchDetail() {
 
           {/* Main form area - More Notion-like with generous spacing and clean dividers */}
           <div className="px-8 py-6">
+            {/* Autosave indicator */}
+            {!isNew && (
+              <div className="flex justify-end mb-4">
+                <AutosaveIndicator 
+                  isSaving={isSaving} 
+                  lastSaved={lastSaved} 
+                  className="text-xs text-gray-500"
+                />
+              </div>
+            )}
+            
             <ResearchForm
               onSubmit={handleSubmit}
               initialData={research || undefined}
               isLoading={isPending}
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
+              formRef={formRef}
             />
             
             {/* Connected Meetings Section */}
