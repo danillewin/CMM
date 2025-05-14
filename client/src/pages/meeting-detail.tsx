@@ -233,7 +233,21 @@ export default function MeetingDetail() {
           <div className="px-8 py-6">
             <MeetingForm
               onSubmit={handleSubmit}
-              initialData={meeting || (preselectedResearchId ? { researchId: preselectedResearchId } : undefined)}
+              initialData={meeting || (preselectedResearchId ? {
+                id: 0, // New meeting
+                researchId: preselectedResearchId,
+                date: new Date(),
+                // Default values for required fields
+                respondentName: "",
+                respondentPosition: "",
+                cnum: "",
+                gcc: null,
+                companyName: null,
+                relationshipManager: "",
+                salesPerson: "",
+                status: MeetingStatus.IN_PROGRESS,
+                notes: null
+              } as Meeting : undefined)}
               isLoading={isPending}
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
