@@ -31,7 +31,12 @@ import { TeamAutocomplete } from "./team-autocomplete";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { LinkifiedText } from "@/components/linkified-text";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
-import { Pencil } from "lucide-react";
+import { Pencil, ChevronDown } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -219,10 +224,14 @@ export default function ResearchForm({
               render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-base">Color</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select color">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-5 h-5 rounded-full" 
@@ -230,33 +239,34 @@ export default function ResearchForm({
                           />
                           <span>Selected Color</span>
                         </div>
-                      </SelectValue>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent className="min-w-[200px]">
-                    <div className="p-3 w-full">
-                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[220px] p-0" align="start">
+                    <div className="p-3">
+                      <div className="grid grid-cols-4 gap-3">
                         {RESEARCH_COLORS.map((color) => (
                           <div
                             key={color}
                             className="flex justify-center items-center"
+                            onClick={() => {
+                              field.onChange(color);
+                              document.body.click(); // Force the dropdown to close
+                            }}
                           >
                             <div
                               className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform ${
                                 field.value === color ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-1'
                               }`}
                               style={{ backgroundColor: color }}
-                              onClick={() => {
-                                field.onChange(color);
-                                document.body.click(); // Force the dropdown to close
-                              }}
                             />
                           </div>
                         ))}
                       </div>
                     </div>
-                  </SelectContent>
-                </Select>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
