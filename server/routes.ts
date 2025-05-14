@@ -156,6 +156,25 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: "Failed to fetch researches" });
     }
   });
+  
+  app.get("/api/researches/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+      
+      const research = await storage.getResearch(id);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+      
+      res.json(research);
+    } catch (error) {
+      console.error("Error fetching research:", error);
+      res.status(500).json({ message: "Failed to fetch research" });
+    }
+  });
 
   app.post("/api/researches", async (req, res) => {
     try {

@@ -154,10 +154,10 @@ export default function MeetingDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] px-4 py-6">
+    <div className="min-h-screen bg-[#ffffff] px-4 py-6">
       <div className="container mx-auto max-w-4xl">
         {/* Header with breadcrumb-style navigation */}
-        <div className="mb-8 flex items-center text-sm text-gray-500">
+        <div className="mb-6 flex items-center text-sm text-gray-500">
           <Button 
             variant="ghost" 
             className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
@@ -173,23 +173,26 @@ export default function MeetingDetail() {
           </span>
         </div>
 
-        {/* Main content container */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Main content container - Notion-style UI */}
+        <div className="bg-white overflow-hidden">
           {/* Document title - Notion style with Company Name (CNUM or GCC): Respondent Name format */}
-          <div className="px-8 pt-8 pb-4">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
+          <div className="px-8 pt-8 pb-4 border-b border-gray-100">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
               {isNew ? "Create New Meeting" : (
                 `${meeting?.companyName || ''} (${meeting?.cnum || meeting?.gcc || ''}): ${meeting?.respondentName || ''}`
               )}
             </h1>
-            <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
+            <div className="flex items-center flex-wrap gap-3 text-sm text-gray-500 my-2">
+              {/* Status badge with Notion-like styling */}
               <div className="flex items-center gap-1">
-                <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2 py-0.5 rounded">
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                   {isNew ? MeetingStatus.IN_PROGRESS : meeting?.status}
                 </span>
               </div>
+              
+              {/* Meeting date with Notion-like tag styling */}
               {!isNew && meeting?.date && (
-                <div className="text-gray-400 text-sm">
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium">
                   {new Date(meeting.date).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'short', 
@@ -197,11 +200,25 @@ export default function MeetingDetail() {
                   })}
                 </div>
               )}
+              
+              {/* Display research name if available */}
+              {!isNew && meeting?.researchId && (
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-purple-100 text-purple-800 font-medium">
+                  {researches.find(r => r.id === meeting.researchId)?.name || 'Research'}
+                </div>
+              )}
+
+              {/* Position information */}
+              {!isNew && meeting?.position && (
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-amber-100 text-amber-800 font-medium">
+                  {meeting.position}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Main form area */}
-          <div className="px-8 py-4">
+          {/* Main form area - More Notion-like with generous spacing */}
+          <div className="px-8 py-6">
             <MeetingForm
               onSubmit={handleSubmit}
               initialData={meeting || undefined}

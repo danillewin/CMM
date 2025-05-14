@@ -160,10 +160,10 @@ export default function ResearchDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] px-4 py-6">
+    <div className="min-h-screen bg-[#ffffff] px-4 py-6">
       <div className="container mx-auto max-w-4xl">
         {/* Header with breadcrumb-style navigation */}
-        <div className="mb-8 flex items-center text-sm text-gray-500">
+        <div className="mb-6 flex items-center text-sm text-gray-500">
           <Button 
             variant="ghost" 
             className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
@@ -179,18 +179,18 @@ export default function ResearchDetail() {
           </span>
         </div>
 
-        {/* Main content container */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Document title - Notion style with Research Name - Team format */}
-          <div className="px-8 pt-8 pb-4">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
+        {/* Main content container - Notion-style UI */}
+        <div className="bg-white overflow-hidden">
+          {/* Document title - Notion style */}
+          <div className="px-8 pt-8 pb-4 border-b border-gray-100">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
               {isNew ? "Create New Research" : research?.name}
             </h1>
-            <div className="flex items-center gap-3 text-sm text-gray-500 mb-4">
+            <div className="flex items-center gap-3 text-sm text-gray-500 my-2">
               {!isNew && research && (
                 <>
                   <div className="flex items-center gap-1">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium
                       ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
                         research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-800'}`}
@@ -198,7 +198,7 @@ export default function ResearchDetail() {
                       {research.status}
                     </span>
                   </div>
-                  <div className="text-gray-400 text-sm">
+                  <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium">
                     {research.team}
                   </div>
                   <div className="flex items-center">
@@ -207,13 +207,16 @@ export default function ResearchDetail() {
                       style={{ backgroundColor: research.color }}
                     />
                   </div>
+                  <div className="text-xs text-gray-500">
+                    {new Date(research?.dateStart).toLocaleDateString()} - {new Date(research?.dateEnd).toLocaleDateString()}
+                  </div>
                 </>
               )}
             </div>
           </div>
 
-          {/* Main form area */}
-          <div className="px-8 py-4">
+          {/* Main form area - More Notion-like with generous spacing and clean dividers */}
+          <div className="px-8 py-6">
             <ResearchForm
               onSubmit={handleSubmit}
               initialData={research || undefined}
