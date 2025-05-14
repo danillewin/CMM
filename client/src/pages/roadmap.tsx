@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { type Research, ResearchStatus } from "@shared/schema";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
@@ -7,9 +7,6 @@ import { useLocation } from "wouter";
 import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO } from "date-fns";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import { getResearchColor } from "@/lib/colors";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -74,7 +71,6 @@ export default function RoadmapPage() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const { toast } = useToast();
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -263,27 +259,6 @@ export default function RoadmapPage() {
             </div>
           </div>
         </div>
-
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogContent className="w-[90vw] max-w-xl">
-            <ResearchForm
-              onSubmit={(data) => {
-                if (editResearch) {
-                  updateMutation.mutate({ ...data, id: editResearch.id });
-                }
-              }}
-              initialData={editResearch}
-              isLoading={updateMutation.isPending}
-              onCancel={() => {
-                setShowForm(false);
-                setEditResearch(null);
-              }}
-              onDelete={editResearch ? () => {
-                return deleteMutation.mutateAsync(editResearch.id);
-              } : undefined}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
