@@ -44,6 +44,8 @@ interface ResearchFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  /** Ref callback to access the form from parent component */
+  formRef?: React.MutableRefObject<{ form: any } | null>;
 }
 
 export default function ResearchForm({
@@ -51,7 +53,8 @@ export default function ResearchForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete
+  onDelete,
+  formRef
 }: ResearchFormProps) {
   const [isDescriptionEditing, setIsDescriptionEditing] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
@@ -102,6 +105,13 @@ export default function ResearchForm({
       }
     }
   };
+  
+  // Expose the form to the parent component via the ref for autosave
+  useEffect(() => {
+    if (formRef && form) {
+      formRef.current = { form };
+    }
+  }, [form, formRef]);
 
   // Helper function to format dates consistently
   const formatDateForInput = (date: Date | string) => {

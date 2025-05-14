@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting } from "@shared/schema";
@@ -27,6 +27,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import { LinkifiedText } from "@/components/linkified-text";
+import { useAutosave } from "@/hooks/use-autosave";
+import { AutosaveIndicator } from "@/components/autosave-indicator";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
