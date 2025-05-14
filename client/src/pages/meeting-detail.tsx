@@ -163,7 +163,7 @@ export default function MeetingDetail() {
       }
     },
     { 
-      enabled: !isNew && !!id,
+      enabled: !isNew && !!id && !!formRef.current?.form,
       debounceMs: 3000, // Autosave after 3 seconds of inactivity
     }
   );
