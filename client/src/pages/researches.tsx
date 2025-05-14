@@ -158,13 +158,12 @@ export default function Researches() {
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
                       <TableHead className="w-[3%]"></TableHead>
-                      <TableHead className="w-[20%]">Name</TableHead>
-                      <TableHead className="w-[15%]">Team</TableHead>
-                      <TableHead className="w-[15%]">Researcher</TableHead>
-                      <TableHead className="w-[10%]">Status</TableHead>
-                      <TableHead className="w-[10%]">Start Date</TableHead>
-                      <TableHead className="w-[10%]">End Date</TableHead>
-                      <TableHead className="w-[17%]">Description</TableHead>
+                      <TableHead className="w-[25%]">Name</TableHead>
+                      <TableHead className="w-[18%]">Team</TableHead>
+                      <TableHead className="w-[18%]">Researcher</TableHead>
+                      <TableHead className="w-[12%]">Status</TableHead>
+                      <TableHead className="w-[12%]">Start Date</TableHead>
+                      <TableHead className="w-[12%]">End Date</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -193,9 +192,6 @@ export default function Researches() {
                         </TableCell>
                         <TableCell className="align-top py-3">{new Date(research.dateStart).toLocaleDateString()}</TableCell>
                         <TableCell className="align-top py-3">{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
-                        <TableCell className="max-w-[300px] truncate align-top py-3">
-                          <LinkifiedText text={research.description} />
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
