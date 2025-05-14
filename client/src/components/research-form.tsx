@@ -212,38 +212,56 @@ export default function ResearchForm({
             />
           </div>
           
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="color"
+              render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-base">Color</FormLabel>
-                <FormControl>
-                  <div className="flex items-center mb-2">
-                    <div 
-                      className="w-6 h-6 rounded-full mr-2" 
-                      style={{ backgroundColor: field.value }} 
-                    />
-                    <span>Selected Color</span>
-                  </div>
-                </FormControl>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mt-2">
-                  {RESEARCH_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full ring-offset-2 ${
-                        field.value === color ? 'ring-2 ring-primary' : ''
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => field.onChange(color)}
-                    />
-                  ))}
-                </div>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select color">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-5 h-5 rounded-full" 
+                            style={{ backgroundColor: field.value }} 
+                          />
+                          <span>Selected Color</span>
+                        </div>
+                      </SelectValue>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <div className="p-2">
+                      <div className="grid grid-cols-4 gap-2">
+                        {RESEARCH_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`w-8 h-8 rounded-full ring-offset-2 ${
+                              field.value === color ? 'ring-2 ring-primary' : ''
+                            }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                              field.onChange(color);
+                              // Close the dropdown after selection
+                              const selectElement = document.activeElement as HTMLElement;
+                              if (selectElement?.blur) selectElement.blur();
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+            <div className="hidden md:block"></div> {/* Spacer for grid alignment */}
+          </div>
 
           <FormField
             control={form.control}
