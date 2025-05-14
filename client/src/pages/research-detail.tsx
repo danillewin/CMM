@@ -280,14 +280,14 @@ export default function ResearchDetail() {
                               <TableHead className="w-[15%]">Position</TableHead>
                               <TableHead className="w-[15%]">Date</TableHead>
                               <TableHead className="w-[15%]">Recruiter</TableHead>
-                              <TableHead className="w-[10%]"></TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {researchMeetings.map((meeting) => (
                               <TableRow
                                 key={meeting.id}
-                                className="hover:bg-gray-50/80 transition-all duration-200"
+                                className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
+                                onClick={() => setLocation(`/meetings/${meeting.id}`)}
                               >
                                 <TableCell>
                                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
@@ -312,17 +312,6 @@ export default function ResearchDetail() {
                                 </TableCell>
                                 <TableCell className="truncate max-w-[150px]" title={meeting.salesPerson}>
                                   {meeting.salesPerson}
-                                </TableCell>
-                                <TableCell>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => setLocation(`/meetings/${meeting.id}`)}
-                                    title="View Meeting Details"
-                                  >
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Button>
                                 </TableCell>
                               </TableRow>
                             ))}
