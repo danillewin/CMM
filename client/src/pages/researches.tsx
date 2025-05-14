@@ -174,16 +174,16 @@ export default function Researches() {
                         className="cursor-pointer hover:bg-gray-50/80 transition-all duration-200"
                         onClick={() => handleItemClick(research)}
                       >
-                        <TableCell className="align-top pt-4">
+                        <TableCell className="align-top py-3">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-3 h-3 rounded-full mt-1"
                             style={{ backgroundColor: research.color }}
                           ></div>
                         </TableCell>
-                        <TableCell className="font-medium align-top">{research.name}</TableCell>
-                        <TableCell className="align-top">{research.team}</TableCell>
-                        <TableCell className="align-top">{research.researcher}</TableCell>
-                        <TableCell className="align-top">
+                        <TableCell className="font-medium align-top py-3">{research.name}</TableCell>
+                        <TableCell className="align-top py-3">{research.team}</TableCell>
+                        <TableCell className="align-top py-3">{research.researcher}</TableCell>
+                        <TableCell className="align-top py-3">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
                               research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
@@ -191,9 +191,9 @@ export default function Researches() {
                             {research.status}
                           </span>
                         </TableCell>
-                        <TableCell className="align-top">{new Date(research.dateStart).toLocaleDateString()}</TableCell>
-                        <TableCell className="align-top">{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
-                        <TableCell className="max-w-[300px] truncate align-top">
+                        <TableCell className="align-top py-3">{new Date(research.dateStart).toLocaleDateString()}</TableCell>
+                        <TableCell className="align-top py-3">{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
+                        <TableCell className="max-w-[300px] truncate align-top py-3">
                           <LinkifiedText text={research.description} />
                         </TableCell>
                       </TableRow>
