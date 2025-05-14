@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema";
@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import MDEditor from '@uiw/react-md-editor';
+import { useAutosave } from "@/hooks/use-autosave";
+import { AutosaveIndicator } from "@/components/autosave-indicator";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;

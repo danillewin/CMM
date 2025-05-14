@@ -30,6 +30,8 @@ interface MeetingFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  /** Ref callback to access the form from parent component */
+  formRef?: React.RefObject<{ form: any }>;
 }
 
 export default function MeetingForm({
@@ -37,7 +39,8 @@ export default function MeetingForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete
+  onDelete,
+  formRef
 }: MeetingFormProps) {
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
