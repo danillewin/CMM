@@ -32,7 +32,6 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
-import ResearchForm from "@/components/research-form"; // Import the ResearchForm component
 
 
 export default function Calendar() {
@@ -43,8 +42,6 @@ export default function Calendar() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { toast } = useToast();
-  const [showForm, setShowForm] = useState(false); // Add state for the form
-  const [editResearch, setEditResearch] = useState<Research | null>(null); //Add state for editing research
 
 
   const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
@@ -73,30 +70,6 @@ export default function Calendar() {
       });
     },
   });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/researches/${id}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to delete research');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research deleted successfully" });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to delete research",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
 
   // Initialize with all research IDs selected
   const [selectedResearchIds, setSelectedResearchIds] = useState<Set<number>>(
@@ -165,40 +138,6 @@ export default function Calendar() {
 
   const handlePreviousMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-
-  const handleSubmit = (data: Research) => {
-    if (editResearch) {
-      updateMutation.mutate({ ...data, id: editResearch.id });
-    } else {
-      createMutation.mutate(data);
-    }
-    setShowForm(false);
-    setEditResearch(null);
-  };
-
-  const createMutation = useMutation({
-    mutationFn: async (research: Research) => {
-      const res = await apiRequest("POST", "/api/researches", research);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      toast({ title: "Research created successfully" });
-    },
-  });
-
-  const updateMutationResearch = useMutation({
-    mutationFn: async (research: Research) => {
-      const res = await apiRequest("PATCH", `/api/researches/${research.id}`, research);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research updated successfully" });
-    },
-  });
 
 
   if (researchesLoading || meetingsLoading) {
@@ -299,21 +238,6 @@ export default function Calendar() {
               </ScrollArea>
             </CardContent>
           </Card>
-          <Button onClick={() => setShowForm(true)}>Add Research</Button> {/*Button to show the form*/}
-          <Dialog open={showForm} onOpenChange={(open) => !open && setShowForm(false)}> {/*Dialog for ResearchForm*/}
-            <DialogContent className="w-[90vw] max-w-xl">
-              <ResearchForm
-                onSubmit={handleSubmit}
-                initialData={editResearch}
-                isLoading={createMutation.isPending || updateMutationResearch.isPending}
-                onCancel={() => {
-                  setShowForm(false);
-                  setEditResearch(null);
-                }}
-                onDelete={editResearch ? () => deleteMutation.mutateAsync(editResearch.id) : undefined}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Calendar */}
