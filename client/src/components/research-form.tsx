@@ -233,24 +233,25 @@ export default function ResearchForm({
                       </SelectValue>
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    <div className="p-2">
-                      <div className="grid grid-cols-4 gap-2">
+                  <SelectContent className="min-w-[200px]">
+                    <div className="p-3 w-full">
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                         {RESEARCH_COLORS.map((color) => (
-                          <button
+                          <div
                             key={color}
-                            type="button"
-                            className={`w-8 h-8 rounded-full ring-offset-2 ${
-                              field.value === color ? 'ring-2 ring-primary' : ''
-                            }`}
-                            style={{ backgroundColor: color }}
-                            onClick={() => {
-                              field.onChange(color);
-                              // Close the dropdown after selection
-                              const selectElement = document.activeElement as HTMLElement;
-                              if (selectElement?.blur) selectElement.blur();
-                            }}
-                          />
+                            className="flex justify-center items-center"
+                          >
+                            <div
+                              className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform ${
+                                field.value === color ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-1'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => {
+                                field.onChange(color);
+                                document.body.click(); // Force the dropdown to close
+                              }}
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>
