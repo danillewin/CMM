@@ -260,12 +260,26 @@ export default function Meetings() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All RM</SelectItem>
-              {Array.from(new Set([
-                ...meetings.map(m => m.relationshipManager),
-                ...meetings.map(m => m.salesPerson)
-              ])).filter(Boolean).sort().map((manager) => (
+              {Array.from(new Set(
+                meetings.map(m => m.relationshipManager)
+              )).filter(Boolean).sort().map((manager) => (
                 <SelectItem key={manager} value={manager}>
                   {manager}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={recruiterFilter} onValueChange={setRecruiterFilter}>
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by Recruiter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Recruiters</SelectItem>
+              {Array.from(new Set(
+                meetings.map(m => m.salesPerson)
+              )).filter(Boolean).sort().map((recruiter) => (
+                <SelectItem key={recruiter} value={recruiter}>
+                  {recruiter}
                 </SelectItem>
               ))}
             </SelectContent>
