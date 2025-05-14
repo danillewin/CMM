@@ -33,6 +33,7 @@ export default function Meetings() {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [managerFilter, setManagerFilter] = useState<string>("");
+  const [recruiterFilter, setRecruiterFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<"date" | "respondentName" | "cnum" | "gcc" | "respondentPosition" | "companyName" | "relationshipManager" | "salesPerson" | "status">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
@@ -134,7 +135,8 @@ export default function Meetings() {
           (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter) &&
-        (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter || meeting.salesPerson === managerFilter)
+        (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
+        (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter)
     )
     .sort((a, b) => {
       const aVal = sortBy === "date" ? new Date(a.date)
