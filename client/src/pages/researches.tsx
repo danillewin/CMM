@@ -34,7 +34,7 @@ export default function Researches() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [viewMode, setViewMode] = useState<ViewMode>("cards");
+  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
