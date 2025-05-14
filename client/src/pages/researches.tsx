@@ -42,8 +42,11 @@ export default function Researches() {
   });
 
   // Get unique researchers and teams for filters
-  const researchers = [...new Set(researches.map(r => r.researcher))].sort();
-  const teams = [...new Set(researches.map(r => r.team))].sort();
+  const researchersSet = new Set(researches.map(r => r.researcher));
+  const researchers = Array.from(researchersSet).sort();
+  
+  const teamsSet = new Set(researches.map(r => r.team));
+  const teams = Array.from(teamsSet).sort();
 
   const filteredResearches = researches.filter(
     (research) =>
