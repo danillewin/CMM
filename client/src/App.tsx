@@ -12,6 +12,7 @@ import Dashboard from "@/pages/dashboard";
 import Roadmap from "@/pages/roadmap";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
+import { useScrollTop } from "@/hooks/use-scroll-top";
 
 function Navigation() {
   const [location] = useLocation();
@@ -67,6 +68,9 @@ function Router() {
 }
 
 function App() {
+  // Hook to scroll to top on page navigation
+  useScrollTop();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <Navigation />
