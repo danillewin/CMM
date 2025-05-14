@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LinkifiedText } from "@/components/linkified-text";
+import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 
 type ViewMode = "table" | "cards";
@@ -232,8 +232,8 @@ export default function Researches() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Description</p>
-                    <div className="text-sm text-gray-900 line-clamp-3">
-                      <LinkifiedText text={research.description} />
+                    <div className="text-sm text-gray-900 line-clamp-3 prose prose-sm max-w-none">
+                      <ReactMarkdown>{research.description}</ReactMarkdown>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-2">

@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
-import { LinkifiedText } from "@/components/linkified-text";
+import ReactMarkdown from 'react-markdown';
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;

@@ -84,7 +84,7 @@ export default function ResearchForm({
     },
   });
 
-  const description = form.watch("description");
+  // We don't need to watch description anymore as the MDEditor handles the display
 
   const handleDelete = async () => {
     try {
