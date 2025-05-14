@@ -4,6 +4,7 @@ import { type Research, ResearchStatus } from "@shared/schema";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO } from "date-fns";
+import { SectionLoader } from "@/components/ui/loading-spinner";
 import { getResearchColor } from "@/lib/colors";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
@@ -78,7 +79,7 @@ export default function RoadmapPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { toast } = useToast();
 
-  const { data: researches = [] } = useQuery<Research[]>({
+  const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
 
@@ -145,6 +146,17 @@ export default function RoadmapPage() {
     setEditResearch(research);
     setShowForm(true);
   };
+
+  // Show loading state if data is still loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
+        <div className="container mx-auto max-w-[1400px] space-y-8">
+          <SectionLoader text="Loading roadmap data..." />
+        </div>
+      </div>
+    );
+  }
 
   // Calculate current date line position
   const currentDatePosition = getCurrentDatePosition(monthWidth, minDate);
