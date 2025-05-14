@@ -68,7 +68,7 @@ function Router() {
 }
 
 function App() {
-  // Hook to scroll to top on page navigation
+  // Hook to instantly scroll to top on page navigation
   useScrollTop();
   
   return (
