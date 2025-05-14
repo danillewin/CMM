@@ -25,12 +25,16 @@ import MDEditor from '@uiw/react-md-editor';
 type MeetingWithId = Meeting;
 
 export default function MeetingDetail() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
   const id = isNew ? null : parseInt(params.id);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
+  
+  // Parse query parameters if we're creating a new meeting
+  const searchParams = isNew ? new URLSearchParams(window.location.search) : null;
+  const preselectedResearchId = searchParams ? parseInt(searchParams.get("researchId") || "0") : 0;
 
   const { data: meeting, isLoading: isMeetingLoading } = useQuery<Meeting>({
     queryKey: ["/api/meetings", id],
@@ -229,7 +233,7 @@ export default function MeetingDetail() {
           <div className="px-8 py-6">
             <MeetingForm
               onSubmit={handleSubmit}
-              initialData={meeting || undefined}
+              initialData={meeting || (preselectedResearchId ? { researchId: preselectedResearchId } : undefined)}
               isLoading={isPending}
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}

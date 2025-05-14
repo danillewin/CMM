@@ -5,7 +5,7 @@ import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting }
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, Plus as PlusIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -261,8 +261,16 @@ export default function ResearchDetail() {
             {!isNew && id && (
               <div className="mt-10">
                 <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
                     <CardTitle className="text-xl">Connected Meetings</CardTitle>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => setLocation(`/meetings/new?researchId=${id}`)}
+                      className="flex items-center gap-1"
+                    >
+                      <PlusIcon className="h-4 w-4" /> Create Meeting
+                    </Button>
                   </CardHeader>
                   <CardContent className="p-0">
                     {researchMeetings.length === 0 ? (
