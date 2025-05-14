@@ -5,7 +5,7 @@ import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema"
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -201,10 +201,18 @@ export default function MeetingDetail() {
                 </div>
               )}
               
-              {/* Display research name if available */}
+              {/* Display research name if available - clickable to go to research page */}
               {!isNew && meeting?.researchId && (
-                <div className="px-2.5 py-0.5 rounded-md text-xs bg-purple-100 text-purple-800 font-medium">
-                  {researches.find(r => r.id === meeting.researchId)?.name || 'Research'}
+                <div 
+                  className="px-2.5 py-0.5 rounded-md text-xs bg-purple-100 text-purple-800 font-medium cursor-pointer hover:bg-purple-200 transition-colors duration-200 flex items-center gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    setLocation(`/researches/${meeting.researchId}`);
+                  }}
+                  title="Click to view research details"
+                >
+                  <span>{researches.find(r => r.id === meeting.researchId)?.name || 'Research'}</span>
+                  <ExternalLink className="h-3 w-3" />
                 </div>
               )}
 
