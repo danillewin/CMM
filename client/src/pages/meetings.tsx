@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowUpDown, FileDown } from "lucide-react";
+import { SectionLoader } from "@/components/ui/loading-spinner";
 import {
   Select,
   SelectContent,
@@ -173,9 +174,10 @@ export default function Meetings() {
     setLocation(`/meetings/${meeting.id}`);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // We're removing this because we now use the SectionLoader component inside the card
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -270,9 +272,12 @@ export default function Meetings() {
 
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
+            {isLoading ? (
+              <SectionLoader text="Loading meetings..." />
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                   <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
                     <TableHead className="w-[12%]">
                       <Button
@@ -422,8 +427,9 @@ export default function Meetings() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
-            </div>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
