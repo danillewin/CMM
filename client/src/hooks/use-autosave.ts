@@ -43,7 +43,7 @@ export function useAutosave<T extends FieldValues>(
   
   // Track when form values change and debounce the save call
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !form) return;
     
     // Skip the first render to avoid saving on initial form load
     if (isFirstRender.current) {
@@ -57,8 +57,8 @@ export function useAutosave<T extends FieldValues>(
     }
     
     timeoutRef.current = window.setTimeout(() => {
-      // Only autosave if the form is valid
-      if (form.formState.isValid) {
+      // Only autosave if the form exists and is valid
+      if (form && form.formState && form.formState.isValid) {
         setIsSaving(true);
         
         const data = form.getValues();
@@ -84,7 +84,7 @@ export function useAutosave<T extends FieldValues>(
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, [form.watch(), form, onSave, debounceMs, showToasts, enabled, toast]);
+  }, [form, form?.watch?.(), onSave, debounceMs, showToasts, enabled, toast]);
   
   return {
     isSaving,

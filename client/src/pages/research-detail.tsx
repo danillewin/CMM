@@ -201,7 +201,7 @@ export default function ResearchDetail() {
       }
     },
     { 
-      enabled: !isNew && !!id && !!formRef.current?.form,
+      enabled: !isNew && !!id,
       debounceMs: 3000, // Autosave after 3 seconds of inactivity
     }
   );
