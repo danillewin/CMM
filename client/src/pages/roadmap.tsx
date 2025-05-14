@@ -244,8 +244,11 @@ export default function RoadmapPage() {
                                     <>Team: {research.team}</>
                                   )}
                                 </div>
-                                <div className="text-sm opacity-90 truncate text-white">
-                                  Status: {research.status}
+                                <div className="text-sm opacity-90 flex items-center gap-1 text-white">
+                                  <span>Status:</span>
+                                  <span className="whitespace-nowrap overflow-hidden text-ellipsis" title={research.status}>
+                                    {research.status}
+                                  </span>
                                 </div>
                               </Card>
                             );

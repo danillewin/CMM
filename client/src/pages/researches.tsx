@@ -183,11 +183,11 @@ export default function Researches() {
                         <TableCell className="font-medium align-top py-3">{research.name}</TableCell>
                         <TableCell className="align-top py-3">{research.team}</TableCell>
                         <TableCell className="align-top py-3">{research.researcher}</TableCell>
-                        <TableCell className="align-top py-3">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        <TableCell className="align-top py-3 w-[100px]">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
                             ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
                               research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'}`}>
+                              'bg-gray-100 text-gray-800'}`} title={research.status}>
                             {research.status}
                           </span>
                         </TableCell>
@@ -217,10 +217,10 @@ export default function Researches() {
                     <h3 className="font-semibold text-lg text-gray-900 truncate">
                       {research.name}
                     </h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
                       ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
                         research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'}`}>
+                        'bg-gray-100 text-gray-800'}`} title={research.status}>
                       {research.status}
                     </span>
                   </div>
