@@ -3,14 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { type Research, ResearchStatus } from "@shared/schema";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { useLocation } from "wouter";
 import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO } from "date-fns";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import { getResearchColor } from "@/lib/colors";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import ResearchForm from "@/components/research-form";
 import {
   Select,
   SelectContent,
@@ -71,8 +70,6 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
 }
 
 export default function RoadmapPage() {
-  const [showForm, setShowForm] = useState(false);
-  const [editResearch, setEditResearch] = useState<Research | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("teams");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
@@ -81,35 +78,6 @@ export default function RoadmapPage() {
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...research }: Research) => {
-      const res = await apiRequest("PATCH", `/api/researches/${id}`, research);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research updated successfully" });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/researches/${id}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to delete research');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research deleted successfully" });
-    },
   });
 
   // Get unique teams and researchers for filters
@@ -142,9 +110,11 @@ export default function RoadmapPage() {
 
   const monthWidth = 300;
 
+  const [, setLocation] = useLocation();
+
   const handleResearchClick = (research: Research) => {
-    setEditResearch(research);
-    setShowForm(true);
+    // Navigate to the research detail page instead of showing the form
+    setLocation(`/researches/${research.id}`);
   };
 
   // Show loading state if data is still loading
