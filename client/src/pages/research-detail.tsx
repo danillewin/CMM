@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { Research, ResearchStatus, InsertResearch, ResearchStatusType } from "@shared/schema";
+import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Loader2, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import { LinkifiedText } from "@/components/linkified-text";
@@ -63,6 +71,15 @@ export default function ResearchDetail() {
     queryKey: ["/api/researches"],
     enabled: isNew, // Only load all researches when creating a new one (for duplicate detection)
   });
+  
+  // Fetch all meetings to filter the ones related to this research
+  const { data: meetings = [], isLoading: isMeetingsLoading } = useQuery<Meeting[]>({
+    queryKey: ["/api/meetings"],
+    enabled: !isNew && !!id, // Only load meetings when viewing an existing research
+  });
+  
+  // Filter meetings related to this research
+  const researchMeetings = meetings.filter(meeting => meeting.researchId === id);
 
   const createMutation = useMutation({
     mutationFn: async (researchData: InsertResearch) => {
@@ -163,7 +180,7 @@ export default function ResearchDetail() {
     setLocation("/researches");
   };
 
-  const isLoading = isResearchLoading;
+  const isLoading = isResearchLoading || isMeetingsLoading;
   const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   if (isLoading && !isNew) {
@@ -239,6 +256,84 @@ export default function ResearchDetail() {
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
             />
+            
+            {/* Connected Meetings Section */}
+            {!isNew && id && (
+              <div className="mt-10">
+                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xl">Connected Meetings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {researchMeetings.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        No meetings are connected to this research yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
+                              <TableHead className="w-[15%]">Status</TableHead>
+                              <TableHead className="w-[15%]">Company Name</TableHead>
+                              <TableHead className="w-[15%]">Respondent Name</TableHead>
+                              <TableHead className="w-[15%]">Position</TableHead>
+                              <TableHead className="w-[15%]">Date</TableHead>
+                              <TableHead className="w-[15%]">Recruiter</TableHead>
+                              <TableHead className="w-[10%]"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {researchMeetings.map((meeting) => (
+                              <TableRow
+                                key={meeting.id}
+                                className="hover:bg-gray-50/80 transition-all duration-200"
+                              >
+                                <TableCell>
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
+                                    ${meeting.status === 'Done' ? 'bg-green-100 text-green-800' :
+                                      meeting.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                                      meeting.status === 'Meeting Set' ? 'bg-purple-100 text-purple-800' :
+                                      'bg-gray-100 text-gray-800'}`} title={meeting.status}>
+                                    {meeting.status}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="font-medium truncate max-w-[150px]" title={meeting.companyName || ''}>
+                                  {meeting.companyName || '—'}
+                                </TableCell>
+                                <TableCell className="truncate max-w-[150px]" title={meeting.respondentName}>
+                                  {meeting.respondentName}
+                                </TableCell>
+                                <TableCell className="truncate max-w-[150px]" title={meeting.respondentPosition}>
+                                  {meeting.respondentPosition}
+                                </TableCell>
+                                <TableCell className="whitespace-nowrap">
+                                  {new Date(meeting.date).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell className="truncate max-w-[150px]" title={meeting.salesPerson}>
+                                  {meeting.salesPerson}
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => setLocation(`/meetings/${meeting.id}`)}
+                                    title="View Meeting Details"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         </div>
 
