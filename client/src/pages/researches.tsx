@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Research, ResearchStatus } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -15,9 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import ResearchForm from "@/components/research-form";
 import {
   Select,
   SelectContent,
@@ -27,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LinkifiedText } from "@/components/linkified-text";
+import { useToast } from "@/hooks/use-toast";
 
 type ViewMode = "table" | "cards";
 
@@ -35,63 +33,13 @@ export default function Researches() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [showForm, setShowForm] = useState(false);
-  const [editResearch, setEditResearch] = useState<Research | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("cards");
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
-
-  const createMutation = useMutation({
-    mutationFn: async (research: Omit<Research, "id">) => {
-      const res = await apiRequest("POST", "/api/researches", research);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      toast({ title: "Research created successfully" });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, ...research }: Research) => {
-      const res = await apiRequest("PATCH", `/api/researches/${id}`, research);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research updated successfully" });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/researches/${id}`);
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || 'Failed to delete research');
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      setShowForm(false);
-      setEditResearch(null);
-      toast({ title: "Research deleted successfully" });
-    },
-  });
-
-  const handleSubmit = (data: Omit<Research, "id">) => {
-    if (editResearch) {
-      updateMutation.mutate({ ...data, id: editResearch.id });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
 
   // Get unique researchers and teams for filters
   const researchers = [...new Set(researches.map(r => r.researcher))].sort();
@@ -108,8 +56,7 @@ export default function Researches() {
   );
 
   const handleItemClick = (research: Research) => {
-    setEditResearch(research);
-    setShowForm(true);
+    setLocation(`/researches/${research.id}`);
   };
 
   if (isLoading) {
@@ -122,26 +69,13 @@ export default function Researches() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Researches</h1>
           <div className="flex items-center gap-4">
-            <Dialog open={showForm} onOpenChange={setShowForm}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Research
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[90vw] max-w-xl">
-                <ResearchForm
-                  onSubmit={handleSubmit}
-                  initialData={editResearch}
-                  isLoading={createMutation.isPending || updateMutation.isPending}
-                  onCancel={() => {
-                    setShowForm(false);
-                    setEditResearch(null);
-                  }}
-                  onDelete={editResearch ? () => deleteMutation.mutateAsync(editResearch.id) : undefined}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              className="bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
+              onClick={() => setLocation("/researches/new")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Research
+            </Button>
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList>
                 <TabsTrigger value="table">Table View</TabsTrigger>
@@ -158,10 +92,7 @@ export default function Researches() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
           />
-          <Select
-            value={researcherFilter}
-            onValueChange={setResearcherFilter}
-          >
+          <Select value={researcherFilter} onValueChange={setResearcherFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by researcher" />
             </SelectTrigger>
@@ -174,10 +105,7 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select
-            value={teamFilter}
-            onValueChange={setTeamFilter}
-          >
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by team" />
             </SelectTrigger>
@@ -190,10 +118,7 @@ export default function Researches() {
               ))}
             </SelectContent>
           </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={setStatusFilter}
-          >
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
@@ -208,20 +133,25 @@ export default function Researches() {
           </Select>
         </div>
 
-        {viewMode === "table" ? (
+        {filteredResearches.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">No researches found matching your filters</p>
+          </div>
+        ) : viewMode === "table" ? (
           <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
+                      <TableHead className="w-[3%]"></TableHead>
                       <TableHead className="w-[20%]">Name</TableHead>
                       <TableHead className="w-[15%]">Team</TableHead>
                       <TableHead className="w-[15%]">Researcher</TableHead>
-                      <TableHead className="w-[20%]">Description</TableHead>
                       <TableHead className="w-[10%]">Status</TableHead>
                       <TableHead className="w-[10%]">Start Date</TableHead>
                       <TableHead className="w-[10%]">End Date</TableHead>
+                      <TableHead className="w-[17%]">Description</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -231,20 +161,15 @@ export default function Researches() {
                         className="cursor-pointer hover:bg-gray-50/80 transition-all duration-200"
                         onClick={() => handleItemClick(research)}
                       >
-                        <TableCell className="font-medium text-gray-900">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: research.color }}
-                            />
-                            {research.name}
-                          </div>
+                        <TableCell>
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: research.color }}
+                          ></div>
                         </TableCell>
-                        <TableCell className="text-gray-700">{research.team}</TableCell>
-                        <TableCell className="text-gray-700">{research.researcher}</TableCell>
-                        <TableCell className="truncate max-w-[400px] text-gray-600">
-                          <LinkifiedText text={research.description} />
-                        </TableCell>
+                        <TableCell className="font-medium">{research.name}</TableCell>
+                        <TableCell>{research.team}</TableCell>
+                        <TableCell>{research.researcher}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                             ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
@@ -253,8 +178,11 @@ export default function Researches() {
                             {research.status}
                           </span>
                         </TableCell>
-                        <TableCell className="text-gray-600">{new Date(research.dateStart).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-gray-600">{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(research.dateStart).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(research.dateEnd).toLocaleDateString()}</TableCell>
+                        <TableCell className="max-w-[300px] truncate">
+                          <LinkifiedText text={research.description} />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

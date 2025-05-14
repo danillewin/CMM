@@ -6,6 +6,7 @@ import NotFound from "@/pages/not-found";
 import Meetings from "@/pages/meetings";
 import MeetingDetail from "@/pages/meeting-detail";
 import Researches from "@/pages/researches";
+import ResearchDetail from "@/pages/research-detail";
 import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
 import Roadmap from "@/pages/roadmap";
