@@ -124,26 +124,26 @@ export function PositionAutocomplete({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus:ring-0 text-left font-normal h-10 hover:bg-transparent"
+          className="w-full justify-between text-left font-normal"
         >
           <span className="truncate">{value || "Select position..."}</span>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 shadow-md border border-gray-100 rounded-md">
+      <PopoverContent className="w-full p-0">
         <Command className="rounded-lg">
           <CommandInput
             placeholder="Search position..."
             value={inputValue}
             onValueChange={setInputValue}
-            className="h-9 border-0 focus:ring-0"
+            className="h-9"
           />
           <CommandEmpty>
             <div className="p-2">
               <Button
                 type="button"
                 variant="outline"
-                className="w-full border border-gray-200 text-gray-700 hover:bg-gray-50/80 hover:text-gray-900 shadow-none"
+                className="w-full"
                 onClick={() => createPosition(inputValue)}
                 disabled={!inputValue.trim()}
               >
