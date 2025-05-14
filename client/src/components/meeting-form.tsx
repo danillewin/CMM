@@ -88,14 +88,14 @@ export default function MeetingForm({
               name="respondentName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     Respondent Name
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
-                      className="w-full border-0 border-b border-gray-200 rounded-none px-0 shadow-none focus-visible:ring-0 focus-visible:border-gray-900 text-base" 
+                      className="w-full" 
                       placeholder="Enter name..."
                     />
                   </FormControl>
@@ -109,7 +109,7 @@ export default function MeetingForm({
               name="respondentPosition"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     Position
                     <RequiredFieldIndicator />
                   </FormLabel>
@@ -269,7 +269,7 @@ export default function MeetingForm({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     Status
                     <RequiredFieldIndicator />
                   </FormLabel>
@@ -278,7 +278,7 @@ export default function MeetingForm({
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="border-0 border-b border-gray-200 rounded-none pl-0 shadow-none focus:ring-0 focus-visible:ring-0 focus-visible:border-gray-900">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                     </FormControl>
@@ -300,7 +300,7 @@ export default function MeetingForm({
               name="researchId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-sm font-medium text-gray-600">
+                  <FormLabel className="text-base">
                     Research
                     <RequiredFieldIndicator />
                   </FormLabel>
@@ -309,7 +309,7 @@ export default function MeetingForm({
                     value={field.value ? field.value.toString() : ""}
                   >
                     <FormControl>
-                      <SelectTrigger className="border-0 border-b border-gray-200 rounded-none pl-0 shadow-none focus:ring-0 focus-visible:ring-0 focus-visible:border-gray-900">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select research" />
                       </SelectTrigger>
                     </FormControl>
