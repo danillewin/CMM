@@ -185,14 +185,14 @@ export default function MeetingDetail() {
             <div className="flex items-center flex-wrap gap-3 text-sm text-gray-500 my-2">
               {/* Status badge with Notion-like styling */}
               <div className="flex items-center gap-1">
-                <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]" title={isNew ? MeetingStatus.IN_PROGRESS : meeting?.status}>
                   {isNew ? MeetingStatus.IN_PROGRESS : meeting?.status}
                 </span>
               </div>
               
               {/* Meeting date with Notion-like tag styling */}
               {!isNew && meeting?.date && (
-                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium">
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium whitespace-nowrap" title={new Date(meeting.date).toLocaleDateString()}>
                   {new Date(meeting.date).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'short', 
@@ -204,21 +204,21 @@ export default function MeetingDetail() {
               {/* Display research name if available - clickable to go to research page */}
               {!isNew && meeting?.researchId && (
                 <div 
-                  className="px-2.5 py-0.5 rounded-md text-xs bg-purple-100 text-purple-800 font-medium cursor-pointer hover:bg-purple-200 transition-colors duration-200 flex items-center gap-1"
+                  className="px-2.5 py-0.5 rounded-md text-xs bg-purple-100 text-purple-800 font-medium cursor-pointer hover:bg-purple-200 transition-colors duration-200 flex items-center gap-1 whitespace-nowrap overflow-hidden max-w-[150px]"
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent event bubbling
                     setLocation(`/researches/${meeting.researchId}`);
                   }}
-                  title="Click to view research details"
+                  title={`${researches.find(r => r.id === meeting.researchId)?.name || 'Research'} - Click to view research details`}
                 >
-                  <span>{researches.find(r => r.id === meeting.researchId)?.name || 'Research'}</span>
-                  <ExternalLink className="h-3 w-3" />
+                  <span className="truncate">{researches.find(r => r.id === meeting.researchId)?.name || 'Research'}</span>
+                  <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 </div>
               )}
 
               {/* Position information */}
               {!isNew && meeting?.respondentPosition && (
-                <div className="px-2.5 py-0.5 rounded-md text-xs bg-amber-100 text-amber-800 font-medium">
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-amber-100 text-amber-800 font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px]" title={meeting.respondentPosition}>
                   {meeting.respondentPosition}
                 </div>
               )}
