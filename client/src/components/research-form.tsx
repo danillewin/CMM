@@ -52,6 +52,20 @@ export default function ResearchForm({
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Log the initial data for debugging
+  console.log("Initial data:", initialData);
+  
+  // Ensure dates are properly converted to Date objects
+  const startDate = initialData?.dateStart 
+    ? new Date(initialData.dateStart) 
+    : new Date();
+  
+  const endDate = initialData?.dateEnd 
+    ? new Date(initialData.dateEnd) 
+    : new Date();
+    
+  console.log("Parsed dates:", { startDate, endDate });
+
   const form = useForm<InsertResearch>({
     resolver: zodResolver(insertResearchSchema),
     defaultValues: {
@@ -60,12 +74,8 @@ export default function ResearchForm({
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
       status: (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
-      dateStart: initialData
-        ? initialData.dateStart
-        : new Date(),
-      dateEnd: initialData
-        ? initialData.dateEnd
-        : new Date(),
+      dateStart: startDate,
+      dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
     },
   });
@@ -86,6 +96,12 @@ export default function ResearchForm({
         setErrorDialogOpen(true);
       }
     }
+  };
+
+  // Helper function to format dates consistently
+  const formatDateForInput = (date: Date | string) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toISOString().split('T')[0];
   };
 
   return (
@@ -198,30 +214,24 @@ export default function ResearchForm({
                     </Button>
                   )}
                 </div>
-                {isDescriptionEditing ? (
-                  <>
-                    <FormControl>
-                      <Textarea {...field} className="w-full min-h-[100px]" />
-                    </FormControl>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => setIsDescriptionEditing(false)}
-                    >
-                      Done Editing
-                    </Button>
-                  </>
-                ) : (
-                  <div className="p-3 bg-muted rounded-md min-h-[100px]">
-                    {description ? (
-                      <LinkifiedText text={description} className="text-sm" />
-                    ) : (
-                      <span className="text-sm text-muted-foreground">No description provided</span>
-                    )}
-                  </div>
-                )}
+                <FormControl>
+                  {isDescriptionEditing ? (
+                    <Textarea
+                      {...field}
+                      rows={5}
+                      className="resize-none"
+                      onBlur={() => setIsDescriptionEditing(false)}
+                    />
+                  ) : (
+                    <div className="min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2">
+                      {description ? (
+                        <LinkifiedText text={description} />
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No description provided</span>
+                      )}
+                    </div>
+                  )}
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -264,7 +274,7 @@ export default function ResearchForm({
                   <FormControl>
                     <Input
                       type="date"
-                      value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : String(field.value)}
+                      value={formatDateForInput(field.value)}
                       onChange={(e) => {
                         field.onChange(new Date(e.target.value));
                       }}
@@ -288,7 +298,7 @@ export default function ResearchForm({
                   <FormControl>
                     <Input
                       type="date"
-                      value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : String(field.value)}
+                      value={formatDateForInput(field.value)}
                       onChange={(e) => {
                         field.onChange(new Date(e.target.value));
                       }}
@@ -327,9 +337,10 @@ export default function ResearchForm({
                 variant="destructive"
                 className="flex-1"
                 onClick={handleDelete}
+                disabled={isLoading}
                 size="lg"
               >
-                Delete Research
+                Delete
               </Button>
             )}
           </div>
@@ -339,13 +350,11 @@ export default function ResearchForm({
       <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cannot Delete Research</DialogTitle>
+            <DialogTitle>Error</DialogTitle>
             <DialogDescription>{errorMessage}</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
-            <Button variant="secondary" onClick={() => setErrorDialogOpen(false)}>
-              Close
-            </Button>
+            <Button onClick={() => setErrorDialogOpen(false)}>OK</Button>
           </div>
         </DialogContent>
       </Dialog>
