@@ -329,12 +329,13 @@ export default function ResearchForm({
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 mt-6">
+          {/* Action Buttons - styled for Notion look, matching Meeting form */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-10 pt-6 border-t border-gray-100">
             <Button
               type="submit"
-              className="flex-1"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
               disabled={isLoading}
-              size="lg"
+              size="sm"
             >
               {isLoading ? "Saving..." : "Save Research"}
             </Button>
@@ -342,9 +343,9 @@ export default function ResearchForm({
               <Button
                 type="button"
                 variant="outline"
-                className="flex-1"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
                 onClick={onCancel}
-                size="lg"
+                size="sm"
               >
                 Cancel
               </Button>
@@ -352,13 +353,13 @@ export default function ResearchForm({
             {onDelete && (
               <Button
                 type="button"
-                variant="destructive"
-                className="flex-1"
+                variant="ghost"
+                className="text-red-600 hover:bg-red-50 hover:text-red-700 ml-auto"
                 onClick={handleDelete}
                 disabled={isLoading}
-                size="lg"
+                size="sm"
               >
-                Delete
+                Delete Research
               </Button>
             )}
           </div>
