@@ -34,6 +34,12 @@ export default function Meetings() {
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
+    onSuccess: (data) => {
+      // Debug log to confirm researcher field exists
+      if (data.length > 0) {
+        console.log("Sample meeting data:", data[0]);
+      }
+    }
   });
 
   const { data: researches = [] } = useQuery<Research[]>({
@@ -137,6 +143,8 @@ export default function Meetings() {
         return meeting.researchId 
           ? researches.find(r => r.id === meeting.researchId)?.name || ""
           : "";
+      case "researcher":
+        return meeting.researcher || "";
       default:
         return meeting.respondentName;
     }
@@ -154,6 +162,7 @@ export default function Meetings() {
           meeting.relationshipManager.toLowerCase().includes(search.toLowerCase()) ||
           meeting.salesPerson.toLowerCase().includes(search.toLowerCase()) ||
           meeting.status.toLowerCase().includes(search.toLowerCase()) ||
+          (meeting.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
           (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
