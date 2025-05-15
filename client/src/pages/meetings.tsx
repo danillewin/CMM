@@ -33,13 +33,7 @@ export default function Meetings() {
   const [, setLocation] = useLocation();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
-    onSuccess: (data) => {
-      // Debug log to confirm researcher field exists
-      if (data.length > 0) {
-        console.log("Sample meeting data:", data[0]);
-      }
-    }
+    queryKey: ["/api/meetings"]
   });
 
   const { data: researches = [] } = useQuery<Research[]>({
@@ -81,6 +75,7 @@ export default function Meetings() {
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
       'Recruiter': meeting.salesPerson,
+      'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -107,6 +102,7 @@ export default function Meetings() {
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
       'Recruiter': meeting.salesPerson,
+      'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -139,12 +135,14 @@ export default function Meetings() {
         return meeting.status;
       case "respondentName":
         return meeting.respondentName;
+      case "researcher":
+        return meeting.researcher || "";
       case "research":
         return meeting.researchId 
           ? researches.find(r => r.id === meeting.researchId)?.name || ""
           : "";
-      case "researcher":
-        return meeting.researcher || "";
+      case "email":
+        return (meeting as any).email || "";
       default:
         return meeting.respondentName;
     }
@@ -192,6 +190,21 @@ export default function Meetings() {
     // Navigate to the meeting detail page
     setLocation(`/meetings/${meeting.id}`);
   };
+
+  // Get unique statuses for filtering
+  const uniqueStatuses = ["ALL", ...Object.values(MeetingStatus)];
+  
+  // Get unique researches for filtering
+  const uniqueResearches = [{ id: null, name: "ALL" }, ...researches];
+  
+  // Get unique RM/Sales for filtering
+  const uniqueManagersSet = new Set<string>(meetings.map(m => m.relationshipManager));
+  const uniqueManagers = ["ALL", ...Array.from(uniqueManagersSet)];
+  
+  const uniqueRecruitersSet = new Set<string>(meetings.map(m => m.salesPerson));
+  const uniqueRecruiters = ["ALL", ...Array.from(uniqueRecruitersSet)];
+
+  // Remove debugging code for clarity
 
   // Define columns for the configurable table
   const columns: ColumnConfig[] = [
@@ -289,6 +302,15 @@ export default function Meetings() {
       )
     },
     {
+      id: "researcher",
+      name: "Researcher",
+      visible: true,
+      sortField: "researcher",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[120px]">{meeting.researcher || '—'}</span>
+      )
+    },
+    {
       id: "research",
       name: "Research",
       visible: true,
@@ -317,15 +339,6 @@ export default function Meetings() {
       )
     },
     {
-      id: "researcher",
-      name: "Researcher",
-      visible: true,
-      sortField: "researcher",
-      render: (meeting: Meeting) => (
-        <span className="truncate max-w-[150px]">{meeting.researcher || '—'}</span>
-      )
-    },
-    {
       id: "email",
       name: "Email",
       visible: false,
@@ -350,133 +363,127 @@ export default function Meetings() {
     }
   ];
 
+  if (isLoading) {
+    return <SectionLoader text="Loading meetings..." />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
-      <div className="container mx-auto max-w-[1400px] space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Client Meetings</h1>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button 
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
-              onClick={() => setLocation("/meetings/new")}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Meeting
-            </Button>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto bg-white hover:bg-gray-50/80 shadow-sm transition-all duration-200"
+    <div className="container mx-auto py-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Meetings</h1>
+        <Button 
+          onClick={() => setLocation("/meetings/new")}
+          className="gap-1"
+        >
+          <Plus className="h-4 w-4" /> Add Meeting
+        </Button>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search meetings..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select 
+                  value={researchFilter?.toString() || ""} 
+                  onValueChange={(value) => setResearchFilter(value ? Number(value) : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by research" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueResearches.map((research) => (
+                      <SelectItem 
+                        key={research.id || "all"} 
+                        value={research.id?.toString() || "all"}
+                      >
+                        {research.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={managerFilter} onValueChange={setManagerFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by RM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueManagers.map((manager) => (
+                      <SelectItem key={manager} value={manager}>
+                        {manager}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={recruiterFilter} onValueChange={setRecruiterFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by Recruiter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueRecruiters.map((recruiter) => (
+                      <SelectItem key={recruiter} value={recruiter}>
+                        {recruiter}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
                 onClick={exportToCSV}
+                className="gap-1"
               >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
+                <FileDown className="h-4 w-4" /> Export CSV
               </Button>
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto bg-white hover:bg-gray-50/80 shadow-sm transition-all duration-200"
+              <Button 
+                variant="outline" 
+                size="sm"
                 onClick={exportToExcel}
+                className="gap-1"
               >
-                <FileDown className="h-4 w-4 mr-2" />
-                Export Excel
+                <FileDown className="h-4 w-4" /> Export Excel
               </Button>
             </div>
+
+            <ConfigurableTable
+              data={filteredMeetings}
+              columns={columns}
+              onSort={handleSort}
+              sortField={sortBy}
+              sortDirection={sortDir}
+              onRowClick={handleRowClick}
+              rowClassName="cursor-pointer hover:bg-gray-50"
+              storeConfigKey="meetings-table"
+            />
           </div>
-        </div>
-
-        <div className="mb-4">
-          <Input
-            placeholder="Search meetings..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              {Object.values(MeetingStatus).map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={researchFilter?.toString() ?? "ALL"}
-            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
-          >
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by research" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Researches</SelectItem>
-              {researches.map((research) => (
-                <SelectItem key={research.id} value={research.id.toString()}>
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
-                    {research.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={managerFilter} onValueChange={setManagerFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by RM" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All RM</SelectItem>
-              {Array.from(new Set(
-                meetings.map(m => m.relationshipManager)
-              )).filter(Boolean).sort().map((manager) => (
-                <SelectItem key={manager} value={manager}>
-                  {manager}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={recruiterFilter} onValueChange={setRecruiterFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by Recruiter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Recruiters</SelectItem>
-              {Array.from(new Set(
-                meetings.map(m => m.salesPerson)
-              )).filter(Boolean).sort().map((recruiter) => (
-                <SelectItem key={recruiter} value={recruiter}>
-                  {recruiter}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-          <CardContent className="p-0">
-            {isLoading ? (
-              <SectionLoader text="Loading meetings..." />
-            ) : (
-              <ConfigurableTable
-                data={filteredMeetings}
-                columns={columns}
-                onSort={handleSort}
-                sortField={sortBy}
-                sortDirection={sortDir}
-                onRowClick={handleRowClick}
-                rowClassName="hover:bg-gray-50/80 transition-all duration-200"
-                storeConfigKey="meetings-table"
-              />
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
