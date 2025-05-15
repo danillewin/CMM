@@ -308,6 +308,15 @@ export default function Meetings() {
       )
     },
     {
+      id: "researcher",
+      name: "Researcher",
+      visible: true,
+      sortField: "researcher",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[150px]">{meeting.researcher || '—'}</span>
+      )
+    },
+    {
       id: "email",
       name: "Email",
       visible: false,
