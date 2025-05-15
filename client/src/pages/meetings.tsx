@@ -32,13 +32,20 @@ export default function Meetings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
-  });
-
-  const { data: researches = [] } = useQuery<Research[]>({
+  // Ensure research data is loaded first and wait for it to complete
+  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
+
+  // Then load meetings data after researches are loaded
+  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
+    queryKey: ["/api/meetings"],
+    // This ensures meetings are fetched after researches
+    enabled: !researchesLoading
+  });
+  
+  // Combined loading state
+  const isLoading = researchesLoading || meetingsLoading;
 
   // Status update mutation for the dropdown in the table
   const updateStatusMutation = useMutation({
@@ -285,23 +292,29 @@ export default function Meetings() {
       visible: true,
       sortField: "research",
       render: (meeting: Meeting) => {
-        console.log('Meeting research ID:', meeting.researchId);
-        console.log('Available researches:', researches.map(r => ({id: r.id, name: r.name})));
-        
-        const matchingResearch = researches.find(r => r.id === meeting.researchId);
-        console.log('Matching research:', matchingResearch);
+        // Find matching research with safe checks
+        const researchId = meeting.researchId;
+        const matchingResearch = researches.find(r => r.id === researchId);
         
         return (
           <div className="max-w-[200px] truncate">
-            {meeting.researchId ? (
+            {researchId ? (
               <div className="flex items-center">
-                <div
-                  className="w-2 h-2 rounded-full mr-2 shadow-sm"
-                  style={{ backgroundColor: matchingResearch?.color ?? '#3b82f6' }}
-                />
-                {matchingResearch?.name || `Research ID: ${meeting.researchId}`}
+                {matchingResearch ? (
+                  <>
+                    <div
+                      className="w-2 h-2 rounded-full mr-2 shadow-sm flex-shrink-0"
+                      style={{ backgroundColor: matchingResearch.color || '#3b82f6' }}
+                    />
+                    <span className="truncate">{matchingResearch.name}</span>
+                  </>
+                ) : (
+                  <span className="text-gray-500">Loading...</span>
+                )}
               </div>
-            ) : '—'}
+            ) : (
+              <span className="text-gray-400">—</span>
+            )}
           </div>
         );
       }
