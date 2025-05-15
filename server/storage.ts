@@ -51,9 +51,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMeeting(id: number, meeting: InsertMeeting): Promise<Meeting | undefined> {
+    // Convert our new model structure to the database structure like we do in createMeeting
+    const { relationshipManager, ...rest } = meeting;
+    
+    // We'll use relationshipManager as the value for the manager field
+    const dbMeeting = {
+      ...rest,
+      relationshipManager,
+      manager: relationshipManager, // This field is required in the DB but not in our schema
+    };
+    
     const [updatedMeeting] = await db
       .update(meetings)
-      .set(meeting)
+      .set(dbMeeting)
       .where(eq(meetings.id, id))
       .returning();
     return updatedMeeting;
@@ -118,11 +128,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deletePosition(id: number): Promise<boolean> {
-    // First update all meetings that reference this position to have null position
-    await db
-      .update(meetings)
-      .set({ respondentPosition: null })
-      .where(eq(meetings.respondentPosition, (await this.getPositions()).find(p => p.id === id)?.name ?? ''));
+    // First check if this position is used by any meetings
+    const position = (await this.getPositions()).find(p => p.id === id);
+    if (!position) return false;
+    
+    const positionName = position.name;
+    const meetingsUsingPosition = await db
+      .select()
+      .from(meetings)
+      .where(eq(meetings.respondentPosition, positionName));
+      
+    if (meetingsUsingPosition.length > 0) {
+      throw new Error("Cannot delete position that is used by meetings");
+    }
 
     // Then delete the position
     const [deletedPosition] = await db
