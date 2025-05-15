@@ -78,32 +78,65 @@ export default function MeetingForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-6">
-        {/* Date Field - Moved to top of form per user request */}
+        {/* Date and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field: { onChange, value, ...rest } }) => (
-              <FormItem>
-                <FormLabel className="text-base">
-                  Date
-                  <RequiredFieldIndicator />
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="date"
-                    value={value instanceof Date ? value.toISOString().slice(0, 10) : String(value)}
-                    onChange={(e) => {
-                      onChange(new Date(e.target.value));
-                    }}
-                    className="w-full max-w-sm"
-                    {...rest}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field: { onChange, value, ...rest } }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Date
+                    <RequiredFieldIndicator />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      value={value instanceof Date ? value.toISOString().slice(0, 10) : String(value)}
+                      onChange={(e) => {
+                        onChange(new Date(e.target.value));
+                      }}
+                      className="w-full"
+                      {...rest}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Status
+                    <RequiredFieldIndicator />
+                  </FormLabel>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value)} 
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(MeetingStatus).map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         
         {/* Client Information Section */}
@@ -352,38 +385,7 @@ export default function MeetingForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    Status
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(value)} 
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(MeetingStatus).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          {/* Status field removed from here - now at top of form */}
         </div>
 
         {/* Meeting Notes Section */}
