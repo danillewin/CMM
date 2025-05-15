@@ -78,6 +78,34 @@ export default function MeetingForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-6">
+        {/* Date Field - Moved to top of form per user request */}
+        <div className="mb-8">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field: { onChange, value, ...rest } }) => (
+              <FormItem>
+                <FormLabel className="text-base">
+                  Date
+                  <RequiredFieldIndicator />
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={value instanceof Date ? value.toISOString().slice(0, 10) : String(value)}
+                    onChange={(e) => {
+                      onChange(new Date(e.target.value));
+                    }}
+                    className="w-full max-w-sm"
+                    {...rest}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        
         {/* Client Information Section */}
         <div className="mb-8">
           <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
@@ -218,31 +246,6 @@ export default function MeetingForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
-              name="date"
-              render={({ field: { onChange, value, ...rest } }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    Date
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={value instanceof Date ? value.toISOString().slice(0, 10) : String(value)}
-                      onChange={(e) => {
-                        onChange(new Date(e.target.value));
-                      }}
-                      className="w-full"
-                      {...rest}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
               name="researcher"
               render={({ field }) => (
                 <FormItem>
@@ -258,6 +261,48 @@ export default function MeetingForm({
                   <div className="text-xs text-gray-500 mt-1">
                     Inherited from selected Research
                   </div>
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="researchId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Research
+                    <RequiredFieldIndicator />
+                  </FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      // Update the research ID
+                      field.onChange(Number(value));
+                      
+                      // Find the selected research
+                      const selectedResearch = researches.find(r => r.id.toString() === value);
+                      
+                      // Update the researcher field with the researcher from the selected research
+                      if (selectedResearch) {
+                        form.setValue('researcher', selectedResearch.researcher);
+                      }
+                    }}
+                    value={field.value ? field.value.toString() : ""}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select research" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {researches.map((research) => (
+                        <SelectItem key={research.id} value={research.id.toString()}>
+                          {research.name} - {research.team}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -330,48 +375,6 @@ export default function MeetingForm({
                       {Object.values(MeetingStatus).map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="researchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    Research
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      // Update the research ID
-                      field.onChange(Number(value));
-                      
-                      // Find the selected research
-                      const selectedResearch = researches.find(r => r.id.toString() === value);
-                      
-                      // Update the researcher field with the researcher from the selected research
-                      if (selectedResearch) {
-                        form.setValue('researcher', selectedResearch.researcher);
-                      }
-                    }}
-                    value={field.value ? field.value.toString() : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select research" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {researches.map((research) => (
-                        <SelectItem key={research.id} value={research.id.toString()}>
-                          {research.name} - {research.team}
                         </SelectItem>
                       ))}
                     </SelectContent>
