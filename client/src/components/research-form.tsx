@@ -52,7 +52,6 @@ export default function ResearchForm({
   onCancel,
   onDelete
 }: ResearchFormProps) {
-  // We don't need the editing state with MDEditor
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -83,8 +82,6 @@ export default function ResearchForm({
       color: initialData?.color ?? RESEARCH_COLORS[0],
     },
   });
-
-  // We don't need to watch description anymore as the MDEditor handles the display
 
   const handleDelete = async () => {
     try {
@@ -130,137 +127,143 @@ export default function ResearchForm({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
-          {/* Date, Status, and Color Fields - Moved to top of form per user request */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <FormField
-              control={form.control}
-              name="dateStart"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    Start Date
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={formatDateForInput(field.value)}
-                      onChange={(e) => {
-                        field.onChange(new Date(e.target.value));
-                      }}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="dateEnd"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    End Date
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      value={formatDateForInput(field.value)}
-                      onChange={(e) => {
-                        field.onChange(new Date(e.target.value));
-                      }}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">
-                    Status
-                    <RequiredFieldIndicator />
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+          {/* Two rows layout for Date/Status/Color fields */}
+          <div className="mb-6">
+            {/* First row: Start Date and End Date */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <FormField
+                control={form.control}
+                name="dateStart"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      Start Date
+                      <RequiredFieldIndicator />
+                    </FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
+                      <Input
+                        type="date"
+                        value={formatDateForInput(field.value)}
+                        onChange={(e) => {
+                          field.onChange(new Date(e.target.value));
+                        }}
+                        className="w-full"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {Object.values(ResearchStatus).map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dateEnd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      End Date
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        value={formatDateForInput(field.value)}
+                        onChange={(e) => {
+                          field.onChange(new Date(e.target.value));
+                        }}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             
-            <FormField
-              control={form.control}
-              name="color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">Color</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+            {/* Second row: Status and Color */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      Status
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-5 h-5 rounded-full" 
-                              style={{ backgroundColor: field.value }} 
-                            />
-                            <span>Selected Color</span>
-                          </div>
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[220px] p-0" align="start">
-                      <div className="p-3">
-                        <div className="grid grid-cols-4 gap-3">
-                          {RESEARCH_COLORS.map((color) => (
-                            <div
-                              key={color}
-                              className="flex justify-center items-center"
-                              onClick={() => {
-                                field.onChange(color);
-                                document.body.click(); // Force the dropdown to close
-                              }}
-                            >
-                              <div
-                                className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform ${
-                                  field.value === color ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-1'
-                                }`}
-                                style={{ backgroundColor: color }}
+                      <SelectContent>
+                        {Object.values(ResearchStatus).map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Color</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className="w-full justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-5 h-5 rounded-full" 
+                                style={{ backgroundColor: field.value }} 
                               />
+                              <span>Selected Color</span>
                             </div>
-                          ))}
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[220px] p-0" align="start">
+                        <div className="p-3">
+                          <div className="grid grid-cols-4 gap-3">
+                            {RESEARCH_COLORS.map((color) => (
+                              <div
+                                key={color}
+                                className="flex justify-center items-center"
+                                onClick={() => {
+                                  field.onChange(color);
+                                  document.body.click(); // Force the dropdown to close
+                                }}
+                              >
+                                <div
+                                  className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform ${
+                                    field.value === color ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-1'
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
           
           {/* Research Name and Team */}
@@ -320,11 +323,8 @@ export default function ResearchForm({
                 </FormItem>
               )}
             />
-            {/* Status field removed from here - now at top of form */}
           </div>
           
-          {/* Color field removed from here - now at top of form */}
-
           <div className="mb-8">
             <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
               Description
@@ -351,8 +351,6 @@ export default function ResearchForm({
               )}
             />
           </div>
-
-          {/* Date fields removed from here - now at top of form */}
 
           {/* Action Buttons - styled for Notion look, matching Meeting form */}
           <div className="flex flex-col sm:flex-row gap-3 mt-10 pt-6 border-t border-gray-100">
