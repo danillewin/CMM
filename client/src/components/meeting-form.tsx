@@ -57,6 +57,7 @@ export default function MeetingForm({
       cnum: initialData?.cnum ?? "",
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
+      email: initialData?.email ?? "", // Default value for email
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
@@ -125,7 +126,7 @@ export default function MeetingForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <FormField
               control={form.control}
               name="companyName"
@@ -144,6 +145,27 @@ export default function MeetingForm({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Client Email</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="email"
+                      className="w-full" 
+                      placeholder="Email address..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <FormField
               control={form.control}
               name="cnum"
