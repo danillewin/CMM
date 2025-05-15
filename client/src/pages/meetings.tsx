@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
@@ -367,6 +367,96 @@ export default function Meetings() {
     }
   ];
 
+  // Prepare filter configurations
+  const filterConfigs = [
+    {
+      id: "status",
+      name: "Status",
+      options: [
+        { label: "All Statuses", value: "ALL" },
+        ...Object.values(MeetingStatus).map(status => ({ 
+          label: status, 
+          value: status 
+        }))
+      ],
+      value: statusFilter || "ALL",
+      onChange: setStatusFilter
+    },
+    {
+      id: "research",
+      name: "Research",
+      options: [
+        { label: "All Researches", value: "ALL" },
+        ...researches.map(research => ({ 
+          label: research.name, 
+          value: research.id.toString() 
+        }))
+      ],
+      value: researchFilter?.toString() ?? "ALL",
+      onChange: (value: string) => setResearchFilter(value === "ALL" ? null : Number(value))
+    },
+    {
+      id: "manager",
+      name: "Relationship Manager",
+      options: [
+        { label: "All RMs", value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.relationshipManager)
+        )).filter(Boolean).sort().map(manager => ({ 
+          label: manager, 
+          value: manager 
+        }))
+      ],
+      value: managerFilter || "ALL",
+      onChange: setManagerFilter
+    },
+    {
+      id: "recruiter",
+      name: "Recruiter",
+      options: [
+        { label: "All Recruiters", value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.salesPerson)
+        )).filter(Boolean).sort().map(recruiter => ({ 
+          label: recruiter, 
+          value: recruiter 
+        }))
+      ],
+      value: recruiterFilter || "ALL",
+      onChange: setRecruiterFilter
+    }
+  ];
+
+  // Load saved filters from localStorage
+  useEffect(() => {
+    try {
+      const savedFilters = localStorage.getItem("meetings-table-filters");
+      if (savedFilters) {
+        const { status, research, manager, recruiter } = JSON.parse(savedFilters);
+        if (status) setStatusFilter(status);
+        if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
+        if (manager) setManagerFilter(manager);
+        if (recruiter) setRecruiterFilter(recruiter);
+      }
+    } catch (error) {
+      console.error("Error loading saved filters:", error);
+    }
+  }, []);
+
+  // Save filters to localStorage when they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("meetings-table-filters", JSON.stringify({
+        status: statusFilter,
+        research: researchFilter,
+        manager: managerFilter,
+        recruiter: recruiterFilter
+      }));
+    } catch (error) {
+      console.error("Error saving filters:", error);
+    }
+  }, [statusFilter, researchFilter, managerFilter, recruiterFilter]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
@@ -401,80 +491,6 @@ export default function Meetings() {
           </div>
         </div>
 
-        <div className="mb-4">
-          <Input
-            placeholder="Search meetings..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all duration-200"
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              {Object.values(MeetingStatus).map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={researchFilter?.toString() ?? "ALL"}
-            onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
-          >
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by research" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Researches</SelectItem>
-              {researches.map((research) => (
-                <SelectItem key={research.id} value={research.id.toString()}>
-                  <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full ${getResearchColor(research.id)} mr-2`} />
-                    {research.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={managerFilter} onValueChange={setManagerFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by RM" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All RM</SelectItem>
-              {Array.from(new Set(
-                meetings.map(m => m.relationshipManager)
-              )).filter(Boolean).sort().map((manager) => (
-                <SelectItem key={manager} value={manager}>
-                  {manager}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={recruiterFilter} onValueChange={setRecruiterFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by Recruiter" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Recruiters</SelectItem>
-              {Array.from(new Set(
-                meetings.map(m => m.salesPerson)
-              )).filter(Boolean).sort().map((recruiter) => (
-                <SelectItem key={recruiter} value={recruiter}>
-                  {recruiter}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
             {isLoading ? (
@@ -489,6 +505,9 @@ export default function Meetings() {
                 onRowClick={handleRowClick}
                 rowClassName="hover:bg-gray-50/80 transition-all duration-200"
                 storeConfigKey="meetings-table"
+                filters={filterConfigs}
+                searchValue={search}
+                onSearchChange={setSearch}
               />
             )}
           </CardContent>

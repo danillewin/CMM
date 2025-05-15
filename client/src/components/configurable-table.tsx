@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -18,6 +18,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { 
   Dialog, 
   DialogContent, 
@@ -25,6 +26,18 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { 
   Table, 
   TableBody, 
@@ -33,7 +46,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { GripVertical, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { GripVertical, Settings, Filter, Search, X } from "lucide-react";
 
 // Column configuration type
 export type ColumnConfig = {
@@ -42,6 +56,15 @@ export type ColumnConfig = {
   visible: boolean;
   render: (item: any) => React.ReactNode;
   sortField?: string;
+};
+
+// Filter configuration type
+export type FilterConfig = {
+  id: string;
+  name: string;
+  options: { label: string; value: string }[];
+  value: string;
+  onChange: (value: string) => void;
 };
 
 // Props for the ConfigurableTable component
@@ -54,6 +77,9 @@ interface ConfigurableTableProps<T> {
   onRowClick?: (item: T) => void;
   rowClassName?: string;
   storeConfigKey?: string; // Key for local storage
+  filters?: FilterConfig[];
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 // Props for the sortable item component
@@ -114,7 +140,10 @@ export function ConfigurableTable<T extends { id: number | string }>({
   sortDirection = "asc",
   onRowClick,
   rowClassName = "",
-  storeConfigKey = "tableConfig"
+  storeConfigKey = "tableConfig",
+  filters = [],
+  searchValue = "",
+  onSearchChange
 }: ConfigurableTableProps<T>) {
   // Load column config from local storage or use initial columns
   const loadSavedConfig = useCallback(() => {
@@ -146,8 +175,20 @@ export function ConfigurableTable<T extends { id: number | string }>({
 
   const [columns, setColumns] = useState<ColumnConfig[]>(loadSavedConfig);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState(searchValue);
   
   const visibleColumns = columns.filter(col => col.visible);
+
+  // Count active filters
+  const activeFilterCount = filters.filter(filter => 
+    filter.value && filter.value !== "ALL"
+  ).length;
+
+  // Update search value when changed externally
+  useEffect(() => {
+    setSearchInputValue(searchValue);
+  }, [searchValue]);
 
   // Save column configuration
   const saveColumnConfig = useCallback((newColumns: ColumnConfig[]) => {
@@ -196,44 +237,138 @@ export function ConfigurableTable<T extends { id: number | string }>({
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInputValue(value);
+    if (onSearchChange) {
+      onSearchChange(value);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchInputValue("");
+    if (onSearchChange) {
+      onSearchChange("");
+    }
+  };
+
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Configure Columns
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Table Columns</DialogTitle>
-            </DialogHeader>
-            <div className="max-h-[400px] overflow-y-auto p-1">
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={columns.map(col => col.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {columns.map((column) => (
-                    <SortableItem
-                      key={column.id}
-                      id={column.id}
-                      name={column.name}
-                      visible={column.visible}
-                      onChange={handleColumnVisibilityChange}
-                    />
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
+        <div className="relative w-full sm:w-64 md:w-96">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+          <Input
+            type="text"
+            placeholder="Search..."
+            className="pl-8 pr-8 bg-white"
+            value={searchInputValue}
+            onChange={handleSearchChange}
+          />
+          {searchInputValue && (
+            <button 
+              className="absolute right-2.5 top-2.5 text-gray-500 hover:text-gray-700"
+              onClick={handleClearSearch}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        
+        <div className="flex gap-3 ml-auto">
+          {filters.length > 0 && (
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="relative">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="ml-1 bg-primary text-white h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full"
+                    >
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-4" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Filters</h4>
+                  {filters.map(filter => (
+                    <div key={filter.id} className="space-y-2">
+                      <label className="text-sm font-medium">{filter.name}</label>
+                      <Select value={filter.value} onValueChange={filter.onChange}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={`Select ${filter.name}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {filter.options.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   ))}
-                </SortableContext>
-              </DndContext>
-            </div>
-          </DialogContent>
-        </Dialog>
+                  {activeFilterCount > 0 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full mt-2"
+                      onClick={() => {
+                        // Reset all filters
+                        filters.forEach(filter => {
+                          if (filter.value !== "ALL") {
+                            filter.onChange("ALL");
+                          }
+                        });
+                      }}
+                    >
+                      Clear All Filters
+                    </Button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+          
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Configure
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Table Columns</DialogTitle>
+              </DialogHeader>
+              <div className="max-h-[400px] overflow-y-auto p-1">
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={columns.map(col => col.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {columns.map((column) => (
+                      <SortableItem
+                        key={column.id}
+                        id={column.id}
+                        name={column.name}
+                        visible={column.visible}
+                        onChange={handleColumnVisibilityChange}
+                      />
+                    ))}
+                  </SortableContext>
+                </DndContext>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="rounded-md border overflow-hidden">
