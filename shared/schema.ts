@@ -51,7 +51,8 @@ export const meetings = pgTable("meetings", {
   cnum: text("cnum").notNull(),
   gcc: text("gcc"),
   companyName: text("company_name"),
-  email: text("email"), // Adding email field
+  email: text("email"),
+  researcher: text("researcher"), // Field inherited from Research
   relationshipManager: text("relationship_manager").notNull(),
   salesPerson: text("recruiter").notNull(),
   date: timestamp("date").notNull(),
@@ -95,7 +96,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentName: z.string().min(1, "Respondent is required"),
   respondentPosition: z.string().min(1, "Position is required"),
   companyName: z.string().optional(),
-  email: z.string().email("Invalid email format").optional(), // Adding email field validation
+  email: z.string().email("Invalid email format").optional(),
+  researcher: z.string().optional(), // Field inherited from Research (not editable)
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
   salesPerson: z.string().min(1, "Recruiter is required"),
   researchId: z.number({ required_error: "Research is required" }),

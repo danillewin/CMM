@@ -57,7 +57,8 @@ export default function MeetingForm({
       cnum: initialData?.cnum ?? "",
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
-      email: initialData?.email ?? "", // Default value for email
+      email: initialData?.email ?? "",
+      researcher: initialData?.researcher ?? "", // Researcher from connected research
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
