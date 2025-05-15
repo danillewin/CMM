@@ -35,7 +35,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
-    const [newMeeting] = await db.insert(meetings).values(meeting).returning();
+    // Convert our new model structure to the database structure
+    // In the database, 'manager' is still a required field that we need to populate
+    const { relationshipManager, ...rest } = meeting;
+    
+    // We'll use relationshipManager as the value for the manager field
+    const dbMeeting = {
+      ...rest,
+      relationshipManager,
+      manager: relationshipManager, // This field is required in the DB but not in our schema
+    };
+    
+    const [newMeeting] = await db.insert(meetings).values(dbMeeting).returning();
     return newMeeting;
   }
 

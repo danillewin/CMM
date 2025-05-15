@@ -41,6 +41,7 @@ export default function MeetingDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMeetings, setDuplicateMeetings] = useState<Meeting[]>([]);
+  const [pendingFormData, setPendingFormData] = useState<InsertMeeting | null>(null);
   const { toast } = useToast();
   
   // Parse query parameters if we're creating a new meeting
@@ -157,13 +158,25 @@ export default function MeetingDetail() {
       const updateData = { ...formData, id } as MeetingWithId;
       updateMutation.mutate(updateData);
     } else {
-      createMutation.mutate(formData);
+      // Check for duplicates again when submitting
+      const duplicates = meetings.filter(m => m.cnum === formData.cnum);
+      if (duplicates.length > 0) {
+        // Store duplicates and pending form data, then show the dialog
+        setDuplicateMeetings(duplicates);
+        setPendingFormData(formData);
+        setShowDuplicateDialog(true);
+      } else {
+        createMutation.mutate(formData);
+      }
     }
   };
   
   const handleConfirmCreate = () => {
-    // Just close the dialog - we'll proceed with form submission as normal
-    setShowDuplicateDialog(false);
+    if (pendingFormData) {
+      createMutation.mutate(pendingFormData);
+      setShowDuplicateDialog(false);
+      setPendingFormData(null);
+    }
   };
 
   const handleDelete = () => {
@@ -318,7 +331,9 @@ export default function MeetingDetail() {
         <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
           <DialogContent className="sm:max-w-[600px] bg-white rounded-lg border-0 shadow-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-amber-600">Duplicate CNUM Warning</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-amber-600">
+                {pendingFormData ? 'Duplicate CNUM Detected' : 'Duplicate CNUM Warning'}
+              </DialogTitle>
               <DialogDescription className="text-gray-600">
                 The following meeting(s) already exist with this CNUM:
               </DialogDescription>
@@ -362,13 +377,30 @@ export default function MeetingDetail() {
               </Table>
             </div>
 
-            <DialogFooter className="mt-4">
+            <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
               <Button
+                variant="outline"
                 onClick={() => setShowDuplicateDialog(false)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-white border border-gray-200 hover:bg-gray-50"
               >
-                Acknowledge
+                Cancel
               </Button>
+              {pendingFormData && (
+                <Button
+                  onClick={handleConfirmCreate}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Create Anyway
+                </Button>
+              )}
+              {!pendingFormData && (
+                <Button
+                  onClick={() => setShowDuplicateDialog(false)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Acknowledge
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
