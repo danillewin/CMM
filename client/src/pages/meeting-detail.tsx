@@ -5,7 +5,7 @@ import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema"
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Loader2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, ExternalLinkIcon } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +16,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import MDEditor from '@uiw/react-md-editor';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
@@ -30,6 +39,9 @@ export default function MeetingDetail() {
   const isNew = params.id === "new";
   const id = isNew ? null : parseInt(params.id);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateMeetings, setDuplicateMeetings] = useState<Meeting[]>([]);
+  const [pendingFormData, setPendingFormData] = useState<InsertMeeting | null>(null);
   const { toast } = useToast();
   
   // Parse query parameters if we're creating a new meeting
@@ -135,14 +147,22 @@ export default function MeetingDetail() {
       updateMutation.mutate(updateData);
     } else {
       // For create, we check for duplicates first
-      const duplicateMeeting = meetings.find(m => m.cnum === formData.cnum);
-      if (duplicateMeeting) {
-        if (confirm("A meeting with this CNUM already exists. Create anyway?")) {
-          createMutation.mutate(formData);
-        }
+      const duplicates = meetings.filter(m => m.cnum === formData.cnum);
+      if (duplicates.length > 0) {
+        // Store duplicates and pending form data, then show the dialog
+        setDuplicateMeetings(duplicates);
+        setPendingFormData(formData);
+        setShowDuplicateDialog(true);
       } else {
         createMutation.mutate(formData);
       }
+    }
+  };
+  
+  const handleConfirmCreate = () => {
+    if (pendingFormData) {
+      createMutation.mutate(pendingFormData);
+      setShowDuplicateDialog(false);
     }
   };
 
@@ -291,6 +311,71 @@ export default function MeetingDetail() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Duplicate CNUM Dialog */}
+        <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+          <DialogContent className="sm:max-w-[600px] bg-white rounded-lg border-0 shadow-lg">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-red-600">Duplicate CNUM Detected</DialogTitle>
+              <DialogDescription className="text-gray-600">
+                The following meeting(s) already exist with the same CNUM:
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="max-h-[300px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Respondent</TableHead>
+                    <TableHead>Research</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {duplicateMeetings.map((meeting) => {
+                    const research = researches.find(r => r.id === meeting.researchId);
+                    return (
+                      <TableRow key={meeting.id}>
+                        <TableCell>{new Date(meeting.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{meeting.respondentName}</TableCell>
+                        <TableCell>{research?.name || 'Unknown Research'}</TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="p-1 h-7"
+                            onClick={() => {
+                              window.open(`/meetings/${meeting.id}`, '_blank');
+                            }}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowDuplicateDialog(false)}
+                className="bg-white border border-gray-200 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmCreate}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Create Anyway
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
