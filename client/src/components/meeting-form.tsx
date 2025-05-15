@@ -240,6 +240,27 @@ export default function MeetingForm({
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="researcher"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Researcher</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      className="w-full bg-gray-50"
+                      disabled
+                      readOnly
+                    />
+                  </FormControl>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Inherited from selected Research
+                  </div>
+                </FormItem>
+              )}
+            />
 
             <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
@@ -328,7 +349,18 @@ export default function MeetingForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
+                    onValueChange={(value) => {
+                      // Update the research ID
+                      field.onChange(Number(value));
+                      
+                      // Find the selected research
+                      const selectedResearch = researches.find(r => r.id.toString() === value);
+                      
+                      // Update the researcher field with the researcher from the selected research
+                      if (selectedResearch) {
+                        form.setValue('researcher', selectedResearch.researcher);
+                      }
+                    }}
                     value={field.value ? field.value.toString() : ""}
                   >
                     <FormControl>

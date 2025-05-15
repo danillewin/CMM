@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema";
@@ -35,6 +35,9 @@ export default function MeetingDetail() {
   // Parse query parameters if we're creating a new meeting
   const searchParams = isNew ? new URLSearchParams(window.location.search) : null;
   const preselectedResearchId = searchParams ? parseInt(searchParams.get("researchId") || "0") : 0;
+  
+  // For storing the preselected research details
+  const [preselectedResearch, setPreselectedResearch] = useState<Research | null>(null);
 
   const { data: meeting, isLoading: isMeetingLoading } = useQuery<Meeting>({
     queryKey: ["/api/meetings", id],
@@ -55,6 +58,16 @@ export default function MeetingDetail() {
   const { data: researches = [], isLoading: isResearchesLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
+
+  // Effect to set preselected research when researches data is loaded
+  useEffect(() => {
+    if (isNew && preselectedResearchId > 0 && researches.length > 0) {
+      const research = researches.find((r: Research) => r.id === preselectedResearchId);
+      if (research) {
+        setPreselectedResearch(research);
+      }
+    }
+  }, [isNew, preselectedResearchId, researches]);
 
   const createMutation = useMutation({
     mutationFn: async (meetingData: InsertMeeting) => {
@@ -243,6 +256,8 @@ export default function MeetingDetail() {
                 cnum: "",
                 gcc: null,
                 companyName: null,
+                email: "",
+                researcher: preselectedResearch?.researcher || "", // Set the researcher from the selected research
                 relationshipManager: "",
                 salesPerson: "",
                 status: MeetingStatus.IN_PROGRESS,
