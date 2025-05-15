@@ -82,6 +82,7 @@ export default function Meetings() {
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
       'Recruiter': meeting.salesPerson,
+      'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -108,6 +109,7 @@ export default function Meetings() {
       'Company': meeting.companyName,
       'RM': meeting.relationshipManager,
       'Recruiter': meeting.salesPerson,
+      'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
@@ -136,6 +138,8 @@ export default function Meetings() {
         return meeting.relationshipManager;
       case "salesPerson":
         return meeting.salesPerson;
+      case "researcher":
+        return meeting.researcher || "";
       case "status":
         return meeting.status;
       case "respondentName":
@@ -160,6 +164,7 @@ export default function Meetings() {
           (meeting.respondentPosition?.toLowerCase() || "").includes(search.toLowerCase()) ||
           meeting.relationshipManager.toLowerCase().includes(search.toLowerCase()) ||
           meeting.salesPerson.toLowerCase().includes(search.toLowerCase()) ||
+          (meeting.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
           meeting.status.toLowerCase().includes(search.toLowerCase()) ||
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
           (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
@@ -284,6 +289,15 @@ export default function Meetings() {
       sortField: "salesPerson",
       render: (meeting: Meeting) => (
         <span className="truncate max-w-[120px]">{meeting.salesPerson}</span>
+      )
+    },
+    {
+      id: "researcher",
+      name: "Researcher",
+      visible: true,
+      sortField: "researcher",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[120px]">{meeting.researcher || '—'}</span>
       )
     },
     {
