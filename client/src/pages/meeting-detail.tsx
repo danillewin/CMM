@@ -41,7 +41,6 @@ export default function MeetingDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMeetings, setDuplicateMeetings] = useState<Meeting[]>([]);
-  const [pendingFormData, setPendingFormData] = useState<InsertMeeting | null>(null);
   const { toast } = useToast();
   
   // Parse query parameters if we're creating a new meeting
@@ -140,30 +139,31 @@ export default function MeetingDetail() {
     },
   });
   
+  const handleCnumChange = (cnum: string) => {
+    if (!isNew) return; // Only check for duplicates when creating a new meeting
+    if (!cnum) return; // Don't check empty values
+    
+    const duplicates = meetings.filter(m => m.cnum === cnum);
+    if (duplicates.length > 0) {
+      // Store duplicates and show the dialog
+      setDuplicateMeetings(duplicates);
+      setShowDuplicateDialog(true);
+    }
+  };
+  
   const handleSubmit = (formData: InsertMeeting) => {
     if (!isNew && id) {
       // For update, we need to include the ID
       const updateData = { ...formData, id } as MeetingWithId;
       updateMutation.mutate(updateData);
     } else {
-      // For create, we check for duplicates first
-      const duplicates = meetings.filter(m => m.cnum === formData.cnum);
-      if (duplicates.length > 0) {
-        // Store duplicates and pending form data, then show the dialog
-        setDuplicateMeetings(duplicates);
-        setPendingFormData(formData);
-        setShowDuplicateDialog(true);
-      } else {
-        createMutation.mutate(formData);
-      }
+      createMutation.mutate(formData);
     }
   };
   
   const handleConfirmCreate = () => {
-    if (pendingFormData) {
-      createMutation.mutate(pendingFormData);
-      setShowDuplicateDialog(false);
-    }
+    // Just close the dialog - we'll proceed with form submission as normal
+    setShowDuplicateDialog(false);
   };
 
   const handleDelete = () => {
@@ -286,6 +286,8 @@ export default function MeetingDetail() {
               isLoading={isPending}
               onCancel={handleCancel}
               onDelete={!isNew ? handleDelete : undefined}
+              onCnumChange={handleCnumChange}
+              meetings={meetings}
             />
           </div>
         </div>
@@ -316,13 +318,13 @@ export default function MeetingDetail() {
         <Dialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
           <DialogContent className="sm:max-w-[600px] bg-white rounded-lg border-0 shadow-lg">
             <DialogHeader>
-              <DialogTitle className="text-xl font-semibold text-red-600">Duplicate CNUM Detected</DialogTitle>
+              <DialogTitle className="text-xl font-semibold text-amber-600">Duplicate CNUM Warning</DialogTitle>
               <DialogDescription className="text-gray-600">
-                The following meeting(s) already exist with the same CNUM:
+                The following meeting(s) already exist with this CNUM:
               </DialogDescription>
             </DialogHeader>
             
-            <div className="max-h-[300px] overflow-auto">
+            <div className="max-h-[300px] overflow-auto my-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -348,6 +350,7 @@ export default function MeetingDetail() {
                             onClick={() => {
                               window.open(`/meetings/${meeting.id}`, '_blank');
                             }}
+                            title="Open meeting in new tab"
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>
@@ -359,19 +362,12 @@ export default function MeetingDetail() {
               </Table>
             </div>
 
-            <DialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+            <DialogFooter className="mt-4">
               <Button
-                variant="outline"
                 onClick={() => setShowDuplicateDialog(false)}
-                className="bg-white border border-gray-200 hover:bg-gray-50"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleConfirmCreate}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                Create Anyway
+                Acknowledge
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -30,6 +30,8 @@ interface MeetingFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  onCnumChange?: (cnum: string) => void;
+  meetings?: Meeting[];
 }
 
 export default function MeetingForm({
@@ -37,7 +39,9 @@ export default function MeetingForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete
+  onDelete,
+  onCnumChange,
+  meetings = []
 }: MeetingFormProps) {
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -242,6 +246,15 @@ export default function MeetingForm({
                       {...field}
                       className="w-full uppercase"
                       onChange={e => field.onChange(e.target.value.toUpperCase())}
+                      onBlur={(e) => {
+                        field.onBlur(); // Call the original onBlur
+                        
+                        // Check for duplicates when the field loses focus
+                        const cnum = e.target.value.trim().toUpperCase();
+                        if (cnum && onCnumChange) {
+                          onCnumChange(cnum);
+                        }
+                      }}
                       placeholder="CNUM..."
                     />
                   </FormControl>
