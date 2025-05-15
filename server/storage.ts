@@ -35,38 +35,104 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {
-    // Convert our new model structure to the database structure
-    // In the database, 'manager' is still a required field that we need to populate
-    const { relationshipManager, ...rest } = meeting;
-    
-    // We'll use relationshipManager as the value for the manager field
-    const dbMeeting = {
-      ...rest,
-      relationshipManager,
-      manager: relationshipManager, // This field is required in the DB but not in our schema
-    };
-    
-    const [newMeeting] = await db.insert(meetings).values(dbMeeting).returning();
-    return newMeeting;
+    try {
+      // The DB requires a 'manager' field - we need to add it directly with SQL
+      const { relationshipManager } = meeting;
+      
+      // Use SQL directly to insert meeting
+      const query = `
+        INSERT INTO meetings (
+          respondent_name, respondent_position, cnum, 
+          gcc, company_name, email, researcher, 
+          relationship_manager, recruiter, date, 
+          research_id, status, notes, manager
+        ) VALUES (
+          $1, $2, $3, 
+          $4, $5, $6, $7, 
+          $8, $9, $10, 
+          $11, $12, $13, $14
+        ) RETURNING *
+      `;
+      
+      const values = [
+        meeting.respondentName,
+        meeting.respondentPosition,
+        meeting.cnum,
+        meeting.gcc || null,
+        meeting.companyName || null,
+        meeting.email || null,
+        meeting.researcher || null,
+        meeting.relationshipManager,
+        meeting.salesPerson,
+        meeting.date,
+        meeting.researchId,
+        meeting.status,
+        meeting.notes || null,
+        relationshipManager // Use the same value for the manager field
+      ];
+      
+      const result = await pool.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in createMeeting:", error);
+      throw error;
+    }
   }
 
   async updateMeeting(id: number, meeting: InsertMeeting): Promise<Meeting | undefined> {
-    // Convert our new model structure to the database structure like we do in createMeeting
-    const { relationshipManager, ...rest } = meeting;
-    
-    // We'll use relationshipManager as the value for the manager field
-    const dbMeeting = {
-      ...rest,
-      relationshipManager,
-      manager: relationshipManager, // This field is required in the DB but not in our schema
-    };
-    
-    const [updatedMeeting] = await db
-      .update(meetings)
-      .set(dbMeeting)
-      .where(eq(meetings.id, id))
-      .returning();
-    return updatedMeeting;
+    try {
+      // The DB requires a 'manager' field - we need to update it directly with SQL
+      const { relationshipManager } = meeting;
+      
+      // Use SQL directly to update meeting
+      const query = `
+        UPDATE meetings SET
+          respondent_name = $1,
+          respondent_position = $2,
+          cnum = $3,
+          gcc = $4,
+          company_name = $5,
+          email = $6,
+          researcher = $7,
+          relationship_manager = $8,
+          recruiter = $9,
+          date = $10,
+          research_id = $11,
+          status = $12,
+          notes = $13,
+          manager = $14
+        WHERE id = $15
+        RETURNING *
+      `;
+      
+      const values = [
+        meeting.respondentName,
+        meeting.respondentPosition,
+        meeting.cnum,
+        meeting.gcc || null,
+        meeting.companyName || null,
+        meeting.email || null,
+        meeting.researcher || null,
+        meeting.relationshipManager,
+        meeting.salesPerson,
+        meeting.date,
+        meeting.researchId,
+        meeting.status,
+        meeting.notes || null,
+        relationshipManager, // Use the same value for the manager field
+        id
+      ];
+      
+      const result = await pool.query(query, values);
+      
+      if (result.rows.length === 0) {
+        return undefined;
+      }
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in updateMeeting:", error);
+      throw error;
+    }
   }
 
   async deleteMeeting(id: number): Promise<boolean> {
