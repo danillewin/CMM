@@ -33,13 +33,7 @@ export default function Meetings() {
   const [, setLocation] = useLocation();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
-    onSuccess: (data) => {
-      // Debug log to confirm researcher field exists
-      if (data.length > 0) {
-        console.log("Sample meeting data:", data[0]);
-      }
-    }
+    queryKey: ["/api/meetings"]
   });
 
   const { data: researches = [] } = useQuery<Research[]>({
@@ -317,12 +311,12 @@ export default function Meetings() {
       )
     },
     {
-      id: "researcher",
+      id: "researcher_custom",
       name: "Researcher",
       visible: true,
       sortField: "researcher",
       render: (meeting: Meeting) => (
-        <span className="truncate max-w-[150px]">{meeting.researcher || '—'}</span>
+        <span className="truncate max-w-[150px] text-red-600 font-bold">{meeting.researcher || '—'}</span>
       )
     },
     {
