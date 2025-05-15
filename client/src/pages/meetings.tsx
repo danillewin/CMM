@@ -284,19 +284,27 @@ export default function Meetings() {
       name: "Research",
       visible: true,
       sortField: "research",
-      render: (meeting: Meeting) => (
-        <div className="max-w-[200px] truncate">
-          {meeting.researchId ? (
-            <div className="flex items-center">
-              <div
-                className="w-2 h-2 rounded-full mr-2 shadow-sm"
-                style={{ backgroundColor: researches.find(r => r.id === meeting.researchId)?.color ?? '#3b82f6' }}
-              />
-              {researches.find(r => r.id === meeting.researchId)?.name}
-            </div>
-          ) : '—'}
-        </div>
-      )
+      render: (meeting: Meeting) => {
+        console.log('Meeting research ID:', meeting.researchId);
+        console.log('Available researches:', researches.map(r => ({id: r.id, name: r.name})));
+        
+        const matchingResearch = researches.find(r => r.id === meeting.researchId);
+        console.log('Matching research:', matchingResearch);
+        
+        return (
+          <div className="max-w-[200px] truncate">
+            {meeting.researchId ? (
+              <div className="flex items-center">
+                <div
+                  className="w-2 h-2 rounded-full mr-2 shadow-sm"
+                  style={{ backgroundColor: matchingResearch?.color ?? '#3b82f6' }}
+                />
+                {matchingResearch?.name || `Research ID: ${meeting.researchId}`}
+              </div>
+            ) : '—'}
+          </div>
+        );
+      }
     },
     {
       id: "date",
