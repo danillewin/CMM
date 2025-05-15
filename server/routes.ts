@@ -266,7 +266,21 @@ export function registerRoutes(app: Express): Server {
         res.status(400).json({ message: "Invalid meeting data", errors: result.error.errors });
         return;
       }
-      const meeting = await storage.createMeeting(result.data);
+      
+      // If researchId is provided, get the researcher from the associated research
+      let meetingData = result.data;
+      if (meetingData.researchId) {
+        const research = await storage.getResearch(meetingData.researchId);
+        if (research) {
+          // Set the researcher field to match the research's researcher
+          meetingData = {
+            ...meetingData,
+            researcher: research.researcher
+          };
+        }
+      }
+      
+      const meeting = await storage.createMeeting(meetingData);
       res.status(201).json(meeting);
     } catch (error) {
       console.error("Error creating meeting:", error);
@@ -281,7 +295,21 @@ export function registerRoutes(app: Express): Server {
         res.status(400).json({ message: "Invalid meeting data", errors: result.error.errors });
         return;
       }
-      const meeting = await storage.updateMeeting(Number(req.params.id), result.data);
+      
+      // If researchId is provided, get the researcher from the associated research
+      let meetingData = result.data;
+      if (meetingData.researchId) {
+        const research = await storage.getResearch(meetingData.researchId);
+        if (research) {
+          // Set the researcher field to match the research's researcher
+          meetingData = {
+            ...meetingData,
+            researcher: research.researcher
+          };
+        }
+      }
+      
+      const meeting = await storage.updateMeeting(Number(req.params.id), meetingData);
       if (!meeting) {
         res.status(404).json({ message: "Meeting not found" });
         return;

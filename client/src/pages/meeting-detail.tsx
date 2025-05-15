@@ -226,9 +226,9 @@ export default function MeetingDetail() {
                     e.stopPropagation(); // Prevent event bubbling
                     setLocation(`/researches/${meeting.researchId}`);
                   }}
-                  title={`${researches.find(r => r.id === meeting.researchId)?.name || 'Research'} - Click to view research details`}
+                  title={`${researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research'} - Click to view research details`}
                 >
-                  <span className="truncate">{researches.find(r => r.id === meeting.researchId)?.name || 'Research'}</span>
+                  <span className="truncate">{researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research'}</span>
                   <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 </div>
               )}
