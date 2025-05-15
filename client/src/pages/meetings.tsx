@@ -33,7 +33,13 @@ export default function Meetings() {
   const [, setLocation] = useLocation();
 
   const { data: meetings = [], isLoading } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"]
+    queryKey: ["/api/meetings"],
+    onSuccess: (data) => {
+      // Debug log to confirm researcher field exists
+      if (data.length > 0) {
+        console.log("Sample meeting data:", data[0]);
+      }
+    }
   });
 
   const { data: researches = [] } = useQuery<Research[]>({
@@ -311,12 +317,12 @@ export default function Meetings() {
       )
     },
     {
-      id: "researcher_custom",
+      id: "researcher",
       name: "Researcher",
       visible: true,
       sortField: "researcher",
       render: (meeting: Meeting) => (
-        <span className="truncate max-w-[150px] text-red-600 font-bold">{meeting.researcher || '—'}</span>
+        <span className="truncate max-w-[150px]">{meeting.researcher || '—'}</span>
       )
     },
     {
@@ -465,7 +471,7 @@ export default function Meetings() {
                 sortDirection={sortDir}
                 onRowClick={handleRowClick}
                 rowClassName="hover:bg-gray-50/80 transition-all duration-200"
-                storeConfigKey="meetings-table-reset"
+                storeConfigKey="meetings-table"
               />
             )}
           </CardContent>
