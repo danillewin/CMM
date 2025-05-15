@@ -465,7 +465,7 @@ export default function Meetings() {
                 sortDirection={sortDir}
                 onRowClick={handleRowClick}
                 rowClassName="hover:bg-gray-50/80 transition-all duration-200"
-                storeConfigKey="meetings-table"
+                storeConfigKey="meetings-table-reset"
               />
             )}
           </CardContent>
