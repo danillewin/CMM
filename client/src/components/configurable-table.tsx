@@ -62,7 +62,7 @@ export type ColumnConfig = {
 export type FilterConfig = {
   id: string;
   name: string;
-  options: { label: string; value: string }[];
+  options: { label: string | null; value: string | null }[];
   value: string;
   onChange: (value: string) => void;
 };
@@ -291,42 +291,49 @@ export function ConfigurableTable<T extends { id: number | string }>({
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-4" align="end">
+              <PopoverContent className="w-[450px] p-4" align="end">
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Filters</h4>
-                  {filters.map(filter => (
-                    <div key={filter.id} className="space-y-2">
-                      <label className="text-sm font-medium">{filter.name}</label>
-                      <Select value={filter.value} onValueChange={filter.onChange}>
-                        <SelectTrigger className="w-full bg-white">
-                          <SelectValue placeholder={`Select ${filter.name}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filter.options.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
+                  <div className="grid grid-cols-2 gap-3">
+                    {filters.map(filter => (
+                      <div key={filter.id} className="space-y-1">
+                        <label className="text-sm font-medium">{filter.name}</label>
+                        <Select value={filter.value} onValueChange={filter.onChange}>
+                          <SelectTrigger className="w-full bg-white">
+                            <SelectValue placeholder={`Select ${filter.name}`} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filter.options.map(option => (
+                              <SelectItem 
+                                key={option.value || 'empty'} 
+                                value={option.value || ''}
+                              >
+                                {option.label || 'N/A'}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
                   {activeFilterCount > 0 && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full mt-2 bg-white"
-                      onClick={() => {
-                        // Reset all filters
-                        filters.forEach(filter => {
-                          if (filter.value !== "ALL") {
-                            filter.onChange("ALL");
-                          }
-                        });
-                      }}
-                    >
-                      Clear All Filters
-                    </Button>
+                    <div className="col-span-2 mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full bg-white"
+                        onClick={() => {
+                          // Reset all filters
+                          filters.forEach(filter => {
+                            if (filter.value !== "ALL") {
+                              filter.onChange("ALL");
+                            }
+                          });
+                        }}
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
                   )}
                 </div>
               </PopoverContent>

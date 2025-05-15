@@ -27,6 +27,8 @@ export default function Meetings() {
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [managerFilter, setManagerFilter] = useState<string>("");
   const [recruiterFilter, setRecruiterFilter] = useState<string>("");
+  const [researcherFilter, setResearcherFilter] = useState<string>("");
+  const [positionFilter, setPositionFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
@@ -171,7 +173,9 @@ export default function Meetings() {
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter) &&
         (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
-        (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter)
+        (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
+        (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
+        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter)
     )
     .sort((a, b) => {
       const aVal = getValueForSorting(a, sortBy);
@@ -397,7 +401,7 @@ export default function Meetings() {
     },
     {
       id: "manager",
-      name: "Relationship Manager",
+      name: "RM",
       options: [
         { label: "All RMs", value: "ALL" },
         ...Array.from(new Set(
@@ -424,6 +428,36 @@ export default function Meetings() {
       ],
       value: recruiterFilter || "ALL",
       onChange: setRecruiterFilter
+    },
+    {
+      id: "researcher",
+      name: "Researcher",
+      options: [
+        { label: "All Researchers", value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.researcher)
+        )).filter(Boolean).sort().map(researcher => ({ 
+          label: researcher, 
+          value: researcher 
+        }))
+      ],
+      value: researcherFilter || "ALL",
+      onChange: setResearcherFilter
+    },
+    {
+      id: "position",
+      name: "Position",
+      options: [
+        { label: "All Positions", value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.respondentPosition)
+        )).filter(Boolean).sort().map(position => ({ 
+          label: position, 
+          value: position 
+        }))
+      ],
+      value: positionFilter || "ALL",
+      onChange: setPositionFilter
     }
   ];
 
@@ -432,11 +466,13 @@ export default function Meetings() {
     try {
       const savedFilters = localStorage.getItem("meetings-table-filters");
       if (savedFilters) {
-        const { status, research, manager, recruiter } = JSON.parse(savedFilters);
+        const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
         if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
         if (manager) setManagerFilter(manager);
         if (recruiter) setRecruiterFilter(recruiter);
+        if (researcher) setResearcherFilter(researcher);
+        if (position) setPositionFilter(position);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -450,12 +486,14 @@ export default function Meetings() {
         status: statusFilter,
         research: researchFilter,
         manager: managerFilter,
-        recruiter: recruiterFilter
+        recruiter: recruiterFilter,
+        researcher: researcherFilter,
+        position: positionFilter
       }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researchFilter, managerFilter, recruiterFilter]);
+  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
