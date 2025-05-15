@@ -254,13 +254,13 @@ export function ConfigurableTable<T extends { id: number | string }>({
 
   return (
     <div>
-      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4 p-4 bg-white/80 backdrop-blur-sm rounded-md border border-gray-100 shadow-sm">
         <div className="relative w-full sm:w-64 md:w-96">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
           <Input
             type="text"
             placeholder="Search..."
-            className="pl-8 pr-8 bg-white"
+            className="pl-8 pr-8 bg-white border-gray-200"
             value={searchInputValue}
             onChange={handleSearchChange}
           />
@@ -278,7 +278,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
           {filters.length > 0 && (
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="relative">
+                <Button variant="outline" size="sm" className="relative bg-white border-gray-200 hover:bg-gray-50">
                   <Filter className="h-4 w-4 mr-2" />
                   Filters
                   {activeFilterCount > 0 && (
@@ -298,7 +298,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                     <div key={filter.id} className="space-y-2">
                       <label className="text-sm font-medium">{filter.name}</label>
                       <Select value={filter.value} onValueChange={filter.onChange}>
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder={`Select ${filter.name}`} />
                         </SelectTrigger>
                         <SelectContent>
@@ -315,7 +315,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="w-full mt-2"
+                      className="w-full mt-2 bg-white"
                       onClick={() => {
                         // Reset all filters
                         filters.forEach(filter => {
@@ -335,7 +335,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="bg-white border-gray-200 hover:bg-gray-50">
                 <Settings className="h-4 w-4 mr-2" />
                 Configure
               </Button>
@@ -371,12 +371,12 @@ export function ConfigurableTable<T extends { id: number | string }>({
         </div>
       </div>
 
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md border overflow-hidden mt-2">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
+            <TableRow className="bg-gray-50/80 hover:bg-gray-50/90 transition-colors duration-200">
               {visibleColumns.map((column) => (
-                <TableHead key={column.id} className="font-medium">
+                <TableHead key={column.id} className="font-medium py-4">
                   {column.sortField && onSort ? (
                     <Button 
                       variant="ghost" 
