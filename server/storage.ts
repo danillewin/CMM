@@ -1,5 +1,5 @@
 import { meetings, researches, positions, teams, type Meeting, type InsertMeeting, type Research, type InsertResearch, type Position, type InsertPosition, type Team, type InsertTeam } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
