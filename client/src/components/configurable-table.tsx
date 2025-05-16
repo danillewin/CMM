@@ -153,20 +153,28 @@ export function ConfigurableTable<T extends { id: number | string }>({
       
       const savedOrder = JSON.parse(savedConfig) as Array<{id: string, visible: boolean}>;
       
-      // Ensure all initial columns are present and merge with saved configuration
-      const mergedColumns = [...initialColumns];
+      // Start with initial columns to ensure all are present
+      const result: ColumnConfig[] = [];
       
-      // Update visibility and order based on saved config
-      return savedOrder.map(savedCol => {
-        const matchingColumn = mergedColumns.find(col => col.id === savedCol.id);
+      // First, add columns that exist in saved configuration
+      savedOrder.forEach(savedCol => {
+        const matchingColumn = initialColumns.find(col => col.id === savedCol.id);
         if (matchingColumn) {
-          return {
+          result.push({
             ...matchingColumn,
             visible: savedCol.visible
-          };
+          });
         }
-        return null;
-      }).filter(Boolean) as ColumnConfig[];
+      });
+      
+      // Then add any new columns that weren't in the saved configuration
+      initialColumns.forEach(initialCol => {
+        if (!result.some(col => col.id === initialCol.id)) {
+          result.push(initialCol);
+        }
+      });
+      
+      return result;
     } catch (error) {
       console.error("Error loading table configuration:", error);
       return initialColumns;
