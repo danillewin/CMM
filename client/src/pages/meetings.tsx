@@ -29,6 +29,7 @@ export default function Meetings() {
   const [recruiterFilter, setRecruiterFilter] = useState<string>("");
   const [researcherFilter, setResearcherFilter] = useState<string>("");
   const [positionFilter, setPositionFilter] = useState<string>("");
+  const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
@@ -177,7 +178,8 @@ export default function Meetings() {
         (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
         (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
         (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
-        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter)
+        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter) &&
+        (giftFilter === "ALL" || !giftFilter || meeting.hasGift === giftFilter)
     )
     .sort((a, b) => {
       const aVal = getValueForSorting(a, sortBy);
@@ -212,11 +214,13 @@ export default function Meetings() {
       render: (meeting: Meeting) => (
         <div className="flex justify-center">
           {meeting.hasGift === "yes" ? (
-            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs">✓</span>
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">✓</span>
             </div>
           ) : (
-            <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
+            <div className="w-6 h-6 border border-gray-300 bg-gray-100 rounded-full flex items-center justify-center">
+              <span className="text-gray-400 text-xs">-</span>
+            </div>
           )}
         </div>
       )
@@ -477,6 +481,17 @@ export default function Meetings() {
       ],
       value: positionFilter || "ALL",
       onChange: setPositionFilter
+    },
+    {
+      id: "hasGift",
+      name: "Gift",
+      options: [
+        { label: "All", value: "ALL" },
+        { label: "With Gift", value: "yes" },
+        { label: "Without Gift", value: "no" }
+      ],
+      value: giftFilter || "ALL",
+      onChange: setGiftFilter
     }
   ];
 
