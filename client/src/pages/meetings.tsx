@@ -212,13 +212,11 @@ export default function Meetings() {
       render: (meeting: Meeting) => (
         <div className="flex justify-center">
           {meeting.hasGift === "yes" ? (
-            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-sm" title="Gift provided">
-              <span className="text-white text-xs font-bold">✓</span>
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
             </div>
           ) : (
-            <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 shadow-sm" title="No gift">
-              <span className="text-xs">-</span>
-            </div>
+            <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
           )}
         </div>
       )
