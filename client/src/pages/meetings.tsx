@@ -87,6 +87,7 @@ export default function Meetings() {
       'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
+      'Gift': meeting.hasGift === "yes" ? "Yes" : "No",
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
@@ -114,6 +115,7 @@ export default function Meetings() {
       'Researcher': meeting.researcher || '—',
       'Date': new Date(meeting.date).toLocaleDateString(),
       'Status': meeting.status,
+      'Gift': meeting.hasGift === "yes" ? "Yes" : "No",
       'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
@@ -202,6 +204,23 @@ export default function Meetings() {
 
   // Define columns for the configurable table
   const columns: ColumnConfig[] = [
+    {
+      id: "hasGift", 
+      name: "Gift",
+      visible: true,
+      sortField: "hasGift",
+      render: (meeting: Meeting) => (
+        <div className="flex justify-center">
+          {meeting.hasGift === "yes" ? (
+            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">✓</span>
+            </div>
+          ) : (
+            <div className="w-5 h-5 bg-gray-200 rounded-full"></div>
+          )}
+        </div>
+      )
+    },
     {
       id: "status",
       name: "Status",

@@ -55,7 +55,24 @@ export default function MeetingForm({
     ? new Date(initialData.date).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
 
-  const form = useForm({
+  type FormValues = {
+    respondentName: string;
+    respondentPosition: string;
+    cnum: string;
+    gcc: string;
+    companyName: string;
+    email: string;
+    researcher: string;
+    relationshipManager: string;
+    salesPerson: string;
+    date: Date;
+    researchId: number;
+    status: MeetingStatusType;
+    notes: string;
+    hasGift: "yes" | "no";
+  };
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(insertMeetingSchema),
     defaultValues: {
       respondentName: initialData?.respondentName ?? "",
@@ -71,15 +88,17 @@ export default function MeetingForm({
       researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
-      hasGift: initialData?.hasGift ?? "no",
+      hasGift: (initialData?.hasGift as "yes" | "no") ?? "no",
     },
   });
 
-  const onSubmitWrapper = (data: InsertMeeting) => {
+  // Handle form submission
+  const onSubmitWrapper = (data: FormValues) => {
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
-    onSubmit(data);
+    // Convert form data to InsertMeeting type
+    onSubmit(data as unknown as InsertMeeting);
   };
 
   return (
