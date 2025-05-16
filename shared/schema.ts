@@ -59,6 +59,7 @@ export const meetings = pgTable("meetings", {
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
   notes: text("notes"),
+  hasGift: text("has_gift").default("no"), // Gift indicator field (yes/no)
 });
 
 export const insertTeamSchema = createInsertSchema(teams).omit({
@@ -102,6 +103,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   salesPerson: z.string().min(1, "Recruiter is required"),
   researchId: z.number({ required_error: "Research is required" }),
   notes: z.string().optional(),
+  hasGift: z.enum(["yes", "no"]).default("no"),
 });
 
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
