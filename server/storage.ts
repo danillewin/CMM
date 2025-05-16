@@ -45,12 +45,12 @@ export class DatabaseStorage implements IStorage {
           respondent_name, respondent_position, cnum, 
           gcc, company_name, email, researcher, 
           relationship_manager, recruiter, date, 
-          research_id, status, notes, manager
+          research_id, status, notes, has_gift, manager
         ) VALUES (
           $1, $2, $3, 
           $4, $5, $6, $7, 
           $8, $9, $10, 
-          $11, $12, $13, $14
+          $11, $12, $13, $14, $15
         ) RETURNING *
       `;
       
@@ -68,6 +68,7 @@ export class DatabaseStorage implements IStorage {
         meeting.researchId,
         meeting.status,
         meeting.notes || null,
+        meeting.hasGift || "no", // Gift indicator field
         relationshipManager // Use the same value for the manager field
       ];
       
@@ -100,8 +101,9 @@ export class DatabaseStorage implements IStorage {
           research_id = $11,
           status = $12,
           notes = $13,
-          manager = $14
-        WHERE id = $15
+          has_gift = $14,
+          manager = $15
+        WHERE id = $16
         RETURNING *
       `;
       
@@ -119,6 +121,7 @@ export class DatabaseStorage implements IStorage {
         meeting.researchId,
         meeting.status,
         meeting.notes || null,
+        meeting.hasGift || "no", // Gift indicator field
         relationshipManager, // Use the same value for the manager field
         id
       ];
