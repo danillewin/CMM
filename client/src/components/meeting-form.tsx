@@ -4,6 +4,7 @@ import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, t
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -69,6 +71,7 @@ export default function MeetingForm({
       researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
+      hasGift: initialData?.hasGift ?? "no",
     },
   });
 
@@ -290,26 +293,53 @@ export default function MeetingForm({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="researcher"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-base">Researcher</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      className="w-full bg-gray-50"
-                      disabled
-                      readOnly
-                    />
-                  </FormControl>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Inherited from selected Research
-                  </div>
-                </FormItem>
-              )}
-            />
+            <div>
+              <FormField
+                control={form.control}
+                name="researcher"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">Researcher</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        className="w-full bg-gray-50"
+                        disabled
+                        readOnly
+                      />
+                    </FormControl>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Inherited from selected Research
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="hasGift"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mt-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value === "yes"}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked ? "yes" : "no");
+                        }}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-base cursor-pointer">
+                        Gift provided
+                      </FormLabel>
+                      <FormDescription>
+                        Check if a gift was provided during this meeting
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
             
             <FormField
               control={form.control}
