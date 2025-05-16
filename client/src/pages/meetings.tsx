@@ -218,8 +218,7 @@ export default function Meetings() {
               <span className="text-white text-xs font-bold">✓</span>
             </div>
           ) : (
-            <div className="w-6 h-6 border border-gray-300 bg-gray-100 rounded-full flex items-center justify-center">
-              <span className="text-gray-400 text-xs">-</span>
+            <div className="w-6 h-6 border border-gray-300 bg-gray-100 rounded-full">
             </div>
           )}
         </div>
