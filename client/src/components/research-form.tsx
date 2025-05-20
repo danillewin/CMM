@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType } from "@shared/schema";
+import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType, type Jtbd } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -27,6 +27,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { TeamAutocomplete } from "./team-autocomplete";
+import { JtbdSelector } from "./jtbd-selector";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
@@ -54,6 +55,7 @@ export default function ResearchForm({
 }: ResearchFormProps) {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
 
   // Log the initial data for debugging
   console.log("Initial data:", initialData);
@@ -350,6 +352,24 @@ export default function ResearchForm({
                 </FormItem>
               )}
             />
+            
+            {/* Jobs to be Done selector - only shown when editing an existing research */}
+            {initialData && initialData.id && (
+              <div className="space-y-2 grid gap-1 mt-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base">Jobs to be Done</FormLabel>
+                </div>
+                <JtbdSelector 
+                  entityId={initialData.id} 
+                  entityType="research"
+                  selectedJtbds={selectedJtbds}
+                  onJtbdsChange={setSelectedJtbds}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Connect relevant jobs that this research aims to address
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons - styled for Notion look, matching Meeting form */}
