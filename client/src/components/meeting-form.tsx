@@ -480,6 +480,22 @@ export default function MeetingForm({
               </FormItem>
             )}
           />
+          
+          {/* Jobs to be Done section - only shown when editing an existing meeting */}
+          {initialData && initialData.id && (
+            <div className="space-y-2 mt-6 border-t pt-6">
+              <div className="flex flex-col gap-1 mb-3">
+                <h3 className="text-base font-medium">Jobs to be Done</h3>
+                <p className="text-sm text-gray-500">Track which jobs were discussed during this meeting</p>
+              </div>
+              <JtbdSelector 
+                entityId={initialData.id} 
+                entityType="meeting"
+                selectedJtbds={selectedJtbds}
+                onJtbdsChange={setSelectedJtbds}
+              />
+            </div>
+          )}
         </div>
 
         {/* Action Buttons - styled for Notion look */}
