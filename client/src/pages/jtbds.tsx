@@ -220,8 +220,9 @@ export default function JtbdsPage() {
   const [editingJtbd, setEditingJtbd] = useState<Jtbd | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
-  const [priorityFilter, setPriorityFilter] = useState<string>("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
+  const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
 
   // Fetch JTBDs
@@ -438,7 +439,21 @@ export default function JtbdsPage() {
               <div key={jtbd.id} className="hover:bg-gray-50">
                 <div className="p-3 grid grid-cols-12 items-center">
                   <div className="col-span-5 font-medium flex items-center">
-                    <ChevronRight className="h-4 w-4 mr-2 text-gray-400" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 p-0 mr-1 hover:bg-gray-100" 
+                      onClick={() => setExpandedItems(prev => ({
+                        ...prev,
+                        [jtbd.id]: !prev[jtbd.id]
+                      }))}
+                    >
+                      {expandedItems[jtbd.id] ? (
+                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
                     {jtbd.title}
                   </div>
                   <div className="col-span-3">
@@ -476,7 +491,13 @@ export default function JtbdsPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-gray-500"
-                      onClick={() => alert('Creating sub-job not implemented yet')}
+                      title="Add sub-job (coming soon)"
+                      onClick={() => {
+                        toast({
+                          title: "Coming soon",
+                          description: "Creating sub-jobs will be available in a future update",
+                        });
+                      }}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -484,9 +505,12 @@ export default function JtbdsPage() {
                 </div>
                 
                 {/* Description expandable section */}
-                <div className="px-10 pb-3 text-sm text-gray-600">
-                  <LinkifiedText text={jtbd.description} />
-                </div>
+                {expandedItems[jtbd.id] && (
+                  <div className="px-10 py-3 text-sm text-gray-600 bg-gray-50 border-t border-gray-100">
+                    <div className="font-medium mb-1 text-gray-700">Description:</div>
+                    <LinkifiedText text={jtbd.description} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
