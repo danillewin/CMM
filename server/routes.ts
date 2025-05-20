@@ -349,5 +349,189 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // JTBD (Jobs to be Done) routes
+  app.get("/api/jtbds", async (_req, res) => {
+    try {
+      const jtbds = await storage.getJtbds();
+      res.json(jtbds);
+    } catch (error) {
+      console.error("Error fetching JTBDs:", error);
+      res.status(500).json({ message: "Failed to fetch JTBDs" });
+    }
+  });
+
+  app.get("/api/jtbds/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid JTBD ID" });
+        return;
+      }
+      const jtbd = await storage.getJtbd(id);
+      if (!jtbd) {
+        res.status(404).json({ message: "JTBD not found" });
+        return;
+      }
+      res.json(jtbd);
+    } catch (error) {
+      console.error("Error fetching JTBD:", error);
+      res.status(500).json({ message: "Failed to fetch JTBD" });
+    }
+  });
+
+  app.post("/api/jtbds", async (req, res) => {
+    try {
+      const result = insertJtbdSchema.safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid JTBD data", errors: result.error.errors });
+        return;
+      }
+      const jtbd = await storage.createJtbd(result.data);
+      res.status(201).json(jtbd);
+    } catch (error) {
+      console.error("Error creating JTBD:", error);
+      res.status(500).json({ message: "Failed to create JTBD" });
+    }
+  });
+
+  app.patch("/api/jtbds/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid JTBD ID" });
+        return;
+      }
+      const result = insertJtbdSchema.safeParse(req.body);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid JTBD data", errors: result.error.errors });
+        return;
+      }
+      const jtbd = await storage.updateJtbd(id, result.data);
+      if (!jtbd) {
+        res.status(404).json({ message: "JTBD not found" });
+        return;
+      }
+      res.json(jtbd);
+    } catch (error) {
+      console.error("Error updating JTBD:", error);
+      res.status(500).json({ message: "Failed to update JTBD" });
+    }
+  });
+
+  app.delete("/api/jtbds/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid JTBD ID" });
+        return;
+      }
+      const success = await storage.deleteJtbd(id);
+      if (!success) {
+        res.status(404).json({ message: "JTBD not found" });
+        return;
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting JTBD:", error);
+      res.status(500).json({ message: "Failed to delete JTBD" });
+    }
+  });
+
+  // JTBD Relations with Research
+  app.get("/api/researches/:id/jtbds", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.id);
+      if (isNaN(researchId)) {
+        res.status(400).json({ message: "Invalid Research ID" });
+        return;
+      }
+      const jtbds = await storage.getJtbdsByResearch(researchId);
+      res.json(jtbds);
+    } catch (error) {
+      console.error("Error fetching JTBDs for research:", error);
+      res.status(500).json({ message: "Failed to fetch JTBDs for research" });
+    }
+  });
+
+  app.post("/api/researches/:researchId/jtbds/:jtbdId", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      const jtbdId = parseInt(req.params.jtbdId);
+      if (isNaN(researchId) || isNaN(jtbdId)) {
+        res.status(400).json({ message: "Invalid IDs" });
+        return;
+      }
+      await storage.addJtbdToResearch(researchId, jtbdId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error adding JTBD to research:", error);
+      res.status(500).json({ message: "Failed to add JTBD to research" });
+    }
+  });
+
+  app.delete("/api/researches/:researchId/jtbds/:jtbdId", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      const jtbdId = parseInt(req.params.jtbdId);
+      if (isNaN(researchId) || isNaN(jtbdId)) {
+        res.status(400).json({ message: "Invalid IDs" });
+        return;
+      }
+      await storage.removeJtbdFromResearch(researchId, jtbdId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing JTBD from research:", error);
+      res.status(500).json({ message: "Failed to remove JTBD from research" });
+    }
+  });
+
+  // JTBD Relations with Meetings
+  app.get("/api/meetings/:id/jtbds", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.id);
+      if (isNaN(meetingId)) {
+        res.status(400).json({ message: "Invalid Meeting ID" });
+        return;
+      }
+      const jtbds = await storage.getJtbdsByMeeting(meetingId);
+      res.json(jtbds);
+    } catch (error) {
+      console.error("Error fetching JTBDs for meeting:", error);
+      res.status(500).json({ message: "Failed to fetch JTBDs for meeting" });
+    }
+  });
+
+  app.post("/api/meetings/:meetingId/jtbds/:jtbdId", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      const jtbdId = parseInt(req.params.jtbdId);
+      if (isNaN(meetingId) || isNaN(jtbdId)) {
+        res.status(400).json({ message: "Invalid IDs" });
+        return;
+      }
+      await storage.addJtbdToMeeting(meetingId, jtbdId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error adding JTBD to meeting:", error);
+      res.status(500).json({ message: "Failed to add JTBD to meeting" });
+    }
+  });
+
+  app.delete("/api/meetings/:meetingId/jtbds/:jtbdId", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      const jtbdId = parseInt(req.params.jtbdId);
+      if (isNaN(meetingId) || isNaN(jtbdId)) {
+        res.status(400).json({ message: "Invalid IDs" });
+        return;
+      }
+      await storage.removeJtbdFromMeeting(meetingId, jtbdId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing JTBD from meeting:", error);
+      res.status(500).json({ message: "Failed to remove JTBD from meeting" });
+    }
+  });
+
   return createServer(app);
 }

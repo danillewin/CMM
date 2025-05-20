@@ -10,6 +10,7 @@ import ResearchDetail from "@/pages/research-detail";
 import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
 import Roadmap from "@/pages/roadmap";
+import Jtbds from "@/pages/jtbds";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
@@ -46,6 +47,11 @@ function Navigation() {
               Dashboard
             </Button>
           </Link>
+          <Link href="/jtbds">
+            <Button variant={location === "/jtbds" ? "default" : "ghost"}>
+              Jobs to be Done
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
@@ -62,6 +68,7 @@ function Router() {
       <Route path="/roadmap" component={Roadmap} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/jtbds" component={Jtbds} />
       <Route component={NotFound} />
     </Switch>
   );
