@@ -17,6 +17,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -262,13 +263,14 @@ export default function JtbdsPage() {
 
   // Create new JTBD
   const createJtbdMutation = useMutation({
-    mutationFn: async (jtbd: InsertJtbd) => {
+    mutationFn: async (jtbd: InsertJtbd & { parentId?: number }) => {
       const res = await apiRequest("POST", "/api/jtbds", jtbd);
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/jtbds"] });
       setShowNewJtbdForm(false);
+      setSubJobParentId(null);
       toast({
         title: "JTBD created",
         description: "The job to be done was successfully created.",
@@ -334,20 +336,59 @@ export default function JtbdsPage() {
     },
   });
 
+  // Organize JTBDs into hierarchy
+  const organizedJtbds = useMemo(() => {
+    // Get all top-level jobs (parentId is null)
+    const topLevelJobs = jtbds.filter(jtbd => !jtbd.parentId);
+    
+    // Map of parent IDs to their child jobs
+    const childrenMap: Record<number, Jtbd[]> = {};
+    
+    // Group children by parent ID
+    jtbds.forEach(jtbd => {
+      if (jtbd.parentId) {
+        if (!childrenMap[jtbd.parentId]) {
+          childrenMap[jtbd.parentId] = [];
+        }
+        childrenMap[jtbd.parentId].push(jtbd);
+      }
+    });
+    
+    return { topLevelJobs, childrenMap };
+  }, [jtbds]);
+  
   // Filter JTBDs
-  const filteredJtbds = jtbds.filter(
-    (jtbd) => {
-      return (
-        (jtbd.title.toLowerCase().includes(search.toLowerCase()) ||
-        jtbd.description.toLowerCase().includes(search.toLowerCase())) &&
-        (categoryFilter === "ALL" || jtbd.category === categoryFilter) &&
-        (priorityFilter === "ALL" || jtbd.priority === priorityFilter)
-      );
-    }
-  );
+  const filteredJtbds = useMemo(() => {
+    // Function to check if a job matches the filters
+    const matchFilters = (jtbd: Jtbd) => {
+      const searchMatch = !search || 
+        jtbd.title.toLowerCase().includes(search.toLowerCase()) ||
+        jtbd.description.toLowerCase().includes(search.toLowerCase());
+      
+      const categoryMatch = categoryFilter === "ALL" || jtbd.category === categoryFilter;
+      const priorityMatch = priorityFilter === "ALL" || jtbd.priority === priorityFilter;
+      
+      return searchMatch && categoryMatch && priorityMatch;
+    };
+    
+    // Function to check if a job or any of its children match the filters
+    const matchesFilterTree = (jtbd: Jtbd): boolean => {
+      // Check if this job matches
+      if (matchFilters(jtbd)) {
+        return true;
+      }
+      
+      // Check if any children match
+      const children = organizedJtbds.childrenMap[jtbd.id] || [];
+      return children.some(child => matchesFilterTree(child));
+    };
+    
+    // Filter top-level jobs
+    return organizedJtbds.topLevelJobs.filter(matchesFilterTree);
+  }, [search, categoryFilter, priorityFilter, organizedJtbds]);
 
   // Handle form submissions
-  const handleCreateSubmit = (data: InsertJtbd) => {
+  const handleCreateSubmit = (data: InsertJtbd & { parentId?: number }) => {
     createJtbdMutation.mutate(data);
   };
 
@@ -406,7 +447,12 @@ export default function JtbdsPage() {
               ))}
             </SelectContent>
           </Select>
-          <Dialog open={showNewJtbdForm} onOpenChange={setShowNewJtbdForm}>
+          <Dialog open={showNewJtbdForm} onOpenChange={(open) => {
+            if (!open) {
+              setSubJobParentId(null);
+            }
+            setShowNewJtbdForm(open);
+          }}>
             <DialogTrigger asChild>
               <Button className="ml-auto">
                 <Plus className="mr-2 h-4 w-4" /> Add JTBD
@@ -414,12 +460,22 @@ export default function JtbdsPage() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
               <DialogHeader>
-                <DialogTitle>Create New Job to be Done</DialogTitle>
+                <DialogTitle>
+                  {subJobParentId 
+                    ? "Create New Sub-Job" 
+                    : "Create New Job to be Done"
+                  }
+                </DialogTitle>
               </DialogHeader>
               <JtbdForm
                 onSubmit={handleCreateSubmit}
                 isLoading={createJtbdMutation.isPending}
-                onCancel={() => setShowNewJtbdForm(false)}
+                onCancel={() => {
+                  setShowNewJtbdForm(false);
+                  setSubJobParentId(null);
+                }}
+                parentId={subJobParentId || undefined}
+                allJtbds={jtbds}
               />
             </DialogContent>
           </Dialog>
@@ -521,12 +577,10 @@ export default function JtbdsPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-gray-500"
-                      title="Add sub-job (coming soon)"
+                      title="Add sub-job"
                       onClick={() => {
-                        toast({
-                          title: "Coming soon",
-                          description: "Creating sub-jobs will be available in a future update",
-                        });
+                        setSubJobParentId(jtbd.id);
+                        setShowNewJtbdForm(true);
                       }}
                     >
                       <Plus className="h-4 w-4" />
