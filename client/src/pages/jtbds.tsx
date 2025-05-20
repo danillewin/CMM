@@ -57,11 +57,13 @@ const JTBD_PRIORITIES = [
 ];
 
 interface JtbdFormProps {
-  onSubmit: (data: InsertJtbd) => void;
+  onSubmit: (data: InsertJtbd & { parentId?: number }) => void;
   initialData?: Jtbd | null;
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  allJtbds?: Jtbd[];
+  parentId?: number;
 }
 
 function JtbdForm({
@@ -69,20 +71,24 @@ function JtbdForm({
   initialData = null,
   isLoading = false,
   onCancel,
-  onDelete
+  onDelete,
+  allJtbds = [],
+  parentId
 }: JtbdFormProps) {
-  const form = useForm<InsertJtbd>({
+  const form = useForm<InsertJtbd & { parentId?: number }>({
     resolver: zodResolver(
       insertJtbdSchema.extend({
         title: z.string().min(1, "Title is required"),
-        description: z.string().min(1, "Description is required")
+        description: z.string().min(1, "Description is required"),
+        parentId: z.number().optional()
       })
     ),
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
       category: initialData?.category || "",
-      priority: initialData?.priority || ""
+      priority: initialData?.priority || "",
+      parentId: parentId !== undefined ? parentId : initialData?.parentId || 0
     }
   });
 
@@ -182,6 +188,29 @@ function JtbdForm({
             )}
           />
         </div>
+        
+        {/* Parent Job Selection - only show when creating a sub-job */}
+        {parentId !== undefined && (
+          <FormField
+            control={form.control}
+            name="parentId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Parent Job</FormLabel>
+                <FormControl>
+                  <div className="p-2 border rounded-md bg-muted/10">
+                    <p className="text-sm font-medium">
+                      {allJtbds.find(j => j.id === parentId)?.title || "Selected Job"}
+                    </p>
+                  </div>
+                </FormControl>
+                <FormDescription className="text-xs">
+                  This job will be created as a sub-job of the selected parent
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+        )}
 
         <DialogFooter className="gap-2 sm:gap-0">
           {initialData && onDelete && (
@@ -223,6 +252,7 @@ export default function JtbdsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
+  const [subJobParentId, setSubJobParentId] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Fetch JTBDs

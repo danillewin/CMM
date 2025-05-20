@@ -51,6 +51,7 @@ export const jtbds = pgTable("jtbds", {
   description: text("description").notNull(),
   category: text("category"),
   priority: text("priority"),
+  parentId: integer("parent_id").default(0), // 0 means root level item
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
