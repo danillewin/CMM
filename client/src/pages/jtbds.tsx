@@ -309,8 +309,8 @@ export default function JtbdsPage() {
       return (
         (jtbd.title.toLowerCase().includes(search.toLowerCase()) ||
         jtbd.description.toLowerCase().includes(search.toLowerCase())) &&
-        (categoryFilter === "" || jtbd.category === categoryFilter) &&
-        (priorityFilter === "" || jtbd.priority === priorityFilter)
+        (categoryFilter === "ALL" || jtbd.category === categoryFilter) &&
+        (priorityFilter === "ALL" || jtbd.priority === priorityFilter)
       );
     }
   );
@@ -354,7 +354,7 @@ export default function JtbdsPage() {
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Categories</SelectItem>
+              <SelectItem value="ALL">All Categories</SelectItem>
               {JTBD_CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -367,7 +367,7 @@ export default function JtbdsPage() {
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Priorities</SelectItem>
+              <SelectItem value="ALL">All Priorities</SelectItem>
               {JTBD_PRIORITIES.map((priority) => (
                 <SelectItem key={priority} value={priority}>
                   {priority}
