@@ -1,4 +1,24 @@
-import { meetings, researches, positions, teams, type Meeting, type InsertMeeting, type Research, type InsertResearch, type Position, type InsertPosition, type Team, type InsertTeam } from "@shared/schema";
+import { 
+  meetings, 
+  researches, 
+  positions, 
+  teams, 
+  jtbds,
+  researchJtbds,
+  meetingJtbds,
+  type Meeting, 
+  type InsertMeeting, 
+  type Research, 
+  type InsertResearch, 
+  type Position, 
+  type InsertPosition, 
+  type Team, 
+  type InsertTeam,
+  type Jtbd,
+  type InsertJtbd,
+  type ResearchJtbd,
+  type MeetingJtbd
+} from "@shared/schema";
 import { db, pool } from "./db";
 import { eq } from "drizzle-orm";
 
@@ -22,6 +42,23 @@ export interface IStorage {
   getTeams(): Promise<Team[]>;
   createTeam(team: InsertTeam): Promise<Team>;
   deleteTeam(id: number): Promise<boolean>;
+  
+  // JTBD methods
+  getJtbds(): Promise<Jtbd[]>;
+  getJtbd(id: number): Promise<Jtbd | undefined>;
+  createJtbd(jtbd: InsertJtbd): Promise<Jtbd>;
+  updateJtbd(id: number, jtbd: InsertJtbd): Promise<Jtbd | undefined>;
+  deleteJtbd(id: number): Promise<boolean>;
+  
+  // Relations for JTBD
+  getJtbdsByResearch(researchId: number): Promise<Jtbd[]>;
+  getJtbdsByMeeting(meetingId: number): Promise<Jtbd[]>;
+  
+  // Add/remove JTBD connections
+  addJtbdToResearch(researchId: number, jtbdId: number): Promise<void>;
+  removeJtbdFromResearch(researchId: number, jtbdId: number): Promise<void>;
+  addJtbdToMeeting(meetingId: number, jtbdId: number): Promise<void>;
+  removeJtbdFromMeeting(meetingId: number, jtbdId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
