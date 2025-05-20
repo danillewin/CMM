@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -44,6 +44,24 @@ export const researches = pgTable("researches", {
   color: text("color").notNull().default("#3b82f6"), // Add color field with default blue
 });
 
+// Jobs to be Done table
+export const jtbds = pgTable("jtbds", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category"),
+  priority: text("priority"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Research to JTBD many-to-many relation
+export const researchJtbds = pgTable("research_jtbds", {
+  researchId: integer("research_id").notNull().references(() => researches.id, { onDelete: 'cascade' }),
+  jtbdId: integer("jtbd_id").notNull().references(() => jtbds.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.researchId, t.jtbdId] }),
+}));
+
 export const meetings = pgTable("meetings", {
   id: serial("id").primaryKey(),
   respondentName: text("respondent_name").notNull(),
@@ -61,6 +79,14 @@ export const meetings = pgTable("meetings", {
   notes: text("notes"),
   hasGift: text("has_gift").default("no"), // Gift indicator field (yes/no)
 });
+
+// Meeting to JTBD many-to-many relation
+export const meetingJtbds = pgTable("meeting_jtbds", {
+  meetingId: integer("meeting_id").notNull().references(() => meetings.id, { onDelete: 'cascade' }),
+  jtbdId: integer("jtbd_id").notNull().references(() => jtbds.id, { onDelete: 'cascade' }),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.meetingId, t.jtbdId] }),
+}));
 
 export const insertTeamSchema = createInsertSchema(teams).omit({
   id: true,
@@ -106,6 +132,18 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   hasGift: z.enum(["yes", "no"]).default("no"),
 });
 
+// JTBD insert schema
+export const insertJtbdSchema = createInsertSchema(jtbds).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.string().optional(),
+  priority: z.string().optional(),
+});
+
+// Types
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertPosition = z.infer<typeof insertPositionSchema>;
@@ -114,3 +152,7 @@ export type InsertResearch = z.infer<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect;
+export type InsertJtbd = z.infer<typeof insertJtbdSchema>;
+export type Jtbd = typeof jtbds.$inferSelect;
+export type ResearchJtbd = typeof researchJtbds.$inferSelect;
+export type MeetingJtbd = typeof meetingJtbds.$inferSelect;
