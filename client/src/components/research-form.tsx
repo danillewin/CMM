@@ -129,6 +129,24 @@ export default function ResearchForm({
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+          {/* Jobs to be Done section - moved to top as requested */}
+          {initialData && initialData.id && (
+            <div className="mb-6 pb-4 border-b border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-base font-medium">Jobs to be Done</h3>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Connect relevant jobs that this research aims to address
+              </p>
+              <JtbdSelector 
+                entityId={initialData.id} 
+                entityType="research"
+                selectedJtbds={selectedJtbds}
+                onJtbdsChange={setSelectedJtbds}
+              />
+            </div>
+          )}
+          
           {/* Two rows layout for Date/Status/Color fields */}
           <div className="mb-6">
             {/* First row: Start Date and End Date */}
@@ -353,23 +371,7 @@ export default function ResearchForm({
               )}
             />
             
-            {/* Jobs to be Done selector - only shown when editing an existing research */}
-            {initialData && initialData.id && (
-              <div className="space-y-2 grid gap-1 mt-4">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-base">Jobs to be Done</FormLabel>
-                </div>
-                <JtbdSelector 
-                  entityId={initialData.id} 
-                  entityType="research"
-                  selectedJtbds={selectedJtbds}
-                  onJtbdsChange={setSelectedJtbds}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Connect relevant jobs that this research aims to address
-                </p>
-              </div>
-            )}
+  {/* Removed JTBD section from here - moved to the top */}
           </div>
 
           {/* Action Buttons - styled for Notion look, matching Meeting form */}
