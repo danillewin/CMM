@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Pencil, Trash, Plus, Tag, Target, Layers } from "lucide-react";
+import { Pencil, Trash, Plus, Tag, Target, Layers, ChevronRight, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -423,67 +423,91 @@ export default function JtbdsPage() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredJtbds.map((jtbd) => (
-            <Card key={jtbd.id} className="h-full flex flex-col">
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{jtbd.title}</CardTitle>
-                  <Dialog open={editingJtbd?.id === jtbd.id} onOpenChange={(open) => !open && setEditingJtbd(null)}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingJtbd(jtbd)}
+        <div className="w-full border rounded-lg shadow-sm">
+          <div className="bg-gray-50 p-3 border-b rounded-t-lg">
+            <div className="grid grid-cols-12 text-sm font-medium text-gray-500">
+              <div className="col-span-5">Title</div>
+              <div className="col-span-3">Category</div>
+              <div className="col-span-2">Priority</div>
+              <div className="col-span-2 text-right">Actions</div>
+            </div>
+          </div>
+          
+          <div className="divide-y">
+            {filteredJtbds.map((jtbd) => (
+              <div key={jtbd.id} className="hover:bg-gray-50">
+                <div className="p-3 grid grid-cols-12 items-center">
+                  <div className="col-span-5 font-medium flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2 text-gray-400" />
+                    {jtbd.title}
+                  </div>
+                  <div className="col-span-3">
+                    {jtbd.category && (
+                      <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                        <Tag className="h-3 w-3" />
+                        {jtbd.category}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    {jtbd.priority && (
+                      <Badge 
+                        variant={
+                          jtbd.priority === "High" ? "destructive" : 
+                          jtbd.priority === "Medium" ? "default" : "outline"
+                        }
+                        className="flex items-center gap-1 w-fit"
                       >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[550px]">
-                      <DialogHeader>
-                        <DialogTitle>Edit Job to be Done</DialogTitle>
-                      </DialogHeader>
-                      <JtbdForm
-                        onSubmit={handleUpdateSubmit}
-                        initialData={editingJtbd}
-                        isLoading={updateJtbdMutation.isPending}
-                        onCancel={() => setEditingJtbd(null)}
-                        onDelete={handleDeleteClick}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {jtbd.category && (
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <Tag className="h-3 w-3" />
-                      {jtbd.category}
-                    </Badge>
-                  )}
-                  {jtbd.priority && (
-                    <Badge 
-                      variant={
-                        jtbd.priority === "High" ? "destructive" : 
-                        jtbd.priority === "Medium" ? "default" : "outline"
-                      }
-                      className="flex items-center gap-1"
+                        <Target className="h-3 w-3" />
+                        {jtbd.priority}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="col-span-2 flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingJtbd(jtbd)}
+                      className="h-8 w-8"
                     >
-                      <Target className="h-3 w-3" />
-                      {jtbd.priority}
-                    </Badge>
-                  )}
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-500"
+                      onClick={() => alert('Creating sub-job not implemented yet')}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="text-sm text-gray-700">
+                
+                {/* Description expandable section */}
+                <div className="px-10 pb-3 text-sm text-gray-600">
                   <LinkifiedText text={jtbd.description} />
                 </div>
-              </CardContent>
-              <CardFooter className="pt-4 text-xs text-gray-500 justify-between">
-                <span>Created: {new Date(jtbd.createdAt).toLocaleDateString()}</span>
-              </CardFooter>
-            </Card>
-          ))}
+              </div>
+            ))}
+          </div>
+          
+          {/* Edit Dialog - moved outside the loop but keeping the same functionality */}
+          {editingJtbd && (
+            <Dialog open={!!editingJtbd} onOpenChange={(open) => !open && setEditingJtbd(null)}>
+              <DialogContent className="sm:max-w-[550px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Job to be Done</DialogTitle>
+                </DialogHeader>
+                <JtbdForm
+                  onSubmit={handleUpdateSubmit}
+                  initialData={editingJtbd}
+                  isLoading={updateJtbdMutation.isPending}
+                  onCancel={() => setEditingJtbd(null)}
+                  onDelete={handleDeleteClick}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       )}
 

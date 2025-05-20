@@ -51,6 +51,8 @@ export const jtbds = pgTable("jtbds", {
   description: text("description").notNull(),
   category: text("category"),
   priority: text("priority"),
+  parentId: integer("parent_id").references(() => jtbds.id).notNull().default(0), // 0 means no parent (root node)
+  order: integer("order").notNull().default(0), // For maintaining order within siblings
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
