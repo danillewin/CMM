@@ -1,8 +1,22 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertMeetingSchema, insertResearchSchema, insertPositionSchema, insertTeamSchema } from "@shared/schema";
-import { meetings, researches, positions, teams } from "@shared/schema";
+import { 
+  insertMeetingSchema, 
+  insertResearchSchema, 
+  insertPositionSchema, 
+  insertTeamSchema,
+  insertJtbdSchema
+} from "@shared/schema";
+import { 
+  meetings, 
+  researches, 
+  positions, 
+  teams, 
+  jtbds, 
+  researchJtbds, 
+  meetingJtbds 
+} from "@shared/schema";
 import { db, pool } from "./db";
 
 // Initialize database
