@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType } from "@shared/schema";
+import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType, type Jtbd } from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -23,6 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
+import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
 import { RequiredFieldIndicator } from "./required-field-indicator";
 
@@ -45,6 +47,8 @@ export default function MeetingForm({
   onCnumChange,
   meetings = []
 }: MeetingFormProps) {
+  const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
+  
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });

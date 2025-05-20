@@ -65,6 +65,37 @@ async function initializeDatabase() {
         status TEXT NOT NULL DEFAULT 'In Progress'
       )
     `);
+
+    // Create JTBD table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS jtbds (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        category TEXT,
+        priority TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    // Create Research to JTBD relations table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS research_jtbds (
+        research_id INTEGER NOT NULL REFERENCES researches(id) ON DELETE CASCADE,
+        jtbd_id INTEGER NOT NULL REFERENCES jtbds(id) ON DELETE CASCADE,
+        PRIMARY KEY (research_id, jtbd_id)
+      )
+    `);
+
+    // Create Meeting to JTBD relations table
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS meeting_jtbds (
+        meeting_id INTEGER NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+        jtbd_id INTEGER NOT NULL REFERENCES jtbds(id) ON DELETE CASCADE,
+        PRIMARY KEY (meeting_id, jtbd_id)
+      )
+    `);
+    
     console.log("Database initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database:", error);
