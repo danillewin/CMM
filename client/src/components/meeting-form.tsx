@@ -108,6 +108,24 @@ export default function MeetingForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-6">
+        {/* Jobs to be Done section - moved to top as requested */}
+        {initialData && initialData.id && (
+          <div className="mb-6 pb-4 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-medium">Jobs to be Done</h3>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">
+              Track which jobs were discussed during this meeting
+            </p>
+            <JtbdSelector 
+              entityId={initialData.id} 
+              entityType="meeting"
+              selectedJtbds={selectedJtbds}
+              onJtbdsChange={setSelectedJtbds}
+            />
+          </div>
+        )}
+        
         {/* Date and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
