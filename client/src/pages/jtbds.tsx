@@ -269,7 +269,7 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
   return (
     <>
       <div className={`hover:bg-gray-50 ${level > 0 ? 'border-l-2 border-l-primary/20' : ''}`}>
-        <div className={`p-3 grid grid-cols-12 items-center ${level > 0 ? 'pl-' + (level * 5 + 3) + 'px' : ''}`}>
+        <div className={`p-3 grid grid-cols-12 items-center ${level > 0 ? 'pl-' + (level * 10 + 3) + 'px' : ''}`}>
           <div className="col-span-5 font-medium flex items-center">
             <Button 
               variant="ghost" 
@@ -338,7 +338,7 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
         
         {/* Description expandable section */}
         {expandedItems[jtbd.id] && (
-          <div className={`px-9 pb-3 text-sm text-gray-600 ${level > 0 ? 'pl-' + (level * 5 + 3 + 6) + 'px' : ''}`}>
+          <div className={`px-9 pb-3 text-sm text-gray-600 ${level > 0 ? 'pl-' + (level * 10 + 3 + 6) + 'px' : ''}`}>
             <LinkifiedText text={jtbd.description} />
           </div>
         )}
