@@ -268,7 +268,7 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
   
   return (
     <>
-      <div className={`hover:bg-gray-50 ${level > 0 ? 'border-l-2 border-l-primary/20' : ''}`}>
+      <div className={`hover:bg-gray-50 ${level > 0 ? 'border-l-4 border-l-primary/40 bg-gray-50/50' : ''}`}>
         <div className={`p-3 grid grid-cols-12 items-center ${level > 0 ? 'pl-' + (level * 24 + 3) + 'px' : ''}`}>
           <div className="col-span-5 font-medium flex items-center">
             <Button 
