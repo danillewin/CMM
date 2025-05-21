@@ -447,8 +447,8 @@ export default function JtbdsPage() {
       const res = await apiRequest("PATCH", `/api/jtbds/${id}`, {
         title: jtbd.title,
         description: jtbd.description,
-        category: jtbd.category || null,
-        priority: jtbd.priority || null
+        category: jtbd.category || "",
+        priority: jtbd.priority || ""
       });
       return res.json();
     },
