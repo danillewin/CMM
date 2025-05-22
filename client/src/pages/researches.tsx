@@ -351,7 +351,7 @@ export default function Researches() {
               htmlFor="show-starts-in-weeks" 
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Show Researches that starts in {weeksNumber} {weeksNumber === "1" ? "week" : "weeks"}
+              Show Researches that start in {weeksNumber} {weeksNumber === "1" ? "week" : "weeks"}
             </label>
           </div>
           
