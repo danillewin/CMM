@@ -27,6 +27,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { addWeeks } from "date-fns";
 
 type ViewMode = "table" | "cards";
 
@@ -38,6 +40,8 @@ export default function Researches() {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [sortBy, setSortBy] = useState<string>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [showStartsInNWeeks, setShowStartsInNWeeks] = useState(false);
+  const [weeksNumber, setWeeksNumber] = useState<string>("1");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -57,10 +61,12 @@ export default function Researches() {
     try {
       const savedFilters = localStorage.getItem("researches-table-filters");
       if (savedFilters) {
-        const { status, researcher, team } = JSON.parse(savedFilters);
+        const { status, researcher, team, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
         if (researcher) setResearcherFilter(researcher);
         if (team) setTeamFilter(team);
+        if (showStartsInNWeeks !== undefined) setShowStartsInNWeeks(showStartsInNWeeks);
+        if (weeksNumber) setWeeksNumber(weeksNumber);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -73,12 +79,14 @@ export default function Researches() {
       localStorage.setItem("researches-table-filters", JSON.stringify({
         status: statusFilter,
         researcher: researcherFilter,
-        team: teamFilter
+        team: teamFilter,
+        showStartsInNWeeks,
+        weeksNumber
       }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researcherFilter, teamFilter]);
+  }, [statusFilter, researcherFilter, teamFilter, showStartsInNWeeks, weeksNumber]);
 
   const getValueForSorting = (research: Research, field: string) => {
     switch (field) {
@@ -92,16 +100,30 @@ export default function Researches() {
     }
   };
 
+  // Calculate date range for "starts in N weeks" filter
+  const currentDate = new Date();
+  const futureDate = addWeeks(currentDate, parseInt(weeksNumber));
+  
   const filteredResearches = researches
     .filter(
-      (research) =>
-        (research.name.toLowerCase().includes(search.toLowerCase()) ||
-          research.team.toLowerCase().includes(search.toLowerCase()) ||
-          (research.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
-          research.description.toLowerCase().includes(search.toLowerCase())) &&
-        (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
-        (teamFilter === "ALL" || research.team === teamFilter) &&
-        (statusFilter === "ALL" || research.status === statusFilter)
+      (research) => {
+        const startDate = new Date(research.dateStart);
+        
+        // Check if research starts within the specified weeks range
+        const startsInRange = !showStartsInNWeeks || 
+          (startDate >= currentDate && startDate <= futureDate);
+        
+        return (
+          (research.name.toLowerCase().includes(search.toLowerCase()) ||
+            research.team.toLowerCase().includes(search.toLowerCase()) ||
+            (research.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
+            research.description.toLowerCase().includes(search.toLowerCase())) &&
+          (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
+          (teamFilter === "ALL" || research.team === teamFilter) &&
+          (statusFilter === "ALL" || research.status === statusFilter) &&
+          startsInRange
+        );
+      }
     )
     .sort((a, b) => {
       const aVal = getValueForSorting(a, sortBy);
@@ -232,6 +254,47 @@ export default function Researches() {
       ],
       value: teamFilter || "ALL",
       onChange: setTeamFilter
+    },
+    {
+      id: "starts-in-weeks",
+      name: "Custom Filter",
+      customComponent: (
+        <div className="flex flex-col space-y-2 py-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="show-starts-in-weeks" 
+              checked={showStartsInNWeeks}
+              onCheckedChange={(checked) => setShowStartsInNWeeks(checked === true)}
+            />
+            <label 
+              htmlFor="show-starts-in-weeks" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Show Researches that starts in N weeks
+            </label>
+          </div>
+          
+          {showStartsInNWeeks && (
+            <div className="flex items-center space-x-2 pl-6">
+              <label className="text-sm">N =</label>
+              <Select value={weeksNumber} onValueChange={setWeeksNumber}>
+                <SelectTrigger className="w-[70px]">
+                  <SelectValue placeholder="Weeks" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      ),
+      options: [],
+      value: "",
+      onChange: () => {}
     }
   ];
 
