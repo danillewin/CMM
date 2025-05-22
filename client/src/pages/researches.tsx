@@ -339,7 +339,7 @@ export default function Researches() {
           </div>
         </div>
         
-        {/* Start in N weeks filter */}
+        {/* Start in weeks filter */}
         <div className="bg-white shadow-sm rounded-lg p-4 flex flex-wrap gap-4 items-center">
           <div className="flex items-center space-x-2">
             <Checkbox 
@@ -351,13 +351,12 @@ export default function Researches() {
               htmlFor="show-starts-in-weeks" 
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Show Researches that starts in N weeks
+              Show Researches that starts in {weeksNumber} {weeksNumber === "1" ? "week" : "weeks"}
             </label>
           </div>
           
           {showStartsInNWeeks && (
             <div className="flex items-center space-x-2">
-              <label className="text-sm">N =</label>
               <Select value={weeksNumber} onValueChange={setWeeksNumber}>
                 <SelectTrigger className="w-[70px]">
                   <SelectValue placeholder="Weeks" />
