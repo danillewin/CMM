@@ -356,30 +356,6 @@ export default function MeetingForm({
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="hasGift"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mt-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value === "yes"}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked ? "yes" : "no");
-                        }}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel className="text-base cursor-pointer">
-                        Gift provided
-                      </FormLabel>
-                      <FormDescription>
-                        Check if a gift was provided during this meeting
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
             </div>
             
             <FormField
@@ -469,7 +445,31 @@ export default function MeetingForm({
             </div>
           </div>
 
-          {/* Status field removed from here - now at top of form */}
+          {/* Gift field - last field in Meeting Details */}
+          <FormField
+            control={form.control}
+            name="hasGift"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mt-6">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value === "yes"}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked ? "yes" : "no");
+                    }}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-base cursor-pointer">
+                    Gift provided
+                  </FormLabel>
+                  <FormDescription>
+                    Check if a gift was provided during this meeting
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Meeting Notes Section */}
