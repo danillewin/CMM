@@ -43,6 +43,7 @@ export const researches = pgTable("researches", {
   status: text("status").notNull().default(ResearchStatus.PLANNED),
   color: text("color").notNull().default("#3b82f6"), // Add color field with default blue
   researchType: text("research_type").notNull().default("Interviews"),
+  products: text("products").array(),
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),

@@ -37,6 +37,35 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import MDEditor from '@uiw/react-md-editor';
+import { Checkbox } from "@/components/ui/checkbox";
+
+const PRODUCT_OPTIONS = [
+  "CDC Integrations",
+  "Lending",
+  "Факторинг",
+  "Аккредитивы",
+  "Гарантии и спец.счета",
+  "АДМ",
+  "Эквайринг",
+  "СБП: B2C, C2B",
+  "СБП: B2B",
+  "Корпоративные карты",
+  "Валютные контракты и платежи",
+  "FX",
+  "Таможенные карты",
+  "Зарплатный проект",
+  "Cash Pooling",
+  "Рублевые платежи (входящие и исходящие)",
+  "Динамическое дисконтирование",
+  "IPS: SWAP и РЕПО",
+  "IPS: инвест. продукты (акции, облигации и т.д.)",
+  "Деривативы",
+  "IB: Advisory (M&A, Securitisation), Digital Advisory",
+  "CDC Mobile",
+  "LORO платежи (рублевые и валютные)",
+  "Custody",
+  "Специальный Депозитарий"
+];
 
 interface ResearchFormProps {
   onSubmit: (data: InsertResearch) => void;
@@ -83,6 +112,7 @@ export default function ResearchForm({
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
       researchType: "Interviews" as const,
+      products: initialData?.products ?? [],
     },
   });
 
@@ -374,6 +404,75 @@ export default function ResearchForm({
                   <FormControl>
                     <Input {...field} className="w-full" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          {/* Products field */}
+          <div className="mb-6">
+            <FormField
+              control={form.control}
+              name="products"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Products</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between h-auto min-h-[40px] text-left"
+                        >
+                          <div className="flex flex-wrap gap-1">
+                            {field.value && field.value.length > 0 ? (
+                              field.value.map((product) => (
+                                <span
+                                  key={product}
+                                  className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {product}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground">Select products...</span>
+                            )}
+                          </div>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <div className="max-h-60 overflow-y-auto p-3">
+                        <div className="space-y-2">
+                          {PRODUCT_OPTIONS.map((product) => (
+                            <div key={product} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={product}
+                                checked={field.value?.includes(product) || false}
+                                onCheckedChange={(checked) => {
+                                  const currentProducts = field.value || [];
+                                  if (checked) {
+                                    field.onChange([...currentProducts, product]);
+                                  } else {
+                                    field.onChange(currentProducts.filter((p) => p !== product));
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={product}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                              >
+                                {product}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
