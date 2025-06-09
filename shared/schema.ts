@@ -43,6 +43,9 @@ export const researches = pgTable("researches", {
   status: text("status").notNull().default(ResearchStatus.PLANNED),
   color: text("color").notNull().default("#3b82f6"), // Add color field with default blue
   researchType: text("research_type").notNull().default("Interviews"),
+  brief: text("brief"),
+  guide: text("guide"),
+  fullText: text("full_text"),
 });
 
 // Jobs to be Done table
@@ -119,6 +122,9 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Interviews",
     "Desk research"
   ]).default("Interviews"),
+  brief: z.string().optional(),
+  guide: z.string().optional(),
+  fullText: z.string().optional(),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({

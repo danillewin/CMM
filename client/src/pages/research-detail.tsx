@@ -5,6 +5,7 @@ import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting }
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Loader2, ExternalLink, Plus as PlusIcon } from "lucide-react";
 import {
   AlertDialog,
@@ -27,11 +28,167 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import ReactMarkdown from 'react-markdown';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertResearchSchema } from "@shared/schema";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import MDEditor from '@uiw/react-md-editor';
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
 
-export default function ResearchDetail() {
+// Component for Brief tab
+function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+  const form = useForm<{ brief: string }>({
+    defaultValues: {
+      brief: research?.brief || "",
+    },
+  });
+
+  const handleSubmit = (data: { brief: string }) => {
+    if (research) {
+      onUpdate({
+        ...research,
+        brief: data.brief,
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="brief"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Brief</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Brief
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// Component for Guide tab
+function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+  const form = useForm<{ guide: string }>({
+    defaultValues: {
+      guide: research?.guide || "",
+    },
+  });
+
+  const handleSubmit = (data: { guide: string }) => {
+    if (research) {
+      onUpdate({
+        ...research,
+        guide: data.guide,
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="guide"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Guide</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Guide
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// Component for Results tab
+function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+  const form = useForm<{ fullText: string }>({
+    defaultValues: {
+      fullText: research?.fullText || "",
+    },
+  });
+
+  const handleSubmit = (data: { fullText: string }) => {
+    if (research) {
+      onUpdate({
+        ...research,
+        fullText: data.fullText,
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="fullText"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Results
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+function ResearchDetail() {
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
@@ -247,15 +404,50 @@ export default function ResearchDetail() {
             </div>
           </div>
 
-          {/* Main form area - More Notion-like with generous spacing and clean dividers */}
+          {/* Main content area with tabs */}
           <div className="px-8 py-6">
-            <ResearchForm
-              onSubmit={handleSubmit}
-              initialData={research || undefined}
-              isLoading={isPending}
-              onCancel={handleCancel}
-              onDelete={!isNew ? handleDelete : undefined}
-            />
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="info">Info</TabsTrigger>
+                <TabsTrigger value="brief">Brief</TabsTrigger>
+                <TabsTrigger value="guide">Guide</TabsTrigger>
+                <TabsTrigger value="results">Results</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="mt-6">
+                <ResearchForm
+                  onSubmit={handleSubmit}
+                  initialData={research || undefined}
+                  isLoading={isPending}
+                  onCancel={handleCancel}
+                  onDelete={!isNew ? handleDelete : undefined}
+                />
+              </TabsContent>
+              
+              <TabsContent value="brief" className="mt-6">
+                <ResearchBriefForm
+                  research={research}
+                  onUpdate={handleSubmit}
+                  isLoading={isPending}
+                />
+              </TabsContent>
+              
+              <TabsContent value="guide" className="mt-6">
+                <ResearchGuideForm
+                  research={research}
+                  onUpdate={handleSubmit}
+                  isLoading={isPending}
+                />
+              </TabsContent>
+              
+              <TabsContent value="results" className="mt-6">
+                <ResearchResultsForm
+                  research={research}
+                  onUpdate={handleSubmit}
+                  isLoading={isPending}
+                />
+              </TabsContent>
+            </Tabs>
             
             {/* Connected Meetings Section */}
             {!isNew && id && (
@@ -378,3 +570,5 @@ export default function ResearchDetail() {
     </div>
   );
 }
+
+export default ResearchDetail;
