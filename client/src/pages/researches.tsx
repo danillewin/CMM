@@ -93,6 +93,7 @@ export default function Researches() {
       case "name": return research.name;
       case "team": return research.team;
       case "researcher": return research.researcher;
+      case "researchType": return research.researchType || "Interviews";
       case "status": return research.status;
       case "dateStart": return new Date(research.dateStart).getTime();
       case "dateEnd": return new Date(research.dateEnd).getTime();
@@ -166,6 +167,15 @@ export default function Researches() {
       visible: true,
       sortField: "team",
       render: (research: Research) => research.team
+    },
+    {
+      id: "researchType",
+      name: "Research Type",
+      visible: true,
+      sortField: "researchType",
+      render: (research: Research) => (
+        <span className="text-sm text-gray-600">{research.researchType || "Interviews"}</span>
+      )
     },
     {
       id: "researcher",
@@ -420,6 +430,10 @@ export default function Researches() {
                   <div>
                     <p className="text-sm font-medium text-gray-500">Researcher</p>
                     <p className="text-sm text-gray-900">{research.researcher}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Research Type</p>
+                    <p className="text-sm text-gray-900">{research.researchType || "Interviews"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Description</p>

@@ -82,7 +82,7 @@ export default function ResearchForm({
       dateStart: startDate,
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: (initialData?.researchType as any) ?? "Interviews",
+      researchType: "Interviews" as const,
     },
   });
 
