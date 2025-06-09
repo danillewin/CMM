@@ -42,6 +42,7 @@ export const researches = pgTable("researches", {
   dateEnd: timestamp("date_end").notNull(),
   status: text("status").notNull().default(ResearchStatus.PLANNED),
   color: text("color").notNull().default("#3b82f6"), // Add color field with default blue
+  researchType: text("research_type").notNull().default("Interviews"),
 });
 
 // Jobs to be Done table
@@ -109,6 +110,15 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
     .default(ResearchStatus.PLANNED),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
+  researchType: z.enum([
+    "CATI (Telephone Survey)",
+    "CAWI (Online Survey)", 
+    "Moderated usability testing",
+    "Unmoderated usability testing",
+    "Co-creation session",
+    "Interviews",
+    "Desk research"
+  ]).default("Interviews"),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
