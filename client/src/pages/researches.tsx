@@ -213,6 +213,27 @@ export default function Researches() {
       render: (research: Research) => new Date(research.dateEnd).toLocaleDateString()
     },
     {
+      id: "products",
+      name: "Products",
+      visible: true,
+      render: (research: Research) => (
+        <div className="flex flex-wrap gap-1">
+          {research.products && research.products.length > 0 ? (
+            research.products.slice(0, 3).map((product, index) => (
+              <span key={index} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                {product}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400 text-xs">No products</span>
+          )}
+          {research.products && research.products.length > 3 && (
+            <span className="text-xs text-gray-500">+{research.products.length - 3} more</span>
+          )}
+        </div>
+      )
+    },
+    {
       id: "description",
       name: "Description",
       visible: false,
