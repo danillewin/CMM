@@ -55,8 +55,18 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   const handleSubmit = (data: { brief: string }) => {
     if (research) {
       onUpdate({
-        ...research,
+        name: research.name,
+        team: research.team,
+        researcher: research.researcher,
+        description: research.description,
+        dateStart: research.dateStart,
+        dateEnd: research.dateEnd,
+        status: research.status as ResearchStatusType,
+        color: research.color,
+        researchType: research.researchType as any,
         brief: data.brief,
+        guide: research.guide || undefined,
+        fullText: research.fullText || undefined,
       });
     }
   };
@@ -103,8 +113,18 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
   const handleSubmit = (data: { guide: string }) => {
     if (research) {
       onUpdate({
-        ...research,
+        name: research.name,
+        team: research.team,
+        researcher: research.researcher,
+        description: research.description,
+        dateStart: research.dateStart,
+        dateEnd: research.dateEnd,
+        status: research.status as ResearchStatusType,
+        color: research.color,
+        researchType: research.researchType as any,
+        brief: research.brief || undefined,
         guide: data.guide,
+        fullText: research.fullText || undefined,
       });
     }
   };
@@ -151,7 +171,17 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
   const handleSubmit = (data: { fullText: string }) => {
     if (research) {
       onUpdate({
-        ...research,
+        name: research.name,
+        team: research.team,
+        researcher: research.researcher,
+        description: research.description,
+        dateStart: research.dateStart,
+        dateEnd: research.dateEnd,
+        status: research.status as ResearchStatusType,
+        color: research.color,
+        researchType: research.researchType as any,
+        brief: research.brief || undefined,
+        guide: research.guide || undefined,
         fullText: data.fullText,
       });
     }
