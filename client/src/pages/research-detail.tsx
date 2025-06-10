@@ -235,7 +235,7 @@ function ResearchDetail() {
       console.log(`Fetching research with ID: ${id}`);
       try {
         // Use regular fetch like meeting-detail.tsx does
-        const res = await fetch(`/api/researches/${id}`);
+        const res = await apiRequest("GET", `/api/researches/${id}`);
         console.log("Response status:", res.status);
         
         if (!res.ok) {

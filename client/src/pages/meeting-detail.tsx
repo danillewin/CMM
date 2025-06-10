@@ -55,7 +55,7 @@ export default function MeetingDetail() {
     queryKey: ["/api/meetings", id],
     queryFn: async () => {
       if (isNew) return undefined;
-      const res = await fetch(`/api/meetings/${id}`);
+      const res = await apiRequest("GET", `/api/meetings/${id}`);
       if (!res.ok) throw new Error("Meeting not found");
       return res.json();
     },
