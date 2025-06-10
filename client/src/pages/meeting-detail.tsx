@@ -5,6 +5,7 @@ import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema"
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Loader2, ExternalLink, ExternalLinkIcon } from "lucide-react";
 import {
   AlertDialog,
@@ -29,7 +30,6 @@ import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import MDEditor from '@uiw/react-md-editor';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema } from "@shared/schema";
@@ -83,7 +83,7 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
         status: meeting.status as any,
         notes: data.notes,
         fullText: data.fullText,
-        hasGift: meeting.hasGift || "no",
+        hasGift: (meeting.hasGift as "yes" | "no") || "no",
       });
     }
   };
@@ -384,33 +384,69 @@ export default function MeetingDetail() {
             </div>
           </div>
 
-          {/* Main form area - More Notion-like with generous spacing */}
+          {/* Tabbed interface - Notion-style */}
           <div className="px-8 py-6">
-            <MeetingForm
-              onSubmit={handleSubmit}
-              initialData={meeting || (preselectedResearchId ? {
-                id: 0, // New meeting
-                researchId: preselectedResearchId,
-                date: new Date(),
-                // Default values for required fields
-                respondentName: "",
-                respondentPosition: "",
-                cnum: "",
-                gcc: null,
-                companyName: null,
-                email: "",
-                researcher: preselectedResearch?.researcher || "", // Set the researcher from the selected research
-                relationshipManager: "",
-                salesPerson: "",
-                status: MeetingStatus.IN_PROGRESS,
-                notes: null
-              } as Meeting : undefined)}
-              isLoading={isPending}
-              onCancel={handleCancel}
-              onDelete={!isNew ? handleDelete : undefined}
-              onCnumChange={handleCnumChange}
-              meetings={meetings}
-            />
+            {isNew ? (
+              // For new meetings, show the full meeting form without tabs
+              <MeetingForm
+                onSubmit={handleSubmit}
+                initialData={preselectedResearchId ? {
+                  id: 0, // New meeting
+                  researchId: preselectedResearchId,
+                  date: new Date(),
+                  // Default values for required fields
+                  respondentName: "",
+                  respondentPosition: "",
+                  cnum: "",
+                  gcc: null,
+                  companyName: null,
+                  email: "",
+                  researcher: preselectedResearch?.researcher || "", // Set the researcher from the selected research
+                  relationshipManager: "",
+                  salesPerson: "",
+                  status: MeetingStatus.IN_PROGRESS,
+                  notes: null
+                } as Meeting : undefined}
+                isLoading={isPending}
+                onCancel={handleCancel}
+                onCnumChange={handleCnumChange}
+                meetings={meetings}
+              />
+            ) : (
+              // For existing meetings, show tabbed interface
+              <Tabs defaultValue="info" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-50 p-1 rounded-lg">
+                  <TabsTrigger 
+                    value="info" 
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
+                  >
+                    Info
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="results" 
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
+                  >
+                    Results
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="info" className="mt-0">
+                  <MeetingInfoForm 
+                    meeting={meeting} 
+                    onUpdate={handleSubmit} 
+                    isLoading={isPending}
+                  />
+                </TabsContent>
+
+                <TabsContent value="results" className="mt-0">
+                  <MeetingResultsForm 
+                    meeting={meeting} 
+                    onUpdate={handleSubmit} 
+                    isLoading={isPending}
+                  />
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
         </div>
 
