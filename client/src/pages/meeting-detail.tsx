@@ -29,9 +29,118 @@ import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import MDEditor from '@uiw/react-md-editor';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { insertMeetingSchema } from "@shared/schema";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
+
+// Component for Meeting Info tab (all fields except notes and fullText)
+function MeetingInfoForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; onUpdate: (data: InsertMeeting) => void; isLoading: boolean }) {
+  return (
+    <MeetingForm
+      onSubmit={onUpdate}
+      initialData={meeting || null}
+      isLoading={isLoading}
+      hideNotesAndFullText={true}
+    />
+  );
+}
+
+// Component for Meeting Results tab (notes and fullText only)
+function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; onUpdate: (data: InsertMeeting) => void; isLoading: boolean }) {
+  const form = useForm<{ notes: string; fullText: string }>({
+    defaultValues: {
+      notes: meeting?.notes || "",
+      fullText: meeting?.fullText || "",
+    },
+  });
+
+  const handleSubmit = (data: { notes: string; fullText: string }) => {
+    if (meeting) {
+      onUpdate({
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        gcc: meeting.gcc || "",
+        companyName: meeting.companyName || "",
+        email: meeting.email || "",
+        researcher: meeting.researcher || "",
+        relationshipManager: meeting.relationshipManager,
+        salesPerson: meeting.salesPerson,
+        date: meeting.date,
+        researchId: meeting.researchId,
+        status: meeting.status as any,
+        notes: data.notes,
+        fullText: data.fullText,
+        hasGift: meeting.hasGift || "no",
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Meeting Notes</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                  height={300}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="fullText"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                  height={300}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Results
+        </Button>
+      </form>
+    </Form>
+  );
+}
 
 export default function MeetingDetail() {
   const [location, setLocation] = useLocation();

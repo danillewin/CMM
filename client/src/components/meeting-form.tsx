@@ -36,6 +36,7 @@ interface MeetingFormProps {
   onDelete?: () => void;
   onCnumChange?: (cnum: string) => void;
   meetings?: Meeting[];
+  hideNotesAndFullText?: boolean;
 }
 
 export default function MeetingForm({
@@ -45,7 +46,8 @@ export default function MeetingForm({
   onCancel,
   onDelete,
   onCnumChange,
-  meetings = []
+  meetings = [],
+  hideNotesAndFullText = false
 }: MeetingFormProps) {
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
   
@@ -474,61 +476,65 @@ export default function MeetingForm({
           />
         </div>
 
-        {/* Meeting Notes Section */}
-        <div className="mb-8">
-          <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-            Meeting Notes
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormControl>
-                  <div data-color-mode="light">
-                    <MDEditor
-                      value={field.value}
-                      onChange={(value) => field.onChange(value || '')}
-                      preview="edit"
-                      height={300}
-                      className="border border-gray-200 rounded-md overflow-hidden"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+{!hideNotesAndFullText && (
+          <>
+            {/* Meeting Notes Section */}
+            <div className="mb-8">
+              <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+                Meeting Notes
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <div data-color-mode="light">
+                        <MDEditor
+                          value={field.value}
+                          onChange={(value) => field.onChange(value || '')}
+                          preview="edit"
+                          height={300}
+                          className="border border-gray-200 rounded-md overflow-hidden"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Full Text Section */}
-        <div className="mb-8">
-          <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-            Full Text
-          </div>
-          
-          <FormField
-            control={form.control}
-            name="fullText"
-            render={({ field }) => (
-              <FormItem className="w-full">
-                <FormControl>
-                  <div data-color-mode="light">
-                    <MDEditor
-                      value={field.value}
-                      onChange={(value) => field.onChange(value || '')}
-                      preview="edit"
-                      height={300}
-                      className="border border-gray-200 rounded-md overflow-hidden"
-                    />
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            {/* Full Text Section */}
+            <div className="mb-8">
+              <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+                Full Text
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="fullText"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormControl>
+                      <div data-color-mode="light">
+                        <MDEditor
+                          value={field.value}
+                          onChange={(value) => field.onChange(value || '')}
+                          preview="edit"
+                          height={300}
+                          className="border border-gray-200 rounded-md overflow-hidden"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </>
+        )}
 
         {/* Action Buttons - styled for Notion look */}
         <div className="flex flex-col sm:flex-row gap-3 mt-10 pt-6 border-t border-gray-100">
