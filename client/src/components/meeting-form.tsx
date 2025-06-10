@@ -73,6 +73,7 @@ export default function MeetingForm({
     researchId: number;
     status: MeetingStatusType;
     notes: string;
+    fullText: string;
     hasGift: "yes" | "no";
   };
 
@@ -92,6 +93,7 @@ export default function MeetingForm({
       researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
+      fullText: initialData?.fullText ?? "",
       hasGift: (initialData?.hasGift as "yes" | "no") ?? "no",
     },
   });
@@ -498,8 +500,34 @@ export default function MeetingForm({
               </FormItem>
             )}
           />
+        </div>
+
+        {/* Full Text Section */}
+        <div className="mb-8">
+          <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
+            Full Text
+          </div>
           
-{/* Removed JTBD section from here - moved to top */}
+          <FormField
+            control={form.control}
+            name="fullText"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <div data-color-mode="light">
+                    <MDEditor
+                      value={field.value}
+                      onChange={(value) => field.onChange(value || '')}
+                      preview="edit"
+                      height={300}
+                      className="border border-gray-200 rounded-md overflow-hidden"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Action Buttons - styled for Notion look */}

@@ -83,6 +83,7 @@ export const meetings = pgTable("meetings", {
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
   notes: text("notes"),
+  fullText: text("full_text"),
   hasGift: text("has_gift").default("no"), // Gift indicator field (yes/no)
 });
 
