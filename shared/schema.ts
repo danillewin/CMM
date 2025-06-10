@@ -142,7 +142,9 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   respondentName: z.string().min(1, "Respondent is required"),
   respondentPosition: z.string().min(1, "Position is required"),
   companyName: z.string().optional(),
-  email: z.string().email("Invalid email format").optional(),
+  email: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
+    message: "Invalid email format"
+  }),
   researcher: z.string().optional(), // Field inherited from Research (not editable)
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
   salesPerson: z.string().min(1, "Recruiter is required"),
