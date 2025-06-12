@@ -178,29 +178,30 @@ export default function RoadmapPage() {
           </Select>
         </div>
 
-        <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm">
-          <div className="flex border-b sticky top-0 bg-white/90 backdrop-blur-sm z-10">
-            <div className="w-48 p-4 font-medium border-r">
-              {viewMode === "teams" ? "Team" : "Researcher"}
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <div className="flex">
-                {months.map((month, i) => (
-                  <div
-                    key={i}
-                    className="border-r p-4 font-medium text-center"
-                    style={{ width: monthWidth }}
-                  >
-                    {format(month, 'MMMM yyyy')}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="overflow-auto flex-1">
-            <div className="flex min-w-full">
+        <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm overflow-hidden">
+          <ScrollArea className="flex-1">
+            <div className="min-w-full">
               <table className="min-w-full">
+                <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                  <tr>
+                    <th className="w-48 p-4 font-medium border-r border-b text-left">
+                      {viewMode === "teams" ? "Team" : "Researcher"}
+                    </th>
+                    <th className="border-b p-0" style={{ width: `${monthWidth * months.length}px` }}>
+                      <div className="flex">
+                        {months.map((month, i) => (
+                          <div
+                            key={i}
+                            className="border-r p-4 font-medium text-center"
+                            style={{ width: monthWidth }}
+                          >
+                            {format(month, 'MMMM yyyy')}
+                          </div>
+                        ))}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
                 <tbody>
                   {Object.entries(groupedResearches).map(([group, groupResearches]) => {
                     const maxOverlap = Math.max(...groupResearches.map((_, i) => 
@@ -260,7 +261,8 @@ export default function RoadmapPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
       </div>
     </div>
