@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 
 
 type ViewMode = "teams" | "researchers";
@@ -71,14 +72,17 @@ export default function RoadmapPage() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
 
   // Get unique teams and researchers for filters
-  const teams = [...new Set(researches.map(r => r.team))].filter(Boolean).sort();
-  const researchers = [...new Set(researches.map(r => r.researcher))].filter(Boolean).sort();
+  const teamSet = new Set(researches.map(r => r.team));
+  const researcherSet = new Set(researches.map(r => r.researcher));
+  const teams = Array.from(teamSet).filter(Boolean).sort();
+  const researchers = Array.from(researcherSet).filter(Boolean).sort();
 
   // Filter researches
   const filteredResearches = researches.filter(research => 
@@ -104,7 +108,14 @@ export default function RoadmapPage() {
   const maxDate = dates.length ? endOfMonth(new Date(Math.max(...dates.map(d => d.getTime())))) : addMonths(new Date(), 3);
   const months = getMonthsBetween(minDate, maxDate);
 
-  const monthWidth = 300;
+  // Calculate month width based on zoom level
+  const baseMonthWidth = 300;
+  const monthWidth = baseMonthWidth * zoomLevel;
+
+  // Zoom control functions
+  const zoomIn = () => setZoomLevel(prev => Math.min(prev * 1.5, 3));
+  const zoomOut = () => setZoomLevel(prev => Math.max(prev / 1.5, 0.3));
+  const resetZoom = () => setZoomLevel(1);
 
   const [, setLocation] = useLocation();
 
@@ -130,14 +141,52 @@ export default function RoadmapPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Research Roadmap</h1>
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-            <TabsList>
-              <TabsTrigger value="teams">Group by Teams</TabsTrigger>
-              <TabsTrigger value="researchers">Group by Researchers</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            {/* Zoom Controls */}
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={zoomOut}
+                disabled={zoomLevel <= 0.3}
+                className="h-8 w-8 p-0"
+                title="Zoom out for helicopter view"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="text-xs font-medium text-gray-600 min-w-[60px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={zoomIn}
+                disabled={zoomLevel >= 3}
+                className="h-8 w-8 p-0"
+                title="Zoom in for detailed view"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetZoom}
+                className="h-8 w-8 p-0"
+                title="Reset zoom to 100%"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+              <TabsList>
+                <TabsTrigger value="teams">Group by Teams</TabsTrigger>
+                <TabsTrigger value="researchers">Group by Researchers</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
