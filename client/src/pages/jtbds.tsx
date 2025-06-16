@@ -85,6 +85,8 @@ function JtbdForm({
     ),
     defaultValues: {
       title: initialData?.title || "",
+      jobStatement: initialData?.jobStatement || "",
+      jobStory: initialData?.jobStory || "",
       description: initialData?.description || "",
       category: initialData?.category || "",
       priority: initialData?.priority || "",

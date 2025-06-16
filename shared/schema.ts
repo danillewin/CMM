@@ -53,6 +53,8 @@ export const researches = pgTable("researches", {
 export const jtbds = pgTable("jtbds", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  jobStatement: text("job_statement"),
+  jobStory: text("job_story"),
   description: text("description").notNull(),
   category: text("category"),
   priority: text("priority"),
@@ -159,6 +161,8 @@ export const insertJtbdSchema = createInsertSchema(jtbds).omit({
   createdAt: true,
 }).extend({
   title: z.string().min(1, "Title is required"),
+  jobStatement: z.string().optional(),
+  jobStory: z.string().optional(),
   description: z.string().min(1, "Description is required"),
   category: z.string().optional(),
   priority: z.string().optional(),
