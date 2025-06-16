@@ -138,9 +138,10 @@ export class DatabaseStorage implements IStorage {
           research_id = $11,
           status = $12,
           notes = $13,
-          has_gift = $14,
-          manager = $15
-        WHERE id = $16
+          full_text = $14,
+          has_gift = $15,
+          manager = $16
+        WHERE id = $17
         RETURNING *
       `;
       
@@ -158,6 +159,7 @@ export class DatabaseStorage implements IStorage {
         meeting.researchId,
         meeting.status,
         meeting.notes || null,
+        meeting.fullText || null,
         meeting.hasGift || "no", // Gift indicator field
         relationshipManager, // Use the same value for the manager field
         id
