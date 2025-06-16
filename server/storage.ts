@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and } from "drizzle-orm";
+import { kafkaService } from "./kafka-service";
 
 export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
@@ -119,6 +120,9 @@ export class DatabaseStorage implements IStorage {
 
   async updateMeeting(id: number, meeting: InsertMeeting): Promise<Meeting | undefined> {
     try {
+      // Get the original meeting to check if status is changing to "Done"
+      const originalMeeting = await this.getMeeting(id);
+      
       // The DB requires a 'manager' field - we need to update it directly with SQL
       const { relationshipManager } = meeting;
       
@@ -170,7 +174,19 @@ export class DatabaseStorage implements IStorage {
       if (result.rows.length === 0) {
         return undefined;
       }
-      return result.rows[0];
+      
+      const updatedMeeting = result.rows[0];
+      
+      // Check if meeting reached "Done" status and send to Kafka
+      const isNowDone = updatedMeeting.status === "Done";
+      const wasAlreadyDone = originalMeeting?.status === "Done";
+      
+      if (isNowDone) {
+        const isUpdate = wasAlreadyDone; // If it was already done, this is an update
+        await kafkaService.sendCompletedMeeting(updatedMeeting, isUpdate);
+      }
+      
+      return updatedMeeting;
     } catch (error) {
       console.error("Error in updateMeeting:", error);
       throw error;
@@ -200,11 +216,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateResearch(id: number, research: InsertResearch): Promise<Research | undefined> {
+    // Get the original research to check if status is changing to "Done"
+    const originalResearch = await this.getResearch(id);
+    
     const [updatedResearch] = await db
       .update(researches)
       .set(research)
       .where(eq(researches.id, id))
       .returning();
+    
+    if (updatedResearch) {
+      // Check if research reached "Done" status and send to Kafka
+      const isNowDone = updatedResearch.status === "Done";
+      const wasAlreadyDone = originalResearch?.status === "Done";
+      
+      if (isNowDone) {
+        const isUpdate = wasAlreadyDone; // If it was already done, this is an update
+        await kafkaService.sendCompletedResearch(updatedResearch, isUpdate);
+      }
+    }
+    
     return updatedResearch;
   }
 
