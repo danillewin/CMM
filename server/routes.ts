@@ -565,28 +565,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Kafka status endpoint
-  app.get("/api/kafka/status", (req, res) => {
-    try {
-      const status = kafkaService.getStatus();
-      res.json({
-        enabled: status.enabled,
-        connected: status.connected,
-        topics: {
-          meetings: "completed-meetings",
-          researches: "completed-researches"
-        },
-        environment: {
-          KAFKA_ENABLED: process.env.KAFKA_ENABLED || "false",
-          KAFKA_BROKER: process.env.KAFKA_BROKER || "localhost:9092",
-          KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID || "research-management-system"
-        }
-      });
-    } catch (error) {
-      console.error("Error getting Kafka status:", error);
-      res.status(500).json({ message: "Failed to get Kafka status" });
-    }
-  });
 
   return createServer(app);
 }
