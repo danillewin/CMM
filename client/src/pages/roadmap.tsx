@@ -259,7 +259,7 @@ export default function RoadmapPage() {
                     return (
                       <tr key={group}>
                         <td 
-                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0"
+                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-10"
                           style={{ height: `${maxOverlap + 100}px` }}
                         >
                           {group}
@@ -267,7 +267,7 @@ export default function RoadmapPage() {
                         <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + 100}px` }}>
                           {/* Current date line */}
                           <div
-                            className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-20"
+                            className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-30"
                             style={{ left: `${currentDatePosition}px` }}
                           />
                           
@@ -277,7 +277,7 @@ export default function RoadmapPage() {
                             return (
                               <Card
                                 key={research.id}
-                                className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                                className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow z-20"
                                 style={{
                                   left: `${left}px`,
                                   width: `${width}px`,
