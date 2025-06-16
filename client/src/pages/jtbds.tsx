@@ -484,6 +484,8 @@ export default function JtbdsPage() {
     mutationFn: async ({ id, ...jtbd }: { id: number } & Partial<Jtbd>) => {
       const res = await apiRequest("PATCH", `/api/jtbds/${id}`, {
         title: jtbd.title,
+        jobStatement: jtbd.jobStatement || "",
+        jobStory: jtbd.jobStory || "",
         description: jtbd.description,
         category: jtbd.category || "",
         priority: jtbd.priority || ""
