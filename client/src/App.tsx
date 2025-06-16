@@ -11,6 +11,7 @@ import Calendar from "@/pages/calendar";
 import Dashboard from "@/pages/dashboard";
 import Roadmap from "@/pages/roadmap";
 import Jtbds from "@/pages/jtbds";
+import KafkaStatus from "@/pages/kafka-status";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
@@ -52,6 +53,11 @@ function Navigation() {
               Jobs to be Done
             </Button>
           </Link>
+          <Link href="/kafka-status">
+            <Button variant={location === "/kafka-status" ? "default" : "ghost"}>
+              Kafka Status
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
@@ -69,6 +75,7 @@ function Router() {
       <Route path="/calendar" component={Calendar} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/jtbds" component={Jtbds} />
+      <Route path="/kafka-status" component={KafkaStatus} />
       <Route component={NotFound} />
     </Switch>
   );

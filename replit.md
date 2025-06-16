@@ -51,6 +51,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Notion API**: Integration capability for external documentation
 - **Anthropic AI**: AI-powered features for research assistance
 - **Excel Export**: Data export functionality for reporting
+- **Kafka Integration**: Event streaming for completed meetings and researches with feature toggle
 
 ## External Dependencies
 
@@ -60,6 +61,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Charts**: Recharts for data visualization
 - **File Processing**: xlsx for Excel file operations
 - **Drag & Drop**: dnd-kit for interactive UI elements
+- **Event Streaming**: KafkaJS for real-time event notifications
 
 ### Development Tools
 - **TypeScript**: Full type safety across frontend and backend
