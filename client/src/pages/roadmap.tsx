@@ -231,9 +231,9 @@ export default function RoadmapPage() {
           <ScrollArea className="flex-1">
             <div className="min-w-full">
               <table className="min-w-full">
-                <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-40">
                   <tr>
-                    <th className="w-48 p-4 font-medium border-r border-b text-left">
+                    <th className="w-48 p-4 font-medium border-r border-b text-left z-40">
                       {viewMode === "teams" ? "Team" : "Researcher"}
                     </th>
                     <th className="border-b p-0" style={{ width: `${monthWidth * months.length}px` }}>
@@ -259,7 +259,7 @@ export default function RoadmapPage() {
                     return (
                       <tr key={group}>
                         <td 
-                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-10"
+                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-30"
                           style={{ height: `${maxOverlap + 100}px` }}
                         >
                           {group}
