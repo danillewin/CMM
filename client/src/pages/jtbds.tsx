@@ -115,6 +115,42 @@ function JtbdForm({
 
         <FormField
           control={form.control}
+          name="jobStatement"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Job Statement</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="When I [situation], I want to [motivation], so I can [expected outcome]"
+                  rows={3}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="jobStory"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Job Story</FormLabel>
+              <FormControl>
+                <Textarea 
+                  placeholder="When I [situation], I want to [motivation], so I can [expected outcome]"
+                  rows={3}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
