@@ -87,7 +87,8 @@ This is a full-stack web application built for managing research interviews and 
 - **Static Serving**: Production serves frontend from Express
 
 ## Changelog
-- June 16, 2025. Initial setup
+- June 16, 2025: Initial setup
+- June 16, 2025: Added Kafka integration for completed meetings and researches with feature toggle (KAFKA_ENABLED)
 
 ## User Preferences
 
