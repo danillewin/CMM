@@ -37,6 +37,7 @@ export default function Researches() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [sortBy, setSortBy] = useState<string>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -49,22 +50,26 @@ export default function Researches() {
     queryKey: ["/api/researches"],
   });
 
-  // Get unique researchers and teams for filters
+  // Get unique researchers, teams, and research types for filters
   const researchersSet = new Set(researches.map(r => r.researcher).filter(Boolean));
   const researchers = Array.from(researchersSet).sort();
   
   const teamsSet = new Set(researches.map(r => r.team).filter(Boolean));
   const teams = Array.from(teamsSet).sort();
 
+  const researchTypesSet = new Set(researches.map(r => r.researchType).filter(Boolean));
+  const researchTypes = Array.from(researchTypesSet).sort();
+
   // Load saved filters from localStorage
   useEffect(() => {
     try {
       const savedFilters = localStorage.getItem("researches-table-filters");
       if (savedFilters) {
-        const { status, researcher, team, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
+        const { status, researcher, team, researchTypes, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
         if (researcher) setResearcherFilter(researcher);
         if (team) setTeamFilter(team);
+        if (researchTypes && Array.isArray(researchTypes)) setResearchTypeFilters(researchTypes);
         if (showStartsInNWeeks !== undefined) setShowStartsInNWeeks(showStartsInNWeeks);
         if (weeksNumber) setWeeksNumber(weeksNumber);
       }
@@ -80,13 +85,14 @@ export default function Researches() {
         status: statusFilter,
         researcher: researcherFilter,
         team: teamFilter,
+        researchTypes: researchTypeFilters,
         showStartsInNWeeks,
         weeksNumber
       }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researcherFilter, teamFilter, showStartsInNWeeks, weeksNumber]);
+  }, [statusFilter, researcherFilter, teamFilter, researchTypeFilters, showStartsInNWeeks, weeksNumber]);
 
   const getValueForSorting = (research: Research, field: string) => {
     switch (field) {
@@ -122,6 +128,7 @@ export default function Researches() {
           (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
           (teamFilter === "ALL" || research.team === teamFilter) &&
           (statusFilter === "ALL" || research.status === statusFilter) &&
+          (researchTypeFilters.length === 0 || researchTypeFilters.includes(research.researchType)) &&
           startsInRange
         );
       }
