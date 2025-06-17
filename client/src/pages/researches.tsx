@@ -298,8 +298,8 @@ export default function Researches() {
       id: "research-type",
       name: "Research Type",
       customComponent: (
-        <div className="flex flex-col space-y-2 py-2">
-          <span className="text-sm font-medium">Research Type</span>
+        <div className="flex flex-col space-y-2">
+          <label className="text-sm font-medium">Research Type</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
