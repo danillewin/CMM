@@ -364,48 +364,6 @@ export default function Researches() {
       value: "",
       onChange: () => {},
       isActive: () => researchTypeFilters.length > 0
-    },
-    {
-      id: "starts-in-weeks",
-      name: "Custom Filter",
-      customComponent: (
-        <div className="flex flex-col space-y-2 py-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="show-starts-in-weeks" 
-              checked={showStartsInNWeeks}
-              onCheckedChange={(checked) => setShowStartsInNWeeks(checked === true)}
-            />
-            <label 
-              htmlFor="show-starts-in-weeks" 
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Show Researches that starts in N weeks
-            </label>
-          </div>
-          
-          {showStartsInNWeeks && (
-            <div className="flex items-center space-x-2 pl-6">
-              <label className="text-sm">N =</label>
-              <Select value={weeksNumber} onValueChange={setWeeksNumber}>
-                <SelectTrigger className="w-[70px]">
-                  <SelectValue placeholder="Weeks" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </div>
-      ),
-      options: [],
-      value: "",
-      onChange: () => {},
-      isActive: () => showStartsInNWeeks
     }
   ];
 
