@@ -17,7 +17,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ZoomIn, ZoomOut, RotateCcw, ChevronDown } from "lucide-react";
 
 
 type ViewMode = "teams" | "researchers";
@@ -72,7 +74,7 @@ export default function RoadmapPage() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [researchTypeFilter, setResearchTypeFilter] = useState<string>("ALL");
+  const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
@@ -92,7 +94,7 @@ export default function RoadmapPage() {
     (teamFilter === "ALL" || research.team === teamFilter) &&
     (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
     (statusFilter === "ALL" || research.status === statusFilter) &&
-    (researchTypeFilter === "ALL" || research.researchType === researchTypeFilter)
+    (researchTypeFilters.length === 0 || researchTypeFilters.includes(research.researchType))
   );
 
   // Group researches based on view mode
@@ -230,17 +232,64 @@ export default function RoadmapPage() {
             </SelectContent>
           </Select>
 
-          <Select value={researchTypeFilter} onValueChange={setResearchTypeFilter}>
-            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by research type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All Research Types</SelectItem>
-              {researchTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between bg-white/80 backdrop-blur-sm shadow-sm border-gray-200"
+              >
+                {researchTypeFilters.length === 0
+                  ? "All Research Types"
+                  : `${researchTypeFilters.length} selected`}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <div className="max-h-60 overflow-auto p-1">
+                <div className="flex items-center px-3 py-2 border-b">
+                  <Checkbox
+                    checked={researchTypeFilters.length === 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setResearchTypeFilters([]);
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium">All Research Types</span>
+                </div>
+                {researchTypes.map((type) => (
+                  <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
+                    <Checkbox
+                      checked={researchTypeFilters.includes(type)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setResearchTypeFilters([...researchTypeFilters, type]);
+                        } else {
+                          setResearchTypeFilters(researchTypeFilters.filter(t => t !== type));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{type}</span>
+                  </div>
+                ))}
+              </div>
+              {researchTypeFilters.length > 0 && (
+                <div className="border-t p-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setResearchTypeFilters([])}
+                    className="w-full text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm overflow-hidden">
