@@ -72,23 +72,27 @@ export default function RoadmapPage() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [researchTypeFilter, setResearchTypeFilter] = useState<string>("ALL");
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
 
   const { data: researches = [], isLoading } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
   });
 
-  // Get unique teams and researchers for filters
+  // Get unique teams, researchers, and research types for filters
   const teamSet = new Set(researches.map(r => r.team));
   const researcherSet = new Set(researches.map(r => r.researcher));
+  const researchTypesSet = new Set(researches.map(r => r.researchType).filter(Boolean));
   const teams = Array.from(teamSet).filter(Boolean).sort();
   const researchers = Array.from(researcherSet).filter(Boolean).sort();
+  const researchTypes = Array.from(researchTypesSet).sort();
 
   // Filter researches
   const filteredResearches = researches.filter(research => 
     (teamFilter === "ALL" || research.team === teamFilter) &&
     (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
-    (statusFilter === "ALL" || research.status === statusFilter)
+    (statusFilter === "ALL" || research.status === statusFilter) &&
+    (researchTypeFilter === "ALL" || research.researchType === researchTypeFilter)
   );
 
   // Group researches based on view mode
@@ -189,7 +193,7 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by team" />
@@ -222,6 +226,18 @@ export default function RoadmapPage() {
               <SelectItem value="ALL">All Statuses</SelectItem>
               {Object.values(ResearchStatus).map((status) => (
                 <SelectItem key={status} value={status}>{status}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={researchTypeFilter} onValueChange={setResearchTypeFilter}>
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Filter by research type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Research Types</SelectItem>
+              {researchTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
               ))}
             </SelectContent>
           </Select>
