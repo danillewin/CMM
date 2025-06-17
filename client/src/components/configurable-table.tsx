@@ -305,32 +305,32 @@ export function ConfigurableTable<T extends { id: number | string }>({
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Filters</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    {filters.map(filter => 
-                      filter.customComponent ? (
-                        <div key={filter.id} className="col-span-2">
-                          {filter.customComponent}
-                        </div>
-                      ) : (
-                        <div key={filter.id} className="space-y-1">
-                          <label className="text-sm font-medium">{filter.name}</label>
-                          <Select value={filter.value} onValueChange={filter.onChange}>
-                            <SelectTrigger className="w-full bg-white">
-                              <SelectValue placeholder={`Select ${filter.name}`} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {filter.options.map(option => (
-                                <SelectItem 
-                                  key={option.value || 'empty'} 
-                                  value={option.value || ''}
-                                >
-                                  {option.label || 'N/A'}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )
-                    )}
+                    {filters.map(filter => (
+                      <div key={filter.id} className="space-y-1">
+                        {filter.customComponent ? (
+                          filter.customComponent
+                        ) : (
+                          <>
+                            <label className="text-sm font-medium">{filter.name}</label>
+                            <Select value={filter.value} onValueChange={filter.onChange}>
+                              <SelectTrigger className="w-full bg-white">
+                                <SelectValue placeholder={`Select ${filter.name}`} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {filter.options.map(option => (
+                                  <SelectItem 
+                                    key={option.value || 'empty'} 
+                                    value={option.value || ''}
+                                  >
+                                    {option.label || 'N/A'}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </>
+                        )}
+                      </div>
+                    ))}
                   </div>
                   {activeFilterCount > 0 && (
                     <div className="col-span-2 mt-2">
