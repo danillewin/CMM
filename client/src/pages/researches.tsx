@@ -296,48 +296,22 @@ export default function Researches() {
     {
       id: "research-type",
       name: "Research Type",
-      customComponent: (
-        <div className="flex flex-col space-y-2 py-2">
-          <span className="text-sm font-medium">Research Type</span>
-          <div className="space-y-2 max-h-32 overflow-y-auto">
-            {researchTypes.map((type) => (
-              <div key={type} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`research-type-${type}`}
-                  checked={researchTypeFilters.includes(type)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setResearchTypeFilters([...researchTypeFilters, type]);
-                    } else {
-                      setResearchTypeFilters(researchTypeFilters.filter(t => t !== type));
-                    }
-                  }}
-                />
-                <label 
-                  htmlFor={`research-type-${type}`}
-                  className="text-sm cursor-pointer"
-                >
-                  {type}
-                </label>
-              </div>
-            ))}
-          </div>
-          {researchTypeFilters.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setResearchTypeFilters([])}
-              className="mt-2 text-xs"
-            >
-              Clear All
-            </Button>
-          )}
-        </div>
-      ),
-      options: [],
-      value: "",
-      onChange: () => {},
-      isActive: () => researchTypeFilters.length > 0
+      options: [
+        { label: "All Research Types", value: "ALL" },
+        ...researchTypes.map(type => ({ 
+          label: type, 
+          value: type 
+        }))
+      ],
+      value: researchTypeFilters.length === 0 ? "ALL" : researchTypeFilters.join(","),
+      onChange: (value: string) => {
+        if (value === "ALL") {
+          setResearchTypeFilters([]);
+        } else {
+          // For now, single selection - we can enhance to multi-select later
+          setResearchTypeFilters([value]);
+        }
+      }
     },
     {
       id: "starts-in-weeks",
