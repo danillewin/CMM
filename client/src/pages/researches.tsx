@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import { useLocation } from "wouter";
 import {
@@ -28,6 +28,7 @@ import ReactMarkdown from 'react-markdown';
 import { useToast } from "@/hooks/use-toast";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeeks } from "date-fns";
 
 type ViewMode = "table" | "cards";
@@ -296,22 +297,73 @@ export default function Researches() {
     {
       id: "research-type",
       name: "Research Type",
-      options: [
-        { label: "All Research Types", value: "ALL" },
-        ...researchTypes.map(type => ({ 
-          label: type, 
-          value: type 
-        }))
-      ],
-      value: researchTypeFilters.length === 0 ? "ALL" : researchTypeFilters.join(","),
-      onChange: (value: string) => {
-        if (value === "ALL") {
-          setResearchTypeFilters([]);
-        } else {
-          // For now, single selection - we can enhance to multi-select later
-          setResearchTypeFilters([value]);
-        }
-      }
+      customComponent: (
+        <div className="flex flex-col space-y-2 py-2">
+          <span className="text-sm font-medium">Research Type</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between bg-white"
+              >
+                {researchTypeFilters.length === 0
+                  ? "All Research Types"
+                  : `${researchTypeFilters.length} selected`}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <div className="max-h-60 overflow-auto p-1">
+                <div className="flex items-center px-3 py-2 border-b">
+                  <Checkbox
+                    checked={researchTypeFilters.length === 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setResearchTypeFilters([]);
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium">All Research Types</span>
+                </div>
+                {researchTypes.map((type) => (
+                  <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
+                    <Checkbox
+                      checked={researchTypeFilters.includes(type)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setResearchTypeFilters([...researchTypeFilters, type]);
+                        } else {
+                          setResearchTypeFilters(researchTypeFilters.filter(t => t !== type));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{type}</span>
+                  </div>
+                ))}
+              </div>
+              {researchTypeFilters.length > 0 && (
+                <div className="border-t p-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setResearchTypeFilters([])}
+                    className="w-full text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+      ),
+      options: [],
+      value: "",
+      onChange: () => {},
+      isActive: () => researchTypeFilters.length > 0
     },
     {
       id: "starts-in-weeks",
