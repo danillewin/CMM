@@ -8,6 +8,22 @@ const KAFKA_ENABLED = process.env.KAFKA_ENABLED === 'true';
 const KAFKA_BROKER = process.env.KAFKA_BROKER || 'localhost:9092';
 const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || 'research-management-system';
 
+// SASL/SSL Authentication configuration
+const KAFKA_SSL_ENABLED = process.env.KAFKA_SSL_ENABLED === 'true';
+const KAFKA_SASL_MECHANISM = process.env.KAFKA_SASL_MECHANISM || 'GSSAPI'; // GSSAPI, PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
+const KAFKA_SASL_USERNAME = process.env.KAFKA_SASL_USERNAME;
+const KAFKA_SASL_PASSWORD = process.env.KAFKA_SASL_PASSWORD;
+const KAFKA_SASL_KERBEROS_SERVICE_NAME = process.env.KAFKA_SASL_KERBEROS_SERVICE_NAME || 'kafka';
+const KAFKA_SASL_KERBEROS_PRINCIPAL = process.env.KAFKA_SASL_KERBEROS_PRINCIPAL;
+const KAFKA_SASL_KERBEROS_KEYTAB = process.env.KAFKA_SASL_KERBEROS_KEYTAB;
+const KAFKA_SASL_KERBEROS_KINIT_CMD = process.env.KAFKA_SASL_KERBEROS_KINIT_CMD;
+
+// SSL Certificate configuration
+const KAFKA_SSL_CA = process.env.KAFKA_SSL_CA;
+const KAFKA_SSL_CERT = process.env.KAFKA_SSL_CERT;
+const KAFKA_SSL_KEY = process.env.KAFKA_SSL_KEY;
+const KAFKA_SSL_REJECT_UNAUTHORIZED = process.env.KAFKA_SSL_REJECT_UNAUTHORIZED !== 'false';
+
 // Topic names
 const MEETINGS_TOPIC = 'completed-meetings';
 const RESEARCHES_TOPIC = 'completed-researches';
@@ -23,15 +39,90 @@ class KafkaService {
       return;
     }
 
-    this.kafka = new Kafka({
+    // Build Kafka configuration with SSL/SASL support
+    const kafkaConfig: any = {
       clientId: KAFKA_CLIENT_ID,
       brokers: [KAFKA_BROKER],
       retry: {
         initialRetryTime: 100,
         retries: 3
       }
-    });
+    };
 
+    // Add SSL configuration if enabled
+    if (KAFKA_SSL_ENABLED) {
+      kafkaConfig.ssl = {
+        rejectUnauthorized: KAFKA_SSL_REJECT_UNAUTHORIZED
+      };
+
+      // Add certificate files if provided
+      if (KAFKA_SSL_CA) {
+        kafkaConfig.ssl.ca = [KAFKA_SSL_CA];
+      }
+      
+      if (KAFKA_SSL_CERT) {
+        kafkaConfig.ssl.cert = KAFKA_SSL_CERT;
+      }
+      
+      if (KAFKA_SSL_KEY) {
+        kafkaConfig.ssl.key = KAFKA_SSL_KEY;
+      }
+
+      console.log('Configuring Kafka with SSL/TLS encryption');
+    }
+
+    // Add SASL authentication configuration
+    if (KAFKA_SASL_MECHANISM && (KAFKA_SASL_USERNAME || KAFKA_SASL_KERBEROS_PRINCIPAL)) {
+      kafkaConfig.sasl = {
+        mechanism: KAFKA_SASL_MECHANISM as 'plain' | 'scram-sha-256' | 'scram-sha-512' | 'gssapi'
+      };
+
+      switch (KAFKA_SASL_MECHANISM) {
+        case 'GSSAPI':
+          if (!KAFKA_SASL_KERBEROS_PRINCIPAL) {
+            throw new Error('GSSAPI mechanism requires KAFKA_SASL_KERBEROS_PRINCIPAL');
+          }
+          
+          const gssapiConfig: any = {
+            mechanism: 'gssapi',
+            serviceName: KAFKA_SASL_KERBEROS_SERVICE_NAME,
+            principal: KAFKA_SASL_KERBEROS_PRINCIPAL
+          };
+
+          // Add keytab file if provided
+          if (KAFKA_SASL_KERBEROS_KEYTAB) {
+            gssapiConfig.keytab = KAFKA_SASL_KERBEROS_KEYTAB;
+          }
+
+          // Add custom kinit command if provided
+          if (KAFKA_SASL_KERBEROS_KINIT_CMD) {
+            gssapiConfig.kinitCmd = KAFKA_SASL_KERBEROS_KINIT_CMD;
+          }
+
+          kafkaConfig.sasl = gssapiConfig;
+          console.log(`Configuring Kafka with Kerberos (GSSAPI) authentication for principal: ${KAFKA_SASL_KERBEROS_PRINCIPAL}`);
+          break;
+
+        case 'PLAIN':
+        case 'SCRAM-SHA-256':
+        case 'SCRAM-SHA-512':
+          if (!KAFKA_SASL_USERNAME || !KAFKA_SASL_PASSWORD) {
+            throw new Error(`SASL mechanism ${KAFKA_SASL_MECHANISM} requires KAFKA_SASL_USERNAME and KAFKA_SASL_PASSWORD`);
+          }
+          kafkaConfig.sasl = {
+            mechanism: KAFKA_SASL_MECHANISM.toLowerCase() as 'plain' | 'scram-sha-256' | 'scram-sha-512',
+            username: KAFKA_SASL_USERNAME,
+            password: KAFKA_SASL_PASSWORD
+          };
+          console.log(`Configuring Kafka with ${KAFKA_SASL_MECHANISM} authentication for user: ${KAFKA_SASL_USERNAME}`);
+          break;
+
+        default:
+          throw new Error(`Unsupported SASL mechanism: ${KAFKA_SASL_MECHANISM}`);
+      }
+    }
+
+    this.kafka = new Kafka(kafkaConfig);
     this.producer = this.kafka.producer();
     this.initialize();
   }

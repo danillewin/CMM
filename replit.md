@@ -51,7 +51,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Notion API**: Integration capability for external documentation
 - **Anthropic AI**: AI-powered features for research assistance
 - **Excel Export**: Data export functionality for reporting
-- **Kafka Integration**: Event streaming for completed meetings and researches with feature toggle
+- **Kafka Integration**: Event streaming for completed meetings and researches with SASL_SSL and Kerberos authentication support
 
 ## External Dependencies
 
@@ -89,6 +89,7 @@ This is a full-stack web application built for managing research interviews and 
 ## Changelog
 - June 16, 2025: Initial setup
 - June 16, 2025: Added Kafka integration for completed meetings and researches with feature toggle (KAFKA_ENABLED)
+- June 16, 2025: Enhanced Kafka integration with SASL_SSL and Kerberos (GSSAPI) authentication support
 
 ## User Preferences
 
