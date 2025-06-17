@@ -5,8 +5,13 @@ import { Meeting, Research } from '@shared/schema';
 const KAFKA_ENABLED = process.env.KAFKA_ENABLED === 'true';
 
 // Kafka configuration
-const KAFKA_BROKER = process.env.KAFKA_BROKER || 'localhost:9092';
+const KAFKA_BROKERS = process.env.KAFKA_BROKERS || process.env.KAFKA_BROKER || 'localhost:9092';
 const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || 'research-management-system';
+
+// Parse broker list (support both single broker and comma-separated cluster)
+const parseBrokers = (brokerString: string): string[] => {
+  return brokerString.split(',').map(broker => broker.trim()).filter(broker => broker.length > 0);
+};
 
 // SASL/SSL Authentication configuration
 const KAFKA_SSL_ENABLED = process.env.KAFKA_SSL_ENABLED === 'true';
@@ -40,9 +45,17 @@ class KafkaService {
     }
 
     // Build Kafka configuration with SSL/SASL support
+    const brokerList = parseBrokers(KAFKA_BROKERS);
+    
+    if (brokerList.length === 0) {
+      throw new Error('No valid Kafka brokers configured. Please set KAFKA_BROKERS or KAFKA_BROKER environment variable.');
+    }
+    
+    console.log(`Configuring Kafka with ${brokerList.length} broker(s): ${brokerList.join(', ')}`);
+    
     const kafkaConfig: any = {
       clientId: KAFKA_CLIENT_ID,
-      brokers: [KAFKA_BROKER],
+      brokers: brokerList,
       retry: {
         initialRetryTime: 100,
         retries: 3

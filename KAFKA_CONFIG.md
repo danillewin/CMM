@@ -7,9 +7,16 @@ This document explains how to configure Kafka integration with SASL_SSL and Kerb
 ### Basic Configuration
 ```bash
 KAFKA_ENABLED=true
-KAFKA_BROKER=your-kafka-broker:9092
+KAFKA_BROKERS=broker1:9092,broker2:9092,broker3:9092
 KAFKA_CLIENT_ID=research-management-system
 ```
+
+**Note**: You can use either `KAFKA_BROKERS` for multiple brokers or `KAFKA_BROKER` for a single broker. The system supports both formats for backward compatibility.
+
+#### Broker Configuration Options:
+- **Single Broker**: `KAFKA_BROKER=localhost:9092`
+- **Multiple Brokers**: `KAFKA_BROKERS=broker1:9092,broker2:9092,broker3:9092`
+- **Mixed Ports**: `KAFKA_BROKERS=kafka1.example.com:9092,kafka2.example.com:9093,kafka3.example.com:9094`
 
 ### SSL/TLS Configuration
 ```bash
@@ -60,7 +67,7 @@ KAFKA_SASL_PASSWORD=your-password
 KAFKA_ENABLED=true
 
 # Kafka cluster configuration
-KAFKA_BROKER=kafka-cluster.company.com:9093
+KAFKA_BROKERS=kafka1.company.com:9093,kafka2.company.com:9093,kafka3.company.com:9093
 KAFKA_CLIENT_ID=research-management-prod
 
 # SSL/TLS configuration
@@ -81,7 +88,7 @@ KAFKA_SASL_KERBEROS_KEYTAB=/etc/keytabs/research-service.keytab
 KAFKA_ENABLED=true
 
 # Kafka cluster configuration
-KAFKA_BROKER=dev-kafka.company.com:9093
+KAFKA_BROKERS=dev-kafka1.company.com:9093,dev-kafka2.company.com:9093
 KAFKA_CLIENT_ID=research-management-dev
 
 # SSL/TLS configuration
