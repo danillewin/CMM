@@ -51,7 +51,7 @@ function getCurrentDatePosition(monthWidth: number, timelineStart: Date) {
   return (daysFromStart * monthWidth) / 30;
 }
 
-function getVerticalPosition(research: Research, existingResearches: Research[], index: number): number {
+function getVerticalPosition(research: Research, existingResearches: Research[], index: number, zoomLevel: number): number {
   const current = new Date(research.dateStart);
   const currentEnd = new Date(research.dateEnd);
 
@@ -65,8 +65,10 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
            isWithinInterval(start, { start: current, end: currentEnd });
   });
 
-  // Return position based on number of overlaps, with more vertical spacing
-  return overlapping.length * 100 + 20;
+  // Return position based on number of overlaps, with vertical spacing scaled by zoom level
+  const baseSpacing = 100;
+  const basePadding = 20;
+  return overlapping.length * (baseSpacing * zoomLevel) + (basePadding * zoomLevel);
 }
 
 export default function RoadmapPage() {
@@ -319,17 +321,17 @@ export default function RoadmapPage() {
                 <tbody>
                   {Object.entries(groupedResearches).map(([group, groupResearches]) => {
                     const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                      getVerticalPosition(groupResearches[i], groupResearches, i)
+                      getVerticalPosition(groupResearches[i], groupResearches, i, zoomLevel)
                     ));
                     return (
                       <tr key={group}>
                         <td 
                           className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-30"
-                          style={{ height: `${maxOverlap + 100}px` }}
+                          style={{ height: `${maxOverlap + (100 * zoomLevel)}px` }}
                         >
                           {group}
                         </td>
-                        <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + 100}px` }}>
+                        <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + (100 * zoomLevel)}px` }}>
                           {/* Current date line */}
                           <div
                             className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-30"
@@ -338,28 +340,41 @@ export default function RoadmapPage() {
                           
                           {groupResearches.map((research, index) => {
                             const { left, width } = getCardPosition(research, monthWidth, minDate);
-                            const top = getVerticalPosition(research, groupResearches, index);
+                            const top = getVerticalPosition(research, groupResearches, index, zoomLevel);
                             return (
                               <Card
                                 key={research.id}
-                                className="absolute p-3 shadow-lg cursor-pointer hover:shadow-xl transition-shadow z-20"
+                                className="absolute shadow-lg cursor-pointer hover:shadow-xl transition-shadow z-20"
                                 style={{
                                   left: `${left}px`,
                                   width: `${width}px`,
                                   top: `${top}px`,
+                                  height: `${70 * zoomLevel}px`,
+                                  padding: `${12 * zoomLevel}px`,
                                   backgroundColor: `${research.color}cc`,
                                 }}
                                 onClick={() => handleResearchClick(research)}
                               >
-                                <div className="font-medium truncate text-white">{research.name}</div>
-                                <div className="text-sm opacity-90 truncate text-white">
+                                <div 
+                                  className="font-medium truncate text-white"
+                                  style={{ fontSize: `${14 * zoomLevel}px`, lineHeight: `${20 * zoomLevel}px` }}
+                                >
+                                  {research.name}
+                                </div>
+                                <div 
+                                  className="opacity-90 truncate text-white"
+                                  style={{ fontSize: `${12 * zoomLevel}px`, lineHeight: `${16 * zoomLevel}px` }}
+                                >
                                   {viewMode === "teams" ? (
                                     <>Researcher: {research.researcher}</>
                                   ) : (
                                     <>Team: {research.team}</>
                                   )}
                                 </div>
-                                <div className="text-sm opacity-90 flex items-center gap-1 text-white">
+                                <div 
+                                  className="opacity-90 flex items-center gap-1 text-white"
+                                  style={{ fontSize: `${12 * zoomLevel}px`, lineHeight: `${16 * zoomLevel}px` }}
+                                >
                                   <span>Status:</span>
                                   <span className="whitespace-nowrap overflow-hidden text-ellipsis" title={research.status}>
                                     {research.status}
