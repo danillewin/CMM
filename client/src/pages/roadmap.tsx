@@ -344,41 +344,75 @@ export default function RoadmapPage() {
                             return (
                               <Card
                                 key={research.id}
-                                className="absolute shadow-lg cursor-pointer hover:shadow-xl transition-shadow z-20"
+                                className="absolute shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 z-20 border-0 overflow-hidden"
                                 style={{
                                   left: `${left}px`,
                                   width: `${width}px`,
                                   top: `${top}px`,
-                                  height: `${70 * zoomLevel}px`,
-                                  padding: `${12 * zoomLevel}px`,
-                                  backgroundColor: `${research.color}cc`,
+                                  height: `${Math.max(80 * zoomLevel, 60)}px`,
+                                  backgroundColor: `${research.color}`,
+                                  borderRadius: `${6 * zoomLevel}px`,
                                 }}
                                 onClick={() => handleResearchClick(research)}
                               >
                                 <div 
-                                  className="font-medium truncate text-white"
-                                  style={{ fontSize: `${14 * zoomLevel}px`, lineHeight: `${20 * zoomLevel}px` }}
+                                  className="h-full flex flex-col justify-between p-3"
+                                  style={{ 
+                                    padding: `${Math.max(12 * zoomLevel, 8)}px`,
+                                  }}
                                 >
-                                  {research.name}
-                                </div>
-                                <div 
-                                  className="opacity-90 truncate text-white"
-                                  style={{ fontSize: `${12 * zoomLevel}px`, lineHeight: `${16 * zoomLevel}px` }}
-                                >
-                                  {viewMode === "teams" ? (
-                                    <>Researcher: {research.researcher}</>
-                                  ) : (
-                                    <>Team: {research.team}</>
-                                  )}
-                                </div>
-                                <div 
-                                  className="opacity-90 flex items-center gap-1 text-white"
-                                  style={{ fontSize: `${12 * zoomLevel}px`, lineHeight: `${16 * zoomLevel}px` }}
-                                >
-                                  <span>Status:</span>
-                                  <span className="whitespace-nowrap overflow-hidden text-ellipsis" title={research.status}>
-                                    {research.status}
-                                  </span>
+                                  <div className="flex-1 min-h-0">
+                                    <div 
+                                      className="font-semibold text-white mb-1 leading-tight"
+                                      style={{ 
+                                        fontSize: `${Math.max(14 * zoomLevel, 11)}px`,
+                                        lineHeight: `${Math.max(18 * zoomLevel, 14)}px`,
+                                        marginBottom: `${Math.max(4 * zoomLevel, 2)}px`
+                                      }}
+                                      title={research.name}
+                                    >
+                                      {research.name}
+                                    </div>
+                                    <div 
+                                      className="text-white/90 text-xs leading-tight"
+                                      style={{ 
+                                        fontSize: `${Math.max(11 * zoomLevel, 9)}px`,
+                                        lineHeight: `${Math.max(14 * zoomLevel, 12)}px`,
+                                        marginBottom: `${Math.max(2 * zoomLevel, 1)}px`
+                                      }}
+                                    >
+                                      {viewMode === "teams" ? research.researcher : research.team}
+                                    </div>
+                                  </div>
+                                  
+                                  <div 
+                                    className="flex items-center justify-between mt-auto"
+                                    style={{ 
+                                      marginTop: `${Math.max(6 * zoomLevel, 4)}px`
+                                    }}
+                                  >
+                                    <div 
+                                      className="text-white/80 text-xs font-medium"
+                                      style={{ 
+                                        fontSize: `${Math.max(10 * zoomLevel, 8)}px`
+                                      }}
+                                    >
+                                      {research.researchType}
+                                    </div>
+                                    <div 
+                                      className="bg-white/20 px-2 py-1 rounded-full text-white text-xs font-medium"
+                                      style={{ 
+                                        fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
+                                        padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
+                                        borderRadius: `${Math.max(12 * zoomLevel, 8)}px`
+                                      }}
+                                      title={research.status}
+                                    >
+                                      {research.status === 'In Progress' ? 'In Progress' : 
+                                       research.status === 'Done' ? 'Done' : 
+                                       research.status === 'Planned' ? 'Planned' : research.status}
+                                    </div>
+                                  </div>
                                 </div>
                               </Card>
                             );
