@@ -1,33 +1,34 @@
 import { Kafka, Producer } from 'kafkajs';
 import { Meeting, Research } from '@shared/schema';
 
-// Feature toggle for Kafka functionality
+// Feature toggle for Kafka functionality - node-rdkafka style
 const KAFKA_ENABLED = process.env.KAFKA_ENABLED === 'true';
 
-// Kafka configuration
-const KAFKA_BROKERS = process.env.KAFKA_BROKERS || process.env.KAFKA_BROKER || 'localhost:9092';
+// Kafka configuration - compatible with node-rdkafka config format
+const KAFKA_METADATA_BROKER_LIST = process.env.KAFKA_METADATA_BROKER_LIST || process.env.KAFKA_BROKERS || 'localhost:9092';
 const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || 'research-management-system';
 
-// Parse broker list (support both single broker and comma-separated cluster)
+// Parse broker list - node-rdkafka compatible
 const parseBrokers = (brokerString: string): string[] => {
   return brokerString.split(',').map(broker => broker.trim()).filter(broker => broker.length > 0);
 };
 
-// SASL/SSL Authentication configuration
-const KAFKA_SSL_ENABLED = process.env.KAFKA_SSL_ENABLED === 'true';
-const KAFKA_SASL_MECHANISM = process.env.KAFKA_SASL_MECHANISM || 'GSSAPI'; // GSSAPI, PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
-const KAFKA_SASL_USERNAME = process.env.KAFKA_SASL_USERNAME;
-const KAFKA_SASL_PASSWORD = process.env.KAFKA_SASL_PASSWORD;
-const KAFKA_SASL_KERBEROS_SERVICE_NAME = process.env.KAFKA_SASL_KERBEROS_SERVICE_NAME || 'kafka';
-const KAFKA_SASL_KERBEROS_PRINCIPAL = process.env.KAFKA_SASL_KERBEROS_PRINCIPAL;
-const KAFKA_SASL_KERBEROS_KEYTAB = process.env.KAFKA_SASL_KERBEROS_KEYTAB;
-const KAFKA_SASL_KERBEROS_KINIT_CMD = process.env.KAFKA_SASL_KERBEROS_KINIT_CMD;
+// node-rdkafka compatible configuration parameters
+const SECURITY_PROTOCOL = process.env.SECURITY_PROTOCOL || 'PLAINTEXT'; // PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
+const SASL_MECHANISM = process.env.SASL_MECHANISM || 'GSSAPI'; // GSSAPI, PLAIN, SCRAM-SHA-256, SCRAM-SHA-512
+const SASL_USERNAME = process.env.SASL_USERNAME;
+const SASL_PASSWORD = process.env.SASL_PASSWORD;
+const SASL_KERBEROS_SERVICE_NAME = process.env.SASL_KERBEROS_SERVICE_NAME || 'kafka';
+const SASL_KERBEROS_PRINCIPAL = process.env.SASL_KERBEROS_PRINCIPAL;
+const SASL_KERBEROS_KEYTAB = process.env.SASL_KERBEROS_KEYTAB;
+const SASL_KERBEROS_KINIT_CMD = process.env.SASL_KERBEROS_KINIT_CMD;
 
-// SSL Certificate configuration
-const KAFKA_SSL_CA = process.env.KAFKA_SSL_CA;
-const KAFKA_SSL_CERT = process.env.KAFKA_SSL_CERT;
-const KAFKA_SSL_KEY = process.env.KAFKA_SSL_KEY;
-const KAFKA_SSL_REJECT_UNAUTHORIZED = process.env.KAFKA_SSL_REJECT_UNAUTHORIZED !== 'false';
+// SSL configuration - node-rdkafka style
+const SSL_CA_LOCATION = process.env.SSL_CA_LOCATION;
+const SSL_CERTIFICATE_LOCATION = process.env.SSL_CERTIFICATE_LOCATION;
+const SSL_KEY_LOCATION = process.env.SSL_KEY_LOCATION;
+const SSL_KEY_PASSWORD = process.env.SSL_KEY_PASSWORD;
+const SSL_ENDPOINT_IDENTIFICATION_ALGORITHM = process.env.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM || 'https';
 
 // Topic names
 const MEETINGS_TOPIC = 'completed-meetings';
@@ -44,14 +45,15 @@ class KafkaService {
       return;
     }
 
-    // Build Kafka configuration with SSL/SASL support
-    const brokerList = parseBrokers(KAFKA_BROKERS);
+    // Build node-rdkafka compatible configuration
+    const brokerList = parseBrokers(KAFKA_METADATA_BROKER_LIST);
     
     if (brokerList.length === 0) {
-      throw new Error('No valid Kafka brokers configured. Please set KAFKA_BROKERS or KAFKA_BROKER environment variable.');
+      throw new Error('No valid Kafka brokers configured. Please set KAFKA_METADATA_BROKER_LIST or KAFKA_BROKERS environment variable.');
     }
     
     console.log(`Configuring Kafka with ${brokerList.length} broker(s): ${brokerList.join(', ')}`);
+    console.log(`Security Protocol: ${SECURITY_PROTOCOL}`);
     
     const kafkaConfig: any = {
       clientId: KAFKA_CLIENT_ID,
@@ -62,81 +64,92 @@ class KafkaService {
       }
     };
 
-    // Add SSL configuration if enabled
-    if (KAFKA_SSL_ENABLED) {
+    // Configure SSL based on security protocol - node-rdkafka style
+    if (SECURITY_PROTOCOL === 'SSL' || SECURITY_PROTOCOL === 'SASL_SSL') {
       kafkaConfig.ssl = {
-        rejectUnauthorized: KAFKA_SSL_REJECT_UNAUTHORIZED
+        rejectUnauthorized: SSL_ENDPOINT_IDENTIFICATION_ALGORITHM === 'https'
       };
 
-      // Add certificate files if provided
-      if (KAFKA_SSL_CA) {
-        kafkaConfig.ssl.ca = [KAFKA_SSL_CA];
+      // Add certificate files if provided - node-rdkafka locations
+      if (SSL_CA_LOCATION) {
+        kafkaConfig.ssl.ca = [SSL_CA_LOCATION];
       }
       
-      if (KAFKA_SSL_CERT) {
-        kafkaConfig.ssl.cert = KAFKA_SSL_CERT;
+      if (SSL_CERTIFICATE_LOCATION) {
+        kafkaConfig.ssl.cert = SSL_CERTIFICATE_LOCATION;
       }
       
-      if (KAFKA_SSL_KEY) {
-        kafkaConfig.ssl.key = KAFKA_SSL_KEY;
+      if (SSL_KEY_LOCATION) {
+        kafkaConfig.ssl.key = SSL_KEY_LOCATION;
       }
 
-      console.log('Configuring Kafka with SSL/TLS encryption');
+      if (SSL_KEY_PASSWORD) {
+        kafkaConfig.ssl.passphrase = SSL_KEY_PASSWORD;
+      }
+
+      console.log('Configuring Kafka with SSL/TLS encryption (node-rdkafka compatible)');
     }
 
-    // Add SASL authentication configuration
-    if (KAFKA_SASL_MECHANISM && (KAFKA_SASL_USERNAME || KAFKA_SASL_KERBEROS_PRINCIPAL)) {
-      kafkaConfig.sasl = {
-        mechanism: KAFKA_SASL_MECHANISM as 'plain' | 'scram-sha-256' | 'scram-sha-512' | 'gssapi'
-      };
+    // Configure SASL based on security protocol and mechanism - node-rdkafka style
+    if (SECURITY_PROTOCOL === 'SASL_PLAINTEXT' || SECURITY_PROTOCOL === 'SASL_SSL') {
+      if (!SASL_MECHANISM) {
+        throw new Error('SASL_MECHANISM is required when using SASL security protocol');
+      }
 
-      switch (KAFKA_SASL_MECHANISM) {
+      switch (SASL_MECHANISM) {
         case 'GSSAPI':
-          if (!KAFKA_SASL_KERBEROS_PRINCIPAL) {
-            throw new Error('GSSAPI mechanism requires KAFKA_SASL_KERBEROS_PRINCIPAL');
+          if (!SASL_KERBEROS_PRINCIPAL) {
+            throw new Error('GSSAPI mechanism requires SASL_KERBEROS_PRINCIPAL');
           }
           
           const gssapiConfig: any = {
             mechanism: 'gssapi',
-            serviceName: KAFKA_SASL_KERBEROS_SERVICE_NAME,
-            principal: KAFKA_SASL_KERBEROS_PRINCIPAL
+            serviceName: SASL_KERBEROS_SERVICE_NAME,
+            principal: SASL_KERBEROS_PRINCIPAL
           };
 
           // Add keytab file if provided
-          if (KAFKA_SASL_KERBEROS_KEYTAB) {
-            gssapiConfig.keytab = KAFKA_SASL_KERBEROS_KEYTAB;
+          if (SASL_KERBEROS_KEYTAB) {
+            gssapiConfig.keytab = SASL_KERBEROS_KEYTAB;
           }
 
           // Add custom kinit command if provided
-          if (KAFKA_SASL_KERBEROS_KINIT_CMD) {
-            gssapiConfig.kinitCmd = KAFKA_SASL_KERBEROS_KINIT_CMD;
+          if (SASL_KERBEROS_KINIT_CMD) {
+            gssapiConfig.kinitCmd = SASL_KERBEROS_KINIT_CMD;
           }
 
           kafkaConfig.sasl = gssapiConfig;
-          console.log(`Configuring Kafka with Kerberos (GSSAPI) authentication for principal: ${KAFKA_SASL_KERBEROS_PRINCIPAL}`);
+          console.log(`Configuring Kafka with Kerberos (GSSAPI) authentication for principal: ${SASL_KERBEROS_PRINCIPAL}`);
           break;
 
         case 'PLAIN':
         case 'SCRAM-SHA-256':
         case 'SCRAM-SHA-512':
-          if (!KAFKA_SASL_USERNAME || !KAFKA_SASL_PASSWORD) {
-            throw new Error(`SASL mechanism ${KAFKA_SASL_MECHANISM} requires KAFKA_SASL_USERNAME and KAFKA_SASL_PASSWORD`);
+          if (!SASL_USERNAME || !SASL_PASSWORD) {
+            throw new Error(`SASL mechanism ${SASL_MECHANISM} requires SASL_USERNAME and SASL_PASSWORD`);
           }
           kafkaConfig.sasl = {
-            mechanism: KAFKA_SASL_MECHANISM.toLowerCase() as 'plain' | 'scram-sha-256' | 'scram-sha-512',
-            username: KAFKA_SASL_USERNAME,
-            password: KAFKA_SASL_PASSWORD
+            mechanism: SASL_MECHANISM.toLowerCase() as 'plain' | 'scram-sha-256' | 'scram-sha-512',
+            username: SASL_USERNAME,
+            password: SASL_PASSWORD
           };
-          console.log(`Configuring Kafka with ${KAFKA_SASL_MECHANISM} authentication for user: ${KAFKA_SASL_USERNAME}`);
+          console.log(`Configuring Kafka with ${SASL_MECHANISM} authentication for user: ${SASL_USERNAME}`);
           break;
 
         default:
-          throw new Error(`Unsupported SASL mechanism: ${KAFKA_SASL_MECHANISM}`);
+          throw new Error(`Unsupported SASL mechanism: ${SASL_MECHANISM}`);
       }
     }
 
     this.kafka = new Kafka(kafkaConfig);
-    this.producer = this.kafka.producer();
+    
+    // Configure producer with node-rdkafka style settings
+    this.producer = this.kafka.producer({
+      maxInFlightRequests: 1,
+      idempotent: true,
+      transactionTimeout: 30000,
+    });
+    
     this.initialize();
   }
 
@@ -146,7 +159,7 @@ class KafkaService {
     try {
       await this.producer.connect();
       this.isConnected = true;
-      console.log('Kafka producer connected successfully');
+      console.log('Kafka producer connected successfully (node-rdkafka compatible configuration)');
     } catch (error) {
       console.error('Failed to connect to Kafka:', error);
       this.isConnected = false;

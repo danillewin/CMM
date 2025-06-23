@@ -1,116 +1,156 @@
-# Kafka Configuration Guide
+# Kafka Integration Configuration (node-rdkafka Compatible)
 
-This document explains how to configure Kafka integration with SASL_SSL and Kerberos authentication for the Research Management System.
+This document describes how to configure Kafka integration for the Research Interview Management System using node-rdkafka compatible configuration parameters.
 
-## Environment Variables
+## Feature Toggle
 
-### Basic Configuration
+The Kafka integration can be enabled or disabled using:
 ```bash
-KAFKA_ENABLED=true
-KAFKA_BROKERS=broker1:9092,broker2:9092,broker3:9092
-KAFKA_CLIENT_ID=research-management-system
+KAFKA_ENABLED=true  # Set to 'true' to enable, any other value disables
 ```
 
-**Note**: You can use either `KAFKA_BROKERS` for multiple brokers or `KAFKA_BROKER` for a single broker. The system supports both formats for backward compatibility.
+## Basic Configuration
 
-#### Broker Configuration Options:
-- **Single Broker**: `KAFKA_BROKER=localhost:9092`
-- **Multiple Brokers**: `KAFKA_BROKERS=broker1:9092,broker2:9092,broker3:9092`
-- **Mixed Ports**: `KAFKA_BROKERS=kafka1.example.com:9092,kafka2.example.com:9093,kafka3.example.com:9094`
+### Broker List
+```bash
+# Primary configuration (node-rdkafka standard)
+KAFKA_METADATA_BROKER_LIST=localhost:9092
+
+# Alternative (for compatibility)
+KAFKA_BROKERS=localhost:9092
+```
+
+### Multiple Brokers (Cluster)
+```bash
+KAFKA_METADATA_BROKER_LIST=broker1:9092,broker2:9092,broker3:9092
+```
+
+### Client Configuration
+```bash
+KAFKA_CLIENT_ID=research-management-system  # Optional, defaults to 'research-management-system'
+```
+
+## Security Configuration (node-rdkafka style)
+
+### Security Protocol
+```bash
+SECURITY_PROTOCOL=PLAINTEXT      # PLAINTEXT, SSL, SASL_PLAINTEXT, SASL_SSL
+```
 
 ### SSL/TLS Configuration
+
+For SSL or SASL_SSL protocols:
 ```bash
-KAFKA_SSL_ENABLED=true
-KAFKA_SSL_REJECT_UNAUTHORIZED=true
-KAFKA_SSL_CA=/path/to/ca-cert.pem
-KAFKA_SSL_CERT=/path/to/client-cert.pem
-KAFKA_SSL_KEY=/path/to/client-key.pem
+SECURITY_PROTOCOL=SSL  # or SASL_SSL
+
+# SSL Certificate locations (node-rdkafka standard)
+SSL_CA_LOCATION=/path/to/ca-cert.pem          # Certificate Authority certificate
+SSL_CERTIFICATE_LOCATION=/path/to/client-cert.pem    # Client certificate  
+SSL_KEY_LOCATION=/path/to/client-key.pem      # Client private key
+SSL_KEY_PASSWORD=your-key-password            # Private key password (if encrypted)
+SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=https   # Hostname verification (default: https)
 ```
 
-### SASL Authentication Mechanisms
+### SASL Authentication
 
-#### 1. Kerberos (GSSAPI) - Recommended for Enterprise
+For SASL_PLAINTEXT or SASL_SSL protocols:
+
+#### SASL/PLAIN
 ```bash
-KAFKA_SASL_MECHANISM=GSSAPI
-KAFKA_SASL_KERBEROS_SERVICE_NAME=kafka
-KAFKA_SASL_KERBEROS_PRINCIPAL=your-service@YOUR.REALM
-KAFKA_SASL_KERBEROS_KEYTAB=/path/to/service.keytab
-KAFKA_SASL_KERBEROS_KINIT_CMD=/usr/bin/kinit
+SECURITY_PROTOCOL=SASL_SSL  # or SASL_PLAINTEXT
+SASL_MECHANISM=PLAIN
+SASL_USERNAME=your-username
+SASL_PASSWORD=your-password
 ```
 
-#### 2. SCRAM-SHA-256 (Username/Password)
+#### SASL/SCRAM-SHA-256
 ```bash
-KAFKA_SASL_MECHANISM=SCRAM-SHA-256
-KAFKA_SASL_USERNAME=your-username
-KAFKA_SASL_PASSWORD=your-password
+SECURITY_PROTOCOL=SASL_SSL
+SASL_MECHANISM=SCRAM-SHA-256
+SASL_USERNAME=your-username
+SASL_PASSWORD=your-password
 ```
 
-#### 3. SCRAM-SHA-512 (Username/Password)
+#### SASL/SCRAM-SHA-512
 ```bash
-KAFKA_SASL_MECHANISM=SCRAM-SHA-512
-KAFKA_SASL_USERNAME=your-username
-KAFKA_SASL_PASSWORD=your-password
+SECURITY_PROTOCOL=SASL_SSL
+SASL_MECHANISM=SCRAM-SHA-512
+SASL_USERNAME=your-username
+SASL_PASSWORD=your-password
 ```
 
-#### 4. PLAIN (Username/Password)
+#### SASL/GSSAPI (Kerberos)
 ```bash
-KAFKA_SASL_MECHANISM=PLAIN
-KAFKA_SASL_USERNAME=your-username
-KAFKA_SASL_PASSWORD=your-password
+SECURITY_PROTOCOL=SASL_SSL
+SASL_MECHANISM=GSSAPI
+SASL_KERBEROS_PRINCIPAL=your-principal@YOUR-REALM.COM
+SASL_KERBEROS_SERVICE_NAME=kafka                          # Optional, defaults to 'kafka'
+SASL_KERBEROS_KEYTAB=/path/to/your.keytab                # Optional keytab file
+SASL_KERBEROS_KINIT_CMD=kinit -kt %{keytab} %{principal} # Optional custom kinit command
 ```
 
-## Configuration Examples
+## Example Configurations
 
-### Production Environment with Kerberos
+### Local Development
 ```bash
-# Enable Kafka integration
+KAFKA_ENABLED=true
+KAFKA_METADATA_BROKER_LIST=localhost:9092
+SECURITY_PROTOCOL=PLAINTEXT
+```
+
+### Production with SSL + SASL
+```bash
+# Enable Kafka
 KAFKA_ENABLED=true
 
-# Kafka cluster configuration
-KAFKA_BROKERS=kafka1.company.com:9093,kafka2.company.com:9093,kafka3.company.com:9093
-KAFKA_CLIENT_ID=research-management-prod
+# Broker configuration
+KAFKA_METADATA_BROKER_LIST=secure-broker1:9093,secure-broker2:9093
 
-# SSL/TLS configuration
-KAFKA_SSL_ENABLED=true
-KAFKA_SSL_REJECT_UNAUTHORIZED=true
-KAFKA_SSL_CA=/etc/ssl/certs/kafka-ca.pem
+# Security Protocol
+SECURITY_PROTOCOL=SASL_SSL
 
-# Kerberos authentication
-KAFKA_SASL_MECHANISM=GSSAPI
-KAFKA_SASL_KERBEROS_SERVICE_NAME=kafka
-KAFKA_SASL_KERBEROS_PRINCIPAL=research-service@COMPANY.COM
-KAFKA_SASL_KERBEROS_KEYTAB=/etc/keytabs/research-service.keytab
+# SSL Configuration
+SSL_CA_LOCATION=/opt/kafka/ssl/ca-cert.pem
+SSL_CERTIFICATE_LOCATION=/opt/kafka/ssl/client-cert.pem
+SSL_KEY_LOCATION=/opt/kafka/ssl/client-key.pem
+SSL_ENDPOINT_IDENTIFICATION_ALGORITHM=https
+
+# SASL Configuration
+SASL_MECHANISM=SCRAM-SHA-256
+SASL_USERNAME=research-app
+SASL_PASSWORD=secure-password-here
 ```
 
-### Development Environment with SCRAM
+### Confluent Cloud Example
 ```bash
-# Enable Kafka integration
 KAFKA_ENABLED=true
+KAFKA_METADATA_BROKER_LIST=your-cluster.confluent.cloud:9092
+SECURITY_PROTOCOL=SASL_SSL
+SASL_MECHANISM=PLAIN
+SASL_USERNAME=your-api-key
+SASL_PASSWORD=your-api-secret
+```
 
-# Kafka cluster configuration
-KAFKA_BROKERS=dev-kafka1.company.com:9093,dev-kafka2.company.com:9093
-KAFKA_CLIENT_ID=research-management-dev
-
-# SSL/TLS configuration
-KAFKA_SSL_ENABLED=true
-KAFKA_SSL_REJECT_UNAUTHORIZED=false
-
-# SCRAM authentication
-KAFKA_SASL_MECHANISM=SCRAM-SHA-256
-KAFKA_SASL_USERNAME=research-dev-user
-KAFKA_SASL_PASSWORD=dev-password-123
+### Kerberos Authentication Example
+```bash
+KAFKA_ENABLED=true
+KAFKA_METADATA_BROKER_LIST=kerberized-broker1:9092,kerberized-broker2:9092
+SECURITY_PROTOCOL=SASL_SSL
+SASL_MECHANISM=GSSAPI
+SASL_KERBEROS_PRINCIPAL=kafka-client@EXAMPLE.COM
+SASL_KERBEROS_SERVICE_NAME=kafka
+SASL_KERBEROS_KEYTAB=/etc/security/keytabs/kafka-client.keytab
 ```
 
 ## Topics
 
-The system automatically publishes to these topics when entities reach "Done" status:
-
-- **completed-meetings**: Meeting completion events
-- **completed-researches**: Research completion events
+The application publishes to these topics:
+- `completed-meetings` - Published when a meeting is marked as completed
+- `completed-researches` - Published when a research project is marked as completed
 
 ## Message Format
 
-### Meeting Completion Message
+### Completed Meeting Message
 ```json
 {
   "id": 123,
@@ -119,18 +159,18 @@ The system automatically publishes to these topics when entities reach "Done" st
   "action": "completed",
   "data": {
     "respondentName": "John Doe",
-    "respondentPosition": "CEO",
-    "companyName": "Example Corp",
+    "respondentPosition": "Senior Developer",
+    "companyName": "Tech Corp",
     "researcher": "Jane Smith",
-    "date": "2025-01-15T10:00:00Z",
+    "date": "2025-06-16T10:00:00Z",
     "researchId": 456,
     "cnum": "C12345"
   },
-  "timestamp": "2025-01-15T10:30:00Z"
+  "timestamp": "2025-06-16T10:30:00Z"
 }
 ```
 
-### Research Completion Message
+### Completed Research Message
 ```json
 {
   "id": 456,
@@ -138,53 +178,52 @@ The system automatically publishes to these topics when entities reach "Done" st
   "status": "Done",
   "action": "completed",
   "data": {
-    "name": "Customer Journey Analysis",
-    "team": "Product Strategy",
+    "name": "User Experience Research",
+    "team": "UX Team",
     "researcher": "Jane Smith",
-    "description": "Research description...",
-    "dateStart": "2025-01-01T00:00:00Z",
-    "dateEnd": "2025-01-31T00:00:00Z",
-    "researchType": "Interviews",
-    "products": ["Product A", "Product B"]
+    "description": "Research on user preferences",
+    "dateStart": "2025-06-01",
+    "dateEnd": "2025-06-30",
+    "researchType": "User Research",
+    "products": "Product A"
   },
-  "timestamp": "2025-01-15T10:30:00Z"
+  "timestamp": "2025-06-16T10:30:00Z"
 }
 ```
 
-## Security Best Practices
+## Message Headers
 
-1. **Use Kerberos for Production**: GSSAPI provides the strongest authentication mechanism
-2. **Enable SSL/TLS**: Always encrypt data in transit
-3. **Secure Keytab Files**: Protect keytab files with appropriate file permissions (600)
-4. **Rotate Credentials**: Regularly rotate passwords and renew Kerberos tickets
-5. **Network Security**: Use VPNs or private networks for Kafka communication
-6. **Monitor Access**: Enable Kafka audit logging to track access patterns
+All messages include these headers:
+- `event-type`: Either "meeting-completed" or "research-completed"
+- `source`: "research-management-system"
+
+## Configuration Migration from kafkajs
+
+If migrating from a kafkajs configuration, use this mapping:
+
+| kafkajs Config | node-rdkafka Equivalent |
+|----------------|-------------------------|
+| `KAFKA_BROKERS` | `KAFKA_METADATA_BROKER_LIST` |
+| `KAFKA_SSL_ENABLED=true` | `SECURITY_PROTOCOL=SSL` |
+| `KAFKA_SASL_MECHANISM=PLAIN` + `KAFKA_SSL_ENABLED=true` | `SECURITY_PROTOCOL=SASL_SSL` + `SASL_MECHANISM=PLAIN` |
+| `KAFKA_SSL_CA` | `SSL_CA_LOCATION` |
+| `KAFKA_SSL_CERT` | `SSL_CERTIFICATE_LOCATION` |
+| `KAFKA_SSL_KEY` | `SSL_KEY_LOCATION` |
+| `KAFKA_SASL_USERNAME` | `SASL_USERNAME` |
+| `KAFKA_SASL_PASSWORD` | `SASL_PASSWORD` |
 
 ## Troubleshooting
 
-### Common Issues
+1. **Connection Issues**: Verify `KAFKA_METADATA_BROKER_LIST` and network connectivity
+2. **Security Protocol Mismatch**: Ensure `SECURITY_PROTOCOL` matches your Kafka cluster configuration
+3. **Authentication Failures**: Check SASL credentials and mechanism
+4. **SSL Errors**: Verify certificate file paths in `SSL_*_LOCATION` variables
+5. **Kerberos Issues**: Ensure keytab file exists and principal is correct
 
-1. **Kerberos Authentication Fails**
-   - Verify principal name format
-   - Check keytab file permissions and location
-   - Ensure system time is synchronized with KDC
-   - Verify DNS resolution for Kerberos realm
+## Status Monitoring
 
-2. **SSL Connection Issues**
-   - Verify certificate paths and permissions
-   - Check certificate validity and chain
-   - Ensure hostname matches certificate
-
-3. **SASL Authentication Fails**
-   - Verify username/password credentials
-   - Check SASL mechanism support on broker
-   - Ensure proper ACLs are configured
-
-### Debug Logging
-
-Enable detailed logging by setting environment variables:
-```bash
-DEBUG=kafkajs*
-```
-
-This will provide detailed connection and authentication information in the application logs.
+The application provides logging for:
+- Connection status with security protocol information
+- Authentication method being used
+- SSL/TLS encryption status
+- Any configuration or connection errors
