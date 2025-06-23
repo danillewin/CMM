@@ -150,7 +150,7 @@ The application publishes to these topics:
 
 ## Message Format
 
-### Completed Meeting Message
+### Completed Meeting Message (Enhanced)
 ```json
 {
   "id": 123,
@@ -161,16 +161,51 @@ The application publishes to these topics:
     "respondentName": "John Doe",
     "respondentPosition": "Senior Developer",
     "companyName": "Tech Corp",
+    "email": "john.doe@techcorp.com",
     "researcher": "Jane Smith",
+    "relationshipManager": "Bob Johnson",
+    "salesPerson": "Alice Brown",
     "date": "2025-06-16T10:00:00Z",
     "researchId": 456,
-    "cnum": "C12345"
+    "cnum": "C12345",
+    "gcc": "GCC123",
+    "hasGift": true,
+    "notes": "Detailed meeting notes about customer pain points...",
+    "fullText": "Complete transcript of the meeting discussion...",
+    "linkedJtbds": [
+      {
+        "id": 1,
+        "name": "Improve workflow efficiency",
+        "description": "Customer wants to streamline their daily tasks",
+        "category": "Productivity",
+        "parentId": null
+      }
+    ],
+    "relatedResearch": {
+      "id": 456,
+      "name": "User Experience Research",
+      "team": "UX Team",
+      "researcher": "Jane Smith",
+      "researchType": "User Research",
+      "products": "Product A",
+      "status": "In Progress",
+      "dateStart": "2025-06-01",
+      "dateEnd": "2025-06-30"
+    }
+  },
+  "metadata": {
+    "totalLinkedJtbds": 1,
+    "hasRelatedResearch": true,
+    "contentLength": {
+      "notes": 256,
+      "fullText": 1024
+    }
   },
   "timestamp": "2025-06-16T10:30:00Z"
 }
 ```
 
-### Completed Research Message
+### Completed Research Message (Enhanced)
 ```json
 {
   "id": 456,
@@ -181,11 +216,61 @@ The application publishes to these topics:
     "name": "User Experience Research",
     "team": "UX Team",
     "researcher": "Jane Smith",
-    "description": "Research on user preferences",
+    "researchType": "User Research",
+    "products": "Product A",
     "dateStart": "2025-06-01",
     "dateEnd": "2025-06-30",
-    "researchType": "User Research",
-    "products": "Product A"
+    "color": "#3B82F6",
+    "description": "Comprehensive research on user preferences and behavior patterns",
+    "brief": "Executive summary of key findings and recommendations",
+    "linkedJtbds": [
+      {
+        "id": 1,
+        "name": "Improve workflow efficiency",
+        "description": "Users want to streamline their daily tasks",
+        "category": "Productivity",
+        "parentId": null
+      },
+      {
+        "id": 2,
+        "name": "Better mobile experience",
+        "description": "Mobile app usability improvements needed",
+        "category": "Mobile",
+        "parentId": 1
+      }
+    ],
+    "relatedMeetings": [
+      {
+        "id": 123,
+        "respondentName": "John Doe",
+        "respondentPosition": "Senior Developer",
+        "companyName": "Tech Corp",
+        "researcher": "Jane Smith",
+        "date": "2025-06-16T10:00:00Z",
+        "status": "Done",
+        "cnum": "C12345",
+        "gcc": "GCC123",
+        "hasGift": true,
+        "hasNotes": true,
+        "hasFullText": true,
+        "notesLength": 256,
+        "fullTextLength": 1024
+      }
+    ]
+  },
+  "metadata": {
+    "totalLinkedJtbds": 2,
+    "totalRelatedMeetings": 1,
+    "completedMeetings": 1,
+    "contentLength": {
+      "description": 512,
+      "brief": 256
+    },
+    "duration": {
+      "start": "2025-06-01",
+      "end": "2025-06-30",
+      "durationDays": 29
+    }
   },
   "timestamp": "2025-06-16T10:30:00Z"
 }
@@ -193,9 +278,21 @@ The application publishes to these topics:
 
 ## Message Headers
 
-All messages include these headers:
-- `event-type`: Either "meeting-completed" or "research-completed"
+### Meeting Messages
+- `event-type`: "meeting-completed"
 - `source`: "research-management-system"
+- `entity-type`: "meeting"
+- `linked-entities`: Number of linked JTBDs
+- `has-research`: "true" or "false" if related research exists
+
+### Research Messages
+- `event-type`: "research-completed"
+- `source`: "research-management-system"
+- `entity-type`: "research"
+- `linked-entities`: Number of linked JTBDs
+- `related-meetings`: Number of related meetings
+- `research-type`: Type of research (e.g., "User Research")
+- `team`: Research team name
 
 ## Configuration Migration from kafkajs
 

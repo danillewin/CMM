@@ -92,6 +92,7 @@ This is a full-stack web application built for managing research interviews and 
 - June 16, 2025: Enhanced Kafka integration with SASL_SSL and Kerberos (GSSAPI) authentication support
 - June 16, 2025: Added Kafka cluster support with multiple brokers via comma-separated KAFKA_BROKERS configuration
 - June 23, 2025: Updated Kafka service to use node-rdkafka compatible configuration parameters (SECURITY_PROTOCOL, SASL_*, SSL_*_LOCATION)
+- June 23, 2025: Enhanced Kafka messages to include complete entity information: full meeting/research content, linked JTBDs, related entities, and comprehensive metadata
 
 ## User Preferences
 

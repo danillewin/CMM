@@ -173,19 +173,66 @@ class KafkaService {
     }
 
     try {
+      // Import storage dynamically to avoid circular dependencies
+      const { storage } = await import('./storage');
+      
+      // Get complete meeting data with linked entities
+      const linkedJtbds = await storage.getJtbdsByMeeting(meeting.id);
+      const relatedResearch = meeting.researchId ? await storage.getResearch(meeting.researchId) : null;
+
       const message = {
         id: meeting.id,
         type: 'meeting',
         status: meeting.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
+          // Core meeting information
           respondentName: meeting.respondentName,
           respondentPosition: meeting.respondentPosition,
           companyName: meeting.companyName,
+          email: meeting.email,
           researcher: meeting.researcher,
+          relationshipManager: meeting.relationshipManager,
+          salesPerson: meeting.salesPerson,
           date: meeting.date,
           researchId: meeting.researchId,
-          cnum: meeting.cnum
+          cnum: meeting.cnum,
+          gcc: meeting.gcc,
+          hasGift: meeting.hasGift,
+          
+          // Content data - full information
+          notes: meeting.notes,
+          fullText: meeting.fullText,
+          
+          // Linked entities
+          linkedJtbds: linkedJtbds.map(jtbd => ({
+            id: jtbd.id,
+            name: jtbd.name,
+            description: jtbd.description,
+            category: jtbd.category,
+            parentId: jtbd.parentId
+          })),
+          
+          // Related research information
+          relatedResearch: relatedResearch ? {
+            id: relatedResearch.id,
+            name: relatedResearch.name,
+            team: relatedResearch.team,
+            researcher: relatedResearch.researcher,
+            researchType: relatedResearch.researchType,
+            products: relatedResearch.products,
+            status: relatedResearch.status,
+            dateStart: relatedResearch.dateStart,
+            dateEnd: relatedResearch.dateEnd
+          } : null
+        },
+        metadata: {
+          totalLinkedJtbds: linkedJtbds.length,
+          hasRelatedResearch: !!relatedResearch,
+          contentLength: {
+            notes: meeting.notes?.length || 0,
+            fullText: meeting.fullText?.length || 0
+          }
         },
         timestamp: new Date().toISOString()
       };
@@ -197,12 +244,15 @@ class KafkaService {
           value: JSON.stringify(message),
           headers: {
             'event-type': 'meeting-completed',
-            'source': 'research-management-system'
+            'source': 'research-management-system',
+            'entity-type': 'meeting',
+            'linked-entities': linkedJtbds.length.toString(),
+            'has-research': relatedResearch ? 'true' : 'false'
           }
         }]
       });
 
-      console.log(`Sent completed meeting ${meeting.id} to Kafka topic: ${MEETINGS_TOPIC}`);
+      console.log(`Sent completed meeting ${meeting.id} with ${linkedJtbds.length} JTBDs to Kafka topic: ${MEETINGS_TOPIC}`);
     } catch (error) {
       console.error('Failed to send meeting to Kafka:', error);
     }
@@ -215,20 +265,77 @@ class KafkaService {
     }
 
     try {
+      // Import storage dynamically to avoid circular dependencies
+      const { storage } = await import('./storage');
+      
+      // Get complete research data with linked entities
+      const linkedJtbds = await storage.getJtbdsByResearch(research.id);
+      const relatedMeetings = await storage.getMeetings();
+      const researchMeetings = relatedMeetings.filter(meeting => meeting.researchId === research.id);
+
       const message = {
         id: research.id,
         type: 'research',
         status: research.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
+          // Core research information
           name: research.name,
           team: research.team,
           researcher: research.researcher,
-          description: research.description,
+          researchType: research.researchType,
+          products: research.products,
           dateStart: research.dateStart,
           dateEnd: research.dateEnd,
-          researchType: research.researchType,
-          products: research.products
+          color: research.color,
+          
+          // Content data - full information
+          description: research.description,
+          brief: research.brief,
+          
+          // Linked entities
+          linkedJtbds: linkedJtbds.map(jtbd => ({
+            id: jtbd.id,
+            name: jtbd.name,
+            description: jtbd.description,
+            category: jtbd.category,
+            parentId: jtbd.parentId
+          })),
+          
+          // Related meetings information
+          relatedMeetings: researchMeetings.map(meeting => ({
+            id: meeting.id,
+            respondentName: meeting.respondentName,
+            respondentPosition: meeting.respondentPosition,
+            companyName: meeting.companyName,
+            researcher: meeting.researcher,
+            date: meeting.date,
+            status: meeting.status,
+            cnum: meeting.cnum,
+            gcc: meeting.gcc,
+            hasGift: meeting.hasGift,
+            // Include brief content info without full text for performance
+            hasNotes: !!meeting.notes,
+            hasFullText: !!meeting.fullText,
+            notesLength: meeting.notes?.length || 0,
+            fullTextLength: meeting.fullText?.length || 0
+          }))
+        },
+        metadata: {
+          totalLinkedJtbds: linkedJtbds.length,
+          totalRelatedMeetings: researchMeetings.length,
+          completedMeetings: researchMeetings.filter(m => m.status === 'Done').length,
+          contentLength: {
+            description: research.description?.length || 0,
+            brief: research.brief?.length || 0
+          },
+          duration: {
+            start: research.dateStart,
+            end: research.dateEnd,
+            durationDays: Math.ceil(
+              (new Date(research.dateEnd).getTime() - new Date(research.dateStart).getTime()) / (1000 * 60 * 60 * 24)
+            )
+          }
         },
         timestamp: new Date().toISOString()
       };
@@ -240,12 +347,17 @@ class KafkaService {
           value: JSON.stringify(message),
           headers: {
             'event-type': 'research-completed',
-            'source': 'research-management-system'
+            'source': 'research-management-system',
+            'entity-type': 'research',
+            'linked-entities': linkedJtbds.length.toString(),
+            'related-meetings': researchMeetings.length.toString(),
+            'research-type': research.researchType || 'unknown',
+            'team': research.team || 'unknown'
           }
         }]
       });
 
-      console.log(`Sent completed research ${research.id} to Kafka topic: ${RESEARCHES_TOPIC}`);
+      console.log(`Sent completed research ${research.id} with ${linkedJtbds.length} JTBDs and ${researchMeetings.length} meetings to Kafka topic: ${RESEARCHES_TOPIC}`);
     } catch (error) {
       console.error('Failed to send research to Kafka:', error);
     }
