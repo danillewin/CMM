@@ -7,7 +7,6 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, FileDown } from "lucide-react";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import {
@@ -31,7 +30,6 @@ export default function Meetings() {
   const [researcherFilter, setResearcherFilter] = useState<string>("");
   const [positionFilter, setPositionFilter] = useState<string>("");
   const [giftFilter, setGiftFilter] = useState<string>("");
-  const [withinMonthFilter, setWithinMonthFilter] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const { toast } = useToast();
@@ -160,14 +158,6 @@ export default function Meetings() {
     }
   };
 
-  // Helper function to check if meeting is within a month
-  const isWithinMonth = (meetingDate: string) => {
-    const meeting = new Date(meetingDate);
-    const now = new Date();
-    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    return meeting >= oneMonthAgo && meeting <= now;
-  };
-
   // Filter and sort meetings
   const filteredMeetings = meetings
     .filter(
@@ -189,8 +179,7 @@ export default function Meetings() {
         (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
         (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
         (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter) &&
-        (giftFilter === "ALL" || !giftFilter || meeting.hasGift === giftFilter) &&
-        (!withinMonthFilter || isWithinMonth(meeting.date))
+        (giftFilter === "ALL" || !giftFilter || meeting.hasGift === giftFilter)
     )
     .sort((a, b) => {
       const aVal = getValueForSorting(a, sortBy);
@@ -502,29 +491,6 @@ export default function Meetings() {
       ],
       value: giftFilter || "ALL",
       onChange: setGiftFilter
-    },
-    {
-      id: "withinMonth",
-      name: "Within Month",
-      options: [],
-      value: "",
-      onChange: () => {},
-      customComponent: (
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="within-month-filter"
-            checked={withinMonthFilter}
-            onCheckedChange={(checked) => setWithinMonthFilter(checked === true)}
-          />
-          <label
-            htmlFor="within-month-filter"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            Within 1 month
-          </label>
-        </div>
-      ),
-      isActive: () => withinMonthFilter
     }
   ];
 
@@ -533,14 +499,13 @@ export default function Meetings() {
     try {
       const savedFilters = localStorage.getItem("meetings-table-filters");
       if (savedFilters) {
-        const { status, research, manager, recruiter, researcher, position, withinMonth } = JSON.parse(savedFilters);
+        const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
         if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
         if (manager) setManagerFilter(manager);
         if (recruiter) setRecruiterFilter(recruiter);
         if (researcher) setResearcherFilter(researcher);
         if (position) setPositionFilter(position);
-        if (withinMonth !== undefined) setWithinMonthFilter(withinMonth);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -556,13 +521,12 @@ export default function Meetings() {
         manager: managerFilter,
         recruiter: recruiterFilter,
         researcher: researcherFilter,
-        position: positionFilter,
-        withinMonth: withinMonthFilter
+        position: positionFilter
       }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, withinMonthFilter]);
+  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
