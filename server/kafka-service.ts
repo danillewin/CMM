@@ -207,10 +207,13 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            title: jtbd.title,
             description: jtbd.description,
             category: jtbd.category,
-            parentId: jtbd.parentId
+            parentId: jtbd.parentId,
+            jobStatement: jtbd.jobStatement,
+            jobStory: jtbd.jobStory,
+            priority: jtbd.priority
           })),
           
           // Related research information
@@ -236,6 +239,8 @@ class KafkaService {
         },
         timestamp: new Date().toISOString()
       };
+
+
 
       await this.producer.send({
         topic: MEETINGS_TOPIC,
@@ -296,10 +301,13 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            title: jtbd.title,
             description: jtbd.description,
             category: jtbd.category,
-            parentId: jtbd.parentId
+            parentId: jtbd.parentId,
+            jobStatement: jtbd.jobStatement,
+            jobStory: jtbd.jobStory,
+            priority: jtbd.priority
           })),
           
           // Related meetings information
