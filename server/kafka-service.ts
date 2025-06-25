@@ -186,23 +186,25 @@ class KafkaService {
         status: meeting.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
-          // Core meeting information
-          respondentName: meeting.respondentName,
-          respondentPosition: meeting.respondentPosition,
-          companyName: meeting.companyName,
+          // Core meeting information - using database column names
+          id: meeting.id,
+          respondent_name: meeting.respondentName,
+          respondent_position: meeting.respondentPosition,
+          company_name: meeting.companyName,
           email: meeting.email,
           researcher: meeting.researcher,
-          relationshipManager: meeting.relationshipManager,
-          salesPerson: meeting.salesPerson,
+          relationship_manager: meeting.relationshipManager,
+          recruiter: meeting.salesPerson, // Note: stored as 'recruiter' in DB
           date: meeting.date,
-          researchId: meeting.researchId,
+          research_id: meeting.researchId,
           cnum: meeting.cnum,
           gcc: meeting.gcc,
-          hasGift: meeting.hasGift,
+          has_gift: meeting.hasGift,
+          status: meeting.status,
           
-          // Content data - full information
+          // Content data - using database column names
           notes: meeting.notes,
-          fullText: meeting.fullText,
+          full_text: meeting.fullText,
           
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
@@ -216,25 +218,26 @@ class KafkaService {
             priority: jtbd.priority
           })),
           
-          // Related research information
-          relatedResearch: relatedResearch ? {
+          // Related research information - using database column names
+          related_research: relatedResearch ? {
             id: relatedResearch.id,
             name: relatedResearch.name,
             team: relatedResearch.team,
             researcher: relatedResearch.researcher,
-            researchType: relatedResearch.researchType,
+            research_type: relatedResearch.researchType,
             products: relatedResearch.products,
             status: relatedResearch.status,
-            dateStart: relatedResearch.dateStart,
-            dateEnd: relatedResearch.dateEnd
+            date_start: relatedResearch.dateStart,
+            date_end: relatedResearch.dateEnd,
+            color: relatedResearch.color
           } : null
         },
         metadata: {
-          totalLinkedJtbds: linkedJtbds.length,
-          hasRelatedResearch: !!relatedResearch,
-          contentLength: {
+          total_linked_jtbds: linkedJtbds.length,
+          has_related_research: !!relatedResearch,
+          content_length: {
             notes: meeting.notes?.length || 0,
-            fullText: meeting.fullText?.length || 0
+            full_text: meeting.fullText?.length || 0
           }
         },
         timestamp: new Date().toISOString()
@@ -284,63 +287,65 @@ class KafkaService {
         status: research.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
-          // Core research information
+          // Core research information - using database column names
+          id: research.id,
           name: research.name,
           team: research.team,
           researcher: research.researcher,
-          researchType: research.researchType,
+          research_type: research.researchType,
           products: research.products,
-          dateStart: research.dateStart,
-          dateEnd: research.dateEnd,
+          date_start: research.dateStart,
+          date_end: research.dateEnd,
           color: research.color,
+          status: research.status,
           
-          // Content data - full information
+          // Content data - using database column names
           description: research.description,
           brief: research.brief,
           
-          // Linked entities
-          linkedJtbds: linkedJtbds.map(jtbd => ({
+          // Linked entities - using database column names
+          linked_jtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
             title: jtbd.title,
             description: jtbd.description,
             category: jtbd.category,
-            parentId: jtbd.parentId,
-            jobStatement: jtbd.jobStatement,
-            jobStory: jtbd.jobStory,
+            parent_id: jtbd.parentId,
+            job_statement: jtbd.jobStatement,
+            job_story: jtbd.jobStory,
             priority: jtbd.priority
           })),
           
-          // Related meetings information
-          relatedMeetings: researchMeetings.map(meeting => ({
+          // Related meetings information - using database column names
+          related_meetings: researchMeetings.map(meeting => ({
             id: meeting.id,
-            respondentName: meeting.respondentName,
-            respondentPosition: meeting.respondentPosition,
-            companyName: meeting.companyName,
+            respondent_name: meeting.respondentName,
+            respondent_position: meeting.respondentPosition,
+            company_name: meeting.companyName,
             researcher: meeting.researcher,
             date: meeting.date,
             status: meeting.status,
             cnum: meeting.cnum,
             gcc: meeting.gcc,
-            hasGift: meeting.hasGift,
+            has_gift: meeting.hasGift,
             // Include brief content info without full text for performance
-            hasNotes: !!meeting.notes,
-            hasFullText: !!meeting.fullText,
-            notesLength: meeting.notes?.length || 0,
-            fullTextLength: meeting.fullText?.length || 0
+            has_notes: !!meeting.notes,
+            has_full_text: !!meeting.fullText,
+            notes_length: meeting.notes?.length || 0,
+            full_text_length: meeting.fullText?.length || 0
           }))
         },
         metadata: {
-          totalLinkedJtbds: linkedJtbds.length,
-          totalRelatedMeetings: researchMeetings.length,
-          completedMeetings: researchMeetings.filter(m => m.status === 'Done').length,
-          contentLength: {
+          total_linked_jtbds: linkedJtbds.length,
+          total_related_meetings: researchMeetings.length,
+          completed_meetings: researchMeetings.filter(m => m.status === 'Done').length,
+          content_length: {
             description: research.description?.length || 0,
             brief: research.brief?.length || 0
           },
           duration: {
             start: research.dateStart,
             end: research.dateEnd,
-            durationDays: Math.ceil(
+            duration_days: Math.ceil(
               (new Date(research.dateEnd).getTime() - new Date(research.dateStart).getTime()) / (1000 * 60 * 60 * 24)
             )
           }
