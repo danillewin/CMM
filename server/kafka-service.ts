@@ -251,11 +251,11 @@ class KafkaService {
           key: `meeting-${meeting.id}`,
           value: JSON.stringify(message),
           headers: {
-            'event-type': 'meeting-completed',
-            'source': 'research-management-system',
-            'entity-type': 'meeting',
-            'linked-entities': linkedJtbds.length.toString(),
-            'has-research': relatedResearch ? 'true' : 'false'
+            'event_type': 'meeting_completed',
+            'source': 'research_management_system',
+            'entity_type': 'meeting',
+            'linked_entities': linkedJtbds.length.toString(),
+            'has_research': relatedResearch ? 'true' : 'false'
           }
         }]
       });
@@ -359,12 +359,12 @@ class KafkaService {
           key: `research-${research.id}`,
           value: JSON.stringify(message),
           headers: {
-            'event-type': 'research-completed',
-            'source': 'research-management-system',
-            'entity-type': 'research',
-            'linked-entities': linkedJtbds.length.toString(),
-            'related-meetings': researchMeetings.length.toString(),
-            'research-type': research.researchType || 'unknown',
+            'event_type': 'research_completed',
+            'source': 'research_management_system',
+            'entity_type': 'research',
+            'linked_entities': linkedJtbds.length.toString(),
+            'related_meetings': researchMeetings.length.toString(),
+            'research_type': research.researchType || 'unknown',
             'team': research.team || 'unknown'
           }
         }]
