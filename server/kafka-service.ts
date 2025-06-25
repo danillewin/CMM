@@ -186,64 +186,56 @@ class KafkaService {
         status: meeting.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
-          // Core meeting information - using database column names
-          id: meeting.id,
-          respondent_name: meeting.respondentName,
-          respondent_position: meeting.respondentPosition,
-          company_name: meeting.companyName,
+          // Core meeting information
+          respondentName: meeting.respondentName,
+          respondentPosition: meeting.respondentPosition,
+          companyName: meeting.companyName,
           email: meeting.email,
           researcher: meeting.researcher,
-          relationship_manager: meeting.relationshipManager,
-          recruiter: meeting.salesPerson, // Note: stored as 'recruiter' in DB
+          relationshipManager: meeting.relationshipManager,
+          salesPerson: meeting.salesPerson,
           date: meeting.date,
-          research_id: meeting.researchId,
+          researchId: meeting.researchId,
           cnum: meeting.cnum,
           gcc: meeting.gcc,
-          has_gift: meeting.hasGift,
-          status: meeting.status,
+          hasGift: meeting.hasGift,
           
-          // Content data - using database column names
+          // Content data - full information
           notes: meeting.notes,
-          full_text: meeting.fullText,
+          fullText: meeting.fullText,
           
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            title: jtbd.title,
+            name: jtbd.name,
             description: jtbd.description,
             category: jtbd.category,
-            parentId: jtbd.parentId,
-            jobStatement: jtbd.jobStatement,
-            jobStory: jtbd.jobStory,
-            priority: jtbd.priority
+            parentId: jtbd.parentId
           })),
           
-          // Related research information - using database column names
-          related_research: relatedResearch ? {
+          // Related research information
+          relatedResearch: relatedResearch ? {
             id: relatedResearch.id,
             name: relatedResearch.name,
             team: relatedResearch.team,
             researcher: relatedResearch.researcher,
-            research_type: relatedResearch.researchType,
+            researchType: relatedResearch.researchType,
             products: relatedResearch.products,
             status: relatedResearch.status,
-            date_start: relatedResearch.dateStart,
-            date_end: relatedResearch.dateEnd,
-            color: relatedResearch.color
+            dateStart: relatedResearch.dateStart,
+            dateEnd: relatedResearch.dateEnd
           } : null
         },
         metadata: {
-          total_linked_jtbds: linkedJtbds.length,
-          has_related_research: !!relatedResearch,
-          content_length: {
+          totalLinkedJtbds: linkedJtbds.length,
+          hasRelatedResearch: !!relatedResearch,
+          contentLength: {
             notes: meeting.notes?.length || 0,
-            full_text: meeting.fullText?.length || 0
+            fullText: meeting.fullText?.length || 0
           }
         },
         timestamp: new Date().toISOString()
       };
-
-
 
       await this.producer.send({
         topic: MEETINGS_TOPIC,
@@ -251,11 +243,11 @@ class KafkaService {
           key: `meeting-${meeting.id}`,
           value: JSON.stringify(message),
           headers: {
-            'event_type': 'meeting_completed',
-            'source': 'research_management_system',
-            'entity_type': 'meeting',
-            'linked_entities': linkedJtbds.length.toString(),
-            'has_research': relatedResearch ? 'true' : 'false'
+            'event-type': 'meeting-completed',
+            'source': 'research-management-system',
+            'entity-type': 'meeting',
+            'linked-entities': linkedJtbds.length.toString(),
+            'has-research': relatedResearch ? 'true' : 'false'
           }
         }]
       });
@@ -287,65 +279,60 @@ class KafkaService {
         status: research.status,
         action: isUpdate ? 'updated' : 'completed',
         data: {
-          // Core research information - using database column names
-          id: research.id,
+          // Core research information
           name: research.name,
           team: research.team,
           researcher: research.researcher,
-          research_type: research.researchType,
+          researchType: research.researchType,
           products: research.products,
-          date_start: research.dateStart,
-          date_end: research.dateEnd,
+          dateStart: research.dateStart,
+          dateEnd: research.dateEnd,
           color: research.color,
-          status: research.status,
           
-          // Content data - using database column names
+          // Content data - full information
           description: research.description,
           brief: research.brief,
           
-          // Linked entities - using database column names
-          linked_jtbds: linkedJtbds.map(jtbd => ({
+          // Linked entities
+          linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            title: jtbd.title,
+            name: jtbd.name,
             description: jtbd.description,
             category: jtbd.category,
-            parent_id: jtbd.parentId,
-            job_statement: jtbd.jobStatement,
-            job_story: jtbd.jobStory,
-            priority: jtbd.priority
+            parentId: jtbd.parentId
           })),
           
-          // Related meetings information - using database column names
-          related_meetings: researchMeetings.map(meeting => ({
+          // Related meetings information
+          relatedMeetings: researchMeetings.map(meeting => ({
             id: meeting.id,
-            respondent_name: meeting.respondentName,
-            respondent_position: meeting.respondentPosition,
-            company_name: meeting.companyName,
+            respondentName: meeting.respondentName,
+            respondentPosition: meeting.respondentPosition,
+            companyName: meeting.companyName,
             researcher: meeting.researcher,
             date: meeting.date,
             status: meeting.status,
             cnum: meeting.cnum,
             gcc: meeting.gcc,
-            has_gift: meeting.hasGift,
+            hasGift: meeting.hasGift,
             // Include brief content info without full text for performance
-            has_notes: !!meeting.notes,
-            has_full_text: !!meeting.fullText,
-            notes_length: meeting.notes?.length || 0,
-            full_text_length: meeting.fullText?.length || 0
+            hasNotes: !!meeting.notes,
+            hasFullText: !!meeting.fullText,
+            notesLength: meeting.notes?.length || 0,
+            fullTextLength: meeting.fullText?.length || 0
           }))
         },
         metadata: {
-          total_linked_jtbds: linkedJtbds.length,
-          total_related_meetings: researchMeetings.length,
-          completed_meetings: researchMeetings.filter(m => m.status === 'Done').length,
-          content_length: {
+          totalLinkedJtbds: linkedJtbds.length,
+          totalRelatedMeetings: researchMeetings.length,
+          completedMeetings: researchMeetings.filter(m => m.status === 'Done').length,
+          contentLength: {
             description: research.description?.length || 0,
             brief: research.brief?.length || 0
           },
           duration: {
             start: research.dateStart,
             end: research.dateEnd,
-            duration_days: Math.ceil(
+            durationDays: Math.ceil(
               (new Date(research.dateEnd).getTime() - new Date(research.dateStart).getTime()) / (1000 * 60 * 60 * 24)
             )
           }
@@ -359,12 +346,12 @@ class KafkaService {
           key: `research-${research.id}`,
           value: JSON.stringify(message),
           headers: {
-            'event_type': 'research_completed',
-            'source': 'research_management_system',
-            'entity_type': 'research',
-            'linked_entities': linkedJtbds.length.toString(),
-            'related_meetings': researchMeetings.length.toString(),
-            'research_type': research.researchType || 'unknown',
+            'event-type': 'research-completed',
+            'source': 'research-management-system',
+            'entity-type': 'research',
+            'linked-entities': linkedJtbds.length.toString(),
+            'related-meetings': researchMeetings.length.toString(),
+            'research-type': research.researchType || 'unknown',
             'team': research.team || 'unknown'
           }
         }]
