@@ -67,6 +67,8 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
+        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
+        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -102,6 +104,86 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   );
 }
 
+// Component for Recruitment tab
+function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+  const form = useForm<{ clientsWeSearchFor: string; inviteTemplate: string }>({
+    defaultValues: {
+      clientsWeSearchFor: research?.clientsWeSearchFor || "",
+      inviteTemplate: research?.inviteTemplate || "",
+    },
+  });
+
+  const handleSubmit = (data: { clientsWeSearchFor: string; inviteTemplate: string }) => {
+    if (research) {
+      onUpdate({
+        name: research.name,
+        team: research.team,
+        researcher: research.researcher,
+        description: research.description,
+        dateStart: research.dateStart,
+        dateEnd: research.dateEnd,
+        status: research.status as ResearchStatusType,
+        color: research.color,
+        researchType: research.researchType as any,
+        brief: research.brief || undefined,
+        guide: research.guide || undefined,
+        fullText: research.fullText || undefined,
+        clientsWeSearchFor: data.clientsWeSearchFor,
+        inviteTemplate: data.inviteTemplate,
+      });
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="clientsWeSearchFor"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Clients we search for</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="inviteTemplate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Invite template</FormLabel>
+              <FormControl>
+                <MDEditor
+                  value={field.value}
+                  onChange={(val) => field.onChange(val || "")}
+                  preview="edit"
+                  hideToolbar={false}
+                  data-color-mode="light"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Save Recruitment
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
 // Component for Guide tab
 function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
   const form = useForm<{ guide: string }>({
@@ -125,6 +207,8 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
+        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
+        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -183,6 +267,8 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
+        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
+        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -437,9 +523,10 @@ function ResearchDetail() {
           {/* Main content area with tabs */}
           <div className="px-8 py-6">
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="info">Info</TabsTrigger>
                 <TabsTrigger value="brief">Brief</TabsTrigger>
+                <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
                 <TabsTrigger value="guide">Guide</TabsTrigger>
                 <TabsTrigger value="results">Results</TabsTrigger>
               </TabsList>
@@ -456,6 +543,14 @@ function ResearchDetail() {
               
               <TabsContent value="brief" className="mt-6">
                 <ResearchBriefForm
+                  research={research}
+                  onUpdate={handleSubmit}
+                  isLoading={isPending}
+                />
+              </TabsContent>
+              
+              <TabsContent value="recruitment" className="mt-6">
+                <ResearchRecruitmentForm
                   research={research}
                   onUpdate={handleSubmit}
                   isLoading={isPending}

@@ -47,6 +47,8 @@ export const researches = pgTable("researches", {
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),
+  clientsWeSearchFor: text("clients_we_search_for"),
+  inviteTemplate: text("invite_template"),
 });
 
 // Jobs to be Done table
