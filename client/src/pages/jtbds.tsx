@@ -79,12 +79,20 @@ function JtbdForm({
   allJtbds = [],
   parentId
 }: JtbdFormProps) {
+  // Determine the level based on parent
+  const parentLevel = parentId ? (allJtbds.find(j => j.id === parentId)?.level || 1) : 0;
+  const itemLevel = parentId ? parentLevel + 1 : 1;
+  
   const form = useForm<InsertJtbd & { parentId?: number }>({
     resolver: zodResolver(
       insertJtbdSchema.extend({
-        title: z.string().min(1, "Title is required"),
-        description: z.string().min(1, "Description is required"),
-        parentId: z.number().optional()
+        title: itemLevel < 3 ? z.string().min(1, "Title is required") : z.string().optional(),
+        description: itemLevel < 3 ? z.string().min(1, "Description is required") : z.string().optional(),
+        jobStatement: itemLevel === 3 ? z.string().min(1, "Job Statement is required") : z.string().optional(),
+        jobStory: itemLevel === 3 ? z.string().optional() : z.string().optional(),
+        parentId: z.number().optional(),
+        level: z.number().min(1).max(3),
+        contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional()
       })
     ),
     defaultValues: {
@@ -94,84 +102,128 @@ function JtbdForm({
       description: initialData?.description || "",
       category: initialData?.category || "",
       priority: initialData?.priority || "",
-      parentId: parentId !== undefined ? parentId : initialData?.parentId || undefined
+      parentId: parentId !== undefined ? parentId : initialData?.parentId || undefined,
+      level: initialData?.level || itemLevel,
+      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : undefined)
     }
   });
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Title <RequiredFieldIndicator />
-              </FormLabel>
-              <FormControl>
-                <Input placeholder="Enter JTBD title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Title - Only for Level 1 & 2 */}
+        {itemLevel < 3 && (
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {itemLevel === 1 ? "Main Job Title" : "Sub-Job Title"} <RequiredFieldIndicator />
+                </FormLabel>
+                <FormControl>
+                  <Input placeholder={`Enter ${itemLevel === 1 ? "main job" : "sub-job"} title`} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        <FormField
-          control={form.control}
-          name="jobStatement"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Job Statement</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="When I [situation], I want to [motivation], so I can [expected outcome]"
-                  rows={3}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Description - Only for Level 1 & 2 */}
+        {itemLevel < 3 && (
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Description <RequiredFieldIndicator />
+                </FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder={`Describe the ${itemLevel === 1 ? "main job" : "sub-job"} to be done`}
+                    rows={3}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        <FormField
-          control={form.control}
-          name="jobStory"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Job Story</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="When I [situation], I want to [motivation], so I can [expected outcome]"
-                  rows={3}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Content Type Selection - Only for Level 3 */}
+        {itemLevel === 3 && (
+          <FormField
+            control={form.control}
+            name="contentType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Content Type <RequiredFieldIndicator /></FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select content type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="job_statement">📋 Job Statement</SelectItem>
+                    <SelectItem value="job_story">📖 Job Story</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Description <RequiredFieldIndicator />
-              </FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Describe the job to be done"
-                  rows={3}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Job Statement - Only for Level 3 */}
+        {itemLevel === 3 && (
+          <FormField
+            control={form.control}
+            name="jobStatement"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Job Statement <RequiredFieldIndicator />
+                </FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="When I [situation], I want to [motivation], so I can [expected outcome]"
+                    rows={4}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Job Story - Only for Level 3 and if content type is job_story */}
+        {itemLevel === 3 && form.watch("contentType") === "job_story" && (
+          <FormField
+            control={form.control}
+            name="jobStory"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Job Story</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="As a [type of user], I want [goal] so that [benefit]"
+                    rows={4}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
@@ -286,49 +338,58 @@ function JtbdForm({
   );
 }
 
-// Helper function to get icon based on level and content
-function getJtbdIcon(level: number, jtbd: Jtbd) {
-  if (level === 0) {
-    return <Briefcase className="h-4 w-4 text-blue-600" />;
-  } else if (level === 1) {
+// Helper function to get icon based on level
+function getJtbdIcon(level: number) {
+  if (level === 1) {
+    return <Briefcase className="h-5 w-5 text-blue-600" />;
+  } else if (level === 2) {
     return <ListChecks className="h-4 w-4 text-green-600" />;
   } else {
-    // Level 2+ are job stories/statements
-    return <Circle className="h-3 w-3 text-orange-500 fill-current" />;
+    // Level 3 are job stories/statements
+    return <FileText className="h-4 w-4 text-orange-500" />;
   }
 }
 
 // Helper function to get typography classes based on level
 function getTypographyClasses(level: number) {
-  if (level === 0) {
-    return "text-lg font-semibold text-gray-900";
-  } else if (level === 1) {
-    return "text-base font-medium text-gray-800";
+  if (level === 1) {
+    return "text-xl font-bold text-gray-900"; // H1 style
+  } else if (level === 2) {
+    return "text-lg font-semibold text-gray-800"; // H2 style
   } else {
-    return "text-sm font-normal text-gray-700";
+    return "text-base font-medium text-gray-700"; // Body style
   }
 }
 
-// Component for rendering job stories/statements at level 2+
-function JobStoryCard({ jtbd, level, onEdit }: { jtbd: Jtbd; level: number; onEdit: (jtbd: Jtbd) => void }) {
-  const hasJobStatement = jtbd.jobStatement && jtbd.jobStatement.trim();
-  const hasJobStory = jtbd.jobStory && jtbd.jobStory.trim();
+// Component for rendering Level 3 job stories/statements
+function JobStoryCard({ jtbd, onEdit }: { jtbd: Jtbd; onEdit: (jtbd: Jtbd) => void }) {
+  const contentType = jtbd.contentType || 'job_statement';
+  const content = contentType === 'job_story' ? jtbd.jobStory : jtbd.jobStatement;
+  
+  if (!content) return null;
   
   return (
-    <Card className="bg-blue-50/50 border-blue-200/60 p-4 space-y-3">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2 flex-1">
-          {getJtbdIcon(level, jtbd)}
-          <div className="flex-1">
-            <h4 className={getTypographyClasses(level)}>{jtbd.title}</h4>
-            {jtbd.description && (
-              <p className="text-xs text-gray-600 mt-1">
-                <LinkifiedText text={jtbd.description} />
-              </p>
-            )}
+    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200/60 p-4 mb-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 flex-1">
+          {getJtbdIcon(3)}
+          <div className="flex-1 space-y-2">
+            {/* Content Type Badge */}
+            <Badge 
+              variant={contentType === 'job_story' ? 'default' : 'secondary'}
+              className="text-xs font-medium"
+            >
+              {contentType === 'job_story' ? '📖 Job Story' : '📋 Job Statement'}
+            </Badge>
+            
+            {/* Main Content */}
+            <div className="text-sm text-gray-800 leading-relaxed">
+              <LinkifiedText text={content} />
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 ml-2">
+        
+        <div className="flex items-center gap-1 shrink-0">
           {jtbd.priority && (
             <Badge 
               variant={
@@ -343,52 +404,29 @@ function JobStoryCard({ jtbd, level, onEdit }: { jtbd: Jtbd; level: number; onEd
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-7 w-7 opacity-70 hover:opacity-100"
             onClick={() => onEdit(jtbd)}
           >
             <Pencil className="h-3 w-3" />
           </Button>
         </div>
       </div>
-      
-      {/* Job Statement */}
-      {hasJobStatement && (
-        <div className="space-y-1">
-          <Badge variant="secondary" className="text-xs font-medium">
-            Job Statement
-          </Badge>
-          <p className="text-sm text-gray-700 italic leading-relaxed">
-            {jtbd.jobStatement}
-          </p>
-        </div>
-      )}
-      
-      {/* Job Story */}
-      {hasJobStory && (
-        <div className="space-y-1">
-          <Badge variant="secondary" className="text-xs font-medium">
-            Job Story
-          </Badge>
-          <p className="text-sm text-gray-700 italic leading-relaxed">
-            {jtbd.jobStory}
-          </p>
-        </div>
-      )}
     </Card>
   );
 }
 
 // Component for rendering a single job item with its children
-function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems, onEdit, onAddSubJob }) {
+function JobItem({ jtbd, childrenMap, expandedItems, setExpandedItems, onEdit, onAddSubJob }) {
   const hasChildren = childrenMap[jtbd.id]?.length > 0;
   const isExpanded = expandedItems[jtbd.id];
-  const indentLevel = level * 24; // 24px per level instead of 50px
+  const level = jtbd.level || 1;
+  const indentLevel = (level - 1) * 24; // 24px per level
   
-  // For level 2+ items (job stories/statements), render as cards
-  if (level >= 2) {
+  // For level 3 items (job stories/statements), render as cards
+  if (level === 3) {
     return (
       <div className="ml-12 mb-3">
-        <JobStoryCard jtbd={jtbd} level={level} onEdit={onEdit} />
+        <JobStoryCard jtbd={jtbd} onEdit={onEdit} />
       </div>
     );
   }
@@ -398,12 +436,11 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
     if (!hasChildren || !isExpanded) return null;
     
     return (
-      <div className={`${level < 2 ? 'ml-6 border-l-2 border-gray-100' : ''}`}>
+      <div className={`${level < 3 ? 'ml-6 border-l-2 border-gray-100 pl-4' : ''}`}>
         {childrenMap[jtbd.id].map(childJob => (
           <JobItem 
             key={childJob.id}
             jtbd={childJob}
-            level={level + 1}
             childrenMap={childrenMap}
             expandedItems={expandedItems}
             setExpandedItems={setExpandedItems}
@@ -416,11 +453,11 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
   };
   
   return (
-    <div className="mb-2">
+    <div className="mb-3">
       <div 
         className={`
           group hover:bg-gray-50/80 rounded-lg transition-colors duration-150
-          ${level === 0 ? 'border-b border-gray-100 pb-2' : ''}
+          ${level === 1 ? 'border-b border-gray-100 pb-3 mb-4' : ''}
         `}
         style={{ paddingLeft: `${indentLevel}px` }}
       >
@@ -448,7 +485,7 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
           
           {/* Icon */}
           <div className="shrink-0">
-            {getJtbdIcon(level, jtbd)}
+            {getJtbdIcon(level)}
           </div>
           
           {/* Title and Content */}
@@ -500,12 +537,12 @@ function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems
             >
               <Pencil className="h-3 w-3" />
             </Button>
-            {level < 2 && (
+            {level < 3 && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                title="Add sub-job"
+                title={level === 1 ? "Add sub-job" : "Add job story/statement"}
                 onClick={() => onAddSubJob(jtbd.id)}
               >
                 <Plus className="h-3 w-3" />
@@ -539,15 +576,15 @@ export default function JtbdsPage() {
 
   // Organize JTBDs into hierarchy
   const organizedJtbds = useMemo(() => {
-    // Get all top-level jobs (parentId is null)
-    const topLevelJobs = jtbds.filter(jtbd => !jtbd.parentId);
+    // Get all top-level jobs (level 1 or parentId is null/0)
+    const topLevelJobs = jtbds.filter(jtbd => jtbd.level === 1 || (!jtbd.parentId || jtbd.parentId === 0));
     
     // Map of parent IDs to their child jobs
     const childrenMap: Record<number, Jtbd[]> = {};
     
     // Group children by parent ID
     jtbds.forEach(jtbd => {
-      if (jtbd.parentId) {
+      if (jtbd.parentId && jtbd.parentId !== 0) {
         if (!childrenMap[jtbd.parentId]) {
           childrenMap[jtbd.parentId] = [];
         }
@@ -740,8 +777,12 @@ export default function JtbdsPage() {
               <DialogHeader>
                 <DialogTitle>
                   {subJobParentId 
-                    ? "Create New Sub-Job" 
-                    : "Create New Job to be Done"
+                    ? (() => {
+                        const parentLevel = allJtbds.find(j => j.id === subJobParentId)?.level || 1;
+                        const newLevel = parentLevel + 1;
+                        return newLevel === 2 ? "Create New Sub-Job" : "Create New Job Story/Statement";
+                      })()
+                    : "Create New Main Job"
                   }
                 </DialogTitle>
               </DialogHeader>
@@ -806,7 +847,6 @@ export default function JtbdsPage() {
               <JobItem 
                 key={jtbd.id}
                 jtbd={jtbd}
-                level={0}
                 childrenMap={organizedJtbds.childrenMap}
                 expandedItems={expandedItems}
                 setExpandedItems={setExpandedItems}

@@ -54,13 +54,15 @@ export const researches = pgTable("researches", {
 // Jobs to be Done table
 export const jtbds = pgTable("jtbds", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
-  jobStatement: text("job_statement"),
-  jobStory: text("job_story"),
-  description: text("description").notNull(),
+  title: text("title"), // Only required for Level 1 & 2
+  jobStatement: text("job_statement"), // Only for Level 3
+  jobStory: text("job_story"), // Only for Level 3
+  description: text("description"), // Only for Level 1 & 2
   category: text("category"),
   priority: text("priority"),
   parentId: integer("parent_id").default(0), // 0 means root level item
+  level: integer("level").notNull().default(1), // 1, 2, or 3
+  contentType: text("content_type"), // "job_story" or "job_statement" for Level 3
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -162,12 +164,14 @@ export const insertJtbdSchema = createInsertSchema(jtbds).omit({
   id: true,
   createdAt: true,
 }).extend({
-  title: z.string().min(1, "Title is required"),
-  jobStatement: z.string().optional(),
-  jobStory: z.string().optional(),
-  description: z.string().min(1, "Description is required"),
+  title: z.string().optional(), // Only required for Level 1 & 2
+  jobStatement: z.string().optional(), // Only for Level 3
+  jobStory: z.string().optional(), // Only for Level 3
+  description: z.string().optional(), // Only for Level 1 & 2
   category: z.string().optional(),
   priority: z.string().optional(),
+  level: z.number().min(1).max(3).default(1),
+  contentType: z.enum(["job_story", "job_statement"]).optional(),
 });
 
 // Types
