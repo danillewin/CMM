@@ -119,7 +119,7 @@ function JtbdForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {itemLevel === 1 ? "Main Job Title" : "Sub-Job Title"} <RequiredFieldIndicator />
+                  {itemLevel === 1 ? "Main Job Title" : "Job Title"} <RequiredFieldIndicator />
                 </FormLabel>
                 <FormControl>
                   <Input placeholder={`Enter ${itemLevel === 1 ? "main job" : "sub-job"} title`} {...field} />
@@ -773,18 +773,21 @@ export default function JtbdsPage() {
                 <Plus className="mr-2 h-4 w-4" /> Add JTBD
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
+            <DialogContent className="sm:max-w-[550px]" aria-describedby="new-jtbd-description">
               <DialogHeader>
                 <DialogTitle>
                   {subJobParentId 
                     ? (() => {
-                        const parentLevel = allJtbds.find(j => j.id === subJobParentId)?.level || 1;
+                        const parentLevel = jtbds.find(j => j.id === subJobParentId)?.level || 1;
                         const newLevel = parentLevel + 1;
                         return newLevel === 2 ? "Create New Sub-Job" : "Create New Job Story/Statement";
                       })()
                     : "Create New Main Job"
                   }
                 </DialogTitle>
+                <div id="new-jtbd-description" className="sr-only">
+                  Form to create a new job to be done item
+                </div>
               </DialogHeader>
               <JtbdForm
                 onSubmit={handleCreateSubmit}
@@ -864,9 +867,16 @@ export default function JtbdsPage() {
       {/* Edit Dialog */}
       {editingJtbd && (
         <Dialog open={!!editingJtbd} onOpenChange={(open) => !open && setEditingJtbd(null)}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px]" aria-describedby="edit-jtbd-description">
             <DialogHeader>
-              <DialogTitle>Edit Job to be Done</DialogTitle>
+              <DialogTitle>
+                {editingJtbd.level === 1 ? "Edit Main Job" : 
+                 editingJtbd.level === 2 ? "Edit Sub-Job" : 
+                 "Edit Job Story/Statement"}
+              </DialogTitle>
+              <div id="edit-jtbd-description" className="sr-only">
+                Form to edit the selected job to be done item
+              </div>
             </DialogHeader>
             <JtbdForm
               onSubmit={handleUpdateSubmit}
@@ -882,9 +892,12 @@ export default function JtbdsPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px]" aria-describedby="delete-confirmation-description">
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
+            <div id="delete-confirmation-description" className="sr-only">
+              Confirmation dialog to delete the selected job to be done item
+            </div>
           </DialogHeader>
           <div className="space-y-4">
             <p>
