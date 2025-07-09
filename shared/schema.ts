@@ -171,7 +171,7 @@ export const insertJtbdSchema = createInsertSchema(jtbds).omit({
   category: z.string().optional(),
   priority: z.string().optional(),
   level: z.number().min(1).max(3).default(1),
-  contentType: z.enum(["job_story", "job_statement"]).optional(),
+  contentType: z.enum(["job_story", "job_statement"]).nullable().optional(),
 });
 
 // Types
