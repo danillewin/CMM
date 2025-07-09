@@ -79,20 +79,31 @@ function JtbdForm({
   allJtbds = [],
   parentId
 }: JtbdFormProps) {
-  // Determine the level based on parent
-  const parentLevel = parentId ? (allJtbds.find(j => j.id === parentId)?.level || 1) : 0;
-  const itemLevel = parentId ? parentLevel + 1 : 1;
+  // Determine the level based on existing data or parent
+  const itemLevel = initialData?.level || (parentId ? (allJtbds.find(j => j.id === parentId)?.level || 1) + 1 : 1);
   
   const form = useForm<InsertJtbd & { parentId?: number }>({
     resolver: zodResolver(
       insertJtbdSchema.extend({
         title: itemLevel < 3 ? z.string().min(1, "Title is required") : z.string().optional(),
         description: itemLevel < 3 ? z.string().min(1, "Description is required") : z.string().optional(),
-        jobStatement: itemLevel === 3 ? z.string().min(1, "Job Statement is required") : z.string().optional(),
-        jobStory: itemLevel === 3 ? z.string().optional() : z.string().optional(),
+        jobStatement: z.string().optional(),
+        jobStory: z.string().optional(),
         parentId: z.number().optional(),
         level: z.number().min(1).max(3),
         contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional()
+      }).refine((data) => {
+        if (itemLevel === 3) {
+          if (data.contentType === "job_story") {
+            return data.jobStory && data.jobStory.trim().length > 0;
+          } else {
+            return data.jobStatement && data.jobStatement.trim().length > 0;
+          }
+        }
+        return true;
+      }, {
+        message: "Content is required for Job Stories and Job Statements",
+        path: ["jobStatement"]
       })
     ),
     defaultValues: {
@@ -182,7 +193,7 @@ function JtbdForm({
         )}
 
         {/* Job Statement - Only for Level 3 */}
-        {itemLevel === 3 && (
+        {itemLevel === 3 && form.watch("contentType") !== "job_story" && (
           <FormField
             control={form.control}
             name="jobStatement"
@@ -211,7 +222,9 @@ function JtbdForm({
             name="jobStory"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Job Story</FormLabel>
+                <FormLabel>
+                  Job Story <RequiredFieldIndicator />
+                </FormLabel>
                 <FormControl>
                   <Textarea 
                     placeholder="As a [type of user], I want [goal] so that [benefit]"
