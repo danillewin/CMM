@@ -531,8 +531,8 @@ function JobItem({ jtbd, childrenMap, expandedItems, setExpandedItems, onEdit, o
               )}
             </div>
             
-            {/* Description - shown when expanded */}
-            {isExpanded && jtbd.description && (
+            {/* Description - always shown for level 1 & 2 */}
+            {jtbd.description && (
               <div className="mt-2 text-sm text-gray-600 leading-relaxed">
                 <LinkifiedText text={jtbd.description} />
               </div>
