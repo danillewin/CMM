@@ -91,12 +91,12 @@ function JtbdForm({
         jobStory: z.string().optional(),
         parentId: z.number().optional(),
         level: z.number().min(1).max(3),
-        contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional()
+        contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional().nullable()
       }).refine((data) => {
         if (itemLevel === 3) {
           if (data.contentType === "job_story") {
             return data.jobStory && data.jobStory.trim().length > 0;
-          } else {
+          } else if (data.contentType === "job_statement") {
             return data.jobStatement && data.jobStatement.trim().length > 0;
           }
         }
@@ -115,7 +115,7 @@ function JtbdForm({
       priority: initialData?.priority || "",
       parentId: parentId !== undefined ? parentId : initialData?.parentId || undefined,
       level: initialData?.level || itemLevel,
-      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : undefined)
+      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : null)
     }
   });
 
@@ -673,7 +673,7 @@ export default function JtbdsPage() {
         category: jtbd.category || "",
         priority: jtbd.priority || "",
         level: jtbd.level,
-        contentType: jtbd.contentType || "",
+        contentType: jtbd.level === 3 ? jtbd.contentType : null,
         parentId: jtbd.parentId
       });
       return res.json();
