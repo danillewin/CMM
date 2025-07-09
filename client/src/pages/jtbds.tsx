@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Pencil, Trash, Plus, Tag, Target, Layers, ChevronRight, ChevronDown } from "lucide-react";
+import { 
+  Pencil, Trash, Plus, Tag, Target, Layers, ChevronRight, ChevronDown,
+  Briefcase, ListChecks, FileText, Circle, MoreHorizontal
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +39,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { insertJtbdSchema } from "@shared/schema";
 import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { LinkifiedText } from "@/components/linkified-text";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 
@@ -282,109 +286,238 @@ function JtbdForm({
   );
 }
 
+// Helper function to get icon based on level and content
+function getJtbdIcon(level: number, jtbd: Jtbd) {
+  if (level === 0) {
+    return <Briefcase className="h-4 w-4 text-blue-600" />;
+  } else if (level === 1) {
+    return <ListChecks className="h-4 w-4 text-green-600" />;
+  } else {
+    // Level 2+ are job stories/statements
+    return <Circle className="h-3 w-3 text-orange-500 fill-current" />;
+  }
+}
+
+// Helper function to get typography classes based on level
+function getTypographyClasses(level: number) {
+  if (level === 0) {
+    return "text-lg font-semibold text-gray-900";
+  } else if (level === 1) {
+    return "text-base font-medium text-gray-800";
+  } else {
+    return "text-sm font-normal text-gray-700";
+  }
+}
+
+// Component for rendering job stories/statements at level 2+
+function JobStoryCard({ jtbd, level, onEdit }: { jtbd: Jtbd; level: number; onEdit: (jtbd: Jtbd) => void }) {
+  const hasJobStatement = jtbd.jobStatement && jtbd.jobStatement.trim();
+  const hasJobStory = jtbd.jobStory && jtbd.jobStory.trim();
+  
+  return (
+    <Card className="bg-blue-50/50 border-blue-200/60 p-4 space-y-3">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-2 flex-1">
+          {getJtbdIcon(level, jtbd)}
+          <div className="flex-1">
+            <h4 className={getTypographyClasses(level)}>{jtbd.title}</h4>
+            {jtbd.description && (
+              <p className="text-xs text-gray-600 mt-1">
+                <LinkifiedText text={jtbd.description} />
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 ml-2">
+          {jtbd.priority && (
+            <Badge 
+              variant={
+                jtbd.priority === "High" ? "destructive" : 
+                jtbd.priority === "Medium" ? "default" : "outline"
+              }
+              className="text-xs"
+            >
+              {jtbd.priority}
+            </Badge>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={() => onEdit(jtbd)}
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Job Statement */}
+      {hasJobStatement && (
+        <div className="space-y-1">
+          <Badge variant="secondary" className="text-xs font-medium">
+            Job Statement
+          </Badge>
+          <p className="text-sm text-gray-700 italic leading-relaxed">
+            {jtbd.jobStatement}
+          </p>
+        </div>
+      )}
+      
+      {/* Job Story */}
+      {hasJobStory && (
+        <div className="space-y-1">
+          <Badge variant="secondary" className="text-xs font-medium">
+            Job Story
+          </Badge>
+          <p className="text-sm text-gray-700 italic leading-relaxed">
+            {jtbd.jobStory}
+          </p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 // Component for rendering a single job item with its children
 function JobItem({ jtbd, level = 0, childrenMap, expandedItems, setExpandedItems, onEdit, onAddSubJob }) {
   const hasChildren = childrenMap[jtbd.id]?.length > 0;
+  const isExpanded = expandedItems[jtbd.id];
+  const indentLevel = level * 24; // 24px per level instead of 50px
+  
+  // For level 2+ items (job stories/statements), render as cards
+  if (level >= 2) {
+    return (
+      <div className="ml-12 mb-3">
+        <JobStoryCard jtbd={jtbd} level={level} onEdit={onEdit} />
+      </div>
+    );
+  }
   
   // Recursive function to render child jobs
   const renderChildren = () => {
-    if (!hasChildren || !expandedItems[jtbd.id]) return null;
+    if (!hasChildren || !isExpanded) return null;
     
-    return childrenMap[jtbd.id].map(childJob => (
-      <JobItem 
-        key={childJob.id}
-        jtbd={childJob}
-        level={level + 1}
-        childrenMap={childrenMap}
-        expandedItems={expandedItems}
-        setExpandedItems={setExpandedItems}
-        onEdit={onEdit}
-        onAddSubJob={onAddSubJob}
-      />
-    ));
+    return (
+      <div className={`${level < 2 ? 'ml-6 border-l-2 border-gray-100' : ''}`}>
+        {childrenMap[jtbd.id].map(childJob => (
+          <JobItem 
+            key={childJob.id}
+            jtbd={childJob}
+            level={level + 1}
+            childrenMap={childrenMap}
+            expandedItems={expandedItems}
+            setExpandedItems={setExpandedItems}
+            onEdit={onEdit}
+            onAddSubJob={onAddSubJob}
+          />
+        ))}
+      </div>
+    );
   };
   
   return (
-    <>
-      <div className={`hover:bg-gray-50 ${level > 0 ? 'border-l-4 border-l-primary/40 bg-gray-50/50' : ''}`}>
-        <div className={`p-3 grid grid-cols-12 items-center ${level > 0 ? 'pl-' + (level * 50 + 20) + 'px' : ''}`}>
-          <div className="col-span-5 font-medium flex items-center">
+    <div className="mb-2">
+      <div 
+        className={`
+          group hover:bg-gray-50/80 rounded-lg transition-colors duration-150
+          ${level === 0 ? 'border-b border-gray-100 pb-2' : ''}
+        `}
+        style={{ paddingLeft: `${indentLevel}px` }}
+      >
+        <div className="flex items-center gap-3 p-3">
+          {/* Expand/Collapse Button - only show if has children */}
+          {hasChildren ? (
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-5 w-5 p-0 mr-1 hover:bg-gray-100" 
+              className="h-6 w-6 p-0 shrink-0 hover:bg-gray-200" 
               onClick={() => setExpandedItems(prev => ({
                 ...prev,
                 [jtbd.id]: !prev[jtbd.id]
               }))}
             >
-              {expandedItems[jtbd.id] ? (
-                <ChevronDown className="h-4 w-4 text-gray-500" />
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4 text-gray-600" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-gray-500" />
+                <ChevronRight className="h-4 w-4 text-gray-600" />
               )}
             </Button>
-            <span className="truncate">{jtbd.title}</span>
-            {hasChildren && (
-              <Badge variant="outline" className="ml-2 text-xs">
-                {childrenMap[jtbd.id].length}
-              </Badge>
+          ) : (
+            <div className="w-6 h-6 shrink-0" /> // Placeholder for alignment
+          )}
+          
+          {/* Icon */}
+          <div className="shrink-0">
+            {getJtbdIcon(level, jtbd)}
+          </div>
+          
+          {/* Title and Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className={`${getTypographyClasses(level)} truncate`}>
+                {jtbd.title}
+              </h3>
+              {hasChildren && (
+                <Badge variant="outline" className="text-xs shrink-0">
+                  {childrenMap[jtbd.id].length}
+                </Badge>
+              )}
+              {jtbd.category && (
+                <Badge variant="outline" className="text-xs shrink-0">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {jtbd.category}
+                </Badge>
+              )}
+              {jtbd.priority && (
+                <Badge 
+                  variant={
+                    jtbd.priority === "High" ? "destructive" : 
+                    jtbd.priority === "Medium" ? "default" : "outline"
+                  }
+                  className="text-xs shrink-0"
+                >
+                  {jtbd.priority}
+                </Badge>
+              )}
+            </div>
+            
+            {/* Description - shown when expanded */}
+            {isExpanded && jtbd.description && (
+              <div className="mt-2 text-sm text-gray-600 leading-relaxed">
+                <LinkifiedText text={jtbd.description} />
+              </div>
             )}
           </div>
-          <div className="col-span-3">
-            {jtbd.category && (
-              <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                <Tag className="h-3 w-3" />
-                {jtbd.category}
-              </Badge>
-            )}
-          </div>
-          <div className="col-span-2">
-            {jtbd.priority && (
-              <Badge 
-                variant={
-                  jtbd.priority === "High" ? "destructive" : 
-                  jtbd.priority === "Medium" ? "default" : "outline"
-                }
-                className="flex items-center gap-1 w-fit"
-              >
-                <Target className="h-3 w-3" />
-                {jtbd.priority}
-              </Badge>
-            )}
-          </div>
-          <div className="col-span-2 flex justify-end gap-1">
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-7 w-7"
               onClick={() => onEdit(jtbd)}
+              title="Edit"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-3 w-3" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-gray-500"
-              title="Add sub-job"
-              onClick={() => onAddSubJob(jtbd.id)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+            {level < 2 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                title="Add sub-job"
+                onClick={() => onAddSubJob(jtbd.id)}
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+            )}
           </div>
         </div>
-        
-        {/* Description expandable section */}
-        {expandedItems[jtbd.id] && (
-          <div className={`px-9 pb-3 text-sm text-gray-600 ${level > 0 ? 'pl-' + (level * 50 + 20 + 6) + 'px' : ''}`}>
-            <LinkifiedText text={jtbd.description} />
-          </div>
-        )}
       </div>
       
       {/* Render children recursively */}
       {renderChildren()}
-    </>
+    </div>
   );
 }
 
@@ -655,17 +788,20 @@ export default function JtbdsPage() {
           )}
         </div>
       ) : (
-        <div className="w-full border rounded-lg shadow-sm">
-          <div className="bg-gray-50 p-3 border-b rounded-t-lg">
-            <div className="grid grid-cols-12 text-sm font-medium text-gray-500">
-              <div className="col-span-5">Title</div>
-              <div className="col-span-3">Category</div>
-              <div className="col-span-2">Priority</div>
-              <div className="col-span-2 text-right">Actions</div>
+        <div className="w-full space-y-4">
+          {/* Header */}
+          <div className="text-sm text-gray-500 px-3 py-2 bg-gray-50 rounded-lg border">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              <span className="font-medium">Jobs to be Done Hierarchy</span>
+              <Badge variant="outline" className="text-xs">
+                {filteredJtbds.length} main {filteredJtbds.length === 1 ? 'job' : 'jobs'}
+              </Badge>
             </div>
           </div>
           
-          <div className="divide-y">
+          {/* Job Items */}
+          <div className="space-y-2">
             {filteredJtbds.map((jtbd) => (
               <JobItem 
                 key={jtbd.id}
