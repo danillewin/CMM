@@ -39,6 +39,7 @@ export default function Researches() {
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
+  const [productFilters, setProductFilters] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [sortBy, setSortBy] = useState<string>("name");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -61,16 +62,26 @@ export default function Researches() {
   const researchTypesSet = new Set(researches.map(r => r.researchType).filter(Boolean));
   const researchTypes = Array.from(researchTypesSet).sort();
 
+  // Get unique products for filters
+  const productsSet = new Set();
+  researches.forEach(r => {
+    if (r.products && Array.isArray(r.products)) {
+      r.products.forEach(product => productsSet.add(product));
+    }
+  });
+  const products = Array.from(productsSet).sort() as string[];
+
   // Load saved filters from localStorage
   useEffect(() => {
     try {
       const savedFilters = localStorage.getItem("researches-table-filters");
       if (savedFilters) {
-        const { status, researcher, team, researchTypes, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
+        const { status, researcher, team, researchTypes, products, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
         if (researcher) setResearcherFilter(researcher);
         if (team) setTeamFilter(team);
         if (researchTypes && Array.isArray(researchTypes)) setResearchTypeFilters(researchTypes);
+        if (products && Array.isArray(products)) setProductFilters(products);
         if (showStartsInNWeeks !== undefined) setShowStartsInNWeeks(showStartsInNWeeks);
         if (weeksNumber) setWeeksNumber(weeksNumber);
       }
@@ -87,13 +98,14 @@ export default function Researches() {
         researcher: researcherFilter,
         team: teamFilter,
         researchTypes: researchTypeFilters,
+        products: productFilters,
         showStartsInNWeeks,
         weeksNumber
       }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researcherFilter, teamFilter, researchTypeFilters, showStartsInNWeeks, weeksNumber]);
+  }, [statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, showStartsInNWeeks, weeksNumber]);
 
   const getValueForSorting = (research: Research, field: string) => {
     switch (field) {
@@ -121,6 +133,11 @@ export default function Researches() {
         const startsInRange = !showStartsInNWeeks || 
           (startDate >= currentDate && startDate <= futureDate);
         
+        // Check if research has any of the selected products
+        const hasSelectedProducts = productFilters.length === 0 || 
+          (research.products && Array.isArray(research.products) && 
+           research.products.some(product => productFilters.includes(product)));
+
         return (
           (research.name.toLowerCase().includes(search.toLowerCase()) ||
             research.team.toLowerCase().includes(search.toLowerCase()) ||
@@ -130,6 +147,7 @@ export default function Researches() {
           (teamFilter === "ALL" || research.team === teamFilter) &&
           (statusFilter === "ALL" || research.status === statusFilter) &&
           (researchTypeFilters.length === 0 || researchTypeFilters.includes(research.researchType)) &&
+          hasSelectedProducts &&
           startsInRange
         );
       }
@@ -364,6 +382,77 @@ export default function Researches() {
       value: "",
       onChange: () => {},
       isActive: () => researchTypeFilters.length > 0
+    },
+    {
+      id: "product",
+      name: "Product",
+      customComponent: (
+        <div className="flex flex-col space-y-2">
+          <label className="text-sm font-medium">Product</label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-full justify-between bg-white"
+              >
+                {productFilters.length === 0
+                  ? "All Products"
+                  : `${productFilters.length} selected`}
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0">
+              <div className="max-h-60 overflow-auto p-1">
+                <div className="flex items-center px-3 py-2 border-b">
+                  <Checkbox
+                    checked={productFilters.length === 0}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setProductFilters([]);
+                      }
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm font-medium">All Products</span>
+                </div>
+                {products.map((product) => (
+                  <div key={product} className="flex items-center px-3 py-2 hover:bg-gray-50">
+                    <Checkbox
+                      checked={productFilters.includes(product)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setProductFilters([...productFilters, product]);
+                        } else {
+                          setProductFilters(productFilters.filter(p => p !== product));
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">{product}</span>
+                  </div>
+                ))}
+              </div>
+              {productFilters.length > 0 && (
+                <div className="border-t p-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setProductFilters([])}
+                    className="w-full text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
+      ),
+      options: [],
+      value: "",
+      onChange: () => {},
+      isActive: () => productFilters.length > 0
     }
   ];
 
