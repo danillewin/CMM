@@ -666,12 +666,15 @@ export default function JtbdsPage() {
   const updateJtbdMutation = useMutation({
     mutationFn: async ({ id, ...jtbd }: { id: number } & Partial<Jtbd>) => {
       const res = await apiRequest("PATCH", `/api/jtbds/${id}`, {
-        title: jtbd.title,
+        title: jtbd.title || "",
         jobStatement: jtbd.jobStatement || "",
         jobStory: jtbd.jobStory || "",
-        description: jtbd.description,
+        description: jtbd.description || "",
         category: jtbd.category || "",
-        priority: jtbd.priority || ""
+        priority: jtbd.priority || "",
+        level: jtbd.level,
+        contentType: jtbd.contentType || "",
+        parentId: jtbd.parentId
       });
       return res.json();
     },
