@@ -66,6 +66,16 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
     },
   });
 
+  // Reset form when meeting data changes
+  useEffect(() => {
+    if (meeting) {
+      form.reset({
+        notes: meeting.notes || "",
+        fullText: meeting.fullText || "",
+      });
+    }
+  }, [meeting, form]);
+
   const handleSubmit = (data: { notes: string; fullText: string }) => {
     if (meeting) {
       onUpdate({
