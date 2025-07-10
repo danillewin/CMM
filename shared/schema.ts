@@ -156,6 +156,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   salesPerson: z.string().min(1, "Recruiter is required"),
   researchId: z.number({ required_error: "Research is required" }),
   notes: z.string().optional(),
+  fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
 });
 
