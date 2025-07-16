@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
@@ -206,8 +206,8 @@ export default function Meetings() {
     setLocation(`/meetings/${meeting.id}`);
   };
 
-  // Define columns for the configurable table
-  const columns: ColumnConfig[] = [
+  // Define columns for the configurable table with useMemo to update on language change
+  const columns: ColumnConfig[] = useMemo(() => [
     {
       id: "hasGift", 
       name: t("meetings.hasGift"),
@@ -399,10 +399,10 @@ export default function Meetings() {
         </span>
       )
     }
-  ];
+  ], [t, researches, meetings, updateStatusMutation]); // Dependencies for useMemo
 
-  // Prepare filter configurations
-  const filterConfigs = [
+  // Prepare filter configurations with useMemo to update on language change
+  const filterConfigs = useMemo(() => [
     {
       id: "status",
       name: t("filters.status"),
@@ -503,7 +503,7 @@ export default function Meetings() {
       value: giftFilter || "ALL",
       onChange: setGiftFilter
     }
-  ];
+  ], [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, researches, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
   // Load saved filters from localStorage
   useEffect(() => {
