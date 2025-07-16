@@ -30,6 +30,7 @@ import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeeks } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 type ViewMode = "table" | "cards";
 
