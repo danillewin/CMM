@@ -1,10 +1,10 @@
 {
   "navigation": {
-    "dashboard": "Панель управления",
+    "dashboard": "Dashboards",
     "researches": "Исследования",
     "meetings": "Встречи",
     "calendar": "Календарь",
-    "roadmap": "Дорожная карта",
+    "roadmap": "Roadmap",
     "jtbds": "JTBD"
   },
   "dashboard": {
