@@ -5,7 +5,7 @@
     "meetings": "Встречи",
     "calendar": "Календарь",
     "roadmap": "Roadmap",
-    "jtbds": "JTBD"
+    "jtbds": "Jobs to be Done"
   },
   "dashboard": {
     "title": "Дашборды",
@@ -99,7 +99,7 @@
     "noResearches": "Исследования не найдены в выбранном диапазоне дат"
   },
   "jtbds": {
-    "title": "JTBD",
+    "title": "Jobs to be Done",
     "newJtbd": "Создать",
     "editJtbd": "Редактировать",
     "deleteJtbd": "Удалить",
