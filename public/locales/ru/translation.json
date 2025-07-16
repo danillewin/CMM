@@ -5,7 +5,7 @@
     "meetings": "Встречи",
     "calendar": "Календарь",
     "roadmap": "Дорожная карта",
-    "jtbds": "Задачи"
+    "jtbds": "JTBD"
   },
   "dashboard": {
     "title": "Панель управления",
@@ -99,13 +99,13 @@
     "noResearches": "Исследования не найдены в выбранном диапазоне дат"
   },
   "jtbds": {
-    "title": "Задачи",
-    "newJtbd": "Новая задача",
-    "editJtbd": "Редактировать задачу",
-    "deleteJtbd": "Удалить задачу",
+    "title": "JTBD",
+    "newJtbd": "Создать",
+    "editJtbd": "Редактировать",
+    "deleteJtbd": "Удалить",
     "title": "Заголовок",
-    "jobStatement": "Описание задачи",
-    "jobStory": "История задачи",
+    "jobStatement": "Job Statement",
+    "jobStory": "Job Story",
     "description": "Описание",
     "category": "Категория",
     "priority": "Приоритет",
@@ -114,7 +114,7 @@
     "actions": "Действия",
     "edit": "Редактировать",
     "delete": "Удалить",
-    "noJtbds": "Задачи не найдены",
+    "noJtbds": "Не найдены",
     "addToResearch": "Добавить к исследованию",
     "addToMeeting": "Добавить к встрече",
     "removeFromResearch": "Удалить из исследования",
