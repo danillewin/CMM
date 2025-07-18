@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from 'multer';
 import { storage } from "./storage";
 import { 
   insertMeetingSchema, 
@@ -19,6 +20,7 @@ import {
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { kafkaService } from "./kafka-service";
+import { transcriptionService } from "./transcription-service";
 
 // Initialize database
 async function initializeDatabase() {
@@ -565,6 +567,65 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Configure multer for file uploads (memory storage - files won't be saved to disk)
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB limit
+      files: 5, // Maximum 5 files
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept audio and video files
+      const allowedTypes = [
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac',
+        'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
+      ];
+      
+      const isValidType = allowedTypes.includes(file.mimetype) || 
+                         /\.(mp3|wav|ogg|m4a|aac|flac|mp4|avi|mov|wmv|webm|mkv)$/i.test(file.originalname);
+      
+      if (isValidType) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only audio and video files are allowed.'));
+      }
+    }
+  });
+
+  // Transcription endpoint
+  app.post("/api/transcribe", upload.array('files'), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      
+      if (!files || files.length === 0) {
+        res.status(400).json({ message: "No files provided" });
+        return;
+      }
+
+      console.log(`Transcription request: ${files.length} files, total size: ${files.reduce((sum, f) => sum + f.size, 0)} bytes`);
+
+      const result = await transcriptionService.transcribeFiles({ files });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Transcription error:", error);
+      res.status(500).json({ 
+        message: "Transcription failed", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Health check endpoint for transcription service
+  app.get("/api/transcribe/health", async (req, res) => {
+    try {
+      const health = await transcriptionService.healthCheck();
+      res.json(health);
+    } catch (error) {
+      console.error("Health check error:", error);
+      res.status(500).json({ message: "Health check failed" });
+    }
+  });
 
   return createServer(app);
 }

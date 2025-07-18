@@ -68,5 +68,7 @@ app.use((req, res, next) => {
   const PORT = 5000;
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
+    const mockTranscriptionEnabled = process.env.MOCK_TRANSCRIPTION_ENABLED !== 'false';
+    log(`Mock transcription service: ${mockTranscriptionEnabled ? 'enabled' : 'disabled'}`);
   });
 })();

@@ -46,6 +46,8 @@ This is a full-stack web application built for managing research interviews and 
 - **Dashboard Analytics**: Charts and metrics for research progress
 - **Roadmap Planning**: Timeline visualization for research projects
 - **JTBD Integration**: Link research activities to business outcomes
+- **File Upload & Transcription**: Audio/video file upload with automated transcription to text
+- **Bilingual Support**: Complete English/Russian translation system with dynamic language switching
 
 ### External Integrations
 - **Notion API**: Integration capability for external documentation
@@ -93,6 +95,8 @@ This is a full-stack web application built for managing research interviews and 
 - June 16, 2025: Added Kafka cluster support with multiple brokers via comma-separated KAFKA_BROKERS configuration
 - June 23, 2025: Updated Kafka service to use node-rdkafka compatible configuration parameters (SECURITY_PROTOCOL, SASL_*, SSL_*_LOCATION)
 - June 23, 2025: Enhanced Kafka messages to include complete entity information: full meeting/research content, linked JTBDs, related entities, and comprehensive metadata
+- July 18, 2025: Added comprehensive bilingual support (English/Russian) with reactive translation system using i18next
+- July 18, 2025: Implemented audio/video file upload functionality with mock transcription service integration and feature toggle (MOCK_TRANSCRIPTION_ENABLED)
 
 ## User Preferences
 
