@@ -97,6 +97,8 @@ This is a full-stack web application built for managing research interviews and 
 - June 23, 2025: Enhanced Kafka messages to include complete entity information: full meeting/research content, linked JTBDs, related entities, and comprehensive metadata
 - July 18, 2025: Added comprehensive bilingual support (English/Russian) with reactive translation system using i18next
 - July 18, 2025: Implemented audio/video file upload functionality with mock transcription service integration and feature toggle (MOCK_TRANSCRIPTION_ENABLED)
+- July 18, 2025: Added customerFullName field to Research Brief tab with bilingual support
+- July 18, 2025: Added additionalStakeholders dynamic field array to Research Brief tab with add/remove functionality and bilingual support
 
 ## User Preferences
 

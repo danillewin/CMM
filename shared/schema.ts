@@ -45,6 +45,7 @@ export const researches = pgTable("researches", {
   researchType: text("research_type").notNull().default("Interviews"),
   products: text("products").array(),
   customerFullName: text("customer_full_name"), // Customer's full name field
+  additionalStakeholders: text("additional_stakeholders").array(), // Additional stakeholders field
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),
@@ -132,6 +133,7 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Desk research"
   ]).default("Interviews"),
   customerFullName: z.string().optional(),
+  additionalStakeholders: z.array(z.string()).optional(),
   brief: z.string().optional(),
   guide: z.string().optional(),
   fullText: z.string().optional(),

@@ -43,6 +43,8 @@ import {
 import { Input } from "@/components/ui/input";
 import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from 'react-i18next';
+import { useFieldArray } from "react-hook-form";
+import { Plus, X } from "lucide-react";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -50,14 +52,20 @@ type ResearchWithId = Research;
 // Component for Brief tab
 function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
   const { t } = useTranslation();
-  const form = useForm<{ customerFullName: string; brief: string }>({
+  const form = useForm<{ customerFullName: string; additionalStakeholders: { value: string }[]; brief: string }>({
     defaultValues: {
       customerFullName: research?.customerFullName || "",
+      additionalStakeholders: research?.additionalStakeholders?.map(s => ({ value: s })) || [],
       brief: research?.brief || "",
     },
   });
 
-  const handleSubmit = (data: { customerFullName: string; brief: string }) => {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "additionalStakeholders"
+  });
+
+  const handleSubmit = (data: { customerFullName: string; additionalStakeholders: { value: string }[]; brief: string }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -70,6 +78,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         color: research.color,
         researchType: research.researchType as any,
         customerFullName: data.customerFullName,
+        additionalStakeholders: data.additionalStakeholders.map(s => s.value).filter(s => s.trim() !== ""),
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -98,6 +107,59 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
             </FormItem>
           )}
         />
+        
+        {/* Additional Stakeholders Field */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <FormLabel className="text-lg font-medium">{t('research.additionalStakeholders')}</FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ value: "" })}
+              className="text-sm"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {t('research.addStakeholder')}
+            </Button>
+          </div>
+          
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center gap-2">
+              <FormField
+                control={form.control}
+                name={`additionalStakeholders.${index}.value`}
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Input
+                        placeholder="Petrov Petr Petrovich - Manager"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => remove(index)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          
+          {fields.length === 0 && (
+            <p className="text-sm text-gray-500 italic">
+              {t('research.addStakeholder')} {t('research.additionalStakeholders').toLowerCase()}
+            </p>
+          )}
+        </div>
+        
         <FormField
           control={form.control}
           name="brief"
@@ -148,6 +210,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         color: research.color,
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
+        additionalStakeholders: research.additionalStakeholders || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -228,6 +291,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         color: research.color,
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
+        additionalStakeholders: research.additionalStakeholders || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -290,6 +354,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         color: research.color,
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
+        additionalStakeholders: research.additionalStakeholders || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
@@ -320,6 +385,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         color: research.color,
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
+        additionalStakeholders: research.additionalStakeholders || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: newText,
