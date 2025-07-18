@@ -595,9 +595,16 @@ export function registerRoutes(app: Express): Server {
   // Transcription endpoint
   app.post("/api/transcribe", upload.array('files'), async (req, res) => {
     try {
+      console.log("Request received:", {
+        files: req.files ? req.files.length : 0,
+        body: req.body,
+        contentType: req.headers['content-type']
+      });
+      
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
+        console.log("No files in request, req.files:", req.files);
         res.status(400).json({ message: "No files provided" });
         return;
       }

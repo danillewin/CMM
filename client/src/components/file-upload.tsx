@@ -121,7 +121,11 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
   };
 
   const processFiles = async () => {
-    if (uploadedFiles.length === 0) return;
+    console.log('processFiles called, uploadedFiles length:', uploadedFiles.length);
+    if (uploadedFiles.length === 0) {
+      console.log('No files to process');
+      return;
+    }
 
     setIsProcessing(true);
     setProgress(0);
@@ -132,8 +136,11 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       
       // Add all files to FormData
       uploadedFiles.forEach((uploadedFile, index) => {
-        formData.append(`files`, uploadedFile.file);
+        formData.append('files', uploadedFile.file);
+        console.log(`Added file ${index}: ${uploadedFile.file.name}, size: ${uploadedFile.file.size}`);
       });
+      
+      console.log('FormData entries:', Array.from(formData.entries()).map(([key, value]) => [key, value instanceof File ? `${value.name} (${value.size} bytes)` : value]));
 
       // Simulate progress during upload
       const progressInterval = setInterval(() => {
@@ -146,11 +153,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
         });
       }, 300);
 
-      const response = await apiRequest("POST", "/api/transcribe", formData, {
-        headers: {
-          // Don't set Content-Type, let browser set it for FormData
-        },
-      });
+      const response = await apiRequest("POST", "/api/transcribe", formData);
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
