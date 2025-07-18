@@ -73,6 +73,7 @@ interface ResearchFormProps {
   isLoading?: boolean;
   onCancel?: () => void;
   onDelete?: () => void;
+  onTempDataUpdate?: (data: Partial<InsertResearch>) => void;
 }
 
 export default function ResearchForm({
@@ -80,7 +81,8 @@ export default function ResearchForm({
   initialData,
   isLoading,
   onCancel,
-  onDelete
+  onDelete,
+  onTempDataUpdate
 }: ResearchFormProps) {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -139,6 +141,13 @@ export default function ResearchForm({
       products: initialData?.products ?? [],
     });
   }, [initialData, form]);
+
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: any) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value });
+    }
+  };
 
   const handleDelete = async () => {
     try {
@@ -220,7 +229,9 @@ export default function ResearchForm({
                         type="date"
                         value={formatDateForInput(field.value)}
                         onChange={(e) => {
-                          field.onChange(new Date(e.target.value));
+                          const newDate = new Date(e.target.value);
+                          field.onChange(newDate);
+                          handleFieldChange("dateStart", newDate);
                         }}
                         className="w-full"
                       />
@@ -244,7 +255,9 @@ export default function ResearchForm({
                         type="date"
                         value={formatDateForInput(field.value)}
                         onChange={(e) => {
-                          field.onChange(new Date(e.target.value));
+                          const newDate = new Date(e.target.value);
+                          field.onChange(newDate);
+                          handleFieldChange("dateEnd", newDate);
                         }}
                         className="w-full"
                       />
@@ -266,7 +279,10 @@ export default function ResearchForm({
                       Status
                       <RequiredFieldIndicator />
                     </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      handleFieldChange("status", value);
+                    }} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -319,6 +335,7 @@ export default function ResearchForm({
                                 className="flex justify-center items-center"
                                 onClick={() => {
                                   field.onChange(color);
+                                  handleFieldChange("color", color);
                                   document.body.click(); // Force the dropdown to close
                                 }}
                               >
@@ -351,7 +368,10 @@ export default function ResearchForm({
                       Research Type
                       <RequiredFieldIndicator />
                     </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      handleFieldChange("researchType", value);
+                    }} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select research type" />
@@ -387,7 +407,14 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} className="w-full" />
+                    <Input 
+                      {...field} 
+                      className="w-full"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleFieldChange("name", e.target.value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -406,7 +433,10 @@ export default function ResearchForm({
                   <FormControl>
                     <TeamAutocomplete
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange("team", value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -426,7 +456,14 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input {...field} className="w-full" />
+                    <Input 
+                      {...field} 
+                      className="w-full"
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleFieldChange("researcher", e.target.value);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -478,11 +515,14 @@ export default function ResearchForm({
                                 checked={field.value?.includes(product) || false}
                                 onCheckedChange={(checked) => {
                                   const currentProducts = field.value || [];
+                                  let newProducts;
                                   if (checked) {
-                                    field.onChange([...currentProducts, product]);
+                                    newProducts = [...currentProducts, product];
                                   } else {
-                                    field.onChange(currentProducts.filter((p) => p !== product));
+                                    newProducts = currentProducts.filter((p) => p !== product);
                                   }
+                                  field.onChange(newProducts);
+                                  handleFieldChange("products", newProducts);
                                 }}
                               />
                               <label
@@ -517,7 +557,11 @@ export default function ResearchForm({
                     <div data-color-mode="light">
                       <MDEditor
                         value={field.value}
-                        onChange={(value) => field.onChange(value || '')}
+                        onChange={(value) => {
+                          const newValue = value || '';
+                          field.onChange(newValue);
+                          handleFieldChange("description", newValue);
+                        }}
                         preview="edit"
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
