@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting } from "@shared/schema";
@@ -45,12 +45,24 @@ import MDEditor from '@uiw/react-md-editor';
 type ResearchWithId = Research;
 
 // Component for Brief tab
-function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+function ResearchBriefForm({ research, onUpdate, isLoading, onTempDataUpdate }: { 
+  research?: Research; 
+  onUpdate: (data: InsertResearch) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: { brief: string }) => void;
+}) {
   const form = useForm<{ brief: string }>({
     defaultValues: {
       brief: research?.brief || "",
     },
   });
+
+  // Reset form when research data changes
+  useEffect(() => {
+    form.reset({
+      brief: research?.brief || "",
+    });
+  }, [research, form]);
 
   const handleSubmit = (data: { brief: string }) => {
     if (research) {
@@ -73,6 +85,13 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     }
   };
 
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: string) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -85,7 +104,11 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("brief", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -105,13 +128,26 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
 }
 
 // Component for Recruitment tab
-function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+function ResearchRecruitmentForm({ research, onUpdate, isLoading, onTempDataUpdate }: { 
+  research?: Research; 
+  onUpdate: (data: InsertResearch) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: { clientsWeSearchFor: string; inviteTemplate: string }) => void;
+}) {
   const form = useForm<{ clientsWeSearchFor: string; inviteTemplate: string }>({
     defaultValues: {
       clientsWeSearchFor: research?.clientsWeSearchFor || "",
       inviteTemplate: research?.inviteTemplate || "",
     },
   });
+
+  // Reset form when research data changes
+  useEffect(() => {
+    form.reset({
+      clientsWeSearchFor: research?.clientsWeSearchFor || "",
+      inviteTemplate: research?.inviteTemplate || "",
+    });
+  }, [research, form]);
 
   const handleSubmit = (data: { clientsWeSearchFor: string; inviteTemplate: string }) => {
     if (research) {
@@ -134,6 +170,13 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
     }
   };
 
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: string) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -146,7 +189,11 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("clientsWeSearchFor", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -165,7 +212,11 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("inviteTemplate", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -185,12 +236,24 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
 }
 
 // Component for Guide tab
-function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+function ResearchGuideForm({ research, onUpdate, isLoading, onTempDataUpdate }: { 
+  research?: Research; 
+  onUpdate: (data: InsertResearch) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: { guide: string }) => void;
+}) {
   const form = useForm<{ guide: string }>({
     defaultValues: {
       guide: research?.guide || "",
     },
   });
+
+  // Reset form when research data changes
+  useEffect(() => {
+    form.reset({
+      guide: research?.guide || "",
+    });
+  }, [research, form]);
 
   const handleSubmit = (data: { guide: string }) => {
     if (research) {
@@ -213,6 +276,13 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
     }
   };
 
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: string) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -225,7 +295,11 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("guide", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -245,12 +319,24 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
 }
 
 // Component for Results tab
-function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+function ResearchResultsForm({ research, onUpdate, isLoading, onTempDataUpdate }: { 
+  research?: Research; 
+  onUpdate: (data: InsertResearch) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: { fullText: string }) => void;
+}) {
   const form = useForm<{ fullText: string }>({
     defaultValues: {
       fullText: research?.fullText || "",
     },
   });
+
+  // Reset form when research data changes
+  useEffect(() => {
+    form.reset({
+      fullText: research?.fullText || "",
+    });
+  }, [research, form]);
 
   const handleSubmit = (data: { fullText: string }) => {
     if (research) {
@@ -273,6 +359,13 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
     }
   };
 
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: string) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -285,7 +378,11 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("fullText", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -313,6 +410,26 @@ function ResearchDetail() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
+
+  // State to manage form data across tabs during creation
+  const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
+  
+  // When creating a new research, store the combined data of the existing research and temporary form data
+  const effectiveResearch = isNew ? 
+    { ...tempFormData } as Research : 
+    research;
+
+  // Handler to update temporary form data
+  const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
+    setTempFormData(prev => ({ ...prev, ...newData }));
+  };
+
+  // Clear temporary data when navigating away from new research
+  useEffect(() => {
+    if (!isNew) {
+      setTempFormData({});
+    }
+  }, [isNew]);
 
   const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
     queryKey: ["/api/researches", id],
@@ -534,7 +651,7 @@ function ResearchDetail() {
               <TabsContent value="info" className="mt-6">
                 <ResearchForm
                   onSubmit={handleSubmit}
-                  initialData={research || undefined}
+                  initialData={effectiveResearch || undefined}
                   isLoading={isPending}
                   onCancel={handleCancel}
                   onDelete={!isNew ? handleDelete : undefined}
@@ -543,33 +660,37 @@ function ResearchDetail() {
               
               <TabsContent value="brief" className="mt-6">
                 <ResearchBriefForm
-                  research={research}
+                  research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
+                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
                 />
               </TabsContent>
               
               <TabsContent value="recruitment" className="mt-6">
                 <ResearchRecruitmentForm
-                  research={research}
+                  research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
+                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
                 />
               </TabsContent>
               
               <TabsContent value="guide" className="mt-6">
                 <ResearchGuideForm
-                  research={research}
+                  research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
+                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
                 />
               </TabsContent>
               
               <TabsContent value="results" className="mt-6">
                 <ResearchResultsForm
-                  research={research}
+                  research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
+                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
                 />
               </TabsContent>
             </Tabs>

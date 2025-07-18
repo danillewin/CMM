@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType, type Jtbd } from "@shared/schema";
@@ -115,6 +115,30 @@ export default function ResearchForm({
       products: initialData?.products ?? [],
     },
   });
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    const newStartDate = initialData?.dateStart 
+      ? new Date(initialData.dateStart) 
+      : new Date();
+    
+    const newEndDate = initialData?.dateEnd 
+      ? new Date(initialData.dateEnd) 
+      : new Date();
+
+    form.reset({
+      name: initialData?.name ?? "",
+      team: initialData?.team ?? "",
+      researcher: initialData?.researcher ?? "",
+      description: initialData?.description ?? "",
+      status: (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
+      dateStart: newStartDate,
+      dateEnd: newEndDate,
+      color: initialData?.color ?? RESEARCH_COLORS[0],
+      researchType: "Interviews" as const,
+      products: initialData?.products ?? [],
+    });
+  }, [initialData, form]);
 
   const handleDelete = async () => {
     try {
