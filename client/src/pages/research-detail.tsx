@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Research, ResearchStatus, InsertResearch, ResearchStatusType, Meeting } from "@shared/schema";
@@ -40,20 +40,24 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import MDEditor from '@uiw/react-md-editor';
+import { useTranslation } from 'react-i18next';
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
 
 // Component for Brief tab
 function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
-  const form = useForm<{ brief: string }>({
+  const { t } = useTranslation();
+  const form = useForm<{ customerFullName: string; brief: string }>({
     defaultValues: {
+      customerFullName: research?.customerFullName || "",
       brief: research?.brief || "",
     },
   });
 
-  const handleSubmit = (data: { brief: string }) => {
+  const handleSubmit = (data: { customerFullName: string; brief: string }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -65,6 +69,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        customerFullName: data.customerFullName,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -79,10 +84,26 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
+          name="customerFullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">{t('research.customerFullName')}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ivanov Ivan Ivanovich"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="brief"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Brief</FormLabel>
+              <FormLabel className="text-lg font-medium">{t('researches.brief')}</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -98,7 +119,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         />
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Brief
+          {t('research.saveBrief')}
         </Button>
       </form>
     </Form>
@@ -126,6 +147,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        customerFullName: research.customerFullName || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -205,6 +227,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        customerFullName: research.customerFullName || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -266,6 +289,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        customerFullName: research.customerFullName || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
@@ -295,6 +319,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        customerFullName: research.customerFullName || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: newText,
@@ -346,6 +371,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
 }
 
 function ResearchDetail() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
@@ -565,11 +591,11 @@ function ResearchDetail() {
           <div className="px-8 py-6">
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="info">Info</TabsTrigger>
-                <TabsTrigger value="brief">Brief</TabsTrigger>
-                <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
-                <TabsTrigger value="guide">Guide</TabsTrigger>
-                <TabsTrigger value="results">Results</TabsTrigger>
+                <TabsTrigger value="info">{t('research.tabs.overview')}</TabsTrigger>
+                <TabsTrigger value="brief">{t('research.tabs.brief')}</TabsTrigger>
+                <TabsTrigger value="recruitment">{t('research.tabs.recruitment')}</TabsTrigger>
+                <TabsTrigger value="guide">{t('research.tabs.guide')}</TabsTrigger>
+                <TabsTrigger value="results">{t('research.tabs.results')}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="info" className="mt-6">

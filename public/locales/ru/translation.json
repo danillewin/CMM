@@ -37,6 +37,7 @@
     "color": "Цвет",
     "researchType": "Тип исследования",
     "products": "Продукты",
+    "customerFullName": "ФИО заказчика",
     "brief": "Бриф",
     "guide": "Руководство",
     "fullText": "Полный текст",
@@ -180,6 +181,23 @@
     "language": "Язык",
     "english": "Английский",
     "russian": "Русский"
+  },
+  "research": {
+    "title": "Исследование",
+    "tabs": {
+      "overview": "Обзор",
+      "brief": "Бриф",
+      "recruitment": "Рекрутинг",
+      "guide": "Руководство",
+      "results": "Результаты",
+      "meetings": "Встречи"
+    },
+    "customerFullName": "ФИО заказчика",
+    "saveBrief": "Сохранить бриф",
+    "uploadFiles": "Загрузить файлы",
+    "uploadDescription": "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",
+    "processing": "Обработка файлов...",
+    "processComplete": "Обработка завершена!"
   },
   "researchTypes": {
     "cati": "CATI (Телефонный опрос)",

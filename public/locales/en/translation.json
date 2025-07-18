@@ -37,6 +37,7 @@
     "color": "Color",
     "researchType": "Research Type",
     "products": "Products",
+    "customerFullName": "Customer's Full Name",
     "brief": "Brief",
     "guide": "Guide",
     "fullText": "Full Text",
@@ -180,6 +181,23 @@
     "language": "Language",
     "english": "English",
     "russian": "Russian"
+  },
+  "research": {
+    "title": "Research",
+    "tabs": {
+      "overview": "Overview",
+      "brief": "Brief",
+      "recruitment": "Recruitment",
+      "guide": "Guide",
+      "results": "Results",
+      "meetings": "Meetings"
+    },
+    "customerFullName": "Customer's Full Name",
+    "saveBrief": "Save Brief",
+    "uploadFiles": "Upload Files",
+    "uploadDescription": "Upload audio or video files to automatically transcribe and add to Full Text",
+    "processing": "Processing files...",
+    "processComplete": "Processing complete!"
   },
   "researchTypes": {
     "cati": "CATI (Telephone Survey)",
