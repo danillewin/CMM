@@ -90,7 +90,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     name: "additionalStakeholders"
   });
 
-  const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(false);
+  const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(true);
 
   const handleSubmit = (data: { 
     customerFullName: string; 
@@ -231,14 +231,17 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         />
         
         {/* Project Background Collapsible Section */}
-        <Collapsible open={isProjectBackgroundOpen} onOpenChange={setIsProjectBackgroundOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="text-lg font-medium">{t('research.projectBackground')}</span>
-              {isProjectBackgroundOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 pt-4">
+        <div className="border rounded-lg p-4 bg-gray-50/50">
+          <Collapsible open={isProjectBackgroundOpen} onOpenChange={setIsProjectBackgroundOpen}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{t('research.projectBackground')}</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {isProjectBackgroundOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="space-y-4">
             <FormField
               control={form.control}
               name="projectBackground"
@@ -328,8 +331,9 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
                 </FormItem>
               )}
             />
-          </CollapsibleContent>
-        </Collapsible>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
         
         <FormField
           control={form.control}
