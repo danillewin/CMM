@@ -79,6 +79,7 @@ if (!i18n.isInitialized) {
               products: "Products",
               customerFullName: "Customer's Full Name",
               additionalStakeholders: "Additional Stakeholders (Name + Position)",
+              resultFormat: "How to provide results",
               brief: "Brief",
               guide: "Guide",
               fullText: "Full Text",
@@ -111,6 +112,11 @@ if (!i18n.isInitialized) {
               additionalStakeholders: "Additional Stakeholders (Name + Position)",
               addStakeholder: "Add Stakeholder",
               removeStakeholder: "Remove",
+              resultFormat: "How to provide results",
+              resultFormatOptions: {
+                presentation: "Presentation",
+                figma: "Figma"
+              },
               saveBrief: "Save Brief",
               uploadFiles: "Upload Files",
               uploadDescription: "Upload audio or video files to automatically transcribe and add to Full Text",
@@ -202,6 +208,7 @@ if (!i18n.isInitialized) {
               products: "Продукты",
               customerFullName: "ФИО заказчика",
               additionalStakeholders: "Дополнительные заинтересованные лица (ФИО + должность)",
+              resultFormat: "В каком виде необходимо предоставить результаты",
               brief: "Бриф",
               guide: "Руководство",
               fullText: "Полный текст",
@@ -234,6 +241,11 @@ if (!i18n.isInitialized) {
               additionalStakeholders: "Дополнительные заинтересованные лица (ФИО + должность)",
               addStakeholder: "Добавить заинтересованное лицо",
               removeStakeholder: "Удалить",
+              resultFormat: "В каком виде необходимо предоставить результаты",
+              resultFormatOptions: {
+                presentation: "Презентация",
+                figma: "Figma"
+              },
               saveBrief: "Сохранить бриф",
               uploadFiles: "Загрузить файлы",
               uploadDescription: "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",

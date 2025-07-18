@@ -45,6 +45,13 @@ import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from 'react-i18next';
 import { useFieldArray } from "react-hook-form";
 import { Plus, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -52,10 +59,11 @@ type ResearchWithId = Research;
 // Component for Brief tab
 function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
   const { t } = useTranslation();
-  const form = useForm<{ customerFullName: string; additionalStakeholders: { value: string }[]; brief: string }>({
+  const form = useForm<{ customerFullName: string; additionalStakeholders: { value: string }[]; resultFormat: string; brief: string }>({
     defaultValues: {
       customerFullName: research?.customerFullName || "",
       additionalStakeholders: research?.additionalStakeholders?.map(s => ({ value: s })) || [],
+      resultFormat: research?.resultFormat || "Презентация",
       brief: research?.brief || "",
     },
   });
@@ -65,7 +73,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     name: "additionalStakeholders"
   });
 
-  const handleSubmit = (data: { customerFullName: string; additionalStakeholders: { value: string }[]; brief: string }) => {
+  const handleSubmit = (data: { customerFullName: string; additionalStakeholders: { value: string }[]; resultFormat: string; brief: string }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -79,6 +87,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         researchType: research.researchType as any,
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders.map(s => s.value).filter(s => s.trim() !== ""),
+        resultFormat: data.resultFormat as any,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -160,6 +169,33 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
           )}
         </div>
         
+        {/* Result Format Field */}
+        <FormField
+          control={form.control}
+          name="resultFormat"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('research.resultFormat')}</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('research.resultFormat')} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Презентация">
+                    {t('research.resultFormatOptions.presentation')}
+                  </SelectItem>
+                  <SelectItem value="Figma">
+                    {t('research.resultFormatOptions.figma')}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
         <FormField
           control={form.control}
           name="brief"
@@ -211,6 +247,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
+        resultFormat: research.resultFormat || "Презентация",
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -292,6 +329,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
+        resultFormat: research.resultFormat || "Презентация",
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -355,6 +393,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
+        resultFormat: research.resultFormat || "Презентация",
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
@@ -386,6 +425,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
+        resultFormat: research.resultFormat || "Презентация",
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: newText,
