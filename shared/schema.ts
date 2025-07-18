@@ -47,6 +47,11 @@ export const researches = pgTable("researches", {
   customerFullName: text("customer_full_name"), // Customer's full name field
   additionalStakeholders: text("additional_stakeholders").array(), // Additional stakeholders field
   resultFormat: text("result_format").default("Презентация"), // Results format field
+  projectBackground: text("project_background"), // Project background description
+  problemToSolve: text("problem_to_solve"), // Problem to solve
+  resultsUsage: text("results_usage"), // How results will be used
+  productMetrics: text("product_metrics"), // Product metrics
+  limitations: text("limitations"), // Limitations
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),
@@ -136,6 +141,11 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   customerFullName: z.string().optional(),
   additionalStakeholders: z.array(z.string()).optional(),
   resultFormat: z.enum(["Презентация", "Figma"]).default("Презентация"),
+  projectBackground: z.string().optional(),
+  problemToSolve: z.string().optional(),
+  resultsUsage: z.string().optional(),
+  productMetrics: z.string().optional(),
+  limitations: z.string().optional(),
   brief: z.string().optional(),
   guide: z.string().optional(),
   fullText: z.string().optional(),

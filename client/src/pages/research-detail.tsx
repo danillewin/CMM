@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from 'react-i18next';
 import { useFieldArray } from "react-hook-form";
-import { Plus, X } from "lucide-react";
+import { Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -52,6 +52,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -59,11 +61,26 @@ type ResearchWithId = Research;
 // Component for Brief tab
 function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
   const { t } = useTranslation();
-  const form = useForm<{ customerFullName: string; additionalStakeholders: { value: string }[]; resultFormat: string; brief: string }>({
+  const form = useForm<{ 
+    customerFullName: string; 
+    additionalStakeholders: { value: string }[]; 
+    resultFormat: string; 
+    projectBackground: string;
+    problemToSolve: string;
+    resultsUsage: string;
+    productMetrics: string;
+    limitations: string;
+    brief: string;
+  }>({
     defaultValues: {
       customerFullName: research?.customerFullName || "",
       additionalStakeholders: research?.additionalStakeholders?.map(s => ({ value: s })) || [],
       resultFormat: research?.resultFormat || "Презентация",
+      projectBackground: research?.projectBackground || "",
+      problemToSolve: research?.problemToSolve || "",
+      resultsUsage: research?.resultsUsage || "",
+      productMetrics: research?.productMetrics || "",
+      limitations: research?.limitations || "",
       brief: research?.brief || "",
     },
   });
@@ -73,7 +90,19 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     name: "additionalStakeholders"
   });
 
-  const handleSubmit = (data: { customerFullName: string; additionalStakeholders: { value: string }[]; resultFormat: string; brief: string }) => {
+  const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(false);
+
+  const handleSubmit = (data: { 
+    customerFullName: string; 
+    additionalStakeholders: { value: string }[]; 
+    resultFormat: string; 
+    projectBackground: string;
+    problemToSolve: string;
+    resultsUsage: string;
+    productMetrics: string;
+    limitations: string;
+    brief: string;
+  }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -88,6 +117,11 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders.map(s => s.value).filter(s => s.trim() !== ""),
         resultFormat: data.resultFormat as any,
+        projectBackground: data.projectBackground,
+        problemToSolve: data.problemToSolve,
+        resultsUsage: data.resultsUsage,
+        productMetrics: data.productMetrics,
+        limitations: data.limitations,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -196,6 +230,107 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
           )}
         />
         
+        {/* Project Background Collapsible Section */}
+        <Collapsible open={isProjectBackgroundOpen} onOpenChange={setIsProjectBackgroundOpen}>
+          <CollapsibleTrigger asChild>
+            <Button variant="outline" className="w-full justify-between">
+              <span className="text-lg font-medium">{t('research.projectBackground')}</span>
+              {isProjectBackgroundOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-4">
+            <FormField
+              control={form.control}
+              name="projectBackground"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.projectBackgroundDescription')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="problemToSolve"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.problemToSolve')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="resultsUsage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.resultsUsage')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="productMetrics"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.productMetrics')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="limitations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.limitations')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+        
         <FormField
           control={form.control}
           name="brief"
@@ -248,6 +383,11 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: research.resultFormat || "Презентация",
+        projectBackground: research.projectBackground || undefined,
+        problemToSolve: research.problemToSolve || undefined,
+        resultsUsage: research.resultsUsage || undefined,
+        productMetrics: research.productMetrics || undefined,
+        limitations: research.limitations || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -330,6 +470,11 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: research.resultFormat || "Презентация",
+        projectBackground: research.projectBackground || undefined,
+        problemToSolve: research.problemToSolve || undefined,
+        resultsUsage: research.resultsUsage || undefined,
+        productMetrics: research.productMetrics || undefined,
+        limitations: research.limitations || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -394,6 +539,11 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: research.resultFormat || "Презентация",
+        projectBackground: research.projectBackground || undefined,
+        problemToSolve: research.problemToSolve || undefined,
+        resultsUsage: research.resultsUsage || undefined,
+        productMetrics: research.productMetrics || undefined,
+        limitations: research.limitations || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
@@ -426,6 +576,11 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: research.resultFormat || "Презентация",
+        projectBackground: research.projectBackground || undefined,
+        problemToSolve: research.problemToSolve || undefined,
+        resultsUsage: research.resultsUsage || undefined,
+        productMetrics: research.productMetrics || undefined,
+        limitations: research.limitations || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: newText,

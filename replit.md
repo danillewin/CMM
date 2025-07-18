@@ -100,6 +100,7 @@ This is a full-stack web application built for managing research interviews and 
 - July 18, 2025: Added customerFullName field to Research Brief tab with bilingual support
 - July 18, 2025: Added additionalStakeholders dynamic field array to Research Brief tab with add/remove functionality and bilingual support
 - July 18, 2025: Added resultFormat dropdown field to Research Brief tab with predefined options (Презентация, Figma) and bilingual support
+- July 18, 2025: Added collapsible "Фон проекта" (Project Background) section to Research Brief tab with 5 text fields and bilingual support
 
 ## User Preferences
 
