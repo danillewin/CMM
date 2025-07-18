@@ -655,6 +655,7 @@ function ResearchDetail() {
                   isLoading={isPending}
                   onCancel={handleCancel}
                   onDelete={!isNew ? handleDelete : undefined}
+                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
                 />
               </TabsContent>
               
