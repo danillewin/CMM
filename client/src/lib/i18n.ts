@@ -77,6 +77,7 @@ if (!i18n.isInitialized) {
               color: "Color",
               researchType: "Research Type",
               products: "Products",
+              customerFullName: "Customer's Full Name",
               brief: "Brief",
               guide: "Guide",
               fullText: "Full Text",
@@ -94,6 +95,23 @@ if (!i18n.isInitialized) {
               startsInWeeks: "Starts in next weeks",
               selectResearchType: "Select Research Type",
               selectProducts: "Select Products"
+            },
+            research: {
+              title: "Research",
+              tabs: {
+                overview: "Overview",
+                brief: "Brief",
+                recruitment: "Recruitment",
+                guide: "Guide",
+                results: "Results",
+                meetings: "Meetings"
+              },
+              customerFullName: "Customer's Full Name",
+              saveBrief: "Save Brief",
+              uploadFiles: "Upload Files",
+              uploadDescription: "Upload audio or video files to automatically transcribe and add to Full Text",
+              processing: "Processing files...",
+              processComplete: "Processing complete!"
             },
             jtbds: {
               title: "Jobs to be Done",
@@ -178,6 +196,7 @@ if (!i18n.isInitialized) {
               color: "Цвет",
               researchType: "Тип исследования",
               products: "Продукты",
+              customerFullName: "ФИО заказчика",
               brief: "Бриф",
               guide: "Руководство",
               fullText: "Полный текст",
@@ -195,6 +214,23 @@ if (!i18n.isInitialized) {
               startsInWeeks: "Начинается в следующие недели",
               selectResearchType: "Выберите тип исследования",
               selectProducts: "Выберите продукты"
+            },
+            research: {
+              title: "Исследование",
+              tabs: {
+                overview: "Обзор",
+                brief: "Бриф",
+                recruitment: "Рекрутинг",
+                guide: "Руководство",
+                results: "Результаты",
+                meetings: "Встречи"
+              },
+              customerFullName: "ФИО заказчика",
+              saveBrief: "Сохранить бриф",
+              uploadFiles: "Загрузить файлы",
+              uploadDescription: "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",
+              processing: "Обработка файлов...",
+              processComplete: "Обработка завершена!"
             },
             jtbds: {
               title: "Задачи для выполнения",
