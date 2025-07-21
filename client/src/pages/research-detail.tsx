@@ -1066,10 +1066,17 @@ function QuestionSection({
   const { t } = useTranslation();
   const questionBlocks = form.watch(sectionName);
 
-  const updateQuestionBlockName = (blockIndex: number, name: string) => {
+  const updateQuestionBlockName = (blockIndex: number, name: string, subblockPath: number[] = []) => {
     const currentBlocks = form.getValues(sectionName);
     const updatedBlocks = [...currentBlocks];
-    updatedBlocks[blockIndex] = { ...updatedBlocks[blockIndex], name };
+    let targetBlock = updatedBlocks[blockIndex];
+    
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+    
+    targetBlock.name = name;
     form.setValue(sectionName, updatedBlocks);
   };
 
@@ -1100,7 +1107,7 @@ function QuestionSection({
             <Input
               placeholder={t('research.questionBlockNamePlaceholder')}
               value={block.name}
-              onChange={(e) => updateQuestionBlockName(blockIndex, e.target.value)}
+              onChange={(e) => updateQuestionBlockName(blockIndex, e.target.value, subblockPath)}
               className="font-medium"
             />
           </div>
@@ -1108,7 +1115,25 @@ function QuestionSection({
             type="button"
             variant="destructive"
             size="sm"
-            onClick={() => removeQuestionBlock(sectionName, blockIndex)}
+            onClick={() => {
+              if (subblockPath.length === 0) {
+                removeQuestionBlock(sectionName, blockIndex);
+              } else {
+                // Handle subblock removal
+                const currentBlocks = form.getValues(sectionName);
+                const updatedBlocks = [...currentBlocks];
+                let parentBlock = updatedBlocks[blockIndex];
+                
+                // Navigate to parent of the subblock to be removed
+                for (let i = 0; i < subblockPath.length - 1; i++) {
+                  parentBlock = parentBlock.subblocks[subblockPath[i]];
+                }
+                
+                // Remove the subblock
+                parentBlock.subblocks = parentBlock.subblocks.filter((_, i) => i !== subblockPath[subblockPath.length - 1]);
+                form.setValue(sectionName, updatedBlocks);
+              }
+            }}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
