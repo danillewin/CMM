@@ -774,6 +774,7 @@ interface Question {
   id: string;
   text: string;
   comment: string;
+  order?: number; // Add order field to maintain sequence
 }
 
 interface QuestionBlock {
@@ -781,6 +782,7 @@ interface QuestionBlock {
   name: string;
   questions: Question[];
   subblocks: QuestionBlock[];
+  order?: number; // Add order field to maintain sequence
 }
 
 // Component for Guide tab
@@ -791,9 +793,23 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
     if (!data || !Array.isArray(data)) return [];
     return data.map(item => {
       try {
-        return typeof item === 'string' ? JSON.parse(item) : item;
+        const parsed = typeof item === 'string' ? JSON.parse(item) : item;
+        // Ensure order fields exist for backward compatibility
+        if (parsed.questions) {
+          parsed.questions = parsed.questions.map((q: any, index: number) => ({
+            ...q,
+            order: q.order !== undefined ? q.order : index
+          }));
+        }
+        if (parsed.subblocks) {
+          parsed.subblocks = parsed.subblocks.map((s: any, index: number) => ({
+            ...s,
+            order: s.order !== undefined ? s.order : (parsed.questions?.length || 0) + index
+          }));
+        }
+        return parsed;
       } catch {
-        return { id: Math.random().toString(), name: '', questions: [], subblocks: [] };
+        return { id: Math.random().toString(), name: '', questions: [], subblocks: [], order: 0 };
       }
     });
   };
@@ -889,12 +905,6 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
 
   const addQuestion = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath: number[] = []) => {
     const currentBlocks = form.getValues(sectionName);
-    const newQuestion: Question = {
-      id: Math.random().toString(),
-      text: '',
-      comment: ''
-    };
-    
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
     
@@ -902,6 +912,18 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
     for (const subIndex of subblockPath) {
       targetBlock = targetBlock.subblocks[subIndex];
     }
+    
+    // Calculate next order based on existing items
+    const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order || 0));
+    const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order || 0));
+    const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
+    
+    const newQuestion: Question = {
+      id: Math.random().toString(),
+      text: '',
+      comment: '',
+      order: nextOrder
+    };
     
     targetBlock.questions.push(newQuestion);
     form.setValue(sectionName, updatedBlocks);
@@ -923,13 +945,6 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
 
   const addSubblock = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath: number[] = []) => {
     const currentBlocks = form.getValues(sectionName);
-    const newSubblock: QuestionBlock = {
-      id: Math.random().toString(),
-      name: '',
-      questions: [],
-      subblocks: []
-    };
-    
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
     
@@ -937,6 +952,19 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
     for (const subIndex of subblockPath) {
       targetBlock = targetBlock.subblocks[subIndex];
     }
+    
+    // Calculate next order based on existing items
+    const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order || 0));
+    const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order || 0));
+    const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
+    
+    const newSubblock: QuestionBlock = {
+      id: Math.random().toString(),
+      name: '',
+      questions: [],
+      subblocks: [],
+      order: nextOrder
+    };
     
     targetBlock.subblocks.push(newSubblock);
     form.setValue(sectionName, updatedBlocks);
@@ -1139,42 +1167,66 @@ function QuestionSection({
           </Button>
         </div>
 
-        {/* Questions in this block */}
+        {/* Combined Questions and Subblocks in order */}
         <div className="space-y-3">
-          {block.questions.map((question, questionIndex) => (
-            <div key={question.id} className="border-l-4 border-blue-200 pl-4 space-y-2">
-              <div className="flex items-start gap-2">
-                <div className="flex-1 space-y-2">
-                  <Input
-                    placeholder={t('research.questionTextPlaceholder')}
-                    value={question.text}
-                    onChange={(e) => updateQuestion(blockIndex, questionIndex, 'text', e.target.value, subblockPath)}
-                  />
-                  <Input
-                    placeholder={t('research.questionCommentPlaceholder')}
-                    value={question.comment}
-                    onChange={(e) => updateQuestion(blockIndex, questionIndex, 'comment', e.target.value, subblockPath)}
-                    className="text-sm text-gray-600"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => removeQuestion(sectionName, blockIndex, questionIndex, subblockPath)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Subblocks */}
-        <div className="space-y-3">
-          {block.subblocks.map((subblock, subblockIndex) => 
-            renderQuestionBlock(subblock, blockIndex, [...subblockPath, subblockIndex], level + 1)
-          )}
+          {/* Create combined items array with type indicators */}
+          {(() => {
+            const items = [
+              ...block.questions.map((question, questionIndex) => ({ 
+                type: 'question' as const, 
+                item: question, 
+                index: questionIndex,
+                order: question.order || questionIndex
+              })),
+              ...block.subblocks.map((subblock, subblockIndex) => ({ 
+                type: 'subblock' as const, 
+                item: subblock, 
+                index: subblockIndex,
+                order: subblock.order || (block.questions.length + subblockIndex)
+              }))
+            ];
+            
+            // Sort by order to maintain sequence
+            items.sort((a, b) => a.order - b.order);
+            
+            return items.map((item) => {
+              if (item.type === 'question') {
+                const question = item.item as Question;
+                const questionIndex = item.index;
+                return (
+                  <div key={question.id} className="border-l-4 border-blue-200 pl-4 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 space-y-2">
+                        <Input
+                          placeholder={t('research.questionTextPlaceholder')}
+                          value={question.text}
+                          onChange={(e) => updateQuestion(blockIndex, questionIndex, 'text', e.target.value, subblockPath)}
+                        />
+                        <Input
+                          placeholder={t('research.questionCommentPlaceholder')}
+                          value={question.comment}
+                          onChange={(e) => updateQuestion(blockIndex, questionIndex, 'comment', e.target.value, subblockPath)}
+                          className="text-sm text-gray-600"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeQuestion(sectionName, blockIndex, questionIndex, subblockPath)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              } else {
+                const subblock = item.item as QuestionBlock;
+                const subblockIndex = item.index;
+                return renderQuestionBlock(subblock, blockIndex, [...subblockPath, subblockIndex], level + 1);
+              }
+            });
+          })()}
         </div>
 
         {/* Action buttons */}
