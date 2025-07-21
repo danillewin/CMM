@@ -47,6 +47,7 @@ export const researches = pgTable("researches", {
   customerFullName: text("customer_full_name"), // Customer's full name field
   additionalStakeholders: text("additional_stakeholders").array(), // Additional stakeholders field
   resultFormat: text("result_format").default("Презентация"), // Results format field
+  customerSegmentDescription: text("customer_segment_description"), // Customer segment description
   projectBackground: text("project_background"), // Project background description
   problemToSolve: text("problem_to_solve"), // Problem to solve
   resultsUsage: text("results_usage"), // How results will be used

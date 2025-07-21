@@ -117,6 +117,8 @@ if (!i18n.isInitialized) {
                 presentation: "Presentation",
                 figma: "Figma"
               },
+              customerSegmentDescription: "Customer segment(s) description",
+              customerSegmentDescriptionPlaceholder: "Text description (region, role, activity)",
               projectBackground: "Project Background",
               projectBackgroundDescription: "Detailed description of the current situation that necessitated the research",
               problemToSolve: "What problem do we want to solve with this research",
@@ -258,6 +260,8 @@ if (!i18n.isInitialized) {
                 presentation: "Презентация",
                 figma: "Figma"
               },
+              customerSegmentDescription: "Описание сегмента(ов) клиентов",
+              customerSegmentDescriptionPlaceholder: "Текстовое описание (регион, роль, деятельность)",
               projectBackground: "Фон проекта",
               projectBackgroundDescription: "Подробное описание текущей ситуации, вызвашей необходимость проведения исследования",
               problemToSolve: "Какую проблему хотим решить этим исследованием",

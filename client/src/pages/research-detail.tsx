@@ -65,6 +65,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     customerFullName: string; 
     additionalStakeholders: { value: string }[]; 
     resultFormat: string; 
+    customerSegmentDescription: string;
     projectBackground: string;
     problemToSolve: string;
     resultsUsage: string;
@@ -79,6 +80,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       customerFullName: research?.customerFullName || "",
       additionalStakeholders: research?.additionalStakeholders?.map(s => ({ value: s })) || [],
       resultFormat: research?.resultFormat || "Презентация",
+      customerSegmentDescription: research?.customerSegmentDescription || "",
       projectBackground: research?.projectBackground || "",
       problemToSolve: research?.problemToSolve || "",
       resultsUsage: research?.resultsUsage || "",
@@ -103,6 +105,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     customerFullName: string; 
     additionalStakeholders: { value: string }[]; 
     resultFormat: string; 
+    customerSegmentDescription: string;
     projectBackground: string;
     problemToSolve: string;
     resultsUsage: string;
@@ -127,6 +130,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders.map(s => s.value).filter(s => s.trim() !== ""),
         resultFormat: data.resultFormat as any,
+        customerSegmentDescription: data.customerSegmentDescription,
         projectBackground: data.projectBackground,
         problemToSolve: data.problemToSolve,
         resultsUsage: data.resultsUsage,
@@ -238,6 +242,25 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
                   </SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        {/* Customer Segment Description Field */}
+        <FormField
+          control={form.control}
+          name="customerSegmentDescription"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('research.customerSegmentDescription')}</FormLabel>
+              <FormControl>
+                <Textarea
+                  rows={3}
+                  placeholder={t('research.customerSegmentDescriptionPlaceholder')}
+                  {...field}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -469,6 +492,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
+        customerSegmentDescription: research.customerSegmentDescription || undefined,
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
@@ -559,6 +583,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
+        customerSegmentDescription: research.customerSegmentDescription || undefined,
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
@@ -630,6 +655,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
+        customerSegmentDescription: research.customerSegmentDescription || undefined,
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
