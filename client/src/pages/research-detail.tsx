@@ -74,6 +74,8 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     researchGoals: string;
     researchHypotheses: string;
     keyQuestions: string;
+    previousResources: string;
+    additionalMaterials: string;
     brief: string;
   }>({
     defaultValues: {
@@ -89,6 +91,8 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       researchGoals: research?.researchGoals || "",
       researchHypotheses: research?.researchHypotheses || "",
       keyQuestions: research?.keyQuestions || "",
+      previousResources: research?.previousResources || "",
+      additionalMaterials: research?.additionalMaterials || "",
       brief: research?.brief || "",
     },
   });
@@ -100,6 +104,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
 
   const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(true);
   const [isGoalsHypothesesOpen, setIsGoalsHypothesesOpen] = useState(true);
+  const [isAdditionalInformationOpen, setIsAdditionalInformationOpen] = useState(true);
 
   const handleSubmit = (data: { 
     customerFullName: string; 
@@ -114,6 +119,8 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     researchGoals: string;
     researchHypotheses: string;
     keyQuestions: string;
+    previousResources: string;
+    additionalMaterials: string;
     brief: string;
   }) => {
     if (research) {
@@ -139,6 +146,8 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         researchGoals: data.researchGoals,
         researchHypotheses: data.researchHypotheses,
         keyQuestions: data.keyQuestions,
+        previousResources: data.previousResources,
+        additionalMaterials: data.additionalMaterials,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -439,6 +448,57 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
             </CollapsibleContent>
           </Collapsible>
         </div>
+
+        {/* Additional Information Collapsible Section */}
+        <div className="border rounded-lg p-4 bg-gray-50/50">
+          <Collapsible open={isAdditionalInformationOpen} onOpenChange={setIsAdditionalInformationOpen}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{t('research.additionalInformation')}</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {isAdditionalInformationOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="previousResources"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.previousResources')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      placeholder={t('research.previousResourcesPlaceholder')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="additionalMaterials"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.additionalMaterials')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      placeholder={t('research.additionalMaterialsPlaceholder')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
         
         <FormField
           control={form.control}
@@ -501,6 +561,8 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         researchGoals: research.researchGoals || undefined,
         researchHypotheses: research.researchHypotheses || undefined,
         keyQuestions: research.keyQuestions || undefined,
+        previousResources: research.previousResources || undefined,
+        additionalMaterials: research.additionalMaterials || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -592,6 +654,8 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         researchGoals: research.researchGoals || undefined,
         researchHypotheses: research.researchHypotheses || undefined,
         keyQuestions: research.keyQuestions || undefined,
+        previousResources: research.previousResources || undefined,
+        additionalMaterials: research.additionalMaterials || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -664,6 +728,8 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         researchGoals: research.researchGoals || undefined,
         researchHypotheses: research.researchHypotheses || undefined,
         keyQuestions: research.keyQuestions || undefined,
+        previousResources: research.previousResources || undefined,
+        additionalMaterials: research.additionalMaterials || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,

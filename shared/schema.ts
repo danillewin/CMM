@@ -56,6 +56,8 @@ export const researches = pgTable("researches", {
   researchGoals: text("research_goals"), // Main research goals
   researchHypotheses: text("research_hypotheses"), // Research hypotheses
   keyQuestions: text("key_questions"), // Key questions to answer
+  previousResources: text("previous_resources"), // Previous research resources field
+  additionalMaterials: text("additional_materials"), // Additional materials field
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),
