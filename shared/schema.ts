@@ -60,6 +60,7 @@ export const researches = pgTable("researches", {
   additionalMaterials: text("additional_materials"), // Additional materials field
   relatedResearches: text("related_researches").array(), // Related researches links field
   figmaPrototypeLink: text("figma_prototype_link"), // Figma prototype link field
+  artifactLink: text("artifact_link"), // Artifact link field for Results tab
   brief: text("brief"),
   guide: text("guide"),
   fullText: text("full_text"),

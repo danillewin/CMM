@@ -708,6 +708,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         additionalMaterials: research.additionalMaterials || undefined,
         relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
+        artifactLink: research.artifactLink || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -803,6 +804,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         additionalMaterials: research.additionalMaterials || undefined,
         relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
+        artifactLink: research.artifactLink || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -845,13 +847,15 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
 
 // Component for Results tab
 function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
-  const form = useForm<{ fullText: string }>({
+  const { t } = useTranslation();
+  const form = useForm<{ artifactLink: string; fullText: string }>({
     defaultValues: {
+      artifactLink: research?.artifactLink || "",
       fullText: research?.fullText || "",
     },
   });
 
-  const handleSubmit = (data: { fullText: string }) => {
+  const handleSubmit = (data: { artifactLink: string; fullText: string }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -879,6 +883,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         additionalMaterials: research.additionalMaterials || undefined,
         relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
+        artifactLink: data.artifactLink,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
@@ -891,9 +896,28 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="fullText"
+        {/* Artifact Link Field */}
+        <FormField
+          control={form.control}
+          name="artifactLink"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">{t('research.artifactLink')}</FormLabel>
+              <FormControl>
+                <Input
+                  type="url"
+                  placeholder={t('research.artifactLinkPlaceholder')}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="fullText"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-lg font-medium">Full Text</FormLabel>
