@@ -59,7 +59,7 @@ import { Textarea } from "@/components/ui/textarea";
 type ResearchWithId = Research;
 
 // Component for Brief tab
-function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
+function ResearchBriefForm({ research, onUpdate, isLoading, allResearches }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean; allResearches: Research[] }) {
   const { t } = useTranslation();
   const form = useForm<{ 
     researchType: string;
@@ -77,6 +77,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     keyQuestions: string;
     previousResources: string;
     additionalMaterials: string;
+    relatedResearches: { value: string }[];
     figmaPrototypeLink: string;
     brief: string;
   }>({
@@ -96,6 +97,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       keyQuestions: research?.keyQuestions || "",
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
+      relatedResearches: research?.relatedResearches?.map(s => ({ value: s })) || [],
       figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     },
@@ -104,6 +106,11 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "additionalStakeholders"
+  });
+
+  const { fields: relatedResearchFields, append: appendRelatedResearch, remove: removeRelatedResearch } = useFieldArray({
+    control: form.control,
+    name: "relatedResearches"
   });
 
   const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(true);
@@ -126,6 +133,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     keyQuestions: string;
     previousResources: string;
     additionalMaterials: string;
+    relatedResearches: { value: string }[];
     figmaPrototypeLink: string;
     brief: string;
   }) => {
@@ -154,6 +162,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         keyQuestions: data.keyQuestions,
         previousResources: data.previousResources,
         additionalMaterials: data.additionalMaterials,
+        relatedResearches: data.relatedResearches.map(s => s.value).filter(s => s.trim() !== ""),
         figmaPrototypeLink: data.figmaPrototypeLink,
         brief: data.brief,
         guide: research.guide || undefined,
@@ -496,6 +505,54 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
               </CollapsibleTrigger>
             </div>
             <CollapsibleContent className="space-y-4">
+            {/* Related Researches Field */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <FormLabel className="text-base font-medium">{t('research.relatedResearches')}</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendRelatedResearch({ value: "" })}
+                  className="text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t('research.addRelatedResearch')}
+                </Button>
+              </div>
+              {relatedResearchFields.map((field, index) => (
+                <div key={field.id} className="flex items-center space-x-2">
+                  <Select
+                    value={form.watch(`relatedResearches.${index}.value`)}
+                    onValueChange={(value) => form.setValue(`relatedResearches.${index}.value`, value)}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder={t('research.relatedResearchesPlaceholder')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allResearches
+                        .filter((r: Research) => r.id !== research?.id) // Exclude current research
+                        .map((researchItem: Research) => (
+                          <SelectItem key={researchItem.id} value={researchItem.id.toString()}>
+                            {researchItem.name} ({researchItem.team})
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeRelatedResearch(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+            
             <FormField
               control={form.control}
               name="previousResources"
@@ -619,6 +676,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
@@ -713,6 +771,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
@@ -788,6 +847,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        relatedResearches: research.relatedResearches || undefined,
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
@@ -839,6 +899,11 @@ function ResearchDetail() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
+
+  // Query all researches for autocomplete functionality in Brief tab
+  const { data: allResearches = [] } = useQuery<Research[]>({
+    queryKey: ["/api/researches"],
+  });
 
   const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
     queryKey: ["/api/researches", id],
@@ -1072,6 +1137,7 @@ function ResearchDetail() {
                   research={research}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
+                  allResearches={allResearches}
                 />
               </TabsContent>
               

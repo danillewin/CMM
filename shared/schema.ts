@@ -58,6 +58,7 @@ export const researches = pgTable("researches", {
   keyQuestions: text("key_questions"), // Key questions to answer
   previousResources: text("previous_resources"), // Previous research resources field
   additionalMaterials: text("additional_materials"), // Additional materials field
+  relatedResearches: text("related_researches").array(), // Related researches links field
   figmaPrototypeLink: text("figma_prototype_link"), // Figma prototype link field
   brief: text("brief"),
   guide: text("guide"),
