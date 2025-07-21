@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
-import FileUpload from "@/components/file-upload";
+
 import ReactMarkdown from 'react-markdown';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -386,7 +386,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
-        resultFormat: research.resultFormat || "Презентация",
+        resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
@@ -473,7 +473,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
-        resultFormat: research.resultFormat || "Презентация",
+        resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
@@ -521,7 +521,6 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
 
 // Component for Results tab
 function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
-  const [isProcessing, setIsProcessing] = useState(false);
   const form = useForm<{ fullText: string }>({
     defaultValues: {
       fullText: research?.fullText || "",
@@ -542,7 +541,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         researchType: research.researchType as any,
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
-        resultFormat: research.resultFormat || "Презентация",
+        resultFormat: (research.resultFormat as "Презентация" | "Figma") || "Презентация",
         projectBackground: research.projectBackground || undefined,
         problemToSolve: research.problemToSolve || undefined,
         resultsUsage: research.resultsUsage || undefined,
@@ -557,55 +556,9 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
     }
   };
 
-  const handleTranscriptionComplete = (transcriptionText: string) => {
-    const currentText = form.getValues("fullText");
-    const newText = currentText 
-      ? `${currentText}\n\n--- Transcription ---\n${transcriptionText}`
-      : transcriptionText;
-    
-    form.setValue("fullText", newText);
-    
-    // Auto-save after transcription
-    if (research) {
-      onUpdate({
-        name: research.name,
-        team: research.team,
-        researcher: research.researcher,
-        description: research.description,
-        dateStart: research.dateStart,
-        dateEnd: research.dateEnd,
-        status: research.status as ResearchStatusType,
-        color: research.color,
-        researchType: research.researchType as any,
-        customerFullName: research.customerFullName || undefined,
-        additionalStakeholders: research.additionalStakeholders || undefined,
-        resultFormat: research.resultFormat || "Презентация",
-        projectBackground: research.projectBackground || undefined,
-        problemToSolve: research.problemToSolve || undefined,
-        resultsUsage: research.resultsUsage || undefined,
-        productMetrics: research.productMetrics || undefined,
-        limitations: research.limitations || undefined,
-        brief: research.brief || undefined,
-        guide: research.guide || undefined,
-        fullText: newText,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
-      });
-    }
-  };
-
   return (
     <Form {...form}>
-      <div className="space-y-6">
-        {/* File Upload Section */}
-        <FileUpload
-          onTranscriptionComplete={handleTranscriptionComplete}
-          isProcessing={isProcessing}
-          setIsProcessing={setIsProcessing}
-        />
-
-        {/* Full Text Form */}
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="fullText"
@@ -625,12 +578,11 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={isLoading || isProcessing}>
+          <Button type="submit" disabled={isLoading}>
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Save Results
           </Button>
         </form>
-      </div>
     </Form>
   );
 }
