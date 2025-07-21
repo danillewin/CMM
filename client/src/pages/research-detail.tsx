@@ -70,6 +70,9 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     resultsUsage: string;
     productMetrics: string;
     limitations: string;
+    researchGoals: string;
+    researchHypotheses: string;
+    keyQuestions: string;
     brief: string;
   }>({
     defaultValues: {
@@ -81,6 +84,9 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       resultsUsage: research?.resultsUsage || "",
       productMetrics: research?.productMetrics || "",
       limitations: research?.limitations || "",
+      researchGoals: research?.researchGoals || "",
+      researchHypotheses: research?.researchHypotheses || "",
+      keyQuestions: research?.keyQuestions || "",
       brief: research?.brief || "",
     },
   });
@@ -91,6 +97,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   });
 
   const [isProjectBackgroundOpen, setIsProjectBackgroundOpen] = useState(true);
+  const [isGoalsHypothesesOpen, setIsGoalsHypothesesOpen] = useState(true);
 
   const handleSubmit = (data: { 
     customerFullName: string; 
@@ -101,6 +108,9 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     resultsUsage: string;
     productMetrics: string;
     limitations: string;
+    researchGoals: string;
+    researchHypotheses: string;
+    keyQuestions: string;
     brief: string;
   }) => {
     if (research) {
@@ -122,6 +132,9 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         resultsUsage: data.resultsUsage,
         productMetrics: data.productMetrics,
         limitations: data.limitations,
+        researchGoals: data.researchGoals,
+        researchHypotheses: data.researchHypotheses,
+        keyQuestions: data.keyQuestions,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -334,6 +347,75 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
             </CollapsibleContent>
           </Collapsible>
         </div>
+
+        {/* Goals / Hypotheses / Questions Collapsible Section */}
+        <div className="border rounded-lg p-4 bg-gray-50/50">
+          <Collapsible open={isGoalsHypothesesOpen} onOpenChange={setIsGoalsHypothesesOpen}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">{t('research.goalsHypothesesQuestions')}</h3>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {isGoalsHypothesesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="researchGoals"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.researchGoals')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="researchHypotheses"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.researchHypotheses')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder={t('research.researchHypothesesPlaceholder')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="keyQuestions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('research.keyQuestions')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={5}
+                      placeholder={t('research.keyQuestionsPlaceholder')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
         
         <FormField
           control={form.control}
@@ -392,6 +474,9 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         resultsUsage: research.resultsUsage || undefined,
         productMetrics: research.productMetrics || undefined,
         limitations: research.limitations || undefined,
+        researchGoals: research.researchGoals || undefined,
+        researchHypotheses: research.researchHypotheses || undefined,
+        keyQuestions: research.keyQuestions || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -479,6 +564,9 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         resultsUsage: research.resultsUsage || undefined,
         productMetrics: research.productMetrics || undefined,
         limitations: research.limitations || undefined,
+        researchGoals: research.researchGoals || undefined,
+        researchHypotheses: research.researchHypotheses || undefined,
+        keyQuestions: research.keyQuestions || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -547,6 +635,9 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         resultsUsage: research.resultsUsage || undefined,
         productMetrics: research.productMetrics || undefined,
         limitations: research.limitations || undefined,
+        researchGoals: research.researchGoals || undefined,
+        researchHypotheses: research.researchHypotheses || undefined,
+        keyQuestions: research.keyQuestions || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
