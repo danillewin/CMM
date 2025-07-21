@@ -62,6 +62,7 @@ type ResearchWithId = Research;
 function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
   const { t } = useTranslation();
   const form = useForm<{ 
+    researchType: string;
     customerFullName: string; 
     additionalStakeholders: { value: string }[]; 
     resultFormat: string; 
@@ -80,6 +81,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     brief: string;
   }>({
     defaultValues: {
+      researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
       additionalStakeholders: research?.additionalStakeholders?.map(s => ({ value: s })) || [],
       resultFormat: research?.resultFormat || "Презентация",
@@ -109,6 +111,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   const [isAdditionalInformationOpen, setIsAdditionalInformationOpen] = useState(true);
 
   const handleSubmit = (data: { 
+    researchType: string;
     customerFullName: string; 
     additionalStakeholders: { value: string }[]; 
     resultFormat: string; 
@@ -136,7 +139,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         dateEnd: research.dateEnd,
         status: research.status as ResearchStatusType,
         color: research.color,
-        researchType: research.researchType as any,
+        researchType: data.researchType as any,
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders.map(s => s.value).filter(s => s.trim() !== ""),
         resultFormat: data.resultFormat as any,
@@ -164,6 +167,34 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Research Type Field */}
+        <FormField
+          control={form.control}
+          name="researchType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">{t('research.researchType')}</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select research type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="CATI (Telephone Survey)">CATI (Telephone Survey)</SelectItem>
+                  <SelectItem value="CAWI (Online Survey)">CAWI (Online Survey)</SelectItem>
+                  <SelectItem value="Moderated usability testing">Moderated usability testing</SelectItem>
+                  <SelectItem value="Unmoderated usability testing">Unmoderated usability testing</SelectItem>
+                  <SelectItem value="Co-creation session">Co-creation session</SelectItem>
+                  <SelectItem value="Interviews">Interviews</SelectItem>
+                  <SelectItem value="Desk research">Desk research</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="customerFullName"
@@ -505,7 +536,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         </div>
         
         {/* Figma Prototype Link Field - Only visible for usability testing */}
-        {research && (research.researchType === "Moderated usability testing" || research.researchType === "Unmoderated usability testing") && (
+        {(form.watch("researchType") === "Moderated usability testing" || form.watch("researchType") === "Unmoderated usability testing") && (
           <FormField
             control={form.control}
             name="figmaPrototypeLink"

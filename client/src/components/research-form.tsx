@@ -316,39 +316,7 @@ export default function ResearchForm({
               />
             </div>
             
-            {/* Third row: Research Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="researchType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">
-                      Research Type
-                      <RequiredFieldIndicator />
-                    </FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select research type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="CATI (Telephone Survey)">CATI (Telephone Survey)</SelectItem>
-                        <SelectItem value="CAWI (Online Survey)">CAWI (Online Survey)</SelectItem>
-                        <SelectItem value="Moderated usability testing">Moderated usability testing</SelectItem>
-                        <SelectItem value="Unmoderated usability testing">Unmoderated usability testing</SelectItem>
-                        <SelectItem value="Co-creation session">Co-creation session</SelectItem>
-                        <SelectItem value="Interviews">Interviews</SelectItem>
-                        <SelectItem value="Desk research">Desk research</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div></div> {/* Empty div to maintain grid layout */}
-            </div>
+
           </div>
           
           {/* Research Name and Team */}
