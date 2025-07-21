@@ -76,6 +76,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     keyQuestions: string;
     previousResources: string;
     additionalMaterials: string;
+    figmaPrototypeLink: string;
     brief: string;
   }>({
     defaultValues: {
@@ -93,6 +94,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
       keyQuestions: research?.keyQuestions || "",
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
+      figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     },
   });
@@ -121,6 +123,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
     keyQuestions: string;
     previousResources: string;
     additionalMaterials: string;
+    figmaPrototypeLink: string;
     brief: string;
   }) => {
     if (research) {
@@ -148,6 +151,7 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
         keyQuestions: data.keyQuestions,
         previousResources: data.previousResources,
         additionalMaterials: data.additionalMaterials,
+        figmaPrototypeLink: data.figmaPrototypeLink,
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -500,6 +504,27 @@ function ResearchBriefForm({ research, onUpdate, isLoading }: { research?: Resea
           </Collapsible>
         </div>
         
+        {/* Figma Prototype Link Field - Only visible for usability testing */}
+        {research && (research.researchType === "Moderated usability testing" || research.researchType === "Unmoderated usability testing") && (
+          <FormField
+            control={form.control}
+            name="figmaPrototypeLink"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('research.figmaPrototypeLink')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="url"
+                    placeholder={t('research.figmaPrototypeLinkPlaceholder')}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+        
         <FormField
           control={form.control}
           name="brief"
@@ -563,6 +588,7 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
@@ -656,6 +682,7 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
         fullText: research.fullText || undefined,
@@ -730,6 +757,7 @@ function ResearchResultsForm({ research, onUpdate, isLoading }: { research?: Res
         keyQuestions: research.keyQuestions || undefined,
         previousResources: research.previousResources || undefined,
         additionalMaterials: research.additionalMaterials || undefined,
+        figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
