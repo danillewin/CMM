@@ -1171,8 +1171,8 @@ function ResearchDetail() {
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="info">{t('research.tabs.overview')}</TabsTrigger>
                 <TabsTrigger value="brief">{t('research.tabs.brief')}</TabsTrigger>
-                <TabsTrigger value="recruitment">{t('research.tabs.recruitment')}</TabsTrigger>
                 <TabsTrigger value="guide">{t('research.tabs.guide')}</TabsTrigger>
+                <TabsTrigger value="recruitment">{t('research.tabs.recruitment')}</TabsTrigger>
                 <TabsTrigger value="results">{t('research.tabs.results')}</TabsTrigger>
               </TabsList>
               
@@ -1195,16 +1195,16 @@ function ResearchDetail() {
                 />
               </TabsContent>
               
-              <TabsContent value="recruitment" className="mt-6">
-                <ResearchRecruitmentForm
+              <TabsContent value="guide" className="mt-6">
+                <ResearchGuideForm
                   research={research}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
                 />
               </TabsContent>
               
-              <TabsContent value="guide" className="mt-6">
-                <ResearchGuideForm
+              <TabsContent value="recruitment" className="mt-6">
+                <ResearchRecruitmentForm
                   research={research}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
