@@ -509,16 +509,24 @@ function ResearchBriefForm({ research, onUpdate, isLoading, allResearches }: { r
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <FormLabel className="text-base font-medium">{t('research.relatedResearches')}</FormLabel>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => appendRelatedResearch({ value: "" })}
-                  className="text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t('research.addRelatedResearch')}
-                </Button>
+                {(() => {
+                  const selectedIds = form.watch("relatedResearches").map(item => item.value).filter(id => id.trim() !== "");
+                  const availableResearches = allResearches.filter(r => 
+                    r.id !== research?.id && !selectedIds.includes(r.id.toString())
+                  );
+                  return availableResearches.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendRelatedResearch({ value: "" })}
+                      className="text-sm"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t('research.addRelatedResearch')}
+                    </Button>
+                  );
+                })()}
               </div>
               {relatedResearchFields.map((field, index) => (
                 <div key={field.id} className="flex items-center space-x-2">
@@ -531,7 +539,13 @@ function ResearchBriefForm({ research, onUpdate, isLoading, allResearches }: { r
                     </SelectTrigger>
                     <SelectContent>
                       {allResearches
-                        .filter((r: Research) => r.id !== research?.id) // Exclude current research
+                        .filter((r: Research) => {
+                          // Exclude current research
+                          if (r.id === research?.id) return false;
+                          // Exclude already selected researches
+                          const selectedIds = form.watch("relatedResearches").map(item => item.value).filter(id => id.trim() !== "");
+                          return !selectedIds.includes(r.id.toString());
+                        })
                         .map((researchItem: Research) => (
                           <SelectItem key={researchItem.id} value={researchItem.id.toString()}>
                             {researchItem.name} ({researchItem.team})
