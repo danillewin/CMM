@@ -43,8 +43,8 @@ import {
 import { Input } from "@/components/ui/input";
 import MDEditor from '@uiw/react-md-editor';
 import { useTranslation } from 'react-i18next';
-import { useFieldArray } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useFieldArray, UseFormReturn } from "react-hook-form";
+import { Plus, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -768,15 +769,58 @@ function ResearchRecruitmentForm({ research, onUpdate, isLoading }: { research?:
   );
 }
 
+// Types for Guide structure
+interface Question {
+  id: string;
+  text: string;
+  comment: string;
+}
+
+interface QuestionBlock {
+  id: string;
+  name: string;
+  questions: Question[];
+  subblocks: QuestionBlock[];
+}
+
 // Component for Guide tab
 function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Research; onUpdate: (data: InsertResearch) => void; isLoading: boolean }) {
-  const form = useForm<{ guide: string }>({
+  const { t } = useTranslation();
+  
+  const parseQuestionBlocks = (data: string[] | null): QuestionBlock[] => {
+    if (!data || !Array.isArray(data)) return [];
+    return data.map(item => {
+      try {
+        return typeof item === 'string' ? JSON.parse(item) : item;
+      } catch {
+        return { id: Math.random().toString(), name: '', questions: [], subblocks: [] };
+      }
+    });
+  };
+
+  const form = useForm<{ 
+    guide: string;
+    guideIntroText: string;
+    guideIntroQuestions: QuestionBlock[];
+    guideMainQuestions: QuestionBlock[];
+    guideConcludingQuestions: QuestionBlock[];
+  }>({
     defaultValues: {
       guide: research?.guide || "",
+      guideIntroText: research?.guideIntroText || "",
+      guideIntroQuestions: parseQuestionBlocks(research?.guideIntroQuestions || null),
+      guideMainQuestions: parseQuestionBlocks(research?.guideMainQuestions || null),
+      guideConcludingQuestions: parseQuestionBlocks(research?.guideConcludingQuestions || null),
     },
   });
 
-  const handleSubmit = (data: { guide: string }) => {
+  const handleSubmit = (data: { 
+    guide: string;
+    guideIntroText: string;
+    guideIntroQuestions: QuestionBlock[];
+    guideMainQuestions: QuestionBlock[];
+    guideConcludingQuestions: QuestionBlock[];
+  }) => {
     if (research) {
       onUpdate({
         name: research.name,
@@ -807,6 +851,10 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
         artifactLink: research.artifactLink || undefined,
         brief: research.brief || undefined,
         guide: data.guide,
+        guideIntroText: data.guideIntroText,
+        guideIntroQuestions: data.guideIntroQuestions.map(block => JSON.stringify(block)),
+        guideMainQuestions: data.guideMainQuestions.map(block => JSON.stringify(block)),
+        guideConcludingQuestions: data.guideConcludingQuestions.map(block => JSON.stringify(block)),
         fullText: research.fullText || undefined,
         clientsWeSearchFor: research.clientsWeSearchFor || undefined,
         inviteTemplate: research.inviteTemplate || undefined,
@@ -814,9 +862,90 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
     }
   };
 
+  // Helper functions for managing question blocks
+  const addQuestionBlock = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions') => {
+    const currentBlocks = form.getValues(sectionName);
+    const newBlock: QuestionBlock = {
+      id: Math.random().toString(),
+      name: '',
+      questions: [],
+      subblocks: []
+    };
+    form.setValue(sectionName, [...currentBlocks, newBlock]);
+  };
+
+  const removeQuestionBlock = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', index: number) => {
+    const currentBlocks = form.getValues(sectionName);
+    const updatedBlocks = currentBlocks.filter((_, i) => i !== index);
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const updateQuestionBlock = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', index: number, updatedBlock: QuestionBlock) => {
+    const currentBlocks = form.getValues(sectionName);
+    const updatedBlocks = [...currentBlocks];
+    updatedBlocks[index] = updatedBlock;
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const addQuestion = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath: number[] = []) => {
+    const currentBlocks = form.getValues(sectionName);
+    const newQuestion: Question = {
+      id: Math.random().toString(),
+      text: '',
+      comment: ''
+    };
+    
+    const updatedBlocks = [...currentBlocks];
+    let targetBlock = updatedBlocks[blockIndex];
+    
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+    
+    targetBlock.questions.push(newQuestion);
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const removeQuestion = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, questionIndex: number, subblockPath: number[] = []) => {
+    const currentBlocks = form.getValues(sectionName);
+    const updatedBlocks = [...currentBlocks];
+    let targetBlock = updatedBlocks[blockIndex];
+    
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+    
+    targetBlock.questions = targetBlock.questions.filter((_, i) => i !== questionIndex);
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const addSubblock = (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath: number[] = []) => {
+    const currentBlocks = form.getValues(sectionName);
+    const newSubblock: QuestionBlock = {
+      id: Math.random().toString(),
+      name: '',
+      questions: [],
+      subblocks: []
+    };
+    
+    const updatedBlocks = [...currentBlocks];
+    let targetBlock = updatedBlocks[blockIndex];
+    
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+    
+    targetBlock.subblocks.push(newSubblock);
+    form.setValue(sectionName, updatedBlocks);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {/* Original Guide Field */}
         <FormField
           control={form.control}
           name="guide"
@@ -836,12 +965,245 @@ function ResearchGuideForm({ research, onUpdate, isLoading }: { research?: Resea
             </FormItem>
           )}
         />
+
+        {/* Вступительное слово */}
+        <FormField
+          control={form.control}
+          name="guideIntroText"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">{t('research.guideIntroText')}</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder={t('research.guideIntroTextPlaceholder')}
+                  {...field}
+                  rows={4}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Вступительные вопросы */}
+        <QuestionSection
+          title={t('research.guideIntroQuestions')}
+          sectionName="guideIntroQuestions"
+          form={form}
+          addQuestionBlock={addQuestionBlock}
+          removeQuestionBlock={removeQuestionBlock}
+          updateQuestionBlock={updateQuestionBlock}
+          addQuestion={addQuestion}
+          removeQuestion={removeQuestion}
+          addSubblock={addSubblock}
+        />
+
+        {/* Основные вопросы */}
+        <QuestionSection
+          title={t('research.guideMainQuestions')}
+          sectionName="guideMainQuestions"
+          form={form}
+          addQuestionBlock={addQuestionBlock}
+          removeQuestionBlock={removeQuestionBlock}
+          updateQuestionBlock={updateQuestionBlock}
+          addQuestion={addQuestion}
+          removeQuestion={removeQuestion}
+          addSubblock={addSubblock}
+        />
+
+        {/* Заключительные вопросы */}
+        <QuestionSection
+          title={t('research.guideConcludingQuestions')}
+          sectionName="guideConcludingQuestions"
+          form={form}
+          addQuestionBlock={addQuestionBlock}
+          removeQuestionBlock={removeQuestionBlock}
+          updateQuestionBlock={updateQuestionBlock}
+          addQuestion={addQuestion}
+          removeQuestion={removeQuestion}
+          addSubblock={addSubblock}
+        />
+
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save Guide
         </Button>
       </form>
     </Form>
+  );
+}
+
+// QuestionSection component for the Guide form
+interface QuestionSectionProps {
+  title: string;
+  sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions';
+  form: UseFormReturn<{
+    guide: string;
+    guideIntroText: string;
+    guideIntroQuestions: QuestionBlock[];
+    guideMainQuestions: QuestionBlock[];
+    guideConcludingQuestions: QuestionBlock[];
+  }>;
+  addQuestionBlock: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions') => void;
+  removeQuestionBlock: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', index: number) => void;
+  updateQuestionBlock: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', index: number, updatedBlock: QuestionBlock) => void;
+  addQuestion: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath?: number[]) => void;
+  removeQuestion: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, questionIndex: number, subblockPath?: number[]) => void;
+  addSubblock: (sectionName: 'guideIntroQuestions' | 'guideMainQuestions' | 'guideConcludingQuestions', blockIndex: number, subblockPath?: number[]) => void;
+}
+
+function QuestionSection({ 
+  title, 
+  sectionName, 
+  form, 
+  addQuestionBlock, 
+  removeQuestionBlock, 
+  updateQuestionBlock, 
+  addQuestion, 
+  removeQuestion, 
+  addSubblock 
+}: QuestionSectionProps) {
+  const { t } = useTranslation();
+  const questionBlocks = form.watch(sectionName);
+
+  const updateQuestionBlockName = (blockIndex: number, name: string) => {
+    const currentBlocks = form.getValues(sectionName);
+    const updatedBlocks = [...currentBlocks];
+    updatedBlocks[blockIndex] = { ...updatedBlocks[blockIndex], name };
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const updateQuestion = (blockIndex: number, questionIndex: number, field: 'text' | 'comment', value: string, subblockPath: number[] = []) => {
+    const currentBlocks = form.getValues(sectionName);
+    const updatedBlocks = [...currentBlocks];
+    let targetBlock = updatedBlocks[blockIndex];
+    
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+    
+    targetBlock.questions[questionIndex] = {
+      ...targetBlock.questions[questionIndex],
+      [field]: value
+    };
+    form.setValue(sectionName, updatedBlocks);
+  };
+
+  const renderQuestionBlock = (block: QuestionBlock, blockIndex: number, subblockPath: number[] = [], level: number = 0) => {
+    const indent = level * 20;
+    
+    return (
+      <div key={block.id} className="border rounded-lg p-4 space-y-4" style={{ marginLeft: `${indent}px` }}>
+        <div className="flex items-center justify-between">
+          <div className="flex-1 mr-4">
+            <Input
+              placeholder={t('research.questionBlockNamePlaceholder')}
+              value={block.name}
+              onChange={(e) => updateQuestionBlockName(blockIndex, e.target.value)}
+              className="font-medium"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => removeQuestionBlock(sectionName, blockIndex)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Questions in this block */}
+        <div className="space-y-3">
+          {block.questions.map((question, questionIndex) => (
+            <div key={question.id} className="border-l-4 border-blue-200 pl-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <div className="flex-1 space-y-2">
+                  <Input
+                    placeholder={t('research.questionTextPlaceholder')}
+                    value={question.text}
+                    onChange={(e) => updateQuestion(blockIndex, questionIndex, 'text', e.target.value, subblockPath)}
+                  />
+                  <Input
+                    placeholder={t('research.questionCommentPlaceholder')}
+                    value={question.comment}
+                    onChange={(e) => updateQuestion(blockIndex, questionIndex, 'comment', e.target.value, subblockPath)}
+                    className="text-sm text-gray-600"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeQuestion(sectionName, blockIndex, questionIndex, subblockPath)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Subblocks */}
+        <div className="space-y-3">
+          {block.subblocks.map((subblock, subblockIndex) => 
+            renderQuestionBlock(subblock, blockIndex, [...subblockPath, subblockIndex], level + 1)
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 pt-2 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addQuestion(sectionName, blockIndex, subblockPath)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t('research.addQuestion')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t('research.addSubblock')}
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">{title}</h3>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => addQuestionBlock(sectionName)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          {t('research.addQuestionBlock')}
+        </Button>
+      </div>
+      
+      <div className="space-y-4">
+        {questionBlocks.map((block, index) => 
+          renderQuestionBlock(block, index)
+        )}
+      </div>
+      
+      {questionBlocks.length === 0 && (
+        <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-200 rounded-lg">
+          No question blocks yet. Click "Add Question Block" to get started.
+        </div>
+      )}
+    </div>
   );
 }
 
