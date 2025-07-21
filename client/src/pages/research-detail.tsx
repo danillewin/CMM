@@ -617,26 +617,31 @@ function ResearchBriefForm({ research, onUpdate, isLoading, allResearches }: { r
           </Collapsible>
         </div>
         
-        {/* Figma Prototype Link Field - Only visible for usability testing */}
-        {(form.watch("researchType") === "Moderated usability testing" || form.watch("researchType") === "Unmoderated usability testing") && (
-          <FormField
-            control={form.control}
-            name="figmaPrototypeLink"
-            render={({ field }) => (
+        {/* Figma Prototype Link Field - Disabled for non-usability testing */}
+        <FormField
+          control={form.control}
+          name="figmaPrototypeLink"
+          render={({ field }) => {
+            const isUsabilityTesting = form.watch("researchType") === "Moderated usability testing" || form.watch("researchType") === "Unmoderated usability testing";
+            return (
               <FormItem>
                 <FormLabel>{t('research.figmaPrototypeLink')}</FormLabel>
                 <FormControl>
                   <Input
                     type="url"
                     placeholder={t('research.figmaPrototypeLinkPlaceholder')}
+                    disabled={!isUsabilityTesting}
                     {...field}
                   />
                 </FormControl>
+                {!isUsabilityTesting && (
+                  <p className="text-sm text-gray-500 mt-1">Только на юзабилити тестах</p>
+                )}
                 <FormMessage />
               </FormItem>
-            )}
-          />
-        )}
+            );
+          }}
+        />
         
         <FormField
           control={form.control}
