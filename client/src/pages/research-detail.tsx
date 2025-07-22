@@ -1015,6 +1015,16 @@ function ResearchGuideForm({
   useEffect(() => {
     form.reset({
       guide: research?.guide || "",
+      guideIntroText: research?.guideIntroText || "",
+      guideIntroQuestions: parseQuestionBlocks(
+        research?.guideIntroQuestions || null,
+      ),
+      guideMainQuestions: parseQuestionBlocks(
+        research?.guideMainQuestions || null,
+      ),
+      guideConcludingQuestions: parseQuestionBlocks(
+        research?.guideConcludingQuestions || null,
+      ),
     });
   }, [research, form]);
 
@@ -1058,15 +1068,52 @@ function ResearchGuideForm({
         brief: research.brief || undefined,
         guide: data.guide,
         guideIntroText: data.guideIntroText,
-        guideIntroQuestions: (data.guideIntroQuestions || []).map((block) =>
-          JSON.stringify(block),
-        ),
-        guideMainQuestions: (data.guideMainQuestions || []).map((block) =>
-          JSON.stringify(block),
-        ),
-        guideConcludingQuestions: (data.guideConcludingQuestions || []).map((block) =>
-          JSON.stringify(block),
-        ),
+        guideIntroQuestions: (data.guideIntroQuestions || []).map((block) => {
+          try {
+            // Ensure the block has all required properties with defaults
+            const cleanBlock = {
+              id: block.id || Math.random().toString(),
+              name: block.name || "",
+              questions: block.questions || [],
+              subblocks: block.subblocks || [],
+              order: block.order || 0,
+            };
+            return JSON.stringify(cleanBlock);
+          } catch (error) {
+            console.error("Error stringifying guide intro question block:", error, block);
+            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+          }
+        }),
+        guideMainQuestions: (data.guideMainQuestions || []).map((block) => {
+          try {
+            const cleanBlock = {
+              id: block.id || Math.random().toString(),
+              name: block.name || "",
+              questions: block.questions || [],
+              subblocks: block.subblocks || [],
+              order: block.order || 0,
+            };
+            return JSON.stringify(cleanBlock);
+          } catch (error) {
+            console.error("Error stringifying guide main question block:", error, block);
+            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+          }
+        }),
+        guideConcludingQuestions: (data.guideConcludingQuestions || []).map((block) => {
+          try {
+            const cleanBlock = {
+              id: block.id || Math.random().toString(),
+              name: block.name || "",
+              questions: block.questions || [],
+              subblocks: block.subblocks || [],
+              order: block.order || 0,
+            };
+            return JSON.stringify(cleanBlock);
+          } catch (error) {
+            console.error("Error stringifying guide concluding question block:", error, block);
+            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+          }
+        }),
         fullText: research.fullText || undefined,
         clientsWeSearchFor: research.clientsWeSearchFor || undefined,
         inviteTemplate: research.inviteTemplate || undefined,
@@ -1094,6 +1141,7 @@ function ResearchGuideForm({
       name: "",
       questions: [],
       subblocks: [],
+      order: 0,
     };
     form.setValue(sectionName, [...currentBlocks, newBlock]);
   };
