@@ -65,9 +65,9 @@ export const researches = pgTable("researches", {
   guide: text("guide"),
   // Guide structure fields
   guideIntroText: text("guide_intro_text"), // Вступительное слово
-  guideIntroQuestions: text("guide_intro_questions").array(), // Вступительные вопросы (JSON array)
-  guideMainQuestions: text("guide_main_questions").array(), // Основные вопросы (JSON array)
-  guideConcludingQuestions: text("guide_concluding_questions").array(), // Заключительные вопросы (JSON array)
+  guideIntroQuestions: text("guide_intro_questions"), // Вступительные вопросы (JSON string)
+  guideMainQuestions: text("guide_main_questions"), // Основные вопросы (JSON string)
+  guideConcludingQuestions: text("guide_concluding_questions"), // Заключительные вопросы (JSON string)
   fullText: text("full_text"),
   clientsWeSearchFor: text("clients_we_search_for"),
   inviteTemplate: text("invite_template"),

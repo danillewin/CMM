@@ -1,0 +1,71 @@
+8:31:48 PM [express] GET /api/meetings 304 in 154ms :: [{"id":3,"respondentName":"Maria Gonzalez","r…
+Fetching research with ID: 32
+Research data: {
+  id: 32,
+  name: 'Enterprise Customer Journey Mapping',
+  team: 'Customer Experience',
+  researcher: 'Sarah Chen',
+  description: 'Comprehensive analysis of enterprise customer touchpoints to identify optimization opportunities and pain points throughout the buyer journey.',
+  dateStart: 2024-03-01T00:00:00.000Z,
+  dateEnd: 2024-05-15T00:00:00.000Z,
+  status: 'In Progress',
+  color: '#3b82f6',
+  researchType: 'Interviews',
+  products: null,
+  customerFullName: null,
+  additionalStakeholders: null,
+  resultFormat: null,
+  customerSegmentDescription: null,
+  projectBackground: null,
+  problemToSolve: null,
+  resultsUsage: null,
+  productMetrics: null,
+  limitations: null,
+  researchGoals: null,
+  researchHypotheses: null,
+  keyQuestions: null,
+  previousResources: null,
+  additionalMaterials: null,
+  relatedResearches: null,
+  figmaPrototypeLink: null,
+  artifactLink: null,
+  brief: null,
+  guide: null,
+  guideIntroText: null,
+  guideIntroQuestions: null,
+  guideMainQuestions: null,
+  guideConcludingQuestions: null,
+  fullText: null,
+  clientsWeSearchFor: null,
+  inviteTemplate: null
+}
+8:31:53 PM [express] GET /api/researches/32 304 in 68ms :: {"id":32,"name":"Enterprise Customer Jour…
+8:31:53 PM [express] GET /api/jtbds 304 in 51ms :: [{"id":58,"title":"","jobStatement":"","jobStory"…
+8:31:53 PM [express] GET /api/researchs/32/jtbds 200 in 4ms
+8:31:53 PM [express] GET /api/teams 304 in 53ms :: [{"id":23,"name":"Product Strategy","createdAt":"…
+guideIntroQuestions data: [{"id":"0.5272853412641751","name":"qwe","questions":[{"id":"0.3364476072468763","text":"qwe","comment":"er","order":0}],"subblocks":[{"id":"0.36169607018603755","name":"eqwqew","questions":[],"subblocks":[],"order":1}],"order":0}]
+guideIntroQuestions sample: [
+guideMainQuestions data: []
+guideMainQuestions sample: [
+guideConcludingQuestions data: []
+guideConcludingQuestions sample: [
+Error updating research: TypeError: value.map is not a function
+    at PgArray.mapToDriverValue (/home/runner/workspace/node_modules/src/pg-core/columns/common.ts:343:19)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:223:69)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:174:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:174:17)
+    at Array.map (<anonymous>)
+    at SQL.buildQueryFromSourceParams (/home/runner/workspace/node_modules/src/sql/sql.ts:148:30)
+    at <anonymous> (/home/runner/workspace/node_modules/src/sql/sql.ts:124:23)
+    at Object.startActiveSpan (/home/runner/workspace/node_modules/src/tracing.ts:27:11)
+    at SQL.toQuery (/home/runner/workspace/node_modules/src/sql/sql.ts:123:17)
+    at PgDialect.sqlToQuery (/home/runner/workspace/node_modules/src/pg-core/dialect.ts:591:14)
+    at QueryPromise._prepare (/home/runner/workspace/node_modules/src/pg-core/query-builders/update.ts:579:18)
+    at QueryPromise.execute (/home/runner/workspace/node_modules/src/pg-core/query-builders/update.ts:596:15)
+    at QueryPromise.then (/home/runner/workspace/node_modules/src/query-promise.ts:31:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+8:32:12 PM [express] PATCH /api/researches/32 500 in 2220ms :: {"message":"Failed to update research…
