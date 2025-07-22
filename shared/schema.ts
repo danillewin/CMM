@@ -162,6 +162,10 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   limitations: z.string().optional(),
   brief: z.string().optional(),
   guide: z.string().optional(),
+  guideIntroText: z.string().optional(),
+  guideIntroQuestions: z.string().optional(),
+  guideMainQuestions: z.string().optional(),
+  guideConcludingQuestions: z.string().optional(),
   fullText: z.string().optional(),
 });
 

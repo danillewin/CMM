@@ -956,38 +956,37 @@ function ResearchGuideForm({
 }) {
   const { t } = useTranslation();
 
-  const parseQuestionBlocks = (data: string[] | null): QuestionBlock[] => {
-    if (!data || !Array.isArray(data)) return [];
-    return data.map((item) => {
-      try {
-        const parsed = typeof item === "string" ? JSON.parse(item) : item;
+  const parseQuestionBlocks = (data: string | null): QuestionBlock[] => {
+    if (!data || typeof data !== 'string') return [];
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed)) return [];
+      
+      return parsed.map((item: any) => {
         // Ensure order fields exist for backward compatibility
-        if (parsed.questions) {
-          parsed.questions = parsed.questions.map((q: any, index: number) => ({
+        if (item.questions) {
+          item.questions = item.questions.map((q: any, index: number) => ({
             ...q,
             order: q.order !== undefined ? q.order : index,
           }));
         }
-        if (parsed.subblocks) {
-          parsed.subblocks = parsed.subblocks.map((s: any, index: number) => ({
+        if (item.subblocks) {
+          item.subblocks = item.subblocks.map((s: any, index: number) => ({
             ...s,
             order:
               s.order !== undefined
                 ? s.order
-                : (parsed.questions?.length || 0) + index,
+                : (item.questions?.length || 0) + index,
           }));
         }
-        return parsed;
-      } catch {
         return {
-          id: Math.random().toString(),
-          name: "",
-          questions: [],
-          subblocks: [],
-          order: 0,
+          ...item,
+          order: item.order !== undefined ? item.order : 0,
         };
-      }
-    });
+      });
+    } catch {
+      return [];
+    }
   };
 
   const form = useForm<{
@@ -1001,13 +1000,13 @@ function ResearchGuideForm({
       guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
       guideIntroQuestions: parseQuestionBlocks(
-        research?.guideIntroQuestions || null,
+        (research?.guideIntroQuestions as unknown as string) || null,
       ),
       guideMainQuestions: parseQuestionBlocks(
-        research?.guideMainQuestions || null,
+        (research?.guideMainQuestions as unknown as string) || null,
       ),
       guideConcludingQuestions: parseQuestionBlocks(
-        research?.guideConcludingQuestions || null,
+        (research?.guideConcludingQuestions as unknown as string) || null,
       ),
     },
   });
@@ -1017,13 +1016,13 @@ function ResearchGuideForm({
       guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
       guideIntroQuestions: parseQuestionBlocks(
-        research?.guideIntroQuestions || null,
+        (research?.guideIntroQuestions as unknown as string) || null,
       ),
       guideMainQuestions: parseQuestionBlocks(
-        research?.guideMainQuestions || null,
+        (research?.guideMainQuestions as unknown as string) || null,
       ),
       guideConcludingQuestions: parseQuestionBlocks(
-        research?.guideConcludingQuestions || null,
+        (research?.guideConcludingQuestions as unknown as string) || null,
       ),
     });
   }, [research, form]);
@@ -1068,10 +1067,9 @@ function ResearchGuideForm({
         brief: research.brief || undefined,
         guide: data.guide,
         guideIntroText: data.guideIntroText,
-        guideIntroQuestions: (data.guideIntroQuestions || []).map((block) => {
+        guideIntroQuestions: (() => {
           try {
-            // Ensure the block has all required properties with defaults
-            const cleanBlock = {
+            const cleanBlocks = (data.guideIntroQuestions || []).map((block) => ({
               id: block.id || Math.random().toString(),
               name: block.name || "",
               questions: (block.questions || []).map(q => ({
@@ -1093,16 +1091,16 @@ function ResearchGuideForm({
                 order: s.order || 0,
               })),
               order: block.order || 0,
-            };
-            return JSON.stringify(cleanBlock);
+            }));
+            return JSON.stringify(cleanBlocks);
           } catch (error) {
-            console.error("Error stringifying guide intro question block:", error, block);
-            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+            console.error("Error stringifying guide intro questions:", error, data.guideIntroQuestions);
+            return JSON.stringify([]);
           }
-        }),
-        guideMainQuestions: (data.guideMainQuestions || []).map((block) => {
+        })(),
+        guideMainQuestions: (() => {
           try {
-            const cleanBlock = {
+            const cleanBlocks = (data.guideMainQuestions || []).map((block) => ({
               id: block.id || Math.random().toString(),
               name: block.name || "",
               questions: (block.questions || []).map(q => ({
@@ -1124,16 +1122,16 @@ function ResearchGuideForm({
                 order: s.order || 0,
               })),
               order: block.order || 0,
-            };
-            return JSON.stringify(cleanBlock);
+            }));
+            return JSON.stringify(cleanBlocks);
           } catch (error) {
-            console.error("Error stringifying guide main question block:", error, block);
-            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+            console.error("Error stringifying guide main questions:", error, data.guideMainQuestions);
+            return JSON.stringify([]);
           }
-        }),
-        guideConcludingQuestions: (data.guideConcludingQuestions || []).map((block) => {
+        })(),
+        guideConcludingQuestions: (() => {
           try {
-            const cleanBlock = {
+            const cleanBlocks = (data.guideConcludingQuestions || []).map((block) => ({
               id: block.id || Math.random().toString(),
               name: block.name || "",
               questions: (block.questions || []).map(q => ({
@@ -1155,13 +1153,13 @@ function ResearchGuideForm({
                 order: s.order || 0,
               })),
               order: block.order || 0,
-            };
-            return JSON.stringify(cleanBlock);
+            }));
+            return JSON.stringify(cleanBlocks);
           } catch (error) {
-            console.error("Error stringifying guide concluding question block:", error, block);
-            return JSON.stringify({ id: Math.random().toString(), name: "", questions: [], subblocks: [], order: 0 });
+            console.error("Error stringifying guide concluding questions:", error, data.guideConcludingQuestions);
+            return JSON.stringify([]);
           }
-        }),
+        })(),
         fullText: research.fullText || undefined,
         clientsWeSearchFor: research.clientsWeSearchFor || undefined,
         inviteTemplate: research.inviteTemplate || undefined,
@@ -1937,7 +1935,7 @@ function ResearchDetail() {
 
   // When creating a new research, store the combined data of the existing research and temporary form data
   const effectiveResearch = isNew
-    ? ({ ...tempFormData } as Research)
+    ? ({ ...tempFormData } as unknown as Research)
     : research;
 
   const { data: researches = [] } = useQuery<Research[]>({
@@ -2034,7 +2032,7 @@ function ResearchDetail() {
   const handleSubmit = (formData: InsertResearch) => {
     if (!isNew && id) {
       // For update, we need to include the ID
-      const updateData = { ...formData, id } as ResearchWithId;
+      const updateData = { ...formData, id } as unknown as ResearchWithId;
       updateMutation.mutate(updateData);
     } else {
       // For create, we check for duplicates first
