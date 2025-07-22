@@ -44,8 +44,30 @@ export const researches = pgTable("researches", {
   color: text("color").notNull().default("#3b82f6"), // Add color field with default blue
   researchType: text("research_type").notNull().default("Interviews"),
   products: text("products").array(),
+  customerFullName: text("customer_full_name"), // Customer's full name field
+  additionalStakeholders: text("additional_stakeholders").array(), // Additional stakeholders field
+  resultFormat: text("result_format").default("Презентация"), // Results format field
+  customerSegmentDescription: text("customer_segment_description"), // Customer segment description
+  projectBackground: text("project_background"), // Project background description
+  problemToSolve: text("problem_to_solve"), // Problem to solve
+  resultsUsage: text("results_usage"), // How results will be used
+  productMetrics: text("product_metrics"), // Product metrics
+  limitations: text("limitations"), // Limitations
+  researchGoals: text("research_goals"), // Main research goals
+  researchHypotheses: text("research_hypotheses"), // Research hypotheses
+  keyQuestions: text("key_questions"), // Key questions to answer
+  previousResources: text("previous_resources"), // Previous research resources field
+  additionalMaterials: text("additional_materials"), // Additional materials field
+  relatedResearches: text("related_researches").array(), // Related researches links field
+  figmaPrototypeLink: text("figma_prototype_link"), // Figma prototype link field
+  artifactLink: text("artifact_link"), // Artifact link field for Results tab
   brief: text("brief"),
   guide: text("guide"),
+  // Guide structure fields
+  guideIntroText: text("guide_intro_text"), // Вступительное слово
+  guideIntroQuestions: text("guide_intro_questions").array(), // Вступительные вопросы (JSON array)
+  guideMainQuestions: text("guide_main_questions").array(), // Основные вопросы (JSON array)
+  guideConcludingQuestions: text("guide_concluding_questions").array(), // Заключительные вопросы (JSON array)
   fullText: text("full_text"),
   clientsWeSearchFor: text("clients_we_search_for"),
   inviteTemplate: text("invite_template"),
@@ -130,6 +152,14 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Interviews",
     "Desk research"
   ]).default("Interviews"),
+  customerFullName: z.string().optional(),
+  additionalStakeholders: z.array(z.string()).optional(),
+  resultFormat: z.enum(["Презентация", "Figma"]).default("Презентация"),
+  projectBackground: z.string().optional(),
+  problemToSolve: z.string().optional(),
+  resultsUsage: z.string().optional(),
+  productMetrics: z.string().optional(),
+  limitations: z.string().optional(),
   brief: z.string().optional(),
   guide: z.string().optional(),
   fullText: z.string().optional(),

@@ -41,6 +41,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import FileUpload from "@/components/file-upload";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
@@ -59,6 +60,7 @@ function MeetingInfoForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; 
 
 // Component for Meeting Results tab (notes and fullText only)
 function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; onUpdate: (data: InsertMeeting) => void; isLoading: boolean }) {
+  const [isProcessing, setIsProcessing] = useState(false);
   const form = useForm<{ notes: string; fullText: string }>({
     defaultValues: {
       notes: meeting?.notes || "",
@@ -98,9 +100,48 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
     }
   };
 
+  const handleTranscriptionComplete = (transcriptionText: string) => {
+    const currentText = form.getValues("fullText");
+    const newText = currentText 
+      ? `${currentText}\n\n--- Transcription ---\n${transcriptionText}`
+      : transcriptionText;
+    
+    form.setValue("fullText", newText);
+    
+    // Auto-save after transcription
+    if (meeting) {
+      onUpdate({
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        gcc: meeting.gcc || "",
+        companyName: meeting.companyName || "",
+        email: meeting.email || "",
+        researcher: meeting.researcher || "",
+        relationshipManager: meeting.relationshipManager,
+        salesPerson: meeting.salesPerson,
+        date: meeting.date,
+        researchId: meeting.researchId,
+        status: meeting.status as any,
+        notes: meeting.notes || "",
+        fullText: newText,
+        hasGift: (meeting.hasGift as "yes" | "no") || "no",
+      });
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <div className="space-y-6">
+        {/* File Upload Section */}
+        <FileUpload
+          onTranscriptionComplete={handleTranscriptionComplete}
+          isProcessing={isProcessing}
+          setIsProcessing={setIsProcessing}
+        />
+
+        {/* Meeting Results Form */}
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="notes"
@@ -143,11 +184,12 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
           )}
         />
         
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        <Button type="submit" disabled={isLoading || isProcessing}>
+          {isLoading || isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Save Results
         </Button>
-      </form>
+        </form>
+      </div>
     </Form>
   );
 }

@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertResearchSchema, type InsertResearch, type Research, ResearchStatus, type ResearchStatusType, type Jtbd } from "@shared/schema";
+import {
+  insertResearchSchema,
+  type InsertResearch,
+  type Research,
+  ResearchStatus,
+  type ResearchStatusType,
+  type Jtbd,
+} from "@shared/schema";
 import {
   Form,
   FormControl,
@@ -36,7 +43,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor from "@uiw/react-md-editor";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const PRODUCT_OPTIONS = [
@@ -64,7 +71,7 @@ const PRODUCT_OPTIONS = [
   "CDC Mobile",
   "LORO платежи (рублевые и валютные)",
   "Custody",
-  "Специальный Депозитарий"
+  "Специальный Депозитарий",
 ];
 
 interface ResearchFormProps {
@@ -82,7 +89,7 @@ export default function ResearchForm({
   isLoading,
   onCancel,
   onDelete,
-  onTempDataUpdate
+  onTempDataUpdate,
 }: ResearchFormProps) {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -90,16 +97,16 @@ export default function ResearchForm({
 
   // Log the initial data for debugging
   console.log("Initial data:", initialData);
-  
+
   // Ensure dates are properly converted to Date objects
-  const startDate = initialData?.dateStart 
-    ? new Date(initialData.dateStart) 
+  const startDate = initialData?.dateStart
+    ? new Date(initialData.dateStart)
     : new Date();
-  
-  const endDate = initialData?.dateEnd 
-    ? new Date(initialData.dateEnd) 
+
+  const endDate = initialData?.dateEnd
+    ? new Date(initialData.dateEnd)
     : new Date();
-    
+
   console.log("Parsed dates:", { startDate, endDate });
 
   const form = useForm<InsertResearch>({
@@ -109,7 +116,8 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
-      status: (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
+      status:
+        (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
       dateStart: startDate,
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
@@ -120,12 +128,12 @@ export default function ResearchForm({
 
   // Reset form when initialData changes
   useEffect(() => {
-    const newStartDate = initialData?.dateStart 
-      ? new Date(initialData.dateStart) 
+    const newStartDate = initialData?.dateStart
+      ? new Date(initialData.dateStart)
       : new Date();
-    
-    const newEndDate = initialData?.dateEnd 
-      ? new Date(initialData.dateEnd) 
+
+    const newEndDate = initialData?.dateEnd
+      ? new Date(initialData.dateEnd)
       : new Date();
 
     form.reset({
@@ -133,7 +141,8 @@ export default function ResearchForm({
       team: initialData?.team ?? "",
       researcher: initialData?.researcher ?? "",
       description: initialData?.description ?? "",
-      status: (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
+      status:
+        (initialData?.status as ResearchStatusType) || ResearchStatus.PLANNED,
       dateStart: newStartDate,
       dateEnd: newEndDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
@@ -156,7 +165,9 @@ export default function ResearchForm({
       }
     } catch (error: any) {
       if (error.message?.includes("associated meetings")) {
-        setErrorMessage("This research cannot be deleted because it has associated meetings. Please delete all related meetings first.");
+        setErrorMessage(
+          "This research cannot be deleted because it has associated meetings. Please delete all related meetings first.",
+        );
         setErrorDialogOpen(true);
       } else {
         setErrorMessage("An error occurred while deleting the research.");
@@ -169,19 +180,19 @@ export default function ResearchForm({
   const formatDateForInput = (date: Date | string) => {
     try {
       if (!date) return ""; // Return empty string if date is null/undefined
-      
+
       const dateObj = date instanceof Date ? date : new Date(date);
-      
+
       // Check if date is valid
       if (isNaN(dateObj.getTime())) {
         console.warn("Invalid date:", date);
         return "";
       }
-      
+
       // Format to YYYY-MM-DD
       const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -202,15 +213,15 @@ export default function ResearchForm({
               <p className="text-sm text-muted-foreground mb-3">
                 Connect relevant jobs that this research aims to address
               </p>
-              <JtbdSelector 
-                entityId={initialData.id} 
+              <JtbdSelector
+                entityId={initialData.id}
                 entityType="research"
                 selectedJtbds={selectedJtbds}
                 onJtbdsChange={setSelectedJtbds}
               />
             </div>
           )}
-          
+
           {/* Two rows layout for Date/Status/Color fields */}
           <div className="mb-6">
             {/* First row: Start Date and End Date */}
@@ -267,7 +278,7 @@ export default function ResearchForm({
                 )}
               />
             </div>
-            
+
             {/* Second row: Status and Color */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -279,10 +290,13 @@ export default function ResearchForm({
                       Status
                       <RequiredFieldIndicator />
                     </FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      handleFieldChange("status", value);
-                    }} value={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange("status", value);
+                      }}
+                      value={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -300,7 +314,7 @@ export default function ResearchForm({
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="color"
@@ -316,9 +330,9 @@ export default function ResearchForm({
                             className="w-full justify-between"
                           >
                             <div className="flex items-center gap-2">
-                              <div 
-                                className="w-5 h-5 rounded-full" 
-                                style={{ backgroundColor: field.value }} 
+                              <div
+                                className="w-5 h-5 rounded-full"
+                                style={{ backgroundColor: field.value }}
                               />
                               <span>Selected Color</span>
                             </div>
@@ -341,7 +355,9 @@ export default function ResearchForm({
                               >
                                 <div
                                   className={`w-7 h-7 rounded-full cursor-pointer hover:scale-110 transition-transform ${
-                                    field.value === color ? 'ring-2 ring-primary ring-offset-2' : 'hover:ring-1 hover:ring-gray-300 hover:ring-offset-1'
+                                    field.value === color
+                                      ? "ring-2 ring-primary ring-offset-2"
+                                      : "hover:ring-1 hover:ring-gray-300 hover:ring-offset-1"
                                   }`}
                                   style={{ backgroundColor: color }}
                                 />
@@ -356,45 +372,8 @@ export default function ResearchForm({
                 )}
               />
             </div>
-            
-            {/* Third row: Research Type */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="researchType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">
-                      Research Type
-                      <RequiredFieldIndicator />
-                    </FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      handleFieldChange("researchType", value);
-                    }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select research type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="CATI (Telephone Survey)">CATI (Telephone Survey)</SelectItem>
-                        <SelectItem value="CAWI (Online Survey)">CAWI (Online Survey)</SelectItem>
-                        <SelectItem value="Moderated usability testing">Moderated usability testing</SelectItem>
-                        <SelectItem value="Unmoderated usability testing">Unmoderated usability testing</SelectItem>
-                        <SelectItem value="Co-creation session">Co-creation session</SelectItem>
-                        <SelectItem value="Interviews">Interviews</SelectItem>
-                        <SelectItem value="Desk research">Desk research</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div></div> {/* Empty div to maintain grid layout */}
-            </div>
           </div>
-          
+
           {/* Research Name and Team */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -407,8 +386,8 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input 
-                      {...field} 
+                    <Input
+                      {...field}
                       className="w-full"
                       onChange={(e) => {
                         field.onChange(e);
@@ -456,8 +435,8 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input 
-                      {...field} 
+                    <Input
+                      {...field}
                       className="w-full"
                       onChange={(e) => {
                         field.onChange(e);
@@ -470,7 +449,7 @@ export default function ResearchForm({
               )}
             />
           </div>
-          
+
           {/* Products field */}
           <div className="mb-6">
             <FormField
@@ -498,7 +477,9 @@ export default function ResearchForm({
                                 </span>
                               ))
                             ) : (
-                              <span className="text-muted-foreground">Select products...</span>
+                              <span className="text-muted-foreground">
+                                Select products...
+                              </span>
                             )}
                           </div>
                           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -509,17 +490,24 @@ export default function ResearchForm({
                       <div className="max-h-60 overflow-y-auto p-3">
                         <div className="space-y-2">
                           {PRODUCT_OPTIONS.map((product) => (
-                            <div key={product} className="flex items-center space-x-2">
+                            <div
+                              key={product}
+                              className="flex items-center space-x-2"
+                            >
                               <Checkbox
                                 id={product}
-                                checked={field.value?.includes(product) || false}
+                                checked={
+                                  field.value?.includes(product) || false
+                                }
                                 onCheckedChange={(checked) => {
                                   const currentProducts = field.value || [];
                                   let newProducts;
                                   if (checked) {
                                     newProducts = [...currentProducts, product];
                                   } else {
-                                    newProducts = currentProducts.filter((p) => p !== product);
+                                    newProducts = currentProducts.filter(
+                                      (p) => p !== product,
+                                    );
                                   }
                                   field.onChange(newProducts);
                                   handleFieldChange("products", newProducts);
@@ -542,12 +530,12 @@ export default function ResearchForm({
               )}
             />
           </div>
-          
+
           <div className="mb-8">
             <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
               Description
             </div>
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -558,7 +546,7 @@ export default function ResearchForm({
                       <MDEditor
                         value={field.value}
                         onChange={(value) => {
-                          const newValue = value || '';
+                          const newValue = value || "";
                           field.onChange(newValue);
                           handleFieldChange("description", newValue);
                         }}
@@ -572,8 +560,8 @@ export default function ResearchForm({
                 </FormItem>
               )}
             />
-            
-  {/* Removed JTBD section from here - moved to the top */}
+
+            {/* Removed JTBD section from here - moved to the top */}
           </div>
 
           {/* Action Buttons - styled for Notion look, matching Meeting form */}

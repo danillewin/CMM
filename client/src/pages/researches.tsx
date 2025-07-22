@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Research, ResearchStatus } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -30,10 +30,12 @@ import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeeks } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 type ViewMode = "table" | "cards";
 
 export default function Researches() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
@@ -165,8 +167,8 @@ export default function Researches() {
     setLocation(`/researches/${research.id}`);
   };
 
-  // Prepare column definitions
-  const tableColumns: ColumnConfig[] = [
+  // Prepare column definitions with useMemo to update on language change
+  const tableColumns: ColumnConfig[] = useMemo(() => [
     {
       id: "color",
       name: "",
@@ -180,7 +182,7 @@ export default function Researches() {
     },
     {
       id: "name",
-      name: "Name",
+      name: t("researches.name"),
       visible: true,
       sortField: "name",
       render: (research: Research) => (
@@ -189,14 +191,14 @@ export default function Researches() {
     },
     {
       id: "team",
-      name: "Team",
+      name: t("researches.team"),
       visible: true,
       sortField: "team",
       render: (research: Research) => research.team
     },
     {
       id: "researchType",
-      name: "Research Type",
+      name: t("researches.researchType"),
       visible: true,
       sortField: "researchType",
       render: (research: Research) => (
@@ -205,14 +207,14 @@ export default function Researches() {
     },
     {
       id: "researcher",
-      name: "Researcher",
+      name: t("researches.researcher"),
       visible: true,
       sortField: "researcher",
       render: (research: Research) => research.researcher
     },
     {
       id: "status",
-      name: "Status",
+      name: t("researches.status"),
       visible: true,
       sortField: "status",
       render: (research: Research) => (
@@ -220,27 +222,29 @@ export default function Researches() {
           ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
             research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
             'bg-gray-100 text-gray-800'}`} title={research.status}>
-          {research.status}
+          {research.status === ResearchStatus.DONE ? t("researches.statusDone") :
+           research.status === ResearchStatus.IN_PROGRESS ? t("researches.statusInProgress") :
+           t("researches.statusPlanned")}
         </span>
       )
     },
     {
       id: "dateStart",
-      name: "Start Date",
+      name: t("researches.dateStart"),
       visible: true,
       sortField: "dateStart",
       render: (research: Research) => new Date(research.dateStart).toLocaleDateString()
     },
     {
       id: "dateEnd",
-      name: "End Date",
+      name: t("researches.dateEnd"),
       visible: true,
       sortField: "dateEnd",
       render: (research: Research) => new Date(research.dateEnd).toLocaleDateString()
     },
     {
       id: "products",
-      name: "Products",
+      name: t("researches.products"),
       visible: true,
       render: (research: Research) => (
         <div className="flex flex-wrap gap-1">
@@ -261,7 +265,7 @@ export default function Researches() {
     },
     {
       id: "description",
-      name: "Description",
+      name: t("researches.description"),
       visible: false,
       render: (research: Research) => (
         <div className="line-clamp-2 prose prose-sm max-w-none">
@@ -269,17 +273,19 @@ export default function Researches() {
         </div>
       )
     }
-  ];
+  ], [t]);
 
   // Prepare filter configurations
-  const filterConfigs = [
+  const filterConfigs = useMemo(() => [
     {
       id: "status",
-      name: "Status",
+      name: t("researches.status"),
       options: [
-        { label: "All Statuses", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Object.values(ResearchStatus).map(status => ({ 
-          label: status, 
+          label: status === ResearchStatus.DONE ? t("researches.statusDone") :
+                 status === ResearchStatus.IN_PROGRESS ? t("researches.statusInProgress") :
+                 t("researches.statusPlanned"), 
           value: status 
         }))
       ],
@@ -288,9 +294,9 @@ export default function Researches() {
     },
     {
       id: "researcher",
-      name: "Researcher",
+      name: t("researches.researcher"),
       options: [
-        { label: "All Researchers", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...researchers.map(researcher => ({ 
           label: researcher, 
           value: researcher 
@@ -301,9 +307,9 @@ export default function Researches() {
     },
     {
       id: "team",
-      name: "Team",
+      name: t("researches.team"),
       options: [
-        { label: "All Teams", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...teams.map(team => ({ 
           label: team, 
           value: team 
@@ -454,7 +460,7 @@ export default function Researches() {
       onChange: () => {},
       isActive: () => productFilters.length > 0
     }
-  ];
+  ], [t, statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, researchers, teams, researchTypes, products, setStatusFilter, setResearcherFilter, setTeamFilter, setResearchTypeFilters, setProductFilters]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -479,19 +485,19 @@ export default function Researches() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Researches</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("researches.title")}</h1>
           <div className="flex items-center gap-4">
             <Button 
               className="bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
               onClick={() => setLocation("/researches/new")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              New Research
+              {t("researches.newResearch")}
             </Button>
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList>
-                <TabsTrigger value="table">Table View</TabsTrigger>
-                <TabsTrigger value="cards">Card View</TabsTrigger>
+                <TabsTrigger value="table">{t("researches.table")}</TabsTrigger>
+                <TabsTrigger value="cards">{t("researches.cards")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>

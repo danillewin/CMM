@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research } from "@shared/schema";
@@ -20,8 +20,10 @@ import { useToast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
+import { useTranslation } from "react-i18next";
 
 export default function Meetings() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
@@ -64,11 +66,11 @@ export default function Meetings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: "Meeting status updated successfully" });
+      toast({ title: t("forms.save") + " " + t("forms.saving") });
     },
     onError: (error) => {
       toast({ 
-        title: "Error updating meeting status", 
+        title: t("errors.generic"), 
         description: error.message,
         variant: "destructive" 
       });
@@ -78,18 +80,18 @@ export default function Meetings() {
   // Export functions
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
-      'Respondent': meeting.respondentName,
-      'Position': meeting.respondentPosition,
-      'CNUM': meeting.cnum,
-      'GCC': meeting.gcc || '—',
-      'Company': meeting.companyName,
-      'RM': meeting.relationshipManager,
-      'Recruiter': meeting.salesPerson,
-      'Researcher': meeting.researcher || '—',
-      'Date': new Date(meeting.date).toLocaleDateString(),
-      'Status': meeting.status,
-      'Gift': meeting.hasGift === "yes" ? "Yes" : "No",
-      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
+      [t("meetings.respondentName")]: meeting.respondentName,
+      [t("meetings.respondentPosition")]: meeting.respondentPosition,
+      [t("meetings.cnum")]: meeting.cnum,
+      [t("meetings.gcc")]: meeting.gcc || '—',
+      [t("meetings.companyName")]: meeting.companyName,
+      [t("meetings.relationshipManager")]: meeting.relationshipManager,
+      [t("meetings.recruiter")]: meeting.salesPerson,
+      [t("meetings.researcher")]: meeting.researcher || '—',
+      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.status")]: meeting.status,
+      [t("meetings.hasGift")]: meeting.hasGift === "yes" ? t("meetings.giftYes") : t("meetings.giftNo"),
+      [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const csvString = [
@@ -106,23 +108,23 @@ export default function Meetings() {
 
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
-      'Respondent': meeting.respondentName,
-      'Position': meeting.respondentPosition,
-      'CNUM': meeting.cnum,
-      'GCC': meeting.gcc || '—',
-      'Company': meeting.companyName,
-      'RM': meeting.relationshipManager,
-      'Recruiter': meeting.salesPerson,
-      'Researcher': meeting.researcher || '—',
-      'Date': new Date(meeting.date).toLocaleDateString(),
-      'Status': meeting.status,
-      'Gift': meeting.hasGift === "yes" ? "Yes" : "No",
-      'Research': meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
+      [t("meetings.respondentName")]: meeting.respondentName,
+      [t("meetings.respondentPosition")]: meeting.respondentPosition,
+      [t("meetings.cnum")]: meeting.cnum,
+      [t("meetings.gcc")]: meeting.gcc || '—',
+      [t("meetings.companyName")]: meeting.companyName,
+      [t("meetings.relationshipManager")]: meeting.relationshipManager,
+      [t("meetings.recruiter")]: meeting.salesPerson,
+      [t("meetings.researcher")]: meeting.researcher || '—',
+      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.status")]: meeting.status,
+      [t("meetings.hasGift")]: meeting.hasGift === "yes" ? t("meetings.giftYes") : t("meetings.giftNo"),
+      [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Meetings');
+    XLSX.utils.book_append_sheet(wb, ws, t("meetings.title"));
     XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -204,11 +206,11 @@ export default function Meetings() {
     setLocation(`/meetings/${meeting.id}`);
   };
 
-  // Define columns for the configurable table
-  const columns: ColumnConfig[] = [
+  // Define columns for the configurable table with useMemo to update on language change
+  const columns: ColumnConfig[] = useMemo(() => [
     {
       id: "hasGift", 
-      name: "Gift",
+      name: t("meetings.hasGift"),
       visible: true,
       sortField: "hasGift",
       render: (meeting: Meeting) => (
@@ -226,7 +228,7 @@ export default function Meetings() {
     },
     {
       id: "status",
-      name: "Status",
+      name: t("meetings.status"),
       visible: true,
       sortField: "status",
       render: (meeting: Meeting) => (
@@ -241,12 +243,18 @@ export default function Meetings() {
               className="w-[140px] bg-white/80 backdrop-blur-sm shadow-sm"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <SelectValue>{meeting.status}</SelectValue>
+              <SelectValue>{meeting.status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                meeting.status === MeetingStatus.SET ? t("meetings.statusSet") :
+                meeting.status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                meeting.status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : meeting.status}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.values(MeetingStatus).map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status}
+                  {status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                   status === MeetingStatus.SET ? t("meetings.statusSet") :
+                   status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                   status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -256,7 +264,7 @@ export default function Meetings() {
     },
     {
       id: "cnum",
-      name: "CNUM",
+      name: t("meetings.cnum"),
       visible: true,
       sortField: "cnum",
       render: (meeting: Meeting) => (
@@ -265,7 +273,7 @@ export default function Meetings() {
     },
     {
       id: "gcc",
-      name: "GCC",
+      name: t("meetings.gcc"),
       visible: true,
       sortField: "gcc",
       render: (meeting: Meeting) => (
@@ -274,7 +282,7 @@ export default function Meetings() {
     },
     {
       id: "companyName",
-      name: "Company",
+      name: t("meetings.companyName"),
       visible: true,
       sortField: "companyName",
       render: (meeting: Meeting) => (
@@ -283,7 +291,7 @@ export default function Meetings() {
     },
     {
       id: "respondentName",
-      name: "Respondent",
+      name: t("meetings.respondentName"),
       visible: true,
       sortField: "respondentName",
       render: (meeting: Meeting) => (
@@ -292,7 +300,7 @@ export default function Meetings() {
     },
     {
       id: "respondentPosition",
-      name: "Position",
+      name: t("meetings.respondentPosition"),
       visible: true,
       sortField: "respondentPosition",
       render: (meeting: Meeting) => (
@@ -301,7 +309,7 @@ export default function Meetings() {
     },
     {
       id: "relationshipManager",
-      name: "RM",
+      name: t("meetings.relationshipManager"),
       visible: true,
       sortField: "relationshipManager",
       render: (meeting: Meeting) => (
@@ -310,7 +318,7 @@ export default function Meetings() {
     },
     {
       id: "salesPerson",
-      name: "Recruiter",
+      name: t("meetings.recruiter"),
       visible: true,
       sortField: "salesPerson",
       render: (meeting: Meeting) => (
@@ -319,7 +327,7 @@ export default function Meetings() {
     },
     {
       id: "researcher",
-      name: "Researcher",
+      name: t("meetings.researcher"),
       visible: true,
       sortField: "researcher",
       render: (meeting: Meeting) => (
@@ -328,7 +336,7 @@ export default function Meetings() {
     },
     {
       id: "research",
-      name: "Research",
+      name: t("meetings.research"),
       visible: true,
       sortField: "research",
       render: (meeting: Meeting) => {
@@ -349,7 +357,7 @@ export default function Meetings() {
                     <span className="truncate">{matchingResearch.name}</span>
                   </>
                 ) : (
-                  <span className="text-gray-500">Loading...</span>
+                  <span className="text-gray-500">{t("forms.loading")}</span>
                 )}
               </div>
             ) : (
@@ -361,7 +369,7 @@ export default function Meetings() {
     },
     {
       id: "date",
-      name: "Date",
+      name: t("meetings.date"),
       visible: true,
       sortField: "date",
       render: (meeting: Meeting) => (
@@ -370,7 +378,7 @@ export default function Meetings() {
     },
     {
       id: "email",
-      name: "Email",
+      name: t("meetings.email"),
       visible: false,
       sortField: "email",
       render: (meeting: Meeting) => (
@@ -379,29 +387,32 @@ export default function Meetings() {
     },
     {
       id: "notes",
-      name: "Notes",
+      name: t("meetings.notes"),
       visible: false,
       render: (meeting: Meeting) => (
         <span className="truncate max-w-[300px]">
           {meeting.notes ? (
-            <span className="text-gray-500 italic">Has notes</span>
+            <span className="text-gray-500 italic">{t("meetings.notes")}</span>
           ) : (
-            <span className="text-gray-400">No notes</span>
+            <span className="text-gray-400">{t("meetings.noMeetings")}</span>
           )}
         </span>
       )
     }
-  ];
+  ], [t, researches, meetings, updateStatusMutation]); // Dependencies for useMemo
 
-  // Prepare filter configurations
-  const filterConfigs = [
+  // Prepare filter configurations with useMemo to update on language change
+  const filterConfigs = useMemo(() => [
     {
       id: "status",
-      name: "Status",
+      name: t("filters.status"),
       options: [
-        { label: "All Statuses", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Object.values(MeetingStatus).map(status => ({ 
-          label: status, 
+          label: status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                 status === MeetingStatus.SET ? t("meetings.statusSet") :
+                 status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                 status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status, 
           value: status 
         }))
       ],
@@ -410,9 +421,9 @@ export default function Meetings() {
     },
     {
       id: "research",
-      name: "Research",
+      name: t("meetings.research"),
       options: [
-        { label: "All Researches", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...researches.map(research => ({ 
           label: research.name, 
           value: research.id.toString() 
@@ -423,9 +434,9 @@ export default function Meetings() {
     },
     {
       id: "manager",
-      name: "RM",
+      name: t("meetings.relationshipManager"),
       options: [
-        { label: "All RMs", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Array.from(new Set(
           meetings.map(m => m.relationshipManager)
         )).filter(Boolean).sort().map(manager => ({ 
@@ -438,9 +449,9 @@ export default function Meetings() {
     },
     {
       id: "recruiter",
-      name: "Recruiter",
+      name: t("meetings.recruiter"),
       options: [
-        { label: "All Recruiters", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Array.from(new Set(
           meetings.map(m => m.salesPerson)
         )).filter(Boolean).sort().map(recruiter => ({ 
@@ -453,9 +464,9 @@ export default function Meetings() {
     },
     {
       id: "researcher",
-      name: "Researcher",
+      name: t("meetings.researcher"),
       options: [
-        { label: "All Researchers", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Array.from(new Set(
           meetings.map(m => m.researcher)
         )).filter(Boolean).sort().map(researcher => ({ 
@@ -468,9 +479,9 @@ export default function Meetings() {
     },
     {
       id: "position",
-      name: "Position",
+      name: t("meetings.respondentPosition"),
       options: [
-        { label: "All Positions", value: "ALL" },
+        { label: t("filters.all"), value: "ALL" },
         ...Array.from(new Set(
           meetings.map(m => m.respondentPosition)
         )).filter(Boolean).sort().map(position => ({ 
@@ -483,16 +494,16 @@ export default function Meetings() {
     },
     {
       id: "hasGift",
-      name: "Gift",
+      name: t("meetings.hasGift"),
       options: [
-        { label: "All", value: "ALL" },
-        { label: "With Gift", value: "yes" },
-        { label: "Without Gift", value: "no" }
+        { label: t("filters.all"), value: "ALL" },
+        { label: t("meetings.giftYes"), value: "yes" },
+        { label: t("meetings.giftNo"), value: "no" }
       ],
       value: giftFilter || "ALL",
       onChange: setGiftFilter
     }
-  ];
+  ], [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, researches, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
   // Load saved filters from localStorage
   useEffect(() => {
@@ -532,14 +543,14 @@ export default function Meetings() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Client Meetings</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("meetings.title")}</h1>
           <div className="flex flex-col sm:flex-row gap-3">
             <Button 
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
               onClick={() => setLocation("/meetings/new")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              New Meeting
+              {t("meetings.newMeeting")}
             </Button>
             <div className="flex gap-3">
               <Button
@@ -565,7 +576,7 @@ export default function Meetings() {
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
             {isLoading ? (
-              <SectionLoader text="Loading meetings..." />
+              <SectionLoader text={t("forms.loading")} />
             ) : (
               <ConfigurableTable
                 data={filteredMeetings}
