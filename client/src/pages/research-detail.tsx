@@ -1764,6 +1764,7 @@ function ResearchResultsForm({
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
+      artifactLink: research?.artifactLink || "",
       fullText: research?.fullText || "",
     });
   }, [research, form]);
@@ -1827,17 +1828,6 @@ function ResearchResultsForm({
                 {t("research.artifactLink")}
               </FormLabel>
               <FormControl>
-                <MDEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("fullText", newValue);
-                  }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                />
                 <Input
                   type="url"
                   placeholder={t("research.artifactLinkPlaceholder")}
