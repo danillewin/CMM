@@ -1088,7 +1088,7 @@ function ResearchGuideForm({
       | "guideMainQuestions"
       | "guideConcludingQuestions",
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const newBlock: QuestionBlock = {
       id: Math.random().toString(),
       name: "",
@@ -1105,7 +1105,7 @@ function ResearchGuideForm({
       | "guideConcludingQuestions",
     index: number,
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = currentBlocks.filter((_, i) => i !== index);
     form.setValue(sectionName, updatedBlocks);
   };
@@ -1118,7 +1118,7 @@ function ResearchGuideForm({
     index: number,
     updatedBlock: QuestionBlock,
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     updatedBlocks[index] = updatedBlock;
     form.setValue(sectionName, updatedBlocks);
@@ -1132,7 +1132,7 @@ function ResearchGuideForm({
     blockIndex: number,
     subblockPath: number[] = [],
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
 
@@ -1172,7 +1172,7 @@ function ResearchGuideForm({
     questionIndex: number,
     subblockPath: number[] = [],
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
 
@@ -1195,7 +1195,7 @@ function ResearchGuideForm({
     blockIndex: number,
     subblockPath: number[] = [],
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
 
@@ -1405,7 +1405,7 @@ function QuestionSection({
     name: string,
     subblockPath: number[] = [],
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
 
@@ -1425,7 +1425,7 @@ function QuestionSection({
     value: string,
     subblockPath: number[] = [],
   ) => {
-    const currentBlocks = form.getValues(sectionName);
+    const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
     let targetBlock = updatedBlocks[blockIndex];
 
@@ -1479,7 +1479,7 @@ function QuestionSection({
                 removeQuestionBlock(sectionName, blockIndex);
               } else {
                 // Handle subblock removal
-                const currentBlocks = form.getValues(sectionName);
+                const currentBlocks = form.getValues(sectionName) || [];
                 const updatedBlocks = [...currentBlocks];
                 let parentBlock = updatedBlocks[blockIndex];
 
