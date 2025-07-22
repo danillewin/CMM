@@ -1074,8 +1074,24 @@ function ResearchGuideForm({
             const cleanBlock = {
               id: block.id || Math.random().toString(),
               name: block.name || "",
-              questions: block.questions || [],
-              subblocks: block.subblocks || [],
+              questions: (block.questions || []).map(q => ({
+                id: q.id || Math.random().toString(),
+                text: q.text || "",
+                comment: q.comment || "",
+                order: q.order || 0,
+              })),
+              subblocks: (block.subblocks || []).map(s => ({
+                id: s.id || Math.random().toString(),
+                name: s.name || "",
+                questions: (s.questions || []).map(q => ({
+                  id: q.id || Math.random().toString(),
+                  text: q.text || "",
+                  comment: q.comment || "",
+                  order: q.order || 0,
+                })),
+                subblocks: s.subblocks || [],
+                order: s.order || 0,
+              })),
               order: block.order || 0,
             };
             return JSON.stringify(cleanBlock);
@@ -1089,8 +1105,24 @@ function ResearchGuideForm({
             const cleanBlock = {
               id: block.id || Math.random().toString(),
               name: block.name || "",
-              questions: block.questions || [],
-              subblocks: block.subblocks || [],
+              questions: (block.questions || []).map(q => ({
+                id: q.id || Math.random().toString(),
+                text: q.text || "",
+                comment: q.comment || "",
+                order: q.order || 0,
+              })),
+              subblocks: (block.subblocks || []).map(s => ({
+                id: s.id || Math.random().toString(),
+                name: s.name || "",
+                questions: (s.questions || []).map(q => ({
+                  id: q.id || Math.random().toString(),
+                  text: q.text || "",
+                  comment: q.comment || "",
+                  order: q.order || 0,
+                })),
+                subblocks: s.subblocks || [],
+                order: s.order || 0,
+              })),
               order: block.order || 0,
             };
             return JSON.stringify(cleanBlock);
@@ -1104,8 +1136,24 @@ function ResearchGuideForm({
             const cleanBlock = {
               id: block.id || Math.random().toString(),
               name: block.name || "",
-              questions: block.questions || [],
-              subblocks: block.subblocks || [],
+              questions: (block.questions || []).map(q => ({
+                id: q.id || Math.random().toString(),
+                text: q.text || "",
+                comment: q.comment || "",
+                order: q.order || 0,
+              })),
+              subblocks: (block.subblocks || []).map(s => ({
+                id: s.id || Math.random().toString(),
+                name: s.name || "",
+                questions: (s.questions || []).map(q => ({
+                  id: q.id || Math.random().toString(),
+                  text: q.text || "",
+                  comment: q.comment || "",
+                  order: q.order || 0,
+                })),
+                subblocks: s.subblocks || [],
+                order: s.order || 0,
+              })),
               order: block.order || 0,
             };
             return JSON.stringify(cleanBlock);

@@ -245,6 +245,20 @@ export function registerRoutes(app: Express): Server {
 
   app.patch("/api/researches/:id", async (req, res) => {
     try {
+      // Log the questionBlocks data to debug JSON issues
+      if (req.body.guideIntroQuestions) {
+        console.log("guideIntroQuestions data:", req.body.guideIntroQuestions);
+        console.log("guideIntroQuestions sample:", req.body.guideIntroQuestions[0]);
+      }
+      if (req.body.guideMainQuestions) {
+        console.log("guideMainQuestions data:", req.body.guideMainQuestions);
+        console.log("guideMainQuestions sample:", req.body.guideMainQuestions[0]);
+      }
+      if (req.body.guideConcludingQuestions) {
+        console.log("guideConcludingQuestions data:", req.body.guideConcludingQuestions);
+        console.log("guideConcludingQuestions sample:", req.body.guideConcludingQuestions[0]);
+      }
+      
       const result = insertResearchSchema.safeParse(req.body);
       if (!result.success) {
         res.status(400).json({ message: "Invalid research data", errors: result.error.errors });
