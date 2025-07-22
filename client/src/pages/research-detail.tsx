@@ -1058,13 +1058,13 @@ function ResearchGuideForm({
         brief: research.brief || undefined,
         guide: data.guide,
         guideIntroText: data.guideIntroText,
-        guideIntroQuestions: data.guideIntroQuestions.map((block) =>
+        guideIntroQuestions: (data.guideIntroQuestions || []).map((block) =>
           JSON.stringify(block),
         ),
-        guideMainQuestions: data.guideMainQuestions.map((block) =>
+        guideMainQuestions: (data.guideMainQuestions || []).map((block) =>
           JSON.stringify(block),
         ),
-        guideConcludingQuestions: data.guideConcludingQuestions.map((block) =>
+        guideConcludingQuestions: (data.guideConcludingQuestions || []).map((block) =>
           JSON.stringify(block),
         ),
         fullText: research.fullText || undefined,
