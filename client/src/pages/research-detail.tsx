@@ -1398,7 +1398,7 @@ function QuestionSection({
   addSubblock,
 }: QuestionSectionProps) {
   const { t } = useTranslation();
-  const questionBlocks = form.watch(sectionName);
+  const questionBlocks = form.watch(sectionName) || [];
 
   const updateQuestionBlockName = (
     blockIndex: number,
