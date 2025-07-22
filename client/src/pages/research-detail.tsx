@@ -1796,11 +1796,6 @@ function ResearchDetail() {
   // State to manage form data across tabs during creation
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
 
-  // When creating a new research, store the combined data of the existing research and temporary form data
-  const effectiveResearch = isNew
-    ? ({ ...tempFormData } as Research)
-    : research;
-
   // Handler to update temporary form data
   const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
     setTempFormData((prev) => ({ ...prev, ...newData }));
@@ -1812,6 +1807,7 @@ function ResearchDetail() {
       setTempFormData({});
     }
   }, [isNew]);
+  
   // Query all researches for autocomplete functionality in Brief tab
   const { data: allResearches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -1842,6 +1838,11 @@ function ResearchDetail() {
     },
     enabled: !isNew && !!id,
   });
+
+  // When creating a new research, store the combined data of the existing research and temporary form data
+  const effectiveResearch = isNew
+    ? ({ ...tempFormData } as Research)
+    : research;
 
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
