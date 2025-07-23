@@ -374,7 +374,10 @@ function ResearchBriefForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("research.resultFormat")}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={(value) => {
+                field.onChange(value);
+                handleFieldChange("resultFormat", value);
+              }} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder={t("research.resultFormat")} />
@@ -408,6 +411,10 @@ function ResearchBriefForm({
                     "research.customerSegmentDescriptionPlaceholder",
                   )}
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange("customerSegmentDescription", e.target.value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -445,7 +452,15 @@ function ResearchBriefForm({
                       {t("research.projectBackgroundDescription")}
                     </FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("projectBackground", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -459,7 +474,15 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{t("research.problemToSolve")}</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("problemToSolve", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -473,7 +496,15 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{t("research.resultsUsage")}</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("resultsUsage", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -487,7 +518,15 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{t("research.productMetrics")}</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("productMetrics", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -501,7 +540,15 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{t("research.limitations")}</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("limitations", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -539,7 +586,15 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{t("research.researchGoals")}</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="" {...field} />
+                      <Textarea 
+                        rows={3} 
+                        placeholder="" 
+                        {...field} 
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("researchGoals", e.target.value);
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -559,6 +614,10 @@ function ResearchBriefForm({
                           "research.researchHypothesesPlaceholder",
                         )}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("researchHypotheses", e.target.value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -577,6 +636,10 @@ function ResearchBriefForm({
                         rows={5}
                         placeholder={t("research.keyQuestionsPlaceholder")}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("keyQuestions", e.target.value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -652,12 +715,15 @@ function ResearchBriefForm({
                     <div key={field.id} className="flex items-center space-x-2">
                       <Select
                         value={selectedValue}
-                        onValueChange={(value) =>
+                        onValueChange={(value) => {
                           form.setValue(
                             `relatedResearches.${index}.value`,
                             value,
-                          )
-                        }
+                          );
+                          // Update temp data for related researches
+                          const currentValues = form.getValues("relatedResearches");
+                          handleFieldChange("relatedResearches", currentValues.map(s => s.value).filter(v => v.trim() !== ""));
+                        }}
                       >
                         <SelectTrigger className="flex-1">
                           <SelectValue
@@ -719,6 +785,10 @@ function ResearchBriefForm({
                         rows={4}
                         placeholder={t("research.previousResourcesPlaceholder")}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("previousResources", e.target.value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -739,6 +809,10 @@ function ResearchBriefForm({
                           "research.additionalMaterialsPlaceholder",
                         )}
                         {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          handleFieldChange("additionalMaterials", e.target.value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -766,6 +840,10 @@ function ResearchBriefForm({
                     placeholder={t("research.figmaPrototypeLinkPlaceholder")}
                     disabled={!isUsabilityTesting}
                     {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange("figmaPrototypeLink", e.target.value);
+                    }}
                   />
                 </FormControl>
                 {!isUsabilityTesting && (
