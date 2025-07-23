@@ -37,6 +37,7 @@ interface MeetingFormProps {
   onCnumChange?: (cnum: string) => void;
   meetings?: Meeting[];
   hideNotesAndFullText?: boolean;
+  onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
 }
 
 export default function MeetingForm({
@@ -47,7 +48,8 @@ export default function MeetingForm({
   onDelete,
   onCnumChange,
   meetings = [],
-  hideNotesAndFullText = false
+  hideNotesAndFullText = false,
+  onTempDataUpdate
 }: MeetingFormProps) {
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
   
@@ -99,6 +101,13 @@ export default function MeetingForm({
       hasGift: (initialData?.hasGift as "yes" | "no") ?? "no",
     },
   });
+
+  // Helper function to handle form field changes and update temporary data
+  const handleFieldChange = (field: string, value: any) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
 
   // Handle form submission
   const onSubmitWrapper = (data: FormValues) => {
@@ -210,6 +219,10 @@ export default function MeetingForm({
                   <FormControl>
                     <Input 
                       {...field} 
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleFieldChange("respondentName", e.target.value);
+                      }}
                       className="w-full" 
                       placeholder="Enter name..."
                     />
@@ -231,7 +244,10 @@ export default function MeetingForm({
                   <FormControl>
                     <PositionAutocomplete
                       value={field.value ?? ""}
-                      onChange={(value) => field.onChange(value || "")}
+                      onChange={(value) => {
+                        field.onChange(value || "");
+                        handleFieldChange("respondentPosition", value || "");
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -250,6 +266,10 @@ export default function MeetingForm({
                   <FormControl>
                     <Input 
                       {...field} 
+                      onChange={(e) => {
+                        field.onChange(e);
+                        handleFieldChange("companyName", e.target.value);
+                      }}
                       className="w-full" 
                       placeholder="Company name..."
                     />

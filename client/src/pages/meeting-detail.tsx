@@ -47,19 +47,40 @@ import FileUpload from "@/components/file-upload";
 type MeetingWithId = Meeting;
 
 // Component for Meeting Info tab (all fields except notes and fullText)
-function MeetingInfoForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; onUpdate: (data: InsertMeeting) => void; isLoading: boolean }) {
+function MeetingInfoForm({ 
+  meeting, 
+  onUpdate, 
+  isLoading, 
+  onTempDataUpdate 
+}: { 
+  meeting?: Meeting; 
+  onUpdate: (data: InsertMeeting) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
+}) {
   return (
     <MeetingForm
       onSubmit={onUpdate}
       initialData={meeting || null}
       isLoading={isLoading}
       hideNotesAndFullText={true}
+      onTempDataUpdate={onTempDataUpdate}
     />
   );
 }
 
 // Component for Meeting Results tab (notes and fullText only)
-function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meeting; onUpdate: (data: InsertMeeting) => void; isLoading: boolean }) {
+function MeetingResultsForm({ 
+  meeting, 
+  onUpdate, 
+  isLoading, 
+  onTempDataUpdate 
+}: { 
+  meeting?: Meeting; 
+  onUpdate: (data: InsertMeeting) => void; 
+  isLoading: boolean;
+  onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
+}) {
   const [isProcessing, setIsProcessing] = useState(false);
   const form = useForm<{ notes: string; fullText: string }>({
     defaultValues: {
@@ -77,6 +98,13 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
       });
     }
   }, [meeting, form]);
+
+  // Handle form field changes to update temporary data
+  const handleFieldChange = (field: string, value: string) => {
+    if (onTempDataUpdate) {
+      onTempDataUpdate({ [field]: value } as any);
+    }
+  };
 
   const handleSubmit = (data: { notes: string; fullText: string }) => {
     if (meeting) {
@@ -151,7 +179,11 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("notes", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -172,7 +204,11 @@ function MeetingResultsForm({ meeting, onUpdate, isLoading }: { meeting?: Meetin
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("fullText", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -203,6 +239,8 @@ export default function MeetingDetail() {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMeetings, setDuplicateMeetings] = useState<Meeting[]>([]);
   const [pendingFormData, setPendingFormData] = useState<InsertMeeting | null>(null);
+  // State to manage form data across tabs during creation and editing
+  const [tempFormData, setTempFormData] = useState<Partial<InsertMeeting>>({});
   const { toast } = useToast();
   
   // Parse query parameters if we're creating a new meeting
@@ -211,6 +249,18 @@ export default function MeetingDetail() {
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] = useState<Research | null>(null);
+
+  // Handler to update temporary form data
+  const handleTempDataUpdate = (newData: Partial<InsertMeeting>) => {
+    setTempFormData((prev) => ({ ...prev, ...newData }));
+  };
+
+  // Clear temporary data when navigating away from new meeting
+  useEffect(() => {
+    if (!isNew) {
+      setTempFormData({});
+    }
+  }, [isNew]);
 
   const { data: meeting, isLoading: isMeetingLoading } = useQuery<Meeting>({
     queryKey: ["/api/meetings", id],
@@ -241,6 +291,11 @@ export default function MeetingDetail() {
       }
     }
   }, [isNew, preselectedResearchId, researches]);
+
+  // When editing a meeting, store the combined data of the existing meeting and temporary form data
+  const effectiveMeeting = isNew 
+    ? (Object.keys(tempFormData).length > 0 ? { ...tempFormData } as unknown as Meeting : undefined)
+    : (Object.keys(tempFormData).length > 0 ? { ...meeting, ...tempFormData } as unknown as Meeting : meeting);
 
   const createMutation = useMutation({
     mutationFn: async (meetingData: InsertMeeting) => {
@@ -484,17 +539,19 @@ export default function MeetingDetail() {
 
                 <TabsContent value="info" className="mt-0">
                   <MeetingInfoForm 
-                    meeting={meeting} 
+                    meeting={effectiveMeeting} 
                     onUpdate={handleSubmit} 
                     isLoading={isPending}
+                    onTempDataUpdate={handleTempDataUpdate}
                   />
                 </TabsContent>
 
                 <TabsContent value="results" className="mt-0">
                   <MeetingResultsForm 
-                    meeting={meeting} 
+                    meeting={effectiveMeeting} 
                     onUpdate={handleSubmit} 
                     isLoading={isPending}
+                    onTempDataUpdate={handleTempDataUpdate}
                   />
                 </TabsContent>
               </Tabs>
