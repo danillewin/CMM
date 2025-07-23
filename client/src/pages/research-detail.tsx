@@ -134,6 +134,25 @@ function ResearchBriefForm({
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
+      researchType: research?.researchType || "Interviews",
+      customerFullName: research?.customerFullName || "",
+      additionalStakeholders:
+        research?.additionalStakeholders?.map((s) => ({ value: s })) || [],
+      resultFormat: research?.resultFormat || "Презентация",
+      customerSegmentDescription: research?.customerSegmentDescription || "",
+      projectBackground: research?.projectBackground || "",
+      problemToSolve: research?.problemToSolve || "",
+      resultsUsage: research?.resultsUsage || "",
+      productMetrics: research?.productMetrics || "",
+      limitations: research?.limitations || "",
+      researchGoals: research?.researchGoals || "",
+      researchHypotheses: research?.researchHypotheses || "",
+      keyQuestions: research?.keyQuestions || "",
+      previousResources: research?.previousResources || "",
+      additionalMaterials: research?.additionalMaterials || "",
+      relatedResearches:
+        research?.relatedResearches?.map((s) => ({ value: s })) || [],
+      figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     });
   }, [research, form]);
@@ -236,7 +255,10 @@ function ResearchBriefForm({
               <FormLabel className="text-lg font-medium">
                 {t("research.researchType")}
               </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={(value) => {
+                field.onChange(value);
+                handleFieldChange("researchType", value);
+              }} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select research type" />
@@ -276,7 +298,14 @@ function ResearchBriefForm({
                 {t("research.customerFullName")}
               </FormLabel>
               <FormControl>
-                <Input placeholder="Ivanov Ivan Ivanovich" {...field} />
+                <Input 
+                  placeholder="Ivanov Ivan Ivanovich" 
+                  {...field} 
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange("customerFullName", e.target.value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -1832,6 +1861,10 @@ function ResearchResultsForm({
                   type="url"
                   placeholder={t("research.artifactLinkPlaceholder")}
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange("artifactLink", e.target.value);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1848,7 +1881,11 @@ function ResearchResultsForm({
               <FormControl>
                 <MDEditor
                   value={field.value}
-                  onChange={(val) => field.onChange(val || "")}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("fullText", newValue);
+                  }}
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
@@ -2177,16 +2214,16 @@ function ResearchDetail() {
                   onUpdate={handleSubmit}
                   isLoading={isPending}
                   allResearches={allResearches}
-                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
+                  onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
 
               <TabsContent value="guide" className="mt-6">
                 <ResearchGuideForm
-                  research={research}
+                  research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
-                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
+                  onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
 
@@ -2195,7 +2232,7 @@ function ResearchDetail() {
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
-                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
+                  onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
 
@@ -2204,7 +2241,7 @@ function ResearchDetail() {
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
-                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
+                  onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
             </Tabs>
