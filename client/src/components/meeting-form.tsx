@@ -94,7 +94,7 @@ export default function MeetingForm({
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
-      researchId: initialData?.researchId ?? undefined,
+      researchId: initialData?.researchId ?? 0,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
       fullText: initialData?.fullText ?? "",
