@@ -1297,6 +1297,9 @@ function ResearchGuideForm({
       order: 0,
     };
     form.setValue(sectionName, [...currentBlocks, newBlock]);
+    // Update temp data
+    const currentFormData = form.getValues();
+    handleFieldChange(sectionName, JSON.stringify(currentFormData[sectionName]));
   };
 
   const removeQuestionBlock = (
@@ -1309,6 +1312,8 @@ function ResearchGuideForm({
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = currentBlocks.filter((_, i) => i !== index);
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const updateQuestionBlock = (
@@ -1323,6 +1328,8 @@ function ResearchGuideForm({
     const updatedBlocks = [...currentBlocks];
     updatedBlocks[index] = updatedBlock;
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const addQuestion = (
@@ -1362,6 +1369,8 @@ function ResearchGuideForm({
 
     targetBlock.questions.push(newQuestion);
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const removeQuestion = (
@@ -1386,6 +1395,8 @@ function ResearchGuideForm({
       (_, i) => i !== questionIndex,
     );
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const addSubblock = (
@@ -1426,6 +1437,8 @@ function ResearchGuideForm({
 
     targetBlock.subblocks.push(newSubblock);
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   return (
@@ -1469,6 +1482,10 @@ function ResearchGuideForm({
                 <Textarea
                   placeholder={t("research.guideIntroTextPlaceholder")}
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange("guideIntroText", e.target.value);
+                  }}
                   rows={4}
                 />
               </FormControl>
@@ -1488,6 +1505,7 @@ function ResearchGuideForm({
           addQuestion={addQuestion}
           removeQuestion={removeQuestion}
           addSubblock={addSubblock}
+          handleFieldChange={handleFieldChange}
         />
 
         {/* Основные вопросы */}
@@ -1501,6 +1519,7 @@ function ResearchGuideForm({
           addQuestion={addQuestion}
           removeQuestion={removeQuestion}
           addSubblock={addSubblock}
+          handleFieldChange={handleFieldChange}
         />
 
         {/* Заключительные вопросы */}
@@ -1514,6 +1533,7 @@ function ResearchGuideForm({
           addQuestion={addQuestion}
           removeQuestion={removeQuestion}
           addSubblock={addSubblock}
+          handleFieldChange={handleFieldChange}
         />
 
         <Button type="submit" disabled={isLoading}>
@@ -1585,6 +1605,7 @@ interface QuestionSectionProps {
     blockIndex: number,
     subblockPath?: number[],
   ) => void;
+  handleFieldChange: (field: string, value: string) => void;
 }
 
 function QuestionSection({
@@ -1597,6 +1618,7 @@ function QuestionSection({
   addQuestion,
   removeQuestion,
   addSubblock,
+  handleFieldChange,
 }: QuestionSectionProps) {
   const { t } = useTranslation();
   const questionBlocks = form.watch(sectionName) || [];
@@ -1617,6 +1639,8 @@ function QuestionSection({
 
     targetBlock.name = name;
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const updateQuestion = (
@@ -1640,6 +1664,8 @@ function QuestionSection({
       [field]: value,
     };
     form.setValue(sectionName, updatedBlocks);
+    // Update temp data
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const renderQuestionBlock = (
@@ -1694,6 +1720,8 @@ function QuestionSection({
                   (_, i) => i !== subblockPath[subblockPath.length - 1],
                 );
                 form.setValue(sectionName, updatedBlocks);
+                // Update temp data
+                handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
               }
             }}
           >
