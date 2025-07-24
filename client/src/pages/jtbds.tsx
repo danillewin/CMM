@@ -92,7 +92,7 @@ function JtbdForm({
         jobStory: z.string().optional(),
         parentId: z.number().optional(),
         level: z.number().min(1).max(3),
-        contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional().nullable()
+        contentType: itemLevel === 3 ? z.enum(["job_story", "job_statement"]) : z.string().optional()
       }).refine((data) => {
         if (itemLevel === 3) {
           if (data.contentType === "job_story") {
@@ -116,7 +116,7 @@ function JtbdForm({
       priority: initialData?.priority || "",
       parentId: parentId !== undefined ? parentId : initialData?.parentId || undefined,
       level: initialData?.level || itemLevel,
-      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : null)
+      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : undefined)
     }
   });
 
@@ -343,7 +343,14 @@ function JtbdForm({
               </Button>
             )}
             <Button type="submit" disabled={isLoading}>
-              {initialData ? "Update" : "Create"} JTBD
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                  {initialData ? "Updating..." : "Creating..."}
+                </>
+              ) : (
+                `${initialData ? "Update" : "Create"} JTBD`
+              )}
             </Button>
           </div>
         </DialogFooter>
@@ -430,7 +437,21 @@ function JobStoryCard({ jtbd, onEdit }: { jtbd: Jtbd; onEdit: (jtbd: Jtbd) => vo
 }
 
 // Component for rendering a single job item with its children
-function JobItem({ jtbd, childrenMap, expandedItems, setExpandedItems, onEdit, onAddSubJob }) {
+function JobItem({ 
+  jtbd, 
+  childrenMap, 
+  expandedItems, 
+  setExpandedItems, 
+  onEdit, 
+  onAddSubJob 
+}: {
+  jtbd: Jtbd;
+  childrenMap: Record<number, Jtbd[]>;
+  expandedItems: Record<number, boolean>;
+  setExpandedItems: (fn: (prev: Record<number, boolean>) => Record<number, boolean>) => void;
+  onEdit: (jtbd: Jtbd) => void;
+  onAddSubJob: (id: number) => void;
+}) {
   const hasChildren = childrenMap[jtbd.id]?.length > 0;
   const isExpanded = expandedItems[jtbd.id];
   const level = jtbd.level || 1;
@@ -451,7 +472,7 @@ function JobItem({ jtbd, childrenMap, expandedItems, setExpandedItems, onEdit, o
     
     return (
       <div className={`${level < 3 ? 'ml-6 border-l-2 border-gray-100 pl-4' : ''}`}>
-        {childrenMap[jtbd.id].map(childJob => (
+        {childrenMap[jtbd.id].map((childJob: Jtbd) => (
           <JobItem 
             key={childJob.id}
             jtbd={childJob}
@@ -482,7 +503,7 @@ function JobItem({ jtbd, childrenMap, expandedItems, setExpandedItems, onEdit, o
               variant="ghost" 
               size="icon" 
               className="h-6 w-6 p-0 shrink-0 hover:bg-gray-200" 
-              onClick={() => setExpandedItems(prev => ({
+              onClick={() => setExpandedItems((prev: Record<number, boolean>) => ({
                 ...prev,
                 [jtbd.id]: !prev[jtbd.id]
               }))}
@@ -615,8 +636,8 @@ export default function JtbdsPage() {
     // Function to check if a job matches the filters
     const matchFilters = (jtbd: Jtbd) => {
       const searchMatch = !search || 
-        jtbd.title.toLowerCase().includes(search.toLowerCase()) ||
-        jtbd.description.toLowerCase().includes(search.toLowerCase());
+        (jtbd.title || '').toLowerCase().includes(search.toLowerCase()) ||
+        (jtbd.description || '').toLowerCase().includes(search.toLowerCase());
       
       const categoryMatch = categoryFilter === "ALL" || jtbd.category === categoryFilter;
       const priorityMatch = priorityFilter === "ALL" || jtbd.priority === priorityFilter;
@@ -644,10 +665,14 @@ export default function JtbdsPage() {
   const createJtbdMutation = useMutation({
     mutationFn: async (jtbd: InsertJtbd & { parentId?: number }) => {
       const res = await apiRequest("POST", "/api/jtbds", jtbd);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Unknown error occurred' }));
+        throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
+      }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"], exact: true });
       setShowNewJtbdForm(false);
       setSubJobParentId(null);
       toast({
@@ -655,10 +680,12 @@ export default function JtbdsPage() {
         description: "The job to be done was successfully created.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error('Create JTBD error:', error);
+      const errorMessage = error?.message || error?.toString() || 'Failed to create JTBD';
       toast({
         title: "Failed to create JTBD",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -678,20 +705,26 @@ export default function JtbdsPage() {
         contentType: jtbd.level === 3 ? jtbd.contentType : null,
         parentId: jtbd.parentId
       });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Unknown error occurred' }));
+        throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
+      }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"], exact: true });
       setEditingJtbd(null);
       toast({
         title: "JTBD updated",
         description: "The job to be done was successfully updated.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error('Update JTBD error:', error);
+      const errorMessage = error?.message || error?.toString() || 'Failed to update JTBD';
       toast({
         title: "Failed to update JTBD",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -700,10 +733,15 @@ export default function JtbdsPage() {
   // Delete JTBD
   const deleteJtbdMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/jtbds/${id}`);
+      const res = await apiRequest("DELETE", `/api/jtbds/${id}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ message: 'Unknown error occurred' }));
+        throw new Error(errorData.message || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/jtbds"], exact: true });
       setEditingJtbd(null);
       setDeleteDialogOpen(false);
       toast({
@@ -711,12 +749,15 @@ export default function JtbdsPage() {
         description: "The job to be done was successfully deleted.",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error('Delete JTBD error:', error);
+      const errorMessage = error?.message || error?.toString() || 'Failed to delete JTBD';
       toast({
         title: "Failed to delete JTBD",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
+      setDeleteDialogOpen(false); // Close dialog on error
     },
   });
 
