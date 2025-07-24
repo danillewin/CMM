@@ -32,6 +32,8 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
+import { useTranslation } from "react-i18next";
+import CustomFilterManager from "@/components/custom-filter-manager";
 
 
 export default function Calendar() {
@@ -42,6 +44,7 @@ export default function Calendar() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { toast } = useToast();
+  const { t } = useTranslation();
 
 
   const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
@@ -150,6 +153,27 @@ export default function Calendar() {
 
   return (
     <div className="container mx-auto px-4 py-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">{t("calendar.title", "Calendar")}</h1>
+        <CustomFilterManager
+          pageType="calendar"
+          currentFilters={{
+            teamFilter,
+            researcherFilter,
+            statusFilter,
+          }}
+          onApplyFilter={(filters) => {
+            if (filters.teamFilter !== undefined) setTeamFilter(filters.teamFilter);
+            if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
+            if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
+          }}
+          onResetFilters={() => {
+            setTeamFilter("ALL");
+            setResearcherFilter("ALL");
+            setStatusFilter("ALL");
+          }}
+        />
+      </div>
       <div className="grid grid-cols-[250px_1fr] gap-6">
         {/* Sidebar */}
         <div className="space-y-6">

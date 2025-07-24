@@ -6,6 +6,7 @@ import {
   jtbds,
   researchJtbds,
   meetingJtbds,
+  customFilters,
   type Meeting, 
   type InsertMeeting, 
   type Research, 
@@ -17,7 +18,9 @@ import {
   type Jtbd,
   type InsertJtbd,
   type ResearchJtbd,
-  type MeetingJtbd
+  type MeetingJtbd,
+  type CustomFilter,
+  type InsertCustomFilter
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -60,6 +63,13 @@ export interface IStorage {
   removeJtbdFromResearch(researchId: number, jtbdId: number): Promise<void>;
   addJtbdToMeeting(meetingId: number, jtbdId: number): Promise<void>;
   removeJtbdFromMeeting(meetingId: number, jtbdId: number): Promise<void>;
+  
+  // Custom filters methods
+  getCustomFilters(pageType?: string, createdBy?: string): Promise<CustomFilter[]>;
+  getCustomFilter(id: number): Promise<CustomFilter | undefined>;
+  createCustomFilter(filter: InsertCustomFilter): Promise<CustomFilter>;
+  updateCustomFilter(id: number, filter: Partial<InsertCustomFilter>): Promise<CustomFilter | undefined>;
+  deleteCustomFilter(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -448,6 +458,54 @@ export class DatabaseStorage implements IStorage {
       console.error("Error removing JTBD from meeting:", error);
       throw error;
     }
+  }
+
+  // Custom filters implementation
+  async getCustomFilters(pageType?: string, createdBy?: string): Promise<CustomFilter[]> {
+    let query = db.select().from(customFilters);
+    
+    if (pageType) {
+      query = query.where(eq(customFilters.pageType, pageType));
+    }
+    
+    if (createdBy) {
+      query = query.where(eq(customFilters.createdBy, createdBy));
+    }
+    
+    return query;
+  }
+
+  async getCustomFilter(id: number): Promise<CustomFilter | undefined> {
+    const [filter] = await db
+      .select()
+      .from(customFilters)
+      .where(eq(customFilters.id, id));
+    return filter;
+  }
+
+  async createCustomFilter(filter: InsertCustomFilter): Promise<CustomFilter> {
+    const [newFilter] = await db
+      .insert(customFilters)
+      .values(filter)
+      .returning();
+    return newFilter;
+  }
+
+  async updateCustomFilter(id: number, filter: Partial<InsertCustomFilter>): Promise<CustomFilter | undefined> {
+    const [updatedFilter] = await db
+      .update(customFilters)
+      .set({ ...filter, updatedAt: new Date() })
+      .where(eq(customFilters.id, id))
+      .returning();
+    return updatedFilter;
+  }
+
+  async deleteCustomFilter(id: number): Promise<boolean> {
+    const [deletedFilter] = await db
+      .delete(customFilters)
+      .where(eq(customFilters.id, id))
+      .returning();
+    return !!deletedFilter;
   }
 }
 

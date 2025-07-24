@@ -7,7 +7,8 @@ import {
   insertResearchSchema, 
   insertPositionSchema, 
   insertTeamSchema,
-  insertJtbdSchema
+  insertJtbdSchema,
+  insertCustomFilterSchema
 } from "@shared/schema";
 import { 
   meetings, 
@@ -645,6 +646,96 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Health check error:", error);
       res.status(500).json({ message: "Health check failed" });
+    }
+  });
+
+  // Custom filters API routes
+  app.get("/api/custom-filters", async (req, res) => {
+    try {
+      const { pageType, createdBy } = req.query;
+      const filters = await storage.getCustomFilters(
+        pageType as string,
+        createdBy as string
+      );
+      res.json(filters);
+    } catch (error) {
+      console.error("Error fetching custom filters:", error);
+      res.status(500).json({ message: "Failed to fetch custom filters" });
+    }
+  });
+
+  app.get("/api/custom-filters/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid filter ID" });
+        return;
+      }
+      const filter = await storage.getCustomFilter(id);
+      if (!filter) {
+        res.status(404).json({ message: "Custom filter not found" });
+        return;
+      }
+      res.json(filter);
+    } catch (error) {
+      console.error("Error fetching custom filter:", error);
+      res.status(500).json({ message: "Failed to fetch custom filter" });
+    }
+  });
+
+  app.post("/api/custom-filters", async (req, res) => {
+    try {
+      const validation = insertCustomFilterSchema.safeParse(req.body);
+      if (!validation.success) {
+        res.status(400).json({ 
+          message: "Invalid custom filter data",
+          errors: validation.error.issues
+        });
+        return;
+      }
+      const newFilter = await storage.createCustomFilter(validation.data);
+      res.status(201).json(newFilter);
+    } catch (error) {
+      console.error("Error creating custom filter:", error);
+      res.status(500).json({ message: "Failed to create custom filter" });
+    }
+  });
+
+  app.patch("/api/custom-filters/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid filter ID" });
+        return;
+      }
+      const updatedFilter = await storage.updateCustomFilter(id, req.body);
+      if (!updatedFilter) {
+        res.status(404).json({ message: "Custom filter not found" });
+        return;
+      }
+      res.json(updatedFilter);
+    } catch (error) {
+      console.error("Error updating custom filter:", error);
+      res.status(500).json({ message: "Failed to update custom filter" });
+    }
+  });
+
+  app.delete("/api/custom-filters/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        res.status(400).json({ message: "Invalid filter ID" });
+        return;
+      }
+      const success = await storage.deleteCustomFilter(id);
+      if (!success) {
+        res.status(404).json({ message: "Custom filter not found" });
+        return;
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting custom filter:", error);
+      res.status(500).json({ message: "Failed to delete custom filter" });
     }
   });
 

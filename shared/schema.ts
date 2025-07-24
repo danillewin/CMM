@@ -222,3 +222,33 @@ export type InsertJtbd = z.infer<typeof insertJtbdSchema>;
 export type Jtbd = typeof jtbds.$inferSelect;
 export type ResearchJtbd = typeof researchJtbds.$inferSelect;
 export type MeetingJtbd = typeof meetingJtbds.$inferSelect;
+
+// Add custom filters table
+export const customFilters = pgTable("custom_filters", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  pageType: text("page_type").notNull(), // "meetings", "researches", "calendar"
+  filterData: text("filter_data").notNull(), // JSON string containing filter configuration
+  createdBy: text("created_by").notNull(), // User who created the filter
+  isPublic: text("is_public").notNull().default("false"), // Whether filter is shared with team
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Custom filter schema
+export const insertCustomFilterSchema = createInsertSchema(customFilters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().min(1, "Filter name is required"),
+  description: z.string().optional(),
+  pageType: z.enum(["meetings", "researches", "calendar"]),
+  filterData: z.string().min(1, "Filter data is required"),
+  createdBy: z.string().min(1, "Creator is required"),
+  isPublic: z.enum(["true", "false"]).default("false"),
+});
+
+export type CustomFilter = typeof customFilters.$inferSelect;
+export type InsertCustomFilter = z.infer<typeof insertCustomFilterSchema>;

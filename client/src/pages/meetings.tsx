@@ -21,6 +21,7 @@ import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { useTranslation } from "react-i18next";
+import CustomFilterManager from "@/components/custom-filter-manager";
 
 export default function Meetings() {
   const { t } = useTranslation();
@@ -545,6 +546,39 @@ export default function Meetings() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("meetings.title")}</h1>
           <div className="flex flex-col sm:flex-row gap-3">
+            <CustomFilterManager
+              pageType="meetings"
+              currentFilters={{
+                search,
+                statusFilter,
+                researchFilter,
+                managerFilter,
+                recruiterFilter,
+                researcherFilter,
+                positionFilter,
+                giftFilter,
+              }}
+              onApplyFilter={(filters) => {
+                if (filters.search !== undefined) setSearch(filters.search);
+                if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
+                if (filters.researchFilter !== undefined) setResearchFilter(filters.researchFilter);
+                if (filters.managerFilter !== undefined) setManagerFilter(filters.managerFilter);
+                if (filters.recruiterFilter !== undefined) setRecruiterFilter(filters.recruiterFilter);
+                if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
+                if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
+                if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
+              }}
+              onResetFilters={() => {
+                setSearch("");
+                setStatusFilter("");
+                setResearchFilter(null);
+                setManagerFilter("");
+                setRecruiterFilter("");
+                setResearcherFilter("");
+                setPositionFilter("");
+                setGiftFilter("");
+              }}
+            />
             <Button 
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
               onClick={() => setLocation("/meetings/new")}
