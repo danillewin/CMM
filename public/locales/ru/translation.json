@@ -207,7 +207,10 @@
     "showing": "Показано",
     "language": "Язык",
     "english": "Английский",
-    "russian": "Русский"
+    "russian": "Русский",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить"
   },
   "research": {
     "title": "Исследование",

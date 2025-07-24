@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeeks } from "date-fns";
 import { useTranslation } from "react-i18next";
+import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 type ViewMode = "table" | "cards";
 
@@ -485,7 +486,32 @@ export default function Researches() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("researches.title")}</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("researches.title")}</h1>
+            <ResearcherFilterManager
+              pageType="researches"
+              currentFilters={{
+                search,
+                researcherFilter,
+                teamFilter,
+                statusFilter,
+                researchTypeFilters,
+                productFilters,
+                showStartsInNWeeks,
+                weeksNumber,
+              }}
+              onApplyFilter={(filters) => {
+                if (filters.search !== undefined) setSearch(filters.search);
+                if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
+                if (filters.teamFilter !== undefined) setTeamFilter(filters.teamFilter);
+                if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
+                if (filters.researchTypeFilters !== undefined) setResearchTypeFilters(filters.researchTypeFilters);
+                if (filters.productFilters !== undefined) setProductFilters(filters.productFilters);
+                if (filters.showStartsInNWeeks !== undefined) setShowStartsInNWeeks(filters.showStartsInNWeeks);
+                if (filters.weeksNumber !== undefined) setWeeksNumber(filters.weeksNumber);
+              }}
+            />
+          </div>
           <div className="flex items-center gap-4">
 
             <Button 

@@ -207,7 +207,10 @@
     "showing": "Showing",
     "language": "Language",
     "english": "English",
-    "russian": "Russian"
+    "russian": "Russian",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
   },
   "research": {
     "title": "Research",
