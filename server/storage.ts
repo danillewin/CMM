@@ -464,12 +464,15 @@ export class DatabaseStorage implements IStorage {
   async getCustomFilters(pageType?: string, createdBy?: string): Promise<CustomFilter[]> {
     let query = db.select().from(customFilters);
     
-    if (pageType) {
-      query = query.where(eq(customFilters.pageType, pageType));
-    }
-    
-    if (createdBy) {
-      query = query.where(eq(customFilters.createdBy, createdBy));
+    if (pageType && createdBy) {
+      return query.where(and(
+        eq(customFilters.pageType, pageType),
+        eq(customFilters.createdBy, createdBy)
+      ));
+    } else if (pageType) {
+      return query.where(eq(customFilters.pageType, pageType));
+    } else if (createdBy) {
+      return query.where(eq(customFilters.createdBy, createdBy));
     }
     
     return query;

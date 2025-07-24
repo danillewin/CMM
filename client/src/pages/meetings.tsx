@@ -21,7 +21,7 @@ import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { useTranslation } from "react-i18next";
-import CustomFilterManager from "@/components/custom-filter-manager";
+import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 export default function Meetings() {
   const { t } = useTranslation();
@@ -476,7 +476,8 @@ export default function Meetings() {
         }))
       ],
       value: researcherFilter || "ALL",
-      onChange: setResearcherFilter
+      onChange: setResearcherFilter,
+      enableCustomFilters: true
     },
     {
       id: "position",
@@ -544,9 +545,9 @@ export default function Meetings() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("meetings.title")}</h1>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <CustomFilterManager
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("meetings.title")}</h1>
+            <ResearcherFilterManager
               pageType="meetings"
               currentFilters={{
                 search,
@@ -568,17 +569,9 @@ export default function Meetings() {
                 if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
                 if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
               }}
-              onResetFilters={() => {
-                setSearch("");
-                setStatusFilter("");
-                setResearchFilter(null);
-                setManagerFilter("");
-                setRecruiterFilter("");
-                setResearcherFilter("");
-                setPositionFilter("");
-                setGiftFilter("");
-              }}
             />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
             <Button 
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-sm transition-all duration-200"
               onClick={() => setLocation("/meetings/new")}

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, primaryKey, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -229,25 +229,25 @@ export const customFilters = pgTable("custom_filters", {
   name: text("name").notNull(),
   description: text("description"),
   pageType: text("page_type").notNull(), // "meetings", "researches", "calendar"
-  filterData: text("filter_data").notNull(), // JSON string containing filter configuration
+  filters: jsonb("filters").notNull(), // JSON object containing filter configuration
   createdBy: text("created_by").notNull(), // User who created the filter
-  isPublic: text("is_public").notNull().default("false"), // Whether filter is shared with team
+  shared: boolean("shared").notNull().default(false), // Whether filter is shared with team
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Custom filter schema
-export const insertCustomFilterSchema = createInsertSchema(customFilters).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
+export const insertCustomFilterSchema = createInsertSchema(customFilters, {
   name: z.string().min(1, "Filter name is required"),
   description: z.string().optional(),
   pageType: z.enum(["meetings", "researches", "calendar"]),
-  filterData: z.string().min(1, "Filter data is required"),
+  filters: z.record(z.any()),
   createdBy: z.string().min(1, "Creator is required"),
-  isPublic: z.enum(["true", "false"]).default("false"),
+  shared: z.boolean().default(false),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export type CustomFilter = typeof customFilters.$inferSelect;

@@ -47,7 +47,11 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Settings, Filter, Search, X } from "lucide-react";
+import { GripVertical, Settings, Filter, Search, X, Save, Bookmark } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 // Column configuration type
 export type ColumnConfig = {
@@ -67,6 +71,7 @@ export type FilterConfig = {
   onChange: (value: string) => void;
   customComponent?: React.ReactNode;
   isActive?: () => boolean; // Custom function to determine if filter is active
+  enableCustomFilters?: boolean; // Enable custom filter save/load for this filter
 };
 
 // Props for the ConfigurableTable component
