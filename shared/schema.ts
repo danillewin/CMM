@@ -136,13 +136,14 @@ export const insertPositionSchema = createInsertSchema(positions).omit({
 export const insertResearchSchema = createInsertSchema(researches).omit({
   id: true,
 }).extend({
-  dateStart: z.coerce.date(),
-  dateEnd: z.coerce.date(),
+  dateStart: z.coerce.date().optional().default(() => new Date()),
+  dateEnd: z.coerce.date().optional().default(() => new Date()),
   researcher: z.string().min(1, "Researcher is required"),
   team: z.string().min(1, "Team is required"),
+  description: z.string().optional().default(""),
   status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
     .default(ResearchStatus.PLANNED),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid color format").default("#3b82f6"),
   researchType: z.enum([
     "CATI (Telephone Survey)",
     "CAWI (Online Survey)", 
@@ -152,6 +153,7 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Interviews",
     "Desk research"
   ]).default("Interviews"),
+  products: z.array(z.string()).optional().default([]),
   customerFullName: z.string().optional(),
   additionalStakeholders: z.array(z.string()).optional(),
   resultFormat: z.enum(["Презентация", "Figma"]).default("Презентация"),
