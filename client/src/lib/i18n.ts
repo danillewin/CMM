@@ -1,6 +1,6 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
 
 // Check if i18next is already initialized
 if (!i18n.isInitialized) {
@@ -8,25 +8,25 @@ if (!i18n.isInitialized) {
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
-      lng: 'en', // Default language
-      fallbackLng: 'en',
-      
-      debug: import.meta.env.MODE === 'development',
-      
+      lng: "en", // Default language
+      fallbackLng: "en",
+
+      debug: import.meta.env.MODE === "development",
+
       interpolation: {
         escapeValue: false, // React already escapes values
       },
-      
+
       detection: {
-        order: ['localStorage', 'navigator', 'htmlTag'],
-        caches: ['localStorage'],
-        lookupLocalStorage: 'i18nextLng',
+        order: ["localStorage", "navigator", "htmlTag"],
+        caches: ["localStorage"],
+        lookupLocalStorage: "i18nextLng",
       },
-      
+
       react: {
         useSuspense: false,
       },
-      
+
       // Load resources directly inline
       resources: {
         en: {
@@ -37,7 +37,7 @@ if (!i18n.isInitialized) {
               meetings: "Meetings",
               calendar: "Calendar",
               roadmap: "Roadmap",
-              jtbds: "Jobs to be Done"
+              jtbds: "Jobs to be Done",
             },
             meetings: {
               title: "Client Meetings",
@@ -62,7 +62,7 @@ if (!i18n.isInitialized) {
               statusDeclined: "Declined",
               giftYes: "Yes",
               giftNo: "No",
-              noMeetings: "No notes"
+              noMeetings: "No notes",
             },
             researches: {
               title: "Researches",
@@ -78,7 +78,8 @@ if (!i18n.isInitialized) {
               researchType: "Research Type",
               products: "Products",
               customerFullName: "Customer's Full Name",
-              additionalStakeholders: "Additional Stakeholders (Name + Position)",
+              additionalStakeholders:
+                "Additional Stakeholders (Name + Position)",
               resultFormat: "How to provide results",
               brief: "Brief",
               guide: "Guide",
@@ -96,7 +97,7 @@ if (!i18n.isInitialized) {
               cards: "Cards",
               startsInWeeks: "Starts in next weeks",
               selectResearchType: "Select Research Type",
-              selectProducts: "Select Products"
+              selectProducts: "Select Products",
             },
             research: {
               title: "Research",
@@ -106,47 +107,67 @@ if (!i18n.isInitialized) {
                 recruitment: "Recruitment",
                 guide: "Guide",
                 results: "Results",
-                meetings: "Meetings"
+                meetings: "Meetings",
               },
               customerFullName: "Customer's Full Name",
-              additionalStakeholders: "Additional Stakeholders (Name + Position)",
+              additionalStakeholders:
+                "Additional Stakeholders (Name + Position)",
               addStakeholder: "Add Stakeholder",
               removeStakeholder: "Remove",
               resultFormat: "How to provide results",
               resultFormatOptions: {
                 presentation: "Presentation",
-                figma: "Figma"
+                figma: "Figma",
               },
               customerSegmentDescription: "Customer segment(s) description",
-              customerSegmentDescriptionPlaceholder: "Text description (region, role, activity)",
+              customerSegmentDescriptionPlaceholder:
+                "Text description (region, role, activity)",
               projectBackground: "Project Background",
-              projectBackgroundDescription: "Detailed description of the current situation that necessitated the research",
-              problemToSolve: "What problem do we want to solve with this research",
-              resultsUsage: "How will the research results be used? What decisions need the research results?",
-              productMetrics: "Product metrics that will be affected by the research",
-              limitations: "What limitations exist and may affect the process/results? (e.g., access to data or team resources)",
+              projectBackgroundDescription:
+                "Detailed description of the current situation that necessitated the research",
+              problemToSolve:
+                "What problem do we want to solve with this research",
+              resultsUsage:
+                "How will the research results be used? What decisions need the research results?",
+              productMetrics:
+                "Product metrics that will be affected by the research",
+              limitations:
+                "What limitations exist and may affect the process/results? (e.g., access to data or team resources)",
               goalsHypothesesQuestions: "Goals / Hypotheses / Questions",
-              researchGoals: "What are the main research goals? (what exactly does the team want to learn or achieve as a result of the research)",
-              researchHypotheses: "Hypotheses or assumptions that you would like to confirm or refute as a result of the research",
-              researchHypothesesPlaceholder: "Hypothesis = object + action + context/consequence",
-              keyQuestions: "List of key questions that the research should answer",
-              keyQuestionsPlaceholder: "Example questions:\n- How do users interact with the product?\n- What difficulties do they experience?\n- What features would they like to see in the product?",
+              researchGoals:
+                "What are the main research goals? (what exactly does the team want to learn or achieve as a result of the research)",
+              researchHypotheses:
+                "Hypotheses or assumptions that you would like to confirm or refute as a result of the research",
+              researchHypothesesPlaceholder:
+                "Hypothesis = object + action + context/consequence",
+              keyQuestions:
+                "List of key questions that the research should answer",
+              keyQuestionsPlaceholder:
+                "Example questions:\n- How do users interact with the product?\n- What difficulties do they experience?\n- What features would they like to see in the product?",
               additionalInformation: "Additional Information",
-              previousResources: "Previous research, data, scripts or other resources that may be useful for current research",
-              previousResourcesPlaceholder: "Links to previous studies, existing data, research scripts, reports, or other materials that could inform this research",
-              additionalMaterials: "Any additional materials and information that will help better understand the research context",
-              additionalMaterialsPlaceholder: "Documentation, background materials, context information, or other resources that provide important context for this research",
+              previousResources:
+                "Previous research, data, scripts or other resources that may be useful for current research",
+              previousResourcesPlaceholder:
+                "Links to previous studies, existing data, research scripts, reports, or other materials that could inform this research",
+              additionalMaterials:
+                "Any additional materials and information that will help better understand the research context",
+              additionalMaterialsPlaceholder:
+                "Documentation, background materials, context information, or other resources that provide important context for this research",
               relatedResearches: "Related Researches",
-              relatedResearchesPlaceholder: "Select a research project to link with",
+              relatedResearchesPlaceholder:
+                "Select a research project to link with",
               addRelatedResearch: "Add Related Research",
               figmaPrototypeLink: "Figma prototype link",
-              figmaPrototypeLinkPlaceholder: "Enter the URL to the Figma prototype for usability testing",
+              figmaPrototypeLinkPlaceholder:
+                "Enter the URL to the Figma prototype for usability testing",
               figmaPrototypeLinkHelp: "Only for usability tests",
               artifactLink: "Artifact Link",
-              artifactLinkPlaceholder: "Enter the URL to the research artifact or deliverable",
+              artifactLinkPlaceholder:
+                "Enter the URL to the research artifact or deliverable",
               // Guide tab translations
               guideIntroText: "Introductory Text",
-              guideIntroTextPlaceholder: "Enter the opening words for the interview",
+              guideIntroTextPlaceholder:
+                "Enter the opening words for the interview",
               guideIntroQuestions: "Introductory Questions",
               guideMainQuestions: "Main Questions",
               guideConcludingQuestions: "Concluding Questions",
@@ -164,9 +185,10 @@ if (!i18n.isInitialized) {
               researchType: "Research Type",
               saveBrief: "Save Brief",
               uploadFiles: "Upload Files",
-              uploadDescription: "Upload audio or video files to automatically transcribe and add to Full Text",
+              uploadDescription:
+                "Upload audio or video files to automatically transcribe and add to Full Text",
               processing: "Processing files...",
-              processComplete: "Processing complete!"
+              processComplete: "Processing complete!",
             },
             jtbds: {
               title: "Jobs to be Done",
@@ -187,21 +209,21 @@ if (!i18n.isInitialized) {
               addToMeeting: "Add to Meeting",
               removeFromResearch: "Remove from Research",
               removeFromMeeting: "Remove from Meeting",
-              parentJtbd: "Parent JTBD"
+              parentJtbd: "Parent JTBD",
             },
             forms: {
               loading: "Loading...",
               save: "Save",
-              saving: "Saving..."
+              saving: "Saving...",
             },
             filters: {
               status: "Status",
-              all: "All"
+              all: "All",
             },
             errors: {
-              generic: "An error occurred"
-            }
-          }
+              generic: "An error occurred",
+            },
+          },
         },
         ru: {
           translation: {
@@ -211,7 +233,7 @@ if (!i18n.isInitialized) {
               meetings: "Встречи",
               calendar: "Календарь",
               roadmap: "Дорожная карта",
-              jtbds: "Задачи"
+              jtbds: "Задачи",
             },
             meetings: {
               title: "Встречи с клиентами",
@@ -236,7 +258,7 @@ if (!i18n.isInitialized) {
               statusDeclined: "Отклонена",
               giftYes: "Да",
               giftNo: "Нет",
-              noMeetings: "Нет заметок"
+              noMeetings: "Нет заметок",
             },
             researches: {
               title: "Исследования",
@@ -252,7 +274,8 @@ if (!i18n.isInitialized) {
               researchType: "Тип исследования",
               products: "Продукты",
               customerFullName: "ФИО заказчика",
-              additionalStakeholders: "Дополнительные заинтересованные лица (ФИО + должность)",
+              additionalStakeholders:
+                "Дополнительные заинтересованные лица (ФИО + должность)",
               resultFormat: "В каком виде необходимо предоставить результаты",
               brief: "Бриф",
               guide: "Руководство",
@@ -270,7 +293,7 @@ if (!i18n.isInitialized) {
               cards: "Карточки",
               startsInWeeks: "Начинается в следующие недели",
               selectResearchType: "Выберите тип исследования",
-              selectProducts: "Выберите продукты"
+              selectProducts: "Выберите продукты",
             },
             research: {
               title: "Исследование",
@@ -280,47 +303,66 @@ if (!i18n.isInitialized) {
                 recruitment: "Рекрутинг",
                 guide: "Руководство",
                 results: "Результаты",
-                meetings: "Встречи"
+                meetings: "Встречи",
               },
               customerFullName: "ФИО заказчика",
-              additionalStakeholders: "Дополнительные заинтересованные лица (ФИО + должность)",
+              additionalStakeholders:
+                "Дополнительные заинтересованные лица (ФИО + должность)",
               addStakeholder: "Добавить заинтересованное лицо",
               removeStakeholder: "Удалить",
               resultFormat: "В каком виде необходимо предоставить результаты",
               resultFormatOptions: {
                 presentation: "Презентация",
-                figma: "Figma"
+                figma: "Figma",
               },
               customerSegmentDescription: "Описание сегмента(ов) клиентов",
-              customerSegmentDescriptionPlaceholder: "Текстовое описание (регион, роль, деятельность)",
+              customerSegmentDescriptionPlaceholder:
+                "Текстовое описание (регион, роль, деятельность)",
               projectBackground: "Фон проекта",
-              projectBackgroundDescription: "Подробное описание текущей ситуации, вызвашей необходимость проведения исследования",
+              projectBackgroundDescription:
+                "Подробное описание текущей ситуации, вызвашей необходимость проведения исследования",
               problemToSolve: "Какую проблему хотим решить этим исследованием",
-              resultsUsage: "Как будут использоваться результаты исследования? Для принятия какие решений нужны результаты исследования?",
-              productMetrics: "Метрики продукта, на которые окажет влияние исследование",
-              limitations: "Какие ограничения существуют и могут повлиять на процесс/результаты? (например, доступ к данным или ресурсы команды)",
+              resultsUsage:
+                "Как будут использоваться результаты исследования? Для принятия какие решений нужны результаты исследования?",
+              productMetrics:
+                "Метрики продукта, на которые окажет влияние исследование",
+              limitations:
+                "Какие ограничения существуют и могут повлиять на процесс/результаты? (например, доступ к данным или ресурсы команды)",
               goalsHypothesesQuestions: "Цели / гипотезы / вопросы",
-              researchGoals: "Какие основные цели исследования? (что именно команда хочет узнать или добиться в результате исследования)",
-              researchHypotheses: "Гипотезы или предположения, которые бы хотели подтвердить или опровергнуть в результате исследования",
-              researchHypothesesPlaceholder: "Гипотеза = объект + действие + контекст/следствие",
-              keyQuestions: "Список ключевых вопросов, на которые исследование должно дать ответы",
-              keyQuestionsPlaceholder: "Примеры вопросов:\n- Как пользователи взаимодействуют с продуктом?\n- Какие трудности они испытывают?\n- Какие функции они хотели бы видеть в продукте?",
+              researchGoals:
+                "Какие основные цели исследования? (что именно команда хочет узнать или добиться в результате исследования)",
+              researchHypotheses:
+                "Гипотезы или предположения, которые бы хотели подтвердить или опровергнуть в результате исследования",
+              researchHypothesesPlaceholder:
+                "Гипотеза = объект + действие + контекст/следствие",
+              keyQuestions:
+                "Список ключевых вопросов, на которые исследование должно дать ответы",
+              keyQuestionsPlaceholder:
+                "Примеры вопросов:\n- Как пользователи взаимодействуют с продуктом?\n- Какие трудности они испытывают?\n- Какие функции они хотели бы видеть в продукте?",
               additionalInformation: "Дополнительная информация",
-              previousResources: "Предыдущие исследования, данные, скрипты или другие ресурсы, которые могут быть полезны для текущего исследования",
-              previousResourcesPlaceholder: "Ссылки на предыдущие исследования, существующие данные, исследовательские скрипты, отчеты или другие материалы, которые могут информировать это исследование",
-              additionalMaterials: "Любые дополнительные материалы и информация, которые помогут лучше понять контекст исследования",
-              additionalMaterialsPlaceholder: "Документация, справочные материалы, контекстная информация или другие ресурсы, которые предоставляют важный контекст для этого исследования",
+              previousResources:
+                "Предыдущие исследования, данные, скрипты или другие ресурсы, которые могут быть полезны для текущего исследования",
+              previousResourcesPlaceholder:
+                "Ссылки на предыдущие исследования, существующие данные, исследовательские скрипты, отчеты или другие материалы, которые могут информировать это исследование",
+              additionalMaterials:
+                "Любые дополнительные материалы и информация, которые помогут лучше понять контекст исследования",
+              additionalMaterialsPlaceholder:
+                "Документация, справочные материалы, контекстная информация или другие ресурсы, которые предоставляют важный контекст для этого исследования",
               relatedResearches: "Связанные исследования",
-              relatedResearchesPlaceholder: "Выберите исследовательский проект для связи",
+              relatedResearchesPlaceholder:
+                "Выберите исследовательский проект для связи",
               addRelatedResearch: "Добавить связанное исследование",
               figmaPrototypeLink: "Ссылка на прототип Figma",
-              figmaPrototypeLinkPlaceholder: "Введите URL ссылку на прототип Figma для юзабилити тестирования",
+              figmaPrototypeLinkPlaceholder:
+                "Введите URL ссылку на прототип Figma для юзабилити тестирования",
               figmaPrototypeLinkHelp: "Только на юзабилити тестах",
               artifactLink: "Ссылка на артефакт",
-              artifactLinkPlaceholder: "Введите URL ссылку на артефакт или результат исследования",
+              artifactLinkPlaceholder:
+                "Введите URL ссылку на артефакт или результат исследования",
               // Guide tab translations
               guideIntroText: "Вступительное слово",
-              guideIntroTextPlaceholder: "Введите вступительные слова для интервью",
+              guideIntroTextPlaceholder:
+                "Введите вступительные слова для интервью",
               guideIntroQuestions: "Вступительные вопросы",
               guideMainQuestions: "Основные вопросы",
               guideConcludingQuestions: "Заключительные вопросы",
@@ -338,13 +380,14 @@ if (!i18n.isInitialized) {
               researchType: "Тип исследования",
               saveBrief: "Сохранить бриф",
               uploadFiles: "Загрузить файлы",
-              uploadDescription: "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",
+              uploadDescription:
+                "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",
               processing: "Обработка файлов...",
-              processComplete: "Обработка завершена!"
+              processComplete: "Обработка завершена!",
             },
             jtbds: {
-              title: "Задачи для выполнения",
-              newJtbd: "Новая задача",
+              title: "JTBD",
+              newJtbd: "Создать",
               name: "Название",
               jobStatement: "Постановка задачи",
               jobStory: "История задачи",
@@ -361,23 +404,23 @@ if (!i18n.isInitialized) {
               addToMeeting: "Добавить к встрече",
               removeFromResearch: "Убрать из исследования",
               removeFromMeeting: "Убрать из встречи",
-              parentJtbd: "Родительская задача"
+              parentJtbd: "Родительская задача",
             },
             forms: {
               loading: "Загрузка...",
               save: "Сохранить",
-              saving: "Сохранение..."
+              saving: "Сохранение...",
             },
             filters: {
               status: "Статус",
-              all: "Все"
+              all: "Все",
             },
             errors: {
-              generic: "Произошла ошибка"
-            }
-          }
-        }
-      }
+              generic: "Произошла ошибка",
+            },
+          },
+        },
+      },
     });
 }
 
