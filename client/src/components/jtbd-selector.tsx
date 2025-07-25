@@ -49,8 +49,8 @@ export function JtbdSelector({
   const filteredJtbds = allJtbds.filter(
     (jtbd) =>
       !selectedJtbds.some((selected) => selected.id === jtbd.id) &&
-      (jtbd.title.toLowerCase().includes(search.toLowerCase()) ||
-       jtbd.description.toLowerCase().includes(search.toLowerCase()))
+      ((jtbd.title || '').toLowerCase().includes(search.toLowerCase()) ||
+       (jtbd.description || '').toLowerCase().includes(search.toLowerCase()))
   );
 
   // Fetch JTBDs connected to this entity when the component mounts
@@ -59,7 +59,7 @@ export function JtbdSelector({
       try {
         if (!entityId) return;
         
-        const response = await fetch(`/api/${entityType}s/${entityId}/jtbds`);
+        const response = await apiRequest("GET", `/api/${entityType}s/${entityId}/jtbds`);
         if (!response.ok) {
           throw new Error(`Error fetching JTBDs: ${response.statusText}`);
         }
