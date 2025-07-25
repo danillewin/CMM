@@ -101,6 +101,9 @@ This is a full-stack web application built for managing research interviews and 
 - July 18, 2025: Added additionalStakeholders dynamic field array to Research Brief tab with add/remove functionality and bilingual support
 - July 18, 2025: Added resultFormat dropdown field to Research Brief tab with predefined options (Презентация, Figma) and bilingual support
 - July 18, 2025: Added collapsible "Фон проекта" (Project Background) section to Research Brief tab with 5 text fields and bilingual support
+- July 25, 2025: Implemented comprehensive custom filter management system across all three main tabs (Meetings, Researches, Calendar) with bookmark icon interface integrated into existing filter menus
+- July 25, 2025: Added ResearcherFilterManager component with save/load/delete functionality for custom filter combinations, allowing team leads to preserve complex filter states
+- July 25, 2025: Enhanced database schema with custom_filters table and API endpoints for persistent filter storage with bilingual support
 
 ## User Preferences
 
