@@ -2027,6 +2027,12 @@ function ResearchDetail() {
   // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
 
+  // Refs to access form data from all tabs
+  const briefFormRef = useRef<any>(null);
+  const guideFormRef = useRef<any>(null);
+  const recruitmentFormRef = useRef<any>(null);
+  const resultsFormRef = useRef<any>(null);
+
   // Handler to update temporary form data
   const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
     setTempFormData((prev) => ({ ...prev, ...newData }));
