@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import {
@@ -2027,11 +2027,7 @@ function ResearchDetail() {
   // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
 
-  // Refs to access form data from all tabs
-  const briefFormRef = useRef<any>(null);
-  const guideFormRef = useRef<any>(null);
-  const recruitmentFormRef = useRef<any>(null);
-  const resultsFormRef = useRef<any>(null);
+
 
   // Handler to update temporary form data
   const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
@@ -2168,17 +2164,24 @@ function ResearchDetail() {
     },
   });
 
-  const handleSubmit = (formData: InsertResearch) => {
+  // Unified save function that combines all tab data
+  const handleUnifiedSave = (overviewFormData: InsertResearch) => {
+    // Merge overview form data with temporary data from all tabs
+    const completeFormData: InsertResearch = {
+      ...overviewFormData,
+      ...tempFormData, // This contains data from Brief, Guide, Recruitment, Results tabs
+    };
+
     if (!isNew && id) {
       // For update, we need to include the ID
-      const updateData = { ...formData, id } as unknown as ResearchWithId;
+      const updateData = { ...completeFormData, id } as unknown as ResearchWithId;
       updateMutation.mutate(updateData);
     } else {
       // For create, we check for duplicates first
       const duplicateResearch = researches.find(
         (r) =>
-          r.name.toLowerCase() === formData.name.toLowerCase() &&
-          r.team.toLowerCase() === formData.team.toLowerCase(),
+          r.name.toLowerCase() === completeFormData.name.toLowerCase() &&
+          r.team.toLowerCase() === completeFormData.team.toLowerCase(),
       );
       if (duplicateResearch) {
         if (
@@ -2186,13 +2189,15 @@ function ResearchDetail() {
             "A research with this name and team already exists. Create anyway?",
           )
         ) {
-          createMutation.mutate(formData);
+          createMutation.mutate(completeFormData);
         }
       } else {
-        createMutation.mutate(formData);
+        createMutation.mutate(completeFormData);
       }
     }
   };
+
+  const handleSubmit = handleUnifiedSave;
 
   const handleDelete = () => {
     setShowDeleteConfirm(true);
