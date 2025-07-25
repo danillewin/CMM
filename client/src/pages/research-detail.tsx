@@ -207,6 +207,7 @@ function ResearchBriefForm({
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: data.researchType as any,
+        products: research.products || [],
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders
           .map((s) => s.value)
@@ -722,7 +723,7 @@ function ResearchBriefForm({
                           );
                           // Update temp data for related researches
                           const currentValues = form.getValues("relatedResearches");
-                          handleFieldChange("relatedResearches", currentValues.map(s => s.value).filter(v => v.trim() !== ""));
+                          handleFieldChange("relatedResearches", JSON.stringify(currentValues.map(s => s.value).filter(v => v.trim() !== "")));
                         }}
                       >
                         <SelectTrigger className="flex-1">
@@ -936,6 +937,7 @@ function ResearchRecruitmentForm({
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        products: research.products || [],
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat:
@@ -1152,6 +1154,7 @@ function ResearchGuideForm({
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        products: research.products || [],
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat:
@@ -1915,6 +1918,7 @@ function ResearchResultsForm({
         status: research.status as ResearchStatusType,
         color: research.color,
         researchType: research.researchType as any,
+        products: research.products || [],
         customerFullName: research.customerFullName || undefined,
         additionalStakeholders: research.additionalStakeholders || undefined,
         resultFormat:
@@ -2042,19 +2046,12 @@ function ResearchDetail() {
     queryKey: ["/api/researches", id],
     queryFn: async () => {
       if (isNew) return undefined;
-      console.log(`Fetching research with ID: ${id}`);
       try {
-        // Use regular fetch like meeting-detail.tsx does
         const res = await apiRequest("GET", `/api/researches/${id}`);
-        console.log("Response status:", res.status);
-
         if (!res.ok) {
-          console.error("Error in response:", await res.text());
           throw new Error("Research not found");
         }
-
         const data = await res.json();
-        console.log("Fetched research data:", data);
         return data;
       } catch (error) {
         console.error("Error fetching research:", error);
