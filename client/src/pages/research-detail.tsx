@@ -2020,7 +2020,7 @@ function ResearchDetail() {
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { toast } = useToast();
-  // State to manage form data across tabs during creation
+  // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
 
   // Handler to update temporary form data
@@ -2028,12 +2028,10 @@ function ResearchDetail() {
     setTempFormData((prev) => ({ ...prev, ...newData }));
   };
 
-  // Clear temporary data when navigating away from new research
+  // Clear temporary data when navigating to a different research
   useEffect(() => {
-    if (!isNew) {
-      setTempFormData({});
-    }
-  }, [isNew]);
+    setTempFormData({});
+  }, [id]);
   
   // Query all researches for autocomplete functionality in Brief tab
   const { data: allResearches = [] } = useQuery<Research[]>({
@@ -2066,10 +2064,15 @@ function ResearchDetail() {
     enabled: !isNew && !!id,
   });
 
-  // When creating a new research, store the combined data of the existing research and temporary form data
-  const effectiveResearch = isNew
-    ? ({ ...tempFormData } as unknown as Research)
-    : research;
+  // Combine existing research data with temporary changes from form data
+  const effectiveResearch = useMemo(() => {
+    if (isNew) {
+      return { ...tempFormData } as unknown as Research;
+    } else if (research) {
+      return { ...research, ...tempFormData } as Research;
+    }
+    return research;
+  }, [isNew, research, tempFormData]);
 
   const { data: researches = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches"],
@@ -2310,7 +2313,7 @@ function ResearchDetail() {
                   isLoading={isPending}
                   onCancel={handleCancel}
                   onDelete={!isNew ? handleDelete : undefined}
-                  onTempDataUpdate={isNew ? handleTempDataUpdate : undefined}
+                  onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
 
