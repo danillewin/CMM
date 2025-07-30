@@ -46,7 +46,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Dashboard Analytics**: Charts and metrics for research progress
 - **Roadmap Planning**: Timeline visualization for research projects
 - **JTBD Integration**: Link research activities to business outcomes
-- **File Upload & Transcription**: Audio/video file upload with automated transcription to text
+- **File Upload & Transcription**: Audio/video file upload with automated transcription via external API service or mock implementation
 - **Bilingual Support**: Complete English/Russian translation system with dynamic language switching
 
 ### External Integrations
@@ -96,7 +96,8 @@ This is a full-stack web application built for managing research interviews and 
 - June 23, 2025: Updated Kafka service to use node-rdkafka compatible configuration parameters (SECURITY_PROTOCOL, SASL_*, SSL_*_LOCATION)
 - June 23, 2025: Enhanced Kafka messages to include complete entity information: full meeting/research content, linked JTBDs, related entities, and comprehensive metadata
 - July 18, 2025: Added comprehensive bilingual support (English/Russian) with reactive translation system using i18next
-- July 18, 2025: Implemented audio/video file upload functionality with mock transcription service integration and feature toggle (MOCK_TRANSCRIPTION_ENABLED)
+- July 18, 2025: Implemented audio/video file upload functionality with comprehensive transcription service supporting both mock and real API integration
+- July 30, 2025: Enhanced transcription service with real API implementation based on OpenAPI 3.1.0 specification, supporting external transcription services with environment variable configuration (TRANSCRIPTION_API_URL, TRANSCRIPTION_API_KEY, TRANSCRIPTION_MODEL)
 - July 18, 2025: Added customerFullName field to Research Brief tab with bilingual support
 - July 18, 2025: Added additionalStakeholders dynamic field array to Research Brief tab with add/remove functionality and bilingual support
 - July 18, 2025: Added resultFormat dropdown field to Research Brief tab with predefined options (Презентация, Figma) and bilingual support

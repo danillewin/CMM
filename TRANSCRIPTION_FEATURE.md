@@ -1,7 +1,7 @@
 # Audio/Video File Upload and Transcription Feature
 
 ## Overview
-Added audio/video file upload functionality to the Research Results tab that allows users to upload media files, process them through an external transcription service, and save the transcribed text to the Full Text field.
+Added audio/video file upload functionality to the Research Results tab that allows users to upload media files, process them through an external transcription service API, and save the transcribed text to the Full Text field. The system supports both mock and real transcription services.
 
 ## Features Implemented
 
@@ -14,12 +14,14 @@ Added audio/video file upload functionality to the Research Results tab that all
 - **Error Handling**: Clear error messages for invalid files or processing failures
 - **Visual Feedback**: File icons, progress bars, and status indicators
 
-### 2. Mock Transcription Service (`server/transcription-service.ts`)
+### 2. Transcription Service (`server/transcription-service.ts`)
+- **Dual Mode Operation**: Supports both mock and real transcription services
 - **Feature Toggle**: Controlled by `MOCK_TRANSCRIPTION_ENABLED` environment variable (default: enabled)
-- **Realistic Processing**: Simulates processing time based on file count and size
-- **Multiple Transcription Templates**: Provides varied, realistic transcription content
+- **Real API Integration**: Implements Swagger-based API calls to external transcription service
+- **Mock Service**: Provides realistic simulation for development and testing
 - **File Validation**: Validates file types and sizes before processing
 - **Health Check**: Endpoint to check service status and configuration
+- **Error Handling**: Comprehensive error handling with detailed logging
 
 ### 3. Backend API (`server/routes.ts`)
 - **File Upload Endpoint**: `POST /api/transcribe` with multer middleware
@@ -50,11 +52,21 @@ Added audio/video file upload functionality to the Research Results tab that all
 - **Memory Storage**: Files are not persisted to disk
 - **Error Isolation**: Processing errors don't affect the rest of the application
 
-### Mock Service Configuration
+### Service Configuration
+
+#### Mock Service Configuration
 - **Environment Variable**: `MOCK_TRANSCRIPTION_ENABLED` (default: true)
 - **Realistic Processing**: Simulates 2-10 seconds processing time
 - **Varied Content**: Multiple transcription templates for different scenarios
 - **Debug Logging**: Comprehensive logging for troubleshooting
+
+#### Real API Service Configuration
+- **API URL**: `TRANSCRIPTION_API_URL` - Base URL for the transcription service
+- **API Key**: `TRANSCRIPTION_API_KEY` - Bearer token for authentication
+- **Model**: `TRANSCRIPTION_MODEL` - AI model to use (default: whisper-1)
+- **Language**: Default language set to 'ru' (Russian) but configurable
+- **Response Format**: JSON format for structured responses
+- **Processing**: Sequential file processing to avoid API rate limits
 
 ## Usage Instructions
 
@@ -68,19 +80,60 @@ Added audio/video file upload functionality to the Research Results tab that all
 7. Save the research to persist the transcribed content
 
 ### For Developers
-1. **Enable/Disable Mock Service**: Set `MOCK_TRANSCRIPTION_ENABLED=false` to disable mock service
-2. **Real Service Integration**: Replace mock implementation in `transcription-service.ts` with actual API calls
-3. **Customize File Limits**: Modify limits in `routes.ts` multer configuration
-4. **Add File Types**: Update accepted types in both client and server validation
+
+#### Environment Variables Setup
+```bash
+# Mock Service (default)
+MOCK_TRANSCRIPTION_ENABLED=true
+
+# Real API Service
+MOCK_TRANSCRIPTION_ENABLED=false
+TRANSCRIPTION_API_URL=https://your-transcription-api.com
+TRANSCRIPTION_API_KEY=your_bearer_token_here
+TRANSCRIPTION_MODEL=whisper-1
+```
+
+#### Configuration Steps
+1. **Enable/Disable Mock Service**: Set `MOCK_TRANSCRIPTION_ENABLED=false` to use real API
+2. **Configure Real Service**: Set required environment variables for API integration
+3. **API Compliance**: Implementation follows OpenAPI 3.1.0 specification
+4. **File Processing**: Handles multipart/form-data uploads with proper headers
+5. **Error Handling**: Comprehensive error logging and user feedback
+6. **Customize File Limits**: Modify limits in `routes.ts` multer configuration
+7. **Add File Types**: Update accepted types in both client and server validation
+
+## API Specification Compliance
+
+The real transcription service implements the OpenAPI 3.1.0 specification with the following features:
+
+### Supported Parameters
+- **file**: Audio/video file (binary, required)
+- **model**: AI model identifier (required)
+- **language**: Language code (default: 'ru' for Russian)
+- **response_format**: Output format (default: 'json')
+- **temperature**: Model temperature (default: 0)
+- **repetition_penalty**: Repetition penalty (default: 1)
+- **vad_filter**: Voice activity detection (default: false)
+- **diarization**: Speaker separation (default: false)
+
+### Authentication
+- Uses Bearer token authentication via `Authorization` header
+- Token provided through `TRANSCRIPTION_API_KEY` environment variable
+
+### Response Handling
+- Supports both basic and verbose response formats
+- Error handling with detailed status codes and messages
+- Automatic retry logic and timeout handling
 
 ## Future Enhancements
-- Integration with real transcription services (Google Speech-to-Text, AWS Transcribe, etc.)
 - Support for additional file formats
 - Batch processing optimization
-- Transcription confidence scores
-- Speaker identification
-- Timestamp support
-- Custom transcription settings
+- Transcription confidence scores from API
+- Speaker identification via diarization
+- Timestamp support from verbose responses
+- Custom transcription settings per request
+- Parallel processing for multiple files
+- Progress tracking for long-running transcriptions
 
 ## Environment Variables
 - `MOCK_TRANSCRIPTION_ENABLED`: Enable/disable mock transcription service (default: true)
