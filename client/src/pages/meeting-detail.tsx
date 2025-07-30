@@ -28,6 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import MDEditor from '@uiw/react-md-editor';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
@@ -188,6 +189,10 @@ function MeetingResultsForm({
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}
+                  textareaProps={{
+                    placeholder: "Enter meeting notes...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -213,6 +218,10 @@ function MeetingResultsForm({
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}
+                  textareaProps={{
+                    placeholder: "Enter full text content...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />

@@ -517,6 +517,10 @@ export default function MeetingForm({
                           preview="edit"
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
+                          textareaProps={{
+                            placeholder: "Enter meeting notes...",
+                            style: { resize: 'none' }
+                          }}
                         />
                       </div>
                     </FormControl>
@@ -545,6 +549,10 @@ export default function MeetingForm({
                           preview="edit"
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
+                          textareaProps={{
+                            placeholder: "Enter full text content...",
+                            style: { resize: 'none' }
+                          }}
                         />
                       </div>
                     </FormControl>

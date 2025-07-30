@@ -6,11 +6,14 @@ interface LinkifiedTextProps {
 }
 
 export function LinkifiedText({ text, className }: LinkifiedTextProps) {
+  // Use the secure linkifyText function which includes HTML sanitization
+  const sanitizedHtml = text ? linkifyText(text) : '';
+  
   return (
     <div 
       className={className}
       dangerouslySetInnerHTML={{ 
-        __html: text ? linkifyText(text) : ''
+        __html: sanitizedHtml
       }} 
     />
   );

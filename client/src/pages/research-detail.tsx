@@ -877,6 +877,10 @@ function ResearchBriefForm({
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
+                  textareaProps={{
+                    placeholder: "Enter research brief...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -995,6 +999,10 @@ function ResearchRecruitmentForm({
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
+                  textareaProps={{
+                    placeholder: "Describe who we're searching for...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1020,6 +1028,10 @@ function ResearchRecruitmentForm({
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
+                  textareaProps={{
+                    placeholder: "Enter invitation template...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1465,6 +1477,10 @@ function ResearchGuideForm({
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
+                  textareaProps={{
+                    placeholder: "Enter research guide...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1999,6 +2015,10 @@ function ResearchResultsForm({
                   preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
+                  textareaProps={{
+                    placeholder: "Enter full text content...",
+                    style: { resize: 'none' }
+                  }}
                 />
               </FormControl>
               <FormMessage />

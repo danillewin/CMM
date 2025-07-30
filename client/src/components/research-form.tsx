@@ -553,6 +553,10 @@ export default function ResearchForm({
                         preview="edit"
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
+                        textareaProps={{
+                          placeholder: "Enter research description...",
+                          style: { resize: 'none' }
+                        }}
                       />
                     </div>
                   </FormControl>

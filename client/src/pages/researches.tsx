@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useToast } from "@/hooks/use-toast";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -270,7 +271,13 @@ export default function Researches() {
       visible: false,
       render: (research: Research) => (
         <div className="line-clamp-2 prose prose-sm max-w-none">
-          <ReactMarkdown>{research.description}</ReactMarkdown>
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}
+            disallowedElements={['script', 'iframe', 'object', 'embed', 'form', 'input', 'button']}
+            unwrapDisallowed={true}
+          >
+            {research.description}
+          </ReactMarkdown>
         </div>
       )
     }
@@ -619,7 +626,13 @@ export default function Researches() {
                   <div>
                     <p className="text-sm font-medium text-gray-500">Description</p>
                     <div className="text-sm text-gray-900 line-clamp-3 prose prose-sm max-w-none">
-                      <ReactMarkdown>{research.description}</ReactMarkdown>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        disallowedElements={['script', 'iframe', 'object', 'embed', 'form', 'input', 'button']}
+                        unwrapDisallowed={true}
+                      >
+                        {research.description}
+                      </ReactMarkdown>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-2">
