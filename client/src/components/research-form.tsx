@@ -44,6 +44,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import MDEditor from "@uiw/react-md-editor";
+import DOMPurify from 'dompurify';
 import { Checkbox } from "@/components/ui/checkbox";
 
 const PRODUCT_OPTIONS = [
@@ -556,6 +557,15 @@ export default function ResearchForm({
                         textareaProps={{
                           placeholder: "Enter research description...",
                           style: { resize: 'none' }
+                        }}
+                        components={{
+                          preview: (source, state, dispatch) => {
+                            const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                              ALLOWED_ATTR: []
+                            });
+                            return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                          }
                         }}
                       />
                     </div>

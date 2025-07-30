@@ -30,6 +30,7 @@ import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MDEditor from '@uiw/react-md-editor';
+import DOMPurify from 'dompurify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -193,6 +194,15 @@ function MeetingResultsForm({
                     placeholder: "Enter meeting notes...",
                     style: { resize: 'none' }
                   }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -221,6 +231,15 @@ function MeetingResultsForm({
                   textareaProps={{
                     placeholder: "Enter full text content...",
                     style: { resize: 'none' }
+                  }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
                   }}
                 />
               </FormControl>

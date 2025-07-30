@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import MDEditor from "@uiw/react-md-editor";
+import DOMPurify from 'dompurify';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { Plus, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
@@ -881,6 +882,15 @@ function ResearchBriefForm({
                     placeholder: "Enter research brief...",
                     style: { resize: 'none' }
                   }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1003,6 +1013,15 @@ function ResearchRecruitmentForm({
                     placeholder: "Describe who we're searching for...",
                     style: { resize: 'none' }
                   }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -1031,6 +1050,15 @@ function ResearchRecruitmentForm({
                   textareaProps={{
                     placeholder: "Enter invitation template...",
                     style: { resize: 'none' }
+                  }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
                   }}
                 />
               </FormControl>
@@ -1480,6 +1508,15 @@ function ResearchGuideForm({
                   textareaProps={{
                     placeholder: "Enter research guide...",
                     style: { resize: 'none' }
+                  }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
                   }}
                 />
               </FormControl>
@@ -2018,6 +2055,15 @@ function ResearchResultsForm({
                   textareaProps={{
                     placeholder: "Enter full text content...",
                     style: { resize: 'none' }
+                  }}
+                  components={{
+                    preview: (source, state, dispatch) => {
+                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                        ALLOWED_ATTR: []
+                      });
+                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                    }
                   }}
                 />
               </FormControl>

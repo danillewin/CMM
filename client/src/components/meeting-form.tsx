@@ -26,6 +26,7 @@ import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
+import DOMPurify from 'dompurify';
 import { RequiredFieldIndicator } from "./required-field-indicator";
 
 interface MeetingFormProps {
@@ -521,6 +522,15 @@ export default function MeetingForm({
                             placeholder: "Enter meeting notes...",
                             style: { resize: 'none' }
                           }}
+                          components={{
+                            preview: (source, state, dispatch) => {
+                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                                ALLOWED_ATTR: []
+                              });
+                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                            }
+                          }}
                         />
                       </div>
                     </FormControl>
@@ -552,6 +562,15 @@ export default function MeetingForm({
                           textareaProps={{
                             placeholder: "Enter full text content...",
                             style: { resize: 'none' }
+                          }}
+                          components={{
+                            preview: (source, state, dispatch) => {
+                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
+                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
+                                ALLOWED_ATTR: []
+                              });
+                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
+                            }
                           }}
                         />
                       </div>
