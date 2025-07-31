@@ -1,6 +1,6 @@
 import { createReadStream, readFileSync } from 'fs';
 import { join } from 'path';
-import FormData from 'form-data';
+import OpenAI, { toFile } from 'openai';
 
 // Feature toggle for mock transcription service
 const MOCK_TRANSCRIPTION_ENABLED = process.env.MOCK_TRANSCRIPTION_ENABLED !== 'false';
@@ -9,6 +9,19 @@ const MOCK_TRANSCRIPTION_ENABLED = process.env.MOCK_TRANSCRIPTION_ENABLED !== 'f
 const TRANSCRIPTION_API_URL = process.env.TRANSCRIPTION_API_URL;
 const TRANSCRIPTION_API_KEY = process.env.TRANSCRIPTION_API_KEY;
 const TRANSCRIPTION_MODEL = process.env.TRANSCRIPTION_MODEL || 'whisper-1';
+
+// Initialize OpenAI client for real transcription service
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient && TRANSCRIPTION_API_KEY) {
+    openaiClient = new OpenAI({
+      apiKey: TRANSCRIPTION_API_KEY,
+      baseURL: TRANSCRIPTION_API_URL,
+    });
+  }
+  return openaiClient!;
+}
 
 export interface TranscriptionRequest {
   files: Express.Multer.File[];
@@ -21,38 +34,7 @@ export interface TranscriptionResponse {
   totalDuration?: number;
 }
 
-// API response interfaces based on Swagger specification
-interface APITranscriptionResponse {
-  text: string;
-  logprobs?: Array<{
-    token?: string | null;
-    bytes?: number[] | null;
-    logprob?: number | null;
-  }> | null;
-}
-
-interface APITranscriptionVerboseResponse {
-  duration: number;
-  language: string;
-  text: string;
-  segments?: Array<{
-    id: number;
-    avg_logprob: number;
-    compression_ratio: number;
-    end: number;
-    no_speech_prob: number;
-    seek: number;
-    start: number;
-    temperature: number;
-    text: string;
-    tokens: number[];
-  }> | null;
-  words?: Array<{
-    end: number;
-    start: number;
-    word: string;
-  }> | null;
-}
+// OpenAI transcription response is handled by the library
 
 class TranscriptionService {
   private mockTranscriptions = [
@@ -87,60 +69,38 @@ class TranscriptionService {
   }
 
   private async transcribeWithRealAPI(file: Express.Multer.File): Promise<string> {
-    if (!TRANSCRIPTION_API_URL) {
-      throw new Error('TRANSCRIPTION_API_URL environment variable is required for real transcription service');
-    }
-    
     if (!TRANSCRIPTION_API_KEY) {
       throw new Error('TRANSCRIPTION_API_KEY environment variable is required for real transcription service');
     }
 
     try {
-      const formData = new FormData();
+      const openai = getOpenAIClient();
       
-      // Add the audio file
-      formData.append('file', file.buffer, {
-        filename: file.originalname,
-        contentType: file.mimetype,
-      });
-      
-      // Add required parameters based on Swagger spec
-      formData.append('model', TRANSCRIPTION_MODEL);
-      
-      // Optional parameters with defaults from Swagger
-      formData.append('language', 'ru'); // Default language
-      formData.append('response_format', 'json'); // Default format
-      formData.append('temperature', '0'); // Default temperature
-      formData.append('repetition_penalty', '1'); // Default repetition penalty
-      formData.append('vad_filter', 'false'); // Default VAD filter
-      formData.append('diarization', 'false'); // Default diarization
-
-      const response = await fetch(`${TRANSCRIPTION_API_URL}/v1/audio/transcriptions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${TRANSCRIPTION_API_KEY}`,
-          ...formData.getHeaders(),
-        },
-        body: formData as any,
+      // Convert the buffer to a File object that OpenAI can use
+      const audioFile = await toFile(file.buffer, file.originalname, {
+        type: file.mimetype,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Transcription API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        });
-        throw new Error(`Transcription API request failed: ${response.status} ${response.statusText}`);
-      }
+      console.log(`Transcribing file: ${file.originalname} (${file.size} bytes) with model: ${TRANSCRIPTION_MODEL}`);
 
-      const result: APITranscriptionResponse = await response.json();
-      
-      if (!result.text) {
+      // Create transcription using OpenAI client
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioFile,
+        model: TRANSCRIPTION_MODEL,
+        language: 'ru', // Default language for Russian
+        response_format: 'json',
+        temperature: 0,
+        // Note: Custom parameters like repetition_penalty, vad_filter, diarization 
+        // are not standard OpenAI API parameters and depend on the specific service
+      });
+
+      if (!transcription.text) {
         throw new Error('No transcription text received from API');
       }
 
-      return result.text;
+      console.log(`Successfully transcribed ${file.originalname}: ${transcription.text.length} characters`);
+      return transcription.text;
+
     } catch (error) {
       console.error('Error transcribing file:', file.originalname, error);
       if (error instanceof Error) {

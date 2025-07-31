@@ -17,7 +17,7 @@ Added audio/video file upload functionality to the Research Results tab that all
 ### 2. Transcription Service (`server/transcription-service.ts`)
 - **Dual Mode Operation**: Supports both mock and real transcription services
 - **Feature Toggle**: Controlled by `MOCK_TRANSCRIPTION_ENABLED` environment variable (default: enabled)
-- **Real API Integration**: Implements Swagger-based API calls to external transcription service
+- **Real API Integration**: Uses OpenAI Node.js library for reliable transcription service integration
 - **Mock Service**: Provides realistic simulation for development and testing
 - **File Validation**: Validates file types and sizes before processing
 - **Health Check**: Endpoint to check service status and configuration
@@ -96,34 +96,34 @@ TRANSCRIPTION_MODEL=whisper-1
 #### Configuration Steps
 1. **Enable/Disable Mock Service**: Set `MOCK_TRANSCRIPTION_ENABLED=false` to use real API
 2. **Configure Real Service**: Set required environment variables for API integration
-3. **API Compliance**: Implementation follows OpenAPI 3.1.0 specification
-4. **File Processing**: Handles multipart/form-data uploads with proper headers
+3. **OpenAI Library**: Uses official OpenAI Node.js client with toFile helper for reliable uploads
+4. **File Processing**: Seamless buffer-to-file conversion with proper MIME type handling
 5. **Error Handling**: Comprehensive error logging and user feedback
 6. **Customize File Limits**: Modify limits in `routes.ts` multer configuration
 7. **Add File Types**: Update accepted types in both client and server validation
 
-## API Specification Compliance
+## OpenAI Client Integration
 
-The real transcription service implements the OpenAPI 3.1.0 specification with the following features:
+The real transcription service uses the official OpenAI Node.js library with the following features:
 
 ### Supported Parameters
-- **file**: Audio/video file (binary, required)
-- **model**: AI model identifier (required)
+- **file**: Audio/video file (converted using toFile helper)
+- **model**: AI model identifier (configurable via TRANSCRIPTION_MODEL)
 - **language**: Language code (default: 'ru' for Russian)
 - **response_format**: Output format (default: 'json')
 - **temperature**: Model temperature (default: 0)
-- **repetition_penalty**: Repetition penalty (default: 1)
-- **vad_filter**: Voice activity detection (default: false)
-- **diarization**: Speaker separation (default: false)
+- **Note**: Advanced parameters depend on the specific service compatibility
 
-### Authentication
-- Uses Bearer token authentication via `Authorization` header
-- Token provided through `TRANSCRIPTION_API_KEY` environment variable
+### Authentication & Configuration
+- **API Key**: Bearer token via `TRANSCRIPTION_API_KEY` environment variable
+- **Base URL**: Custom service URL via `TRANSCRIPTION_API_URL` (optional)
+- **Client Initialization**: Lazy initialization with proper error handling
 
 ### Response Handling
-- Supports both basic and verbose response formats
-- Error handling with detailed status codes and messages
-- Automatic retry logic and timeout handling
+- **Native Integration**: Leverages OpenAI client's built-in response processing
+- **Type Safety**: Full TypeScript support with proper type definitions
+- **Error Handling**: Comprehensive error catching with detailed logging
+- **Buffer Processing**: Direct buffer-to-file conversion using toFile helper
 
 ## Future Enhancements
 - Support for additional file formats
