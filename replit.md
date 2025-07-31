@@ -99,6 +99,7 @@ This is a full-stack web application built for managing research interviews and 
 - July 18, 2025: Implemented audio/video file upload functionality with comprehensive transcription service supporting both mock and real API integration
 - July 30, 2025: Enhanced transcription service with real API implementation using OpenAI Node.js library, supporting external transcription services with environment variable configuration (TRANSCRIPTION_API_URL, TRANSCRIPTION_API_KEY, TRANSCRIPTION_MODEL)
 - July 31, 2025: Refactored transcription service to use official OpenAI Node.js library with toFile helper for improved reliability and type safety
+- July 31, 2025: Enhanced transcription output formatting to use speaker-based segmentation (SPEAKER_00, SPEAKER_01, etc.) from segments array instead of plain text
 - July 18, 2025: Added customerFullName field to Research Brief tab with bilingual support
 - July 18, 2025: Added additionalStakeholders dynamic field array to Research Brief tab with add/remove functionality and bilingual support
 - July 18, 2025: Added resultFormat dropdown field to Research Brief tab with predefined options (Презентация, Figma) and bilingual support

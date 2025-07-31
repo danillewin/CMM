@@ -110,9 +110,20 @@ The real transcription service uses the official OpenAI Node.js library with the
 - **file**: Audio/video file (converted using toFile helper)
 - **model**: AI model identifier (configurable via TRANSCRIPTION_MODEL)
 - **language**: Language code (default: 'ru' for Russian)
-- **response_format**: Output format (default: 'json')
+- **response_format**: verbose_json to get detailed segments data
 - **temperature**: Model temperature (default: 0)
 - **Note**: Advanced parameters depend on the specific service compatibility
+
+### Output Format
+The service formats transcription results using speaker segmentation:
+```
+SPEAKER_00:
+First speaker's text content
+
+SPEAKER_01:
+Second speaker's text content
+```
+This format is applied to both mock and real transcription responses for consistency.
 
 ### Authentication & Configuration
 - **API Key**: Bearer token via `TRANSCRIPTION_API_KEY` environment variable
@@ -124,6 +135,8 @@ The real transcription service uses the official OpenAI Node.js library with the
 - **Type Safety**: Full TypeScript support with proper type definitions
 - **Error Handling**: Comprehensive error catching with detailed logging
 - **Buffer Processing**: Direct buffer-to-file conversion using toFile helper
+- **Speaker Segmentation**: Formats transcription using segments array with speaker identification
+- **Structured Output**: Returns formatted text with SPEAKER_00, SPEAKER_01, etc. labels
 
 ## Future Enhancements
 - Support for additional file formats

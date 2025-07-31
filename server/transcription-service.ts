@@ -38,15 +38,15 @@ export interface TranscriptionResponse {
 
 class TranscriptionService {
   private mockTranscriptions = [
-    "This is a mock transcription of an audio file. The speaker discusses various topics including product development, user feedback, and future roadmap planning. Key insights include the importance of user-centered design and iterative development processes.",
+    "SPEAKER_00:\nThis is a mock transcription of an audio file. The speaker discusses various topics including product development and user feedback.\n\nSPEAKER_01:\nKey insights include the importance of user-centered design and iterative development processes.",
     
-    "In this recording, we hear about customer research methodologies and best practices. The discussion covers interview techniques, data analysis approaches, and how to effectively communicate findings to stakeholders. Several case studies are mentioned throughout the conversation.",
+    "SPEAKER_00:\nIn this recording, we hear about customer research methodologies and best practices.\n\nSPEAKER_01:\nThe discussion covers interview techniques, data analysis approaches, and how to effectively communicate findings to stakeholders.",
     
-    "The audio contains a detailed discussion about market research findings. Topics include customer pain points, competitive analysis, and opportunities for product improvement. The speaker emphasizes the need for data-driven decision making and continuous customer engagement.",
+    "SPEAKER_00:\nThe audio contains a detailed discussion about market research findings. Topics include customer pain points and competitive analysis.\n\nSPEAKER_01:\nThe speaker emphasizes the need for data-driven decision making and continuous customer engagement.",
     
-    "This transcription captures a team meeting about project planning and resource allocation. Key points include timeline considerations, budget constraints, and team coordination strategies. The discussion also touches on risk management and contingency planning.",
+    "SPEAKER_00:\nThis transcription captures a team meeting about project planning and resource allocation.\n\nSPEAKER_01:\nKey points include timeline considerations, budget constraints, and team coordination strategies.",
     
-    "The recording features an interview with a subject matter expert discussing industry trends and future predictions. Topics covered include technological advancements, market shifts, and strategic recommendations for organizations looking to stay competitive.",
+    "SPEAKER_00:\nThe recording features an interview with a subject matter expert discussing industry trends.\n\nSPEAKER_01:\nTopics covered include technological advancements, market shifts, and strategic recommendations for organizations.",
   ];
 
   private getRandomTranscription(): string {
@@ -68,6 +68,26 @@ class TranscriptionService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  private formatTranscriptionWithSpeakers(transcription: any): string {
+    // If segments are available with speaker information, format them
+    if (transcription.segments && Array.isArray(transcription.segments)) {
+      const formattedSegments = transcription.segments
+        .filter((segment: any) => segment.text && segment.text.trim())
+        .map((segment: any) => {
+          const speaker = segment.speaker || 'SPEAKER_00'; // Default speaker if not provided
+          const text = segment.text.trim();
+          return `${speaker}:\n${text}`;
+        });
+      
+      if (formattedSegments.length > 0) {
+        return formattedSegments.join('\n\n');
+      }
+    }
+    
+    // Fallback to plain text if no segments with speakers
+    return transcription.text;
+  }
+
   private async transcribeWithRealAPI(file: Express.Multer.File): Promise<string> {
     if (!TRANSCRIPTION_API_KEY) {
       throw new Error('TRANSCRIPTION_API_KEY environment variable is required for real transcription service');
@@ -83,12 +103,12 @@ class TranscriptionService {
 
       console.log(`Transcribing file: ${file.originalname} (${file.size} bytes) with model: ${TRANSCRIPTION_MODEL}`);
 
-      // Create transcription using OpenAI client
+      // Create transcription using OpenAI client with verbose_json for segments
       const transcription = await openai.audio.transcriptions.create({
         file: audioFile,
         model: TRANSCRIPTION_MODEL,
         language: 'ru', // Default language for Russian
-        response_format: 'json',
+        response_format: 'verbose_json', // Request detailed response with segments
         temperature: 0,
         // Note: Custom parameters like repetition_penalty, vad_filter, diarization 
         // are not standard OpenAI API parameters and depend on the specific service
@@ -99,7 +119,9 @@ class TranscriptionService {
       }
 
       console.log(`Successfully transcribed ${file.originalname}: ${transcription.text.length} characters`);
-      return transcription.text;
+      
+      // Format transcription using segments with speaker identification
+      return this.formatTranscriptionWithSpeakers(transcription);
 
     } catch (error) {
       console.error('Error transcribing file:', file.originalname, error);
