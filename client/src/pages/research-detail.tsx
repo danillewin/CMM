@@ -55,7 +55,28 @@ import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Plus, X, ChevronDown, ChevronUp, Trash2, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Select,
   SelectContent,
@@ -1103,6 +1124,363 @@ interface QuestionBlock {
   order?: number; // Add order field to maintain sequence
 }
 
+// Sortable wrapper component for questions
+function SortableQuestionItem({
+  question,
+  blockIndex,
+  questionIndex,
+  subblockPath,
+  sectionName,
+  updateQuestion,
+  removeQuestion,
+  t,
+}: QuestionItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-start gap-2">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="px-2 cursor-grab active:cursor-grabbing shrink-0 mt-1"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-gray-400" />
+      </Button>
+      <div className="flex-1">
+        <QuestionItem
+          question={question}
+          blockIndex={blockIndex}
+          questionIndex={questionIndex}
+          subblockPath={subblockPath}
+          sectionName={sectionName}
+          updateQuestion={updateQuestion}
+          removeQuestion={removeQuestion}
+          t={t}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Sortable wrapper component for question blocks
+function SortableQuestionBlock({
+  block,
+  blockIndex,
+  subblockPath,
+  level,
+  sectionName,
+  form,
+  updateQuestionBlockName,
+  updateQuestion,
+  removeQuestion,
+  addQuestion,
+  addSubblock,
+  handleFieldChange,
+  removeQuestionBlock,
+  t,
+}: {
+  block: QuestionBlock;
+  blockIndex: number;
+  subblockPath: number[];
+  level: number;
+  sectionName: "guideMainQuestions";
+  form: UseFormReturn<{
+    guide: string;
+    guideIntroText: string;
+    guideMainQuestions: QuestionBlock[];
+  }>;
+  updateQuestionBlockName: (blockIndex: number, name: string, subblockPath: number[]) => void;
+  updateQuestion: (blockIndex: number, questionIndex: number, field: "text" | "comment", value: string, subblockPath?: number[]) => void;
+  removeQuestion: (sectionName: "guideMainQuestions", blockIndex: number, questionIndex: number, subblockPath?: number[]) => void;
+  addQuestion: (sectionName: "guideMainQuestions", blockIndex: number, subblockPath?: number[]) => void;
+  addSubblock: (sectionName: "guideMainQuestions", blockIndex: number, subblockPath?: number[]) => void;
+  handleFieldChange: (field: string, value: string) => void;
+  removeQuestionBlock: (sectionName: "guideMainQuestions", index: number) => void;
+  t: any;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const indent = level * 20;
+
+  // Function to handle drag end for questions and subblocks within this block
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const currentBlocks = form.getValues(sectionName) || [];
+    const updatedBlocks = [...currentBlocks];
+    let targetBlock = updatedBlocks[blockIndex];
+
+    // Navigate to the correct subblock if needed
+    for (const subIndex of subblockPath) {
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+
+    // Create combined items array
+    const items = [
+      ...targetBlock.questions.map((question, questionIndex) => ({
+        type: "question" as const,
+        item: question,
+        index: questionIndex,
+        id: question.id,
+        order: question.order || questionIndex,
+      })),
+      ...targetBlock.subblocks.map((subblock, subblockIndex) => ({
+        type: "subblock" as const,
+        item: subblock,
+        index: subblockIndex,
+        id: subblock.id,
+        order: subblock.order || targetBlock.questions.length + subblockIndex,
+      })),
+    ];
+
+    // Sort by order
+    items.sort((a, b) => a.order - b.order);
+
+    // Find active and over indices
+    const activeIndex = items.findIndex(item => item.id === active.id);
+    const overIndex = items.findIndex(item => item.id === over.id);
+
+    if (activeIndex !== -1 && overIndex !== -1) {
+      // Reorder items
+      const reorderedItems = arrayMove(items, activeIndex, overIndex);
+      
+      // Update orders
+      reorderedItems.forEach((item, index) => {
+        item.order = index;
+        if (item.type === "question") {
+          (item.item as Question).order = index;
+        } else {
+          (item.item as QuestionBlock).order = index;
+        }
+      });
+
+      // Separate back into questions and subblocks
+      const newQuestions = reorderedItems
+        .filter(item => item.type === "question")
+        .map(item => item.item as Question);
+      
+      const newSubblocks = reorderedItems
+        .filter(item => item.type === "subblock")
+        .map(item => item.item as QuestionBlock);
+
+      // Update the target block
+      targetBlock.questions = newQuestions;
+      targetBlock.subblocks = newSubblocks;
+
+      form.setValue(sectionName, updatedBlocks);
+      handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
+    }
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div
+        className="border rounded-lg p-4 space-y-4"
+        style={{ marginLeft: `${indent}px` }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="px-2 cursor-grab active:cursor-grabbing shrink-0"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4 text-gray-400" />
+            </Button>
+            <Input
+              placeholder={t("research.questionBlockNamePlaceholder")}
+              value={block.name}
+              onChange={(e) =>
+                updateQuestionBlockName(
+                  blockIndex,
+                  e.target.value,
+                  subblockPath,
+                )
+              }
+              className="font-medium"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (subblockPath.length === 0) {
+                removeQuestionBlock(sectionName, blockIndex);
+              } else {
+                // Handle subblock removal
+                const currentBlocks = form.getValues(sectionName) || [];
+                const updatedBlocks = [...currentBlocks];
+                let parentBlock = updatedBlocks[blockIndex];
+
+                // Navigate to parent of the subblock to be removed
+                for (let i = 0; i < subblockPath.length - 1; i++) {
+                  parentBlock = parentBlock.subblocks[subblockPath[i]];
+                }
+
+                // Remove the subblock
+                parentBlock.subblocks = parentBlock.subblocks.filter(
+                  (_, i) => i !== subblockPath[subblockPath.length - 1],
+                );
+                form.setValue(sectionName, updatedBlocks);
+                handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
+              }
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Questions and Subblocks with drag and drop */}
+        <DndContext
+          sensors={useSensors(
+            useSensor(PointerSensor),
+            useSensor(KeyboardSensor, {
+              coordinateGetter: sortableKeyboardCoordinates,
+            })
+          )}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="space-y-3">
+            {(() => {
+              const items = [
+                ...block.questions.map((question, questionIndex) => ({
+                  type: "question" as const,
+                  item: question,
+                  index: questionIndex,
+                  id: question.id,
+                  order: question.order || questionIndex,
+                })),
+                ...block.subblocks.map((subblock, subblockIndex) => ({
+                  type: "subblock" as const,
+                  item: subblock,
+                  index: subblockIndex,
+                  id: subblock.id,
+                  order: subblock.order || block.questions.length + subblockIndex,
+                })),
+              ];
+
+              // Sort by order
+              items.sort((a, b) => a.order - b.order);
+
+              return (
+                <SortableContext
+                  items={items.map(item => item.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {items.map((item) => {
+                    if (item.type === "question") {
+                      const question = item.item as Question;
+                      const questionIndex = item.index;
+                      return (
+                        <SortableQuestionItem
+                          key={question.id}
+                          question={question}
+                          blockIndex={blockIndex}
+                          questionIndex={questionIndex}
+                          subblockPath={subblockPath}
+                          sectionName={sectionName}
+                          updateQuestion={updateQuestion}
+                          removeQuestion={removeQuestion}
+                          t={t}
+                        />
+                      );
+                    } else {
+                      const subblock = item.item as QuestionBlock;
+                      const subblockIndex = item.index;
+                      return (
+                        <SortableQuestionBlock
+                          key={subblock.id}
+                          block={subblock}
+                          blockIndex={blockIndex}
+                          subblockPath={[...subblockPath, subblockIndex]}
+                          level={level + 1}
+                          sectionName={sectionName}
+                          form={form}
+                          updateQuestionBlockName={updateQuestionBlockName}
+                          updateQuestion={updateQuestion}
+                          removeQuestion={removeQuestion}
+                          addQuestion={addQuestion}
+                          addSubblock={addSubblock}
+                          handleFieldChange={handleFieldChange}
+                          removeQuestionBlock={removeQuestionBlock}
+                          t={t}
+                        />
+                      );
+                    }
+                  })}
+                </SortableContext>
+              );
+            })()}
+          </div>
+        </DndContext>
+
+        {/* Action buttons */}
+        <div className="flex gap-2 pt-2 border-t">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addQuestion(sectionName, blockIndex, subblockPath)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t("research.addQuestion")}
+          </Button>
+          {/* Only show Add Subblock button if depth is less than 3 */}
+          {level < 3 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {t("research.addSubblock")}
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Component for Guide tab
 function ResearchGuideForm({
   research,
@@ -1664,6 +2042,13 @@ function QuestionSection({
 }: QuestionSectionProps) {
   const { t } = useTranslation();
   const questionBlocks = form.watch(sectionName) || [];
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const updateQuestionBlockName = (
     blockIndex: number,
@@ -1710,146 +2095,29 @@ function QuestionSection({
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
-  const renderQuestionBlock = (
-    block: QuestionBlock,
-    blockIndex: number,
-    subblockPath: number[] = [],
-    level: number = 0,
-  ) => {
-    const indent = level * 20;
+  // Handle drag end for top-level question blocks
+  const handleTopLevelDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    return (
-      <div
-        key={block.id}
-        className="border rounded-lg p-4 space-y-4"
-        style={{ marginLeft: `${indent}px` }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex-1 mr-4">
-            <Input
-              placeholder={t("research.questionBlockNamePlaceholder")}
-              value={block.name}
-              onChange={(e) =>
-                updateQuestionBlockName(
-                  blockIndex,
-                  e.target.value,
-                  subblockPath,
-                )
-              }
-              className="font-medium"
-            />
-          </div>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              if (subblockPath.length === 0) {
-                removeQuestionBlock(sectionName, blockIndex);
-              } else {
-                // Handle subblock removal
-                const currentBlocks = form.getValues(sectionName) || [];
-                const updatedBlocks = [...currentBlocks];
-                let parentBlock = updatedBlocks[blockIndex];
+    if (!over || active.id === over.id) {
+      return;
+    }
 
-                // Navigate to parent of the subblock to be removed
-                for (let i = 0; i < subblockPath.length - 1; i++) {
-                  parentBlock = parentBlock.subblocks[subblockPath[i]];
-                }
+    const questionBlocks = form.getValues(sectionName) || [];
+    const activeIndex = questionBlocks.findIndex(block => block.id === active.id);
+    const overIndex = questionBlocks.findIndex(block => block.id === over.id);
 
-                // Remove the subblock
-                parentBlock.subblocks = parentBlock.subblocks.filter(
-                  (_, i) => i !== subblockPath[subblockPath.length - 1],
-                );
-                form.setValue(sectionName, updatedBlocks);
-                // Update temp data
-                handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-              }
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+    if (activeIndex !== -1 && overIndex !== -1) {
+      const reorderedBlocks = arrayMove(questionBlocks, activeIndex, overIndex);
+      
+      // Update orders
+      reorderedBlocks.forEach((block, index) => {
+        block.order = index;
+      });
 
-        {/* Combined Questions and Subblocks in order */}
-        <div className="space-y-3">
-          {/* Create combined items array with type indicators */}
-          {(() => {
-            const items = [
-              ...block.questions.map((question, questionIndex) => ({
-                type: "question" as const,
-                item: question,
-                index: questionIndex,
-                order: question.order || questionIndex,
-              })),
-              ...block.subblocks.map((subblock, subblockIndex) => ({
-                type: "subblock" as const,
-                item: subblock,
-                index: subblockIndex,
-                order: subblock.order || block.questions.length + subblockIndex,
-              })),
-            ];
-
-            // Sort by order to maintain sequence
-            items.sort((a, b) => a.order - b.order);
-
-            return items.map((item) => {
-              if (item.type === "question") {
-                const question = item.item as Question;
-                const questionIndex = item.index;
-                return (
-                  <QuestionItem
-                    key={question.id}
-                    question={question}
-                    blockIndex={blockIndex}
-                    questionIndex={questionIndex}
-                    subblockPath={subblockPath}
-                    sectionName={sectionName}
-                    updateQuestion={updateQuestion}
-                    removeQuestion={removeQuestion}
-                    t={t}
-                  />
-                );
-              } else {
-                const subblock = item.item as QuestionBlock;
-                const subblockIndex = item.index;
-                return renderQuestionBlock(
-                  subblock,
-                  blockIndex,
-                  [...subblockPath, subblockIndex],
-                  level + 1,
-                );
-              }
-            });
-          })()}
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex gap-2 pt-2 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addQuestion(sectionName, blockIndex, subblockPath)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t("research.addQuestion")}
-          </Button>
-          {/* Only show Add Subblock button if depth is less than 4 */}
-          {level < 4 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t("research.addSubblock")}
-            </Button>
-          )}
-        </div>
-      </div>
-    );
+      form.setValue(sectionName, reorderedBlocks);
+      handleFieldChange(sectionName, JSON.stringify(reorderedBlocks));
+    }
   };
 
   return (
@@ -1867,11 +2135,38 @@ function QuestionSection({
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {questionBlocks.map((block, index) =>
-          renderQuestionBlock(block, index),
-        )}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleTopLevelDragEnd}
+      >
+        <SortableContext
+          items={questionBlocks.map(block => block.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-4">
+            {questionBlocks.map((block, index) => (
+              <SortableQuestionBlock
+                key={block.id}
+                block={block}
+                blockIndex={index}
+                subblockPath={[]}
+                level={0}
+                sectionName={sectionName}
+                form={form}
+                updateQuestionBlockName={updateQuestionBlockName}
+                updateQuestion={updateQuestion}
+                removeQuestion={removeQuestion}
+                addQuestion={addQuestion}
+                addSubblock={addSubblock}
+                handleFieldChange={handleFieldChange}
+                removeQuestionBlock={removeQuestionBlock}
+                t={t}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {questionBlocks.length === 0 && (
         <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-200 rounded-lg">
