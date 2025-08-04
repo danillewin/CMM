@@ -1214,17 +1214,63 @@ function DropZone({
     },
   });
 
+  const getDropZoneStyles = (level: number) => {
+    switch (level) {
+      case 0:
+        return {
+          borderClass: 'border-blue-400 bg-blue-50',
+          hoverClass: 'hover:border-blue-500 hover:bg-blue-100',
+          activeClass: 'border-blue-600 bg-blue-100',
+          textClass: 'text-blue-700 font-medium'
+        };
+      case 1:
+        return {
+          borderClass: 'border-green-400 bg-green-50',
+          hoverClass: 'hover:border-green-500 hover:bg-green-100',
+          activeClass: 'border-green-600 bg-green-100',
+          textClass: 'text-green-700 font-medium'
+        };
+      case 2:
+        return {
+          borderClass: 'border-amber-400 bg-amber-50',
+          hoverClass: 'hover:border-amber-500 hover:bg-amber-100',
+          activeClass: 'border-amber-600 bg-amber-100',
+          textClass: 'text-amber-700 font-medium'
+        };
+      default:
+        return {
+          borderClass: 'border-gray-400 bg-gray-50',
+          hoverClass: 'hover:border-gray-500 hover:bg-gray-100',
+          activeClass: 'border-gray-600 bg-gray-100',
+          textClass: 'text-gray-700 font-medium'
+        };
+    }
+  };
+
+  const styles = getDropZoneStyles(level);
+
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-[40px] border-2 border-dashed rounded-lg p-2 transition-colors ${
+      className={`min-h-[60px] border-2 border-dashed rounded-lg p-4 transition-all duration-200 ${
         isOver 
-          ? 'border-blue-500 bg-blue-50' 
-          : 'border-gray-200 hover:border-gray-300'
+          ? `${styles.activeClass} shadow-md transform scale-105` 
+          : `${styles.borderClass} ${styles.hoverClass}`
       }`}
     >
-      <div className="text-sm text-gray-400 text-center">
-        {isOver ? 'Release to drop here' : label}
+      <div className={`text-sm text-center ${styles.textClass} flex items-center justify-center gap-2`}>
+        {isOver ? (
+          <>
+            <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+            <span>Release to drop here</span>
+            <div className="w-2 h-2 bg-current rounded-full animate-pulse"></div>
+          </>
+        ) : (
+          <>
+            <div className="w-4 h-4 border-2 border-current border-dashed rounded"></div>
+            <span>{label}</span>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1291,7 +1337,57 @@ function SortableQuestionBlock({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const indent = level * 20;
+  // Visual hierarchy based on level
+  const getVisualStyles = (level: number) => {
+    switch (level) {
+      case 0: // Top level
+        return {
+          containerClass: "border-2 border-blue-200 bg-blue-50 rounded-lg shadow-sm",
+          headerClass: "text-xl font-bold text-gray-900",
+          nameSize: "text-lg",
+          paddingClass: "p-6",
+          marginClass: "mb-6",
+          bgColor: "bg-blue-50",
+          borderColor: "border-blue-200",
+          indent: 0
+        };
+      case 1: // Second level
+        return {
+          containerClass: "border border-green-200 bg-green-50 rounded-md shadow-sm",
+          headerClass: "text-lg font-semibold text-gray-800",
+          nameSize: "text-base",
+          paddingClass: "p-4",
+          marginClass: "mb-4",
+          bgColor: "bg-green-50",
+          borderColor: "border-green-200",
+          indent: 20
+        };
+      case 2: // Third level
+        return {
+          containerClass: "border border-amber-200 bg-amber-50 rounded-md",
+          headerClass: "text-base font-medium text-gray-700",
+          nameSize: "text-sm",
+          paddingClass: "p-3",
+          marginClass: "mb-3",
+          bgColor: "bg-amber-50",
+          borderColor: "border-amber-200",
+          indent: 40
+        };
+      default:
+        return {
+          containerClass: "border border-gray-200 bg-gray-50 rounded-md",
+          headerClass: "text-sm font-normal text-gray-600",
+          nameSize: "text-sm",
+          paddingClass: "p-2",
+          marginClass: "mb-2",
+          bgColor: "bg-gray-50",
+          borderColor: "border-gray-200",
+          indent: 60
+        };
+    }
+  };
+
+  const styles = getVisualStyles(level);
 
   // Function to handle drag end for questions and subblocks within this block
   const handleDragEnd = (event: DragEndEvent) => {
@@ -1376,10 +1472,10 @@ function SortableQuestionBlock({
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className={styles.marginClass}>
       <div
-        className="border rounded-lg p-4 space-y-4"
-        style={{ marginLeft: `${indent}px` }}
+        className={`${styles.containerClass} space-y-4 ${styles.paddingClass}`}
+        style={{ marginLeft: `${styles.indent}px` }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 mr-4">
@@ -1403,7 +1499,7 @@ function SortableQuestionBlock({
                   subblockPath,
                 )
               }
-              className="font-medium"
+              className={`${styles.nameSize} ${styles.headerClass} border-0 bg-transparent px-1 focus:ring-2 focus:ring-blue-500 rounded`}
             />
           </div>
           <Button
@@ -2176,102 +2272,88 @@ function QuestionSection({
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
-  // Handle cross-level moves
+  // Improved cross-level move handler
   const handleCrossLevelMove = (activeId: string, targetBlockIndex: number, targetSubblockPath: number[]) => {
+    console.log('Cross-level move:', { activeId, targetBlockIndex, targetSubblockPath });
+    
     const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
+    const updatedBlocks = JSON.parse(JSON.stringify(currentBlocks)); // Deep copy
 
     // Find and remove the active item
     let activeItem: Question | QuestionBlock | null = null;
     let activeType: 'question' | 'subblock' | null = null;
 
-    // Search through all blocks recursively
-    function searchAndRemove(blocks: QuestionBlock[], blockPath: number[] = []): boolean {
-      for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
-        const block = blocks[blockIndex];
-        
-        // Check questions in this block
-        for (let questionIndex = 0; questionIndex < block.questions.length; questionIndex++) {
-          if (block.questions[questionIndex].id === activeId) {
-            activeItem = block.questions[questionIndex];
-            activeType = 'question';
-            block.questions.splice(questionIndex, 1);
-            return true;
-          }
+    // Recursive search and remove function
+    const searchAndRemove = (blocks: QuestionBlock[]): boolean => {
+      for (const block of blocks) {
+        // Search in questions
+        const questionIndex = block.questions.findIndex(q => q.id === activeId);
+        if (questionIndex !== -1) {
+          activeItem = block.questions[questionIndex];
+          activeType = 'question';
+          block.questions.splice(questionIndex, 1);
+          return true;
         }
-        
-        // Check subblocks
-        for (let subblockIndex = 0; subblockIndex < block.subblocks.length; subblockIndex++) {
-          if (block.subblocks[subblockIndex].id === activeId) {
-            activeItem = block.subblocks[subblockIndex];
-            activeType = 'subblock';
-            block.subblocks.splice(subblockIndex, 1);
-            return true;
-          }
+
+        // Search in subblocks
+        const subblockIndex = block.subblocks.findIndex(s => s.id === activeId);
+        if (subblockIndex !== -1) {
+          activeItem = block.subblocks[subblockIndex];
+          activeType = 'subblock';
+          block.subblocks.splice(subblockIndex, 1);
+          return true;
         }
-        
-        // Recursively search nested subblocks
-        if (searchAndRemove(block.subblocks, [...blockPath, blockIndex])) {
+
+        // Recursively search in nested subblocks
+        if (searchAndRemove(block.subblocks)) {
           return true;
         }
       }
       return false;
-    }
+    };
 
     if (!searchAndRemove(updatedBlocks)) {
-      return; // Item not found
-    }
-
-    if (!activeItem || !activeType) {
+      console.warn('Item not found:', activeId);
       return;
     }
 
-    // Special case: if targetSubblockPath is empty and targetBlockIndex is 0, 
-    // this means it's a drop to the top level (create new block)
-    if (targetSubblockPath.length === 0 && targetBlockIndex === 0) {
-      if (activeType === 'question') {
-        // Create a new top-level block with this question
-        const newBlock: QuestionBlock = {
-          id: Math.random().toString(),
-          name: "",
-          questions: [activeItem as Question],
-          subblocks: [],
-          order: updatedBlocks.length,
-        };
-        updatedBlocks.push(newBlock);
-      } else {
-        // Add as a new top-level block
-        (activeItem as QuestionBlock).order = updatedBlocks.length;
-        updatedBlocks.push(activeItem as QuestionBlock);
-      }
-    } else {
-      // Add item to specific target location
-      let targetBlock = updatedBlocks[targetBlockIndex];
-      for (const subIndex of targetSubblockPath) {
-        targetBlock = targetBlock.subblocks[subIndex];
-      }
-
-      if (activeType === 'question') {
-        // Calculate next order for questions
-        const maxOrder = Math.max(
-          -1,
-          ...targetBlock.questions.map(q => q.order || 0),
-          ...targetBlock.subblocks.map(s => s.order || 0)
-        );
-        (activeItem as Question).order = maxOrder + 1;
-        targetBlock.questions.push(activeItem as Question);
-      } else {
-        // Calculate next order for subblocks
-        const maxOrder = Math.max(
-          -1,
-          ...targetBlock.questions.map(q => q.order || 0),
-          ...targetBlock.subblocks.map(s => s.order || 0)
-        );
-        (activeItem as QuestionBlock).order = maxOrder + 1;
-        targetBlock.subblocks.push(activeItem as QuestionBlock);
-      }
+    if (!activeItem || !activeType) {
+      console.warn('No active item found');
+      return;
     }
 
+    console.log('Found item:', { activeType, activeItem });
+
+    // Navigate to target location
+    let targetBlock = updatedBlocks[targetBlockIndex];
+    for (const subIndex of targetSubblockPath) {
+      if (!targetBlock.subblocks[subIndex]) {
+        console.warn('Target path not found');
+        return;
+      }
+      targetBlock = targetBlock.subblocks[subIndex];
+    }
+
+    // Add item to target location
+    if (activeType === 'question') {
+      const maxOrder = Math.max(
+        -1,
+        ...targetBlock.questions.map((q: Question) => q.order || 0),
+        ...targetBlock.subblocks.map((s: QuestionBlock) => s.order || 0)
+      );
+      (activeItem as Question).order = maxOrder + 1;
+      targetBlock.questions.push(activeItem as Question);
+    } else {
+      const maxOrder = Math.max(
+        -1,
+        ...targetBlock.questions.map((q: Question) => q.order || 0),
+        ...targetBlock.subblocks.map((s: QuestionBlock) => s.order || 0)
+      );
+      (activeItem as QuestionBlock).order = maxOrder + 1;
+      targetBlock.subblocks.push(activeItem as QuestionBlock);
+    }
+
+    console.log('Updated blocks:', updatedBlocks);
     form.setValue(sectionName, updatedBlocks);
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
@@ -2360,12 +2442,67 @@ function QuestionSection({
 
       {/* Top-level drop zone for cross-level moves */}
       <DropZone
-        blockIndex={0}
+        blockIndex={-1}
         subblockPath={[]}
         level={0}
-        onDrop={handleCrossLevelMove}
+        onDrop={(activeId) => {
+          console.log('Top-level drop:', activeId);
+          // Special handler for creating new top-level blocks
+          const currentBlocks = form.getValues(sectionName) || [];
+          const updatedBlocks = JSON.parse(JSON.stringify(currentBlocks));
+          
+          let activeItem: Question | QuestionBlock | null = null;
+          let activeType: 'question' | 'subblock' | null = null;
+
+          // Find and remove the item
+          const searchAndRemove = (blocks: QuestionBlock[]): boolean => {
+            for (const block of blocks) {
+              const questionIndex = block.questions.findIndex(q => q.id === activeId);
+              if (questionIndex !== -1) {
+                activeItem = block.questions[questionIndex];
+                activeType = 'question';
+                block.questions.splice(questionIndex, 1);
+                return true;
+              }
+
+              const subblockIndex = block.subblocks.findIndex(s => s.id === activeId);
+              if (subblockIndex !== -1) {
+                activeItem = block.subblocks[subblockIndex];
+                activeType = 'subblock';
+                block.subblocks.splice(subblockIndex, 1);
+                return true;
+              }
+
+              if (searchAndRemove(block.subblocks)) {
+                return true;
+              }
+            }
+            return false;
+          };
+
+          if (searchAndRemove(updatedBlocks) && activeItem) {
+            if (activeType === 'question') {
+              // Create new top-level block with the question
+              const newBlock: QuestionBlock = {
+                id: Math.random().toString(),
+                name: "",
+                questions: [activeItem as Question],
+                subblocks: [],
+                order: updatedBlocks.length,
+              };
+              updatedBlocks.push(newBlock);
+            } else {
+              // Add subblock as new top-level block
+              (activeItem as QuestionBlock).order = updatedBlocks.length;
+              updatedBlocks.push(activeItem as QuestionBlock);
+            }
+            
+            form.setValue(sectionName, updatedBlocks);
+            handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
+          }
+        }}
         t={t}
-        label="Drop items here to move to the top level"
+        label="🎯 Drop questions or blocks here to create new top-level sections"
       />
 
       {questionBlocks.length === 0 && (
