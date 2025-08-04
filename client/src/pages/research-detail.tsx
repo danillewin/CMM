@@ -235,7 +235,7 @@ function ResearchBriefForm({
         additionalMaterials: data.additionalMaterials,
         relatedResearches: data.relatedResearches
           .map((s) => s.value)
-          .filter((s) => s.trim() !== ""),
+          .filter((s) => s && s.trim() !== ""),
         figmaPrototypeLink: data.figmaPrototypeLink,
         brief: data.brief,
         guide: research.guide || undefined,
@@ -726,13 +726,16 @@ function ResearchBriefForm({
                       <Select
                         value={selectedValue}
                         onValueChange={(value) => {
+                          console.log("Setting related research value:", value, "at index:", index);
                           form.setValue(
                             `relatedResearches.${index}.value`,
                             value,
                           );
                           // Update temp data for related researches
                           const currentValues = form.getValues("relatedResearches");
-                          handleFieldChange("relatedResearches", JSON.stringify(currentValues.map(s => s.value).filter(v => v.trim() !== "")));
+                          const cleanValues = currentValues.map(s => s.value).filter(v => v && v.trim() !== "");
+                          console.log("Current related researches values:", cleanValues);
+                          handleFieldChange("relatedResearches", JSON.stringify(cleanValues));
                         }}
                       >
                         <SelectTrigger className="flex-1">
