@@ -205,6 +205,7 @@ function ResearchBriefForm({
     figmaPrototypeLink: string;
     brief: string;
   }) => {
+    console.log("Form submission data:", data);
     if (research) {
       onUpdate({
         name: research.name,
