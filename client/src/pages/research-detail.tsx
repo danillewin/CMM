@@ -2146,7 +2146,17 @@ function ResearchDetail() {
     if (isNew) {
       return { ...tempFormData } as unknown as Research;
     } else if (research) {
-      return { ...research, ...tempFormData } as Research;
+      // Handle special parsing for relatedResearches field
+      const parsedTempData = { ...tempFormData };
+      if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
+        try {
+          parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
+        } catch (error) {
+          console.error("Error parsing relatedResearches from temp data:", error);
+          parsedTempData.relatedResearches = [];
+        }
+      }
+      return { ...research, ...parsedTempData } as Research;
     }
     return research;
   }, [isNew, research, tempFormData]);
