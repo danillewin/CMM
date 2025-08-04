@@ -113,7 +113,9 @@ function ResearchBriefForm({
       researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
       additionalStakeholders:
-        research?.additionalStakeholders?.map((s) => ({ value: s })) || [],
+        Array.isArray(research?.additionalStakeholders) 
+          ? research.additionalStakeholders.map((s) => ({ value: s })) 
+          : [],
       resultFormat: research?.resultFormat || "Презентация",
       customerSegmentDescription: research?.customerSegmentDescription || "",
       projectBackground: research?.projectBackground || "",
@@ -127,7 +129,9 @@ function ResearchBriefForm({
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
       relatedResearches:
-        research?.relatedResearches?.map((s) => ({ value: s })) || [],
+        Array.isArray(research?.relatedResearches) 
+          ? research.relatedResearches.map((s) => ({ value: s })) 
+          : [],
       figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     },
@@ -138,7 +142,9 @@ function ResearchBriefForm({
       researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
       additionalStakeholders:
-        research?.additionalStakeholders?.map((s) => ({ value: s })) || [],
+        Array.isArray(research?.additionalStakeholders) 
+          ? research.additionalStakeholders.map((s) => ({ value: s })) 
+          : [],
       resultFormat: research?.resultFormat || "Презентация",
       customerSegmentDescription: research?.customerSegmentDescription || "",
       projectBackground: research?.projectBackground || "",
@@ -152,7 +158,9 @@ function ResearchBriefForm({
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
       relatedResearches:
-        research?.relatedResearches?.map((s) => ({ value: s })) || [],
+        Array.isArray(research?.relatedResearches) 
+          ? research.relatedResearches.map((s) => ({ value: s })) 
+          : [],
       figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     });
