@@ -1153,21 +1153,13 @@ function ResearchGuideForm({
   const form = useForm<{
     guide: string;
     guideIntroText: string;
-    guideIntroQuestions: QuestionBlock[];
     guideMainQuestions: QuestionBlock[];
-    guideConcludingQuestions: QuestionBlock[];
   }>({
     defaultValues: {
       guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
-      guideIntroQuestions: parseQuestionBlocks(
-        (research?.guideIntroQuestions as unknown as string) || null,
-      ),
       guideMainQuestions: parseQuestionBlocks(
         (research?.guideMainQuestions as unknown as string) || null,
-      ),
-      guideConcludingQuestions: parseQuestionBlocks(
-        (research?.guideConcludingQuestions as unknown as string) || null,
       ),
     },
   });
@@ -1176,14 +1168,8 @@ function ResearchGuideForm({
     form.reset({
       guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
-      guideIntroQuestions: parseQuestionBlocks(
-        (research?.guideIntroQuestions as unknown as string) || null,
-      ),
       guideMainQuestions: parseQuestionBlocks(
         (research?.guideMainQuestions as unknown as string) || null,
-      ),
-      guideConcludingQuestions: parseQuestionBlocks(
-        (research?.guideConcludingQuestions as unknown as string) || null,
       ),
     });
   }, [research, form]);
@@ -1191,9 +1177,7 @@ function ResearchGuideForm({
   const handleSubmit = (data: {
     guide: string;
     guideIntroText: string;
-    guideIntroQuestions: QuestionBlock[];
     guideMainQuestions: QuestionBlock[];
-    guideConcludingQuestions: QuestionBlock[];
   }) => {
     if (research) {
       onUpdate({
@@ -1229,37 +1213,7 @@ function ResearchGuideForm({
         brief: research.brief || undefined,
         guide: data.guide,
         guideIntroText: data.guideIntroText,
-        guideIntroQuestions: (() => {
-          try {
-            const cleanBlocks = (data.guideIntroQuestions || []).map((block) => ({
-              id: block.id || Math.random().toString(),
-              name: block.name || "",
-              questions: (block.questions || []).map(q => ({
-                id: q.id || Math.random().toString(),
-                text: q.text || "",
-                comment: q.comment || "",
-                order: q.order || 0,
-              })),
-              subblocks: (block.subblocks || []).map(s => ({
-                id: s.id || Math.random().toString(),
-                name: s.name || "",
-                questions: (s.questions || []).map(q => ({
-                  id: q.id || Math.random().toString(),
-                  text: q.text || "",
-                  comment: q.comment || "",
-                  order: q.order || 0,
-                })),
-                subblocks: s.subblocks || [],
-                order: s.order || 0,
-              })),
-              order: block.order || 0,
-            }));
-            return JSON.stringify(cleanBlocks);
-          } catch (error) {
-            console.error("Error stringifying guide intro questions:", error, data.guideIntroQuestions);
-            return JSON.stringify([]);
-          }
-        })(),
+
         guideMainQuestions: (() => {
           try {
             const cleanBlocks = (data.guideMainQuestions || []).map((block) => ({
@@ -1291,37 +1245,7 @@ function ResearchGuideForm({
             return JSON.stringify([]);
           }
         })(),
-        guideConcludingQuestions: (() => {
-          try {
-            const cleanBlocks = (data.guideConcludingQuestions || []).map((block) => ({
-              id: block.id || Math.random().toString(),
-              name: block.name || "",
-              questions: (block.questions || []).map(q => ({
-                id: q.id || Math.random().toString(),
-                text: q.text || "",
-                comment: q.comment || "",
-                order: q.order || 0,
-              })),
-              subblocks: (block.subblocks || []).map(s => ({
-                id: s.id || Math.random().toString(),
-                name: s.name || "",
-                questions: (s.questions || []).map(q => ({
-                  id: q.id || Math.random().toString(),
-                  text: q.text || "",
-                  comment: q.comment || "",
-                  order: q.order || 0,
-                })),
-                subblocks: s.subblocks || [],
-                order: s.order || 0,
-              })),
-              order: block.order || 0,
-            }));
-            return JSON.stringify(cleanBlocks);
-          } catch (error) {
-            console.error("Error stringifying guide concluding questions:", error, data.guideConcludingQuestions);
-            return JSON.stringify([]);
-          }
-        })(),
+
         fullText: research.fullText || undefined,
         clientsWeSearchFor: research.clientsWeSearchFor || undefined,
         inviteTemplate: research.inviteTemplate || undefined,
@@ -1338,10 +1262,7 @@ function ResearchGuideForm({
 
   // Helper functions for managing question blocks
   const addQuestionBlock = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const newBlock: QuestionBlock = {
@@ -1358,10 +1279,7 @@ function ResearchGuideForm({
   };
 
   const removeQuestionBlock = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     index: number,
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
@@ -1372,10 +1290,7 @@ function ResearchGuideForm({
   };
 
   const updateQuestionBlock = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     index: number,
     updatedBlock: QuestionBlock,
   ) => {
@@ -1388,10 +1303,7 @@ function ResearchGuideForm({
   };
 
   const addQuestion = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     subblockPath: number[] = [],
   ) => {
@@ -1429,10 +1341,7 @@ function ResearchGuideForm({
   };
 
   const removeQuestion = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     questionIndex: number,
     subblockPath: number[] = [],
@@ -1455,10 +1364,7 @@ function ResearchGuideForm({
   };
 
   const addSubblock = (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     subblockPath: number[] = [],
   ) => {
@@ -1562,38 +1468,10 @@ function ResearchGuideForm({
           )}
         />
 
-        {/* Вступительные вопросы */}
+        {/* Questions */}
         <QuestionSection
-          title={t("research.guideIntroQuestions")}
-          sectionName="guideIntroQuestions"
-          form={form}
-          addQuestionBlock={addQuestionBlock}
-          removeQuestionBlock={removeQuestionBlock}
-          updateQuestionBlock={updateQuestionBlock}
-          addQuestion={addQuestion}
-          removeQuestion={removeQuestion}
-          addSubblock={addSubblock}
-          handleFieldChange={handleFieldChange}
-        />
-
-        {/* Основные вопросы */}
-        <QuestionSection
-          title={t("research.guideMainQuestions")}
+          title="Questions"
           sectionName="guideMainQuestions"
-          form={form}
-          addQuestionBlock={addQuestionBlock}
-          removeQuestionBlock={removeQuestionBlock}
-          updateQuestionBlock={updateQuestionBlock}
-          addQuestion={addQuestion}
-          removeQuestion={removeQuestion}
-          addSubblock={addSubblock}
-          handleFieldChange={handleFieldChange}
-        />
-
-        {/* Заключительные вопросы */}
-        <QuestionSection
-          title={t("research.guideConcludingQuestions")}
-          sectionName="guideConcludingQuestions"
           form={form}
           addQuestionBlock={addQuestionBlock}
           removeQuestionBlock={removeQuestionBlock}
@@ -1616,60 +1494,37 @@ function ResearchGuideForm({
 // QuestionSection component for the Guide form
 interface QuestionSectionProps {
   title: string;
-  sectionName:
-    | "guideIntroQuestions"
-    | "guideMainQuestions"
-    | "guideConcludingQuestions";
+  sectionName: "guideMainQuestions";
   form: UseFormReturn<{
     guide: string;
     guideIntroText: string;
-    guideIntroQuestions: QuestionBlock[];
     guideMainQuestions: QuestionBlock[];
-    guideConcludingQuestions: QuestionBlock[];
   }>;
   addQuestionBlock: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
   ) => void;
   removeQuestionBlock: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     index: number,
   ) => void;
   updateQuestionBlock: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     index: number,
     updatedBlock: QuestionBlock,
   ) => void;
   addQuestion: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     subblockPath?: number[],
   ) => void;
   removeQuestion: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     questionIndex: number,
     subblockPath?: number[],
   ) => void;
   addSubblock: (
-    sectionName:
-      | "guideIntroQuestions"
-      | "guideMainQuestions"
-      | "guideConcludingQuestions",
+    sectionName: "guideMainQuestions",
     blockIndex: number,
     subblockPath?: number[],
   ) => void;
