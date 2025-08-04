@@ -76,6 +76,7 @@ import {
 import {
   useSortable,
 } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import {
   Select,
@@ -1142,7 +1143,16 @@ function SortableQuestionItem({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: question.id });
+  } = useSortable({ 
+    id: question.id,
+    data: {
+      type: 'question',
+      blockIndex,
+      questionIndex,
+      subblockPath,
+      question,
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -1178,6 +1188,48 @@ function SortableQuestionItem({
   );
 }
 
+// Drop zone component for accepting cross-level drops
+function DropZone({
+  blockIndex,
+  subblockPath,
+  level,
+  onDrop,
+  t,
+  label = "Drop here to add to this level",
+}: {
+  blockIndex: number;
+  subblockPath: number[];
+  level: number;
+  onDrop: (activeId: string, targetBlockIndex: number, targetSubblockPath: number[]) => void;
+  t: any;
+  label?: string;
+}) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `dropzone-${blockIndex}-${subblockPath.join('-')}-${level}`,
+    data: {
+      type: 'dropzone',
+      blockIndex,
+      subblockPath,
+      level,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[40px] border-2 border-dashed rounded-lg p-2 transition-colors ${
+        isOver 
+          ? 'border-blue-500 bg-blue-50' 
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      <div className="text-sm text-gray-400 text-center">
+        {isOver ? 'Release to drop here' : label}
+      </div>
+    </div>
+  );
+}
+
 // Sortable wrapper component for question blocks
 function SortableQuestionBlock({
   block,
@@ -1194,6 +1246,7 @@ function SortableQuestionBlock({
   handleFieldChange,
   removeQuestionBlock,
   t,
+  onCrossLevelMove,
 }: {
   block: QuestionBlock;
   blockIndex: number;
@@ -1212,6 +1265,7 @@ function SortableQuestionBlock({
   addSubblock: (sectionName: "guideMainQuestions", blockIndex: number, subblockPath?: number[]) => void;
   handleFieldChange: (field: string, value: string) => void;
   removeQuestionBlock: (sectionName: "guideMainQuestions", index: number) => void;
+  onCrossLevelMove: (activeId: string, targetBlockIndex: number, targetSubblockPath: number[]) => void;
   t: any;
 }) {
   const {
@@ -1221,7 +1275,15 @@ function SortableQuestionBlock({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: block.id });
+  } = useSortable({ 
+    id: block.id,
+    data: {
+      type: 'subblock',
+      blockIndex,
+      subblockPath,
+      block,
+    }
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -1236,6 +1298,14 @@ function SortableQuestionBlock({
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
+      return;
+    }
+
+    // Check if it's a cross-level drop to a dropzone
+    if (over.data?.current?.type === 'dropzone') {
+      const targetBlockIndex = over.data.current.blockIndex;
+      const targetSubblockPath = over.data.current.subblockPath;
+      onCrossLevelMove(active.id as string, targetBlockIndex, targetSubblockPath);
       return;
     }
 
@@ -1441,6 +1511,7 @@ function SortableQuestionBlock({
                           addSubblock={addSubblock}
                           handleFieldChange={handleFieldChange}
                           removeQuestionBlock={removeQuestionBlock}
+                          onCrossLevelMove={onCrossLevelMove}
                           t={t}
                         />
                       );
@@ -1451,6 +1522,16 @@ function SortableQuestionBlock({
             })()}
           </div>
         </DndContext>
+
+        {/* Drop zone for accepting items from other levels */}
+        <DropZone
+          blockIndex={blockIndex}
+          subblockPath={subblockPath}
+          level={level}
+          onDrop={onCrossLevelMove}
+          t={t}
+          label={`Drop items here to move to level ${level + 1}`}
+        />
 
         {/* Action buttons */}
         <div className="flex gap-2 pt-2 border-t">
@@ -2095,11 +2176,119 @@ function QuestionSection({
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
+  // Handle cross-level moves
+  const handleCrossLevelMove = (activeId: string, targetBlockIndex: number, targetSubblockPath: number[]) => {
+    const currentBlocks = form.getValues(sectionName) || [];
+    const updatedBlocks = [...currentBlocks];
+
+    // Find and remove the active item
+    let activeItem: Question | QuestionBlock | null = null;
+    let activeType: 'question' | 'subblock' | null = null;
+
+    // Search through all blocks recursively
+    function searchAndRemove(blocks: QuestionBlock[], blockPath: number[] = []): boolean {
+      for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+        const block = blocks[blockIndex];
+        
+        // Check questions in this block
+        for (let questionIndex = 0; questionIndex < block.questions.length; questionIndex++) {
+          if (block.questions[questionIndex].id === activeId) {
+            activeItem = block.questions[questionIndex];
+            activeType = 'question';
+            block.questions.splice(questionIndex, 1);
+            return true;
+          }
+        }
+        
+        // Check subblocks
+        for (let subblockIndex = 0; subblockIndex < block.subblocks.length; subblockIndex++) {
+          if (block.subblocks[subblockIndex].id === activeId) {
+            activeItem = block.subblocks[subblockIndex];
+            activeType = 'subblock';
+            block.subblocks.splice(subblockIndex, 1);
+            return true;
+          }
+        }
+        
+        // Recursively search nested subblocks
+        if (searchAndRemove(block.subblocks, [...blockPath, blockIndex])) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!searchAndRemove(updatedBlocks)) {
+      return; // Item not found
+    }
+
+    if (!activeItem || !activeType) {
+      return;
+    }
+
+    // Special case: if targetSubblockPath is empty and targetBlockIndex is 0, 
+    // this means it's a drop to the top level (create new block)
+    if (targetSubblockPath.length === 0 && targetBlockIndex === 0) {
+      if (activeType === 'question') {
+        // Create a new top-level block with this question
+        const newBlock: QuestionBlock = {
+          id: Math.random().toString(),
+          name: "",
+          questions: [activeItem as Question],
+          subblocks: [],
+          order: updatedBlocks.length,
+        };
+        updatedBlocks.push(newBlock);
+      } else {
+        // Add as a new top-level block
+        (activeItem as QuestionBlock).order = updatedBlocks.length;
+        updatedBlocks.push(activeItem as QuestionBlock);
+      }
+    } else {
+      // Add item to specific target location
+      let targetBlock = updatedBlocks[targetBlockIndex];
+      for (const subIndex of targetSubblockPath) {
+        targetBlock = targetBlock.subblocks[subIndex];
+      }
+
+      if (activeType === 'question') {
+        // Calculate next order for questions
+        const maxOrder = Math.max(
+          -1,
+          ...targetBlock.questions.map(q => q.order || 0),
+          ...targetBlock.subblocks.map(s => s.order || 0)
+        );
+        (activeItem as Question).order = maxOrder + 1;
+        targetBlock.questions.push(activeItem as Question);
+      } else {
+        // Calculate next order for subblocks
+        const maxOrder = Math.max(
+          -1,
+          ...targetBlock.questions.map(q => q.order || 0),
+          ...targetBlock.subblocks.map(s => s.order || 0)
+        );
+        (activeItem as QuestionBlock).order = maxOrder + 1;
+        targetBlock.subblocks.push(activeItem as QuestionBlock);
+      }
+    }
+
+    form.setValue(sectionName, updatedBlocks);
+    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
+  };
+
   // Handle drag end for top-level question blocks
   const handleTopLevelDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over || active.id === over.id) {
+      return;
+    }
+
+    // Check if it's a cross-level drop to a dropzone
+    if (over.data?.current?.type === 'dropzone') {
+      const targetBlockIndex = over.data.current.blockIndex;
+      const targetSubblockPath = over.data.current.subblockPath;
+      handleCrossLevelMove(active.id as string, targetBlockIndex, targetSubblockPath);
       return;
     }
 
@@ -2161,12 +2350,23 @@ function QuestionSection({
                 addSubblock={addSubblock}
                 handleFieldChange={handleFieldChange}
                 removeQuestionBlock={removeQuestionBlock}
+                onCrossLevelMove={handleCrossLevelMove}
                 t={t}
               />
             ))}
           </div>
         </SortableContext>
       </DndContext>
+
+      {/* Top-level drop zone for cross-level moves */}
+      <DropZone
+        blockIndex={0}
+        subblockPath={[]}
+        level={0}
+        onDrop={handleCrossLevelMove}
+        t={t}
+        label="Drop items here to move to the top level"
+      />
 
       {questionBlocks.length === 0 && (
         <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-200 rounded-lg">
