@@ -1491,6 +1491,125 @@ function ResearchGuideForm({
   );
 }
 
+// QuestionItem component for individual questions with optional comment
+interface QuestionItemProps {
+  question: Question;
+  blockIndex: number;
+  questionIndex: number;
+  subblockPath: number[];
+  sectionName: "guideMainQuestions";
+  updateQuestion: (
+    blockIndex: number,
+    questionIndex: number,
+    field: "text" | "comment",
+    value: string,
+    subblockPath?: number[],
+  ) => void;
+  removeQuestion: (
+    sectionName: "guideMainQuestions",
+    blockIndex: number,
+    questionIndex: number,
+    subblockPath?: number[],
+  ) => void;
+  t: any;
+}
+
+function QuestionItem({
+  question,
+  blockIndex,
+  questionIndex,
+  subblockPath,
+  sectionName,
+  updateQuestion,
+  removeQuestion,
+  t,
+}: QuestionItemProps) {
+  const [showComment, setShowComment] = useState(!!question.comment);
+
+  return (
+    <div className="border-l-4 border-blue-200 pl-4 space-y-2">
+      <div className="flex items-start gap-2">
+        <div className="flex-1 space-y-2">
+          <Input
+            placeholder={t("research.questionTextPlaceholder")}
+            value={question.text}
+            onChange={(e) =>
+              updateQuestion(
+                blockIndex,
+                questionIndex,
+                "text",
+                e.target.value,
+                subblockPath,
+              )
+            }
+          />
+          
+          {/* Optional comment field */}
+          {showComment && (
+            <div className="relative">
+              <Input
+                placeholder="На что обратить внимание (optional)"
+                value={question.comment}
+                onChange={(e) =>
+                  updateQuestion(
+                    blockIndex,
+                    questionIndex,
+                    "comment",
+                    e.target.value,
+                    subblockPath,
+                  )
+                }
+                className="text-sm text-gray-600 pr-8"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                onClick={() => {
+                  setShowComment(false);
+                  updateQuestion(blockIndex, questionIndex, "comment", "", subblockPath);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+          
+          {/* Add comment button */}
+          {!showComment && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-gray-500 h-8 px-2"
+              onClick={() => setShowComment(true)}
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add comment
+            </Button>
+          )}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            removeQuestion(
+              sectionName,
+              blockIndex,
+              questionIndex,
+              subblockPath,
+            )
+          }
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // QuestionSection component for the Guide form
 interface QuestionSectionProps {
   title: string;
@@ -1679,57 +1798,17 @@ function QuestionSection({
                 const question = item.item as Question;
                 const questionIndex = item.index;
                 return (
-                  <div
+                  <QuestionItem
                     key={question.id}
-                    className="border-l-4 border-blue-200 pl-4 space-y-2"
-                  >
-                    <div className="flex items-start gap-2">
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          placeholder={t("research.questionTextPlaceholder")}
-                          value={question.text}
-                          onChange={(e) =>
-                            updateQuestion(
-                              blockIndex,
-                              questionIndex,
-                              "text",
-                              e.target.value,
-                              subblockPath,
-                            )
-                          }
-                        />
-                        <Input
-                          placeholder={t("research.questionCommentPlaceholder")}
-                          value={question.comment}
-                          onChange={(e) =>
-                            updateQuestion(
-                              blockIndex,
-                              questionIndex,
-                              "comment",
-                              e.target.value,
-                              subblockPath,
-                            )
-                          }
-                          className="text-sm text-gray-600"
-                        />
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          removeQuestion(
-                            sectionName,
-                            blockIndex,
-                            questionIndex,
-                            subblockPath,
-                          )
-                        }
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    question={question}
+                    blockIndex={blockIndex}
+                    questionIndex={questionIndex}
+                    subblockPath={subblockPath}
+                    sectionName={sectionName}
+                    updateQuestion={updateQuestion}
+                    removeQuestion={removeQuestion}
+                    t={t}
+                  />
                 );
               } else {
                 const subblock = item.item as QuestionBlock;
@@ -1756,15 +1835,18 @@ function QuestionSection({
             <Plus className="h-4 w-4 mr-2" />
             {t("research.addQuestion")}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {t("research.addSubblock")}
-          </Button>
+          {/* Only show Add Subblock button if depth is less than 4 */}
+          {level < 4 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {t("research.addSubblock")}
+            </Button>
+          )}
         </div>
       </div>
     );
