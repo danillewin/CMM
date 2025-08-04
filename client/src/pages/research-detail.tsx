@@ -2255,9 +2255,21 @@ function ResearchDetail() {
   // Unified save function that combines all tab data
   const handleUnifiedSave = (overviewFormData: InsertResearch) => {
     // Merge overview form data with temporary data from all tabs
+    const parsedTempData = { ...tempFormData };
+    
+    // Parse relatedResearches if it's a JSON string
+    if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
+      try {
+        parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
+      } catch (error) {
+        console.error("Error parsing relatedResearches for save:", error);
+        parsedTempData.relatedResearches = [];
+      }
+    }
+    
     const completeFormData: InsertResearch = {
       ...overviewFormData,
-      ...tempFormData, // This contains data from Brief, Guide, Recruitment, Results tabs
+      ...parsedTempData, // This contains data from Brief, Guide, Recruitment, Results tabs
     };
 
     if (!isNew && id) {
