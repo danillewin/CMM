@@ -55,7 +55,7 @@ import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, X, ChevronDown, ChevronUp, ChevronRight, Trash2, Edit, Eye } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -1774,6 +1774,32 @@ function QuestionSection({
   const { t } = useTranslation();
   const questionBlocks = form.watch(sectionName) || [];
   
+  // Determine if we have content (default to view mode if content exists)
+  const hasContent = questionBlocks.length > 0 && (
+    questionBlocks.some(block => 
+      block.name || 
+      block.questions.length > 0 || 
+      block.subblocks.some(sub => 
+        sub.name || 
+        sub.questions.length > 0 || 
+        sub.subSubblocks.some(subSub => 
+          subSub.name || 
+          subSub.questions.length > 0
+        )
+      )
+    )
+  );
+  
+  // View mode state - default to view if has content, edit if empty
+  const [isViewMode, setIsViewMode] = useState(() => hasContent);
+  
+  // Update view mode when content changes
+  useEffect(() => {
+    if (!hasContent && isViewMode) {
+      setIsViewMode(false); // Switch to edit mode if content becomes empty
+    }
+  }, [hasContent, isViewMode]);
+  
   // State for managing collapsed blocks and subblocks
   const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
   const [collapsedSubblocks, setCollapsedSubblocks] = useState<Set<string>>(new Set());
@@ -1797,6 +1823,144 @@ function QuestionSection({
       newCollapsed.add(key);
     }
     setCollapsedSubblocks(newCollapsed);
+  };
+
+  // View mode rendering functions
+  const renderViewModeBlock = (block: QuestionBlock, blockIndex: number) => {
+    if (!block.name && block.questions.length === 0 && block.subblocks.length === 0) {
+      return null; // Don't render empty blocks in view mode
+    }
+
+    const hasContent = block.name || block.questions.length > 0 || block.subblocks.length > 0;
+    if (!hasContent) return null;
+
+    return (
+      <div key={block.id} className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+        {block.name && (
+          <h3 className="text-xl font-bold text-blue-900 mb-4">{block.name}</h3>
+        )}
+        
+        {/* Render content in order */}
+        <div className="space-y-3">
+          {(() => {
+            const items = [
+              ...block.questions.map((question, questionIndex) => ({
+                type: "question" as const,
+                item: question,
+                index: questionIndex,
+                order: question.order,
+              })),
+              ...block.subblocks.map((subblock, subblockIndex) => ({
+                type: "subblock" as const,
+                item: subblock,
+                index: subblockIndex,
+                order: subblock.order,
+              })),
+            ];
+
+            items.sort((a, b) => a.order - b.order);
+
+            return items.map((item) => {
+              if (item.type === "question") {
+                const question = item.item as Question;
+                return renderViewModeQuestion(question, 1);
+              } else {
+                const subblock = item.item as SubBlock;
+                return renderViewModeSubblock(subblock, blockIndex);
+              }
+            });
+          })()}
+        </div>
+      </div>
+    );
+  };
+
+  const renderViewModeSubblock = (subblock: SubBlock, blockIndex: number) => {
+    const hasContent = subblock.name || subblock.questions.length > 0 || subblock.subSubblocks.length > 0;
+    if (!hasContent) return null;
+
+    return (
+      <div key={subblock.id} className="ml-6 mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+        {subblock.name && (
+          <h4 className="text-lg font-semibold text-green-800 mb-3">{subblock.name}</h4>
+        )}
+        
+        <div className="space-y-2">
+          {(() => {
+            const items = [
+              ...subblock.questions.map((question, questionIndex) => ({
+                type: "question" as const,
+                item: question,
+                index: questionIndex,
+                order: question.order,
+              })),
+              ...subblock.subSubblocks.map((subSubblock, subSubblockIndex) => ({
+                type: "subSubblock" as const,
+                item: subSubblock,
+                index: subSubblockIndex,
+                order: subSubblock.order,
+              })),
+            ];
+
+            items.sort((a, b) => a.order - b.order);
+
+            return items.map((item) => {
+              if (item.type === "question") {
+                const question = item.item as Question;
+                return renderViewModeQuestion(question, 2);
+              } else {
+                const subSubblock = item.item as SubSubBlock;
+                return renderViewModeSubSubblock(subSubblock);
+              }
+            });
+          })()}
+        </div>
+      </div>
+    );
+  };
+
+  const renderViewModeSubSubblock = (subSubblock: SubSubBlock) => {
+    const hasContent = subSubblock.name || subSubblock.questions.length > 0;
+    if (!hasContent) return null;
+
+    return (
+      <div key={subSubblock.id} className="ml-6 mt-3 p-3 bg-purple-50 border-l-2 border-purple-400 rounded-r-lg">
+        {subSubblock.name && (
+          <h5 className="text-base font-medium text-purple-800 mb-2">{subSubblock.name}</h5>
+        )}
+        
+        <div className="space-y-2">
+          {subSubblock.questions
+            .sort((a, b) => a.order - b.order)
+            .map((question) => renderViewModeQuestion(question, 3))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderViewModeQuestion = (question: Question, level: number) => {
+    if (!question.text && !question.comment) return null;
+
+    const levelStyles = {
+      1: "text-base text-gray-800",
+      2: "text-sm text-gray-700 ml-2",
+      3: "text-sm text-gray-600 ml-4"
+    };
+
+    return (
+      <div key={question.id} className="mb-2">
+        {question.text && (
+          <div className={`font-medium ${levelStyles[level as keyof typeof levelStyles]} mb-1`}>
+            • {question.text}
+          </div>
+        )}
+        {question.comment && (
+          <div className="text-xs text-gray-500 italic ml-4 pl-2 border-l-2 border-gray-200">
+            {question.comment}
+          </div>
+        )}
+      </div>
+    );
   };
 
   const updateQuestionBlockName = (
@@ -2177,32 +2341,79 @@ function QuestionSection({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-        <Button
-          type="button"
-          variant="default"
-          size="lg"
-          onClick={() => addQuestionBlock(sectionName)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Add Question Block
-        </Button>
-      </div>
-
-      <div className="space-y-6">
-        {questionBlocks.map((block, index) =>
-          renderQuestionBlock(block, index),
-        )}
-      </div>
-
-      {questionBlocks.length === 0 && (
-        <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
-          <div className="space-y-3">
-            <div className="text-4xl">📝</div>
-            <p className="text-lg font-medium">No question blocks yet</p>
-            <p className="text-sm">Click "Add Question Block" to create your first set of questions</p>
-          </div>
+        <div className="flex items-center gap-3">
+          {/* View/Edit Mode Toggle */}
+          {hasContent && (
+            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+              <Button
+                type="button"
+                variant={isViewMode ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setIsViewMode(true)}
+                className={`px-3 py-1 text-sm ${isViewMode ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+              <Button
+                type="button"
+                variant={!isViewMode ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setIsViewMode(false)}
+                className={`px-3 py-1 text-sm ${!isViewMode ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
+          )}
+          
+          {/* Add Question Block button - only show in edit mode or when no content */}
+          {(!hasContent || !isViewMode) && (
+            <Button
+              type="button"
+              variant="default"
+              size="lg"
+              onClick={() => {
+                setIsViewMode(false); // Switch to edit mode when adding new content
+                addQuestionBlock(sectionName);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Add Question Block
+            </Button>
+          )}
         </div>
+      </div>
+
+      {/* Conditional rendering based on view/edit mode */}
+      {isViewMode && hasContent ? (
+        // View Mode
+        <div className="space-y-4">
+          {questionBlocks
+            .filter(block => block.name || block.questions.length > 0 || block.subblocks.length > 0)
+            .map((block, index) => renderViewModeBlock(block, index))}
+        </div>
+      ) : (
+        // Edit Mode
+        <>
+          <div className="space-y-6">
+            {questionBlocks.map((block, index) =>
+              renderQuestionBlock(block, index),
+            )}
+          </div>
+
+          {questionBlocks.length === 0 && (
+            <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+              <div className="space-y-3">
+                <div className="text-4xl">📝</div>
+                <p className="text-lg font-medium">No question blocks yet</p>
+                <p className="text-sm">Click "Add Question Block" to create your first set of questions</p>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
