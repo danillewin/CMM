@@ -55,7 +55,7 @@ import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Plus, X, ChevronDown, ChevronUp, ChevronRight, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -1773,6 +1773,31 @@ function QuestionSection({
 }: QuestionSectionProps) {
   const { t } = useTranslation();
   const questionBlocks = form.watch(sectionName) || [];
+  
+  // State for managing collapsed blocks and subblocks
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
+  const [collapsedSubblocks, setCollapsedSubblocks] = useState<Set<string>>(new Set());
+  
+  const toggleBlock = (blockId: string) => {
+    const newCollapsed = new Set(collapsedBlocks);
+    if (newCollapsed.has(blockId)) {
+      newCollapsed.delete(blockId);
+    } else {
+      newCollapsed.add(blockId);
+    }
+    setCollapsedBlocks(newCollapsed);
+  };
+  
+  const toggleSubblock = (blockId: string, subblockId: string) => {
+    const key = `${blockId}-${subblockId}`;
+    const newCollapsed = new Set(collapsedSubblocks);
+    if (newCollapsed.has(key)) {
+      newCollapsed.delete(key);
+    } else {
+      newCollapsed.add(key);
+    }
+    setCollapsedSubblocks(newCollapsed);
+  };
 
   const updateQuestionBlockName = (
     blockIndex: number,
@@ -1838,7 +1863,20 @@ function QuestionSection({
       <div key={block.id} className="border-2 border-gray-200 rounded-lg p-6 space-y-6 bg-white shadow-sm">
         {/* Level 1: Main Block Header */}
         <div className="flex items-center justify-between">
-          <div className="flex-1 mr-4">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleBlock(block.id)}
+              className="p-1 h-8 w-8 hover:bg-blue-100"
+            >
+              {collapsedBlocks.has(block.id) ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
             <Input
               placeholder="Block name (e.g., Opening Questions)"
               value={block.name}
@@ -1858,77 +1896,81 @@ function QuestionSection({
           </Button>
         </div>
 
-        {/* Content Area */}
-        <div className="space-y-4">
-          {/* Combined Questions and Subblocks in order */}
-          {(() => {
-            const items = [
-              ...block.questions.map((question, questionIndex) => ({
-                type: "question" as const,
-                item: question,
-                index: questionIndex,
-                order: question.order,
-              })),
-              ...block.subblocks.map((subblock, subblockIndex) => ({
-                type: "subblock" as const,
-                item: subblock,
-                index: subblockIndex,
-                order: subblock.order,
-              })),
-            ];
+        {/* Collapsible Content Area */}
+        {!collapsedBlocks.has(block.id) && (
+          <>
+            <div className="space-y-4">
+              {/* Combined Questions and Subblocks in order */}
+              {(() => {
+                const items = [
+                  ...block.questions.map((question, questionIndex) => ({
+                    type: "question" as const,
+                    item: question,
+                    index: questionIndex,
+                    order: question.order,
+                  })),
+                  ...block.subblocks.map((subblock, subblockIndex) => ({
+                    type: "subblock" as const,
+                    item: subblock,
+                    index: subblockIndex,
+                    order: subblock.order,
+                  })),
+                ];
 
-            // Sort by order to maintain sequence
-            items.sort((a, b) => a.order - b.order);
+                // Sort by order to maintain sequence
+                items.sort((a, b) => a.order - b.order);
 
-            return items.map((item) => {
-              if (item.type === "question") {
-                const question = item.item as Question;
-                const questionIndex = item.index;
-                return (
-                  <QuestionItem
-                    key={question.id}
-                    question={question}
-                    blockIndex={blockIndex}
-                    questionIndex={questionIndex}
-                    sectionName={sectionName}
-                    updateQuestion={updateQuestion}
-                    removeQuestion={removeQuestion}
-                    level={1}
-                    t={t}
-                  />
-                );
-              } else {
-                const subblock = item.item as SubBlock;
-                const subblockIndex = item.index;
-                return renderSubblock(subblock, blockIndex, subblockIndex);
-              }
-            });
-          })()}
-        </div>
+                return items.map((item) => {
+                  if (item.type === "question") {
+                    const question = item.item as Question;
+                    const questionIndex = item.index;
+                    return (
+                      <QuestionItem
+                        key={question.id}
+                        question={question}
+                        blockIndex={blockIndex}
+                        questionIndex={questionIndex}
+                        sectionName={sectionName}
+                        updateQuestion={updateQuestion}
+                        removeQuestion={removeQuestion}
+                        level={1}
+                        t={t}
+                      />
+                    );
+                  } else {
+                    const subblock = item.item as SubBlock;
+                    const subblockIndex = item.index;
+                    return renderSubblock(subblock, blockIndex, subblockIndex);
+                  }
+                });
+              })()}
+            </div>
 
-        {/* Level 1: Action buttons */}
-        <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addQuestion(sectionName, blockIndex)}
-            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Question
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addSubblock(sectionName, blockIndex)}
-            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Subblock
-          </Button>
-        </div>
+            {/* Level 1: Action buttons */}
+            <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addQuestion(sectionName, blockIndex)}
+                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Question
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addSubblock(sectionName, blockIndex)}
+                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Subblock
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     );
   };
@@ -1938,7 +1980,20 @@ function QuestionSection({
       <div key={subblock.id} className="ml-8 border-l-4 border-green-300 pl-6 py-4 bg-green-50 rounded-r-lg">
         {/* Level 2: Subblock Header */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex-1 mr-4">
+          <div className="flex items-center gap-2 flex-1 mr-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleSubblock(questionBlocks[blockIndex].id, subblock.id)}
+              className="p-1 h-7 w-7 hover:bg-green-100"
+            >
+              {collapsedSubblocks.has(`${questionBlocks[blockIndex].id}-${subblock.id}`) ? (
+                <ChevronRight className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </Button>
             <Input
               placeholder="Subblock name (e.g., Follow-up Questions)"
               value={subblock.name}
@@ -1966,77 +2021,82 @@ function QuestionSection({
           </Button>
         </div>
 
-        {/* Level 2: Content with Questions and Sub-subblocks */}
-        <div className="space-y-3">
-          {(() => {
-            const items = [
-              ...subblock.questions.map((question, questionIndex) => ({
-                type: "question" as const,
-                item: question,
-                index: questionIndex,
-                order: question.order,
-              })),
-              ...subblock.subSubblocks.map((subSubblock, subSubblockIndex) => ({
-                type: "subSubblock" as const,
-                item: subSubblock,
-                index: subSubblockIndex,
-                order: subSubblock.order,
-              })),
-            ];
+        {/* Collapsible Content */}
+        {!collapsedSubblocks.has(`${questionBlocks[blockIndex].id}-${subblock.id}`) && (
+          <>
+            {/* Level 2: Content with Questions and Sub-subblocks */}
+            <div className="space-y-3">
+              {(() => {
+                const items = [
+                  ...subblock.questions.map((question, questionIndex) => ({
+                    type: "question" as const,
+                    item: question,
+                    index: questionIndex,
+                    order: question.order,
+                  })),
+                  ...subblock.subSubblocks.map((subSubblock, subSubblockIndex) => ({
+                    type: "subSubblock" as const,
+                    item: subSubblock,
+                    index: subSubblockIndex,
+                    order: subSubblock.order,
+                  })),
+                ];
 
-            // Sort by order
-            items.sort((a, b) => a.order - b.order);
+                // Sort by order
+                items.sort((a, b) => a.order - b.order);
 
-            return items.map((item) => {
-              if (item.type === "question") {
-                const question = item.item as Question;
-                const questionIndex = item.index;
-                return (
-                  <QuestionItem
-                    key={question.id}
-                    question={question}
-                    blockIndex={blockIndex}
-                    questionIndex={questionIndex}
-                    subblockIndex={subblockIndex}
-                    sectionName={sectionName}
-                    updateQuestion={updateQuestion}
-                    removeQuestion={removeQuestion}
-                    level={2}
-                    t={t}
-                  />
-                );
-              } else {
-                const subSubblock = item.item as SubSubBlock;
-                const subSubblockIndex = item.index;
-                return renderSubSubblock(subSubblock, blockIndex, subblockIndex, subSubblockIndex);
-              }
-            });
-          })()}
-        </div>
+                return items.map((item) => {
+                  if (item.type === "question") {
+                    const question = item.item as Question;
+                    const questionIndex = item.index;
+                    return (
+                      <QuestionItem
+                        key={question.id}
+                        question={question}
+                        blockIndex={blockIndex}
+                        questionIndex={questionIndex}
+                        subblockIndex={subblockIndex}
+                        sectionName={sectionName}
+                        updateQuestion={updateQuestion}
+                        removeQuestion={removeQuestion}
+                        level={2}
+                        t={t}
+                      />
+                    );
+                  } else {
+                    const subSubblock = item.item as SubSubBlock;
+                    const subSubblockIndex = item.index;
+                    return renderSubSubblock(subSubblock, blockIndex, subblockIndex, subSubblockIndex);
+                  }
+                });
+              })()}
+            </div>
 
-        {/* Level 2: Action buttons */}
-        <div className="flex gap-2 mt-4 pt-3 border-t border-green-200">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addQuestion(sectionName, blockIndex, subblockIndex)}
-            className="bg-green-100 hover:bg-green-200 text-green-700 border-green-400 text-sm"
-          >
-            <Plus className="h-3 w-3 mr-2" />
-            Add Question
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addSubSubblock(sectionName, blockIndex, subblockIndex)}
-            className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-400 text-sm"
-          >
-            <Plus className="h-3 w-3 mr-2" />
-            Add Sub-subblock
-          </Button>
-        </div>
+            {/* Level 2: Action buttons */}
+            <div className="flex gap-2 mt-4 pt-3 border-t border-green-200">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addQuestion(sectionName, blockIndex, subblockIndex)}
+                className="bg-green-100 hover:bg-green-200 text-green-700 border-green-400 text-sm"
+              >
+                <Plus className="h-3 w-3 mr-2" />
+                Add Question
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addSubSubblock(sectionName, blockIndex, subblockIndex)}
+                className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-400 text-sm"
+              >
+                <Plus className="h-3 w-3 mr-2" />
+                Add Sub-subblock
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     );
   };
