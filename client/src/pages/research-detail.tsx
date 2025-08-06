@@ -2342,32 +2342,6 @@ function QuestionSection({
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
         <div className="flex items-center gap-3">
-          {/* View/Edit Mode Toggle */}
-          {hasContent && (
-            <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-              <Button
-                type="button"
-                variant={isViewMode ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsViewMode(true)}
-                className={`px-3 py-1 text-sm ${isViewMode ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              <Button
-                type="button"
-                variant={!isViewMode ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsViewMode(false)}
-                className={`px-3 py-1 text-sm ${!isViewMode ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-            </div>
-          )}
-          
           {/* Add Question Block button - only show in edit mode or when no content */}
           {(!hasContent || !isViewMode) && (
             <Button
@@ -2383,6 +2357,40 @@ function QuestionSection({
               <Plus className="h-5 w-5 mr-2" />
               Add Question Block
             </Button>
+          )}
+
+          {/* View/Edit Mode Toggle */}
+          {hasContent && (
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsViewMode(true)}
+                className={`px-3 py-1 text-sm ${
+                  isViewMode 
+                    ? "bg-gray-200 text-gray-900" 
+                    : "hover:bg-gray-200 text-gray-700"
+                }`}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsViewMode(false)}
+                className={`px-3 py-1 text-sm ${
+                  !isViewMode 
+                    ? "bg-gray-200 text-gray-900" 
+                    : "hover:bg-gray-200 text-gray-700"
+                }`}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </div>
           )}
         </div>
       </div>
