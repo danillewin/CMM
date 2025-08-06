@@ -1835,9 +1835,9 @@ function QuestionSection({
     if (!hasContent) return null;
 
     return (
-      <div key={block.id} className="mb-8 p-6 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+      <div key={block.id} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
         {block.name && (
-          <h3 className="text-xl font-bold text-blue-900 mb-4">{block.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">{block.name}</h3>
         )}
         
         {/* Render content in order */}
@@ -1880,9 +1880,9 @@ function QuestionSection({
     if (!hasContent) return null;
 
     return (
-      <div key={subblock.id} className="ml-6 mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg">
+      <div key={subblock.id} className="ml-4 mt-3 pl-4 border-l-2 border-gray-200">
         {subblock.name && (
-          <h4 className="text-lg font-semibold text-green-800 mb-3">{subblock.name}</h4>
+          <h4 className="text-base font-medium text-gray-800 mb-3">{subblock.name}</h4>
         )}
         
         <div className="space-y-2">
@@ -1924,12 +1924,12 @@ function QuestionSection({
     if (!hasContent) return null;
 
     return (
-      <div key={subSubblock.id} className="ml-6 mt-3 p-3 bg-purple-50 border-l-2 border-purple-400 rounded-r-lg">
+      <div key={subSubblock.id} className="ml-4 mt-2 pl-3 border-l border-gray-300">
         {subSubblock.name && (
-          <h5 className="text-base font-medium text-purple-800 mb-2">{subSubblock.name}</h5>
+          <h5 className="text-sm font-medium text-gray-700 mb-2">{subSubblock.name}</h5>
         )}
         
-        <div className="space-y-2">
+        <div className="space-y-1">
           {subSubblock.questions
             .sort((a, b) => a.order - b.order)
             .map((question) => renderViewModeQuestion(question, 3))}
@@ -1942,20 +1942,20 @@ function QuestionSection({
     if (!question.text && !question.comment) return null;
 
     const levelStyles = {
-      1: "text-base text-gray-800",
-      2: "text-sm text-gray-700 ml-2",
-      3: "text-sm text-gray-600 ml-4"
+      1: "text-sm text-gray-800",
+      2: "text-sm text-gray-700",
+      3: "text-sm text-gray-600"
     };
 
     return (
       <div key={question.id} className="mb-2">
         {question.text && (
-          <div className={`font-medium ${levelStyles[level as keyof typeof levelStyles]} mb-1`}>
+          <div className={`${levelStyles[level as keyof typeof levelStyles]} mb-1`}>
             • {question.text}
           </div>
         )}
         {question.comment && (
-          <div className="text-xs text-gray-500 italic ml-4 pl-2 border-l-2 border-gray-200">
+          <div className="text-xs text-gray-500 italic ml-4 mt-1">
             {question.comment}
           </div>
         )}
