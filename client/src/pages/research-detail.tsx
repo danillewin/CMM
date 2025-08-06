@@ -2024,7 +2024,7 @@ function QuestionSection({
 
   const renderQuestionBlock = (block: QuestionBlock, blockIndex: number) => {
     return (
-      <div key={block.id} className="border-2 border-gray-200 rounded-lg p-6 space-y-6 bg-white shadow-sm">
+      <div key={block.id} className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
         {/* Level 1: Main Block Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 mr-4">
@@ -2033,12 +2033,12 @@ function QuestionSection({
               variant="ghost"
               size="sm"
               onClick={() => toggleBlock(block.id)}
-              className="p-1 h-8 w-8 hover:bg-blue-100"
+              className="p-1 h-6 w-6 hover:bg-gray-100"
             >
               {collapsedBlocks.has(block.id) ? (
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3" />
               ) : (
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3 w-3" />
               )}
             </Button>
             <Input
@@ -2047,14 +2047,15 @@ function QuestionSection({
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value)
               }
-              className="text-xl font-bold border-2 border-blue-300 focus:border-blue-500"
+              className="text-base font-medium border border-gray-300 focus:border-gray-400"
             />
           </div>
           <Button
             type="button"
-            variant="destructive"
+            variant="ghost"
             size="sm"
             onClick={() => removeQuestionBlock(sectionName, blockIndex)}
+            className="text-gray-400 hover:text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -2111,23 +2112,23 @@ function QuestionSection({
             </div>
 
             {/* Level 1: Action buttons */}
-            <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
+            <div className="flex gap-2 pt-3 border-t border-gray-200">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => addQuestion(sectionName, blockIndex)}
-                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+                className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Question
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => addSubblock(sectionName, blockIndex)}
-                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Subblock
@@ -2141,16 +2142,16 @@ function QuestionSection({
 
   const renderSubblock = (subblock: SubBlock, blockIndex: number, subblockIndex: number) => {
     return (
-      <div key={subblock.id} className="ml-8 border-l-4 border-green-300 pl-6 py-4 bg-green-50 rounded-r-lg">
+      <div key={subblock.id} className="ml-4 border-l-2 border-gray-300 pl-4 py-3">
         {/* Level 2: Subblock Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 flex-1 mr-4">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => toggleSubblock(questionBlocks[blockIndex].id, subblock.id)}
-              className="p-1 h-7 w-7 hover:bg-green-100"
+              className="p-1 h-6 w-6 hover:bg-gray-100"
             >
               {collapsedSubblocks.has(`${questionBlocks[blockIndex].id}-${subblock.id}`) ? (
                 <ChevronRight className="h-3 w-3" />
@@ -2164,12 +2165,12 @@ function QuestionSection({
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value, subblockIndex)
               }
-              className="text-lg font-semibold border-green-300 focus:border-green-500 bg-white"
+              className="text-sm font-medium border border-gray-300 focus:border-gray-400"
             />
           </div>
           <Button
             type="button"
-            variant="destructive"
+            variant="ghost"
             size="sm"
             onClick={() => {
               const currentBlocks = form.getValues(sectionName) || [];
@@ -2180,6 +2181,7 @@ function QuestionSection({
               form.setValue(sectionName, updatedBlocks);
               handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
             }}
+            className="text-gray-400 hover:text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -2237,23 +2239,23 @@ function QuestionSection({
             </div>
 
             {/* Level 2: Action buttons */}
-            <div className="flex gap-2 mt-4 pt-3 border-t border-green-200">
+            <div className="flex gap-2 mt-3 pt-2 border-t border-gray-200">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => addQuestion(sectionName, blockIndex, subblockIndex)}
-                className="bg-green-100 hover:bg-green-200 text-green-700 border-green-400 text-sm"
+                className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
                 Add Question
               </Button>
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => addSubSubblock(sectionName, blockIndex, subblockIndex)}
-                className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-400 text-sm"
+                className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
                 Add Sub-subblock
@@ -2267,9 +2269,9 @@ function QuestionSection({
 
   const renderSubSubblock = (subSubblock: SubSubBlock, blockIndex: number, subblockIndex: number, subSubblockIndex: number) => {
     return (
-      <div key={subSubblock.id} className="ml-12 border-l-2 border-purple-300 pl-4 py-3 bg-purple-50 rounded-r-lg">
+      <div key={subSubblock.id} className="ml-4 border-l border-gray-300 pl-3 py-2">
         {/* Level 3: Sub-subblock Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex-1 mr-4">
             <Input
               placeholder="Sub-subblock name (e.g., Deep-dive Questions)"
@@ -2277,12 +2279,12 @@ function QuestionSection({
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value, subblockIndex, subSubblockIndex)
               }
-              className="text-base font-medium border-purple-300 focus:border-purple-500 bg-white"
+              className="text-sm font-medium border border-gray-300 focus:border-gray-400"
             />
           </div>
           <Button
             type="button"
-            variant="destructive"
+            variant="ghost"
             size="sm"
             onClick={() => {
               const currentBlocks = form.getValues(sectionName) || [];
@@ -2294,6 +2296,7 @@ function QuestionSection({
               form.setValue(sectionName, updatedBlocks);
               handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
             }}
+            className="text-gray-400 hover:text-red-600 hover:bg-red-50"
           >
             <Trash2 className="h-3 w-3" />
           </Button>
@@ -2321,13 +2324,13 @@ function QuestionSection({
         </div>
 
         {/* Level 3: Action buttons */}
-        <div className="mt-3 pt-2 border-t border-purple-200">
+        <div className="mt-2 pt-2 border-t border-gray-200">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => addQuestion(sectionName, blockIndex, subblockIndex, subSubblockIndex)}
-            className="bg-purple-100 hover:bg-purple-200 text-purple-700 border-purple-400 text-xs"
+            className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
             Add Question
