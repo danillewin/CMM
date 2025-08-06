@@ -1605,27 +1605,21 @@ function QuestionItem({
 }: QuestionItemProps) {
   const [showComment, setShowComment] = useState(!!question.comment);
   
-  // Different styling based on level (4 levels now)
-  const borderColors = {
-    1: "border-l-4 border-blue-500",
-    2: "border-l-3 border-green-400", 
-    3: "border-l-2 border-purple-400",
+  // Clean, minimal styling based on level with proper indentation
+  const marginLeft = {
+    1: "ml-2",      // Questions in blocks get slight indentation
+    2: "ml-6",      // Questions in subblocks get more indentation  
+    3: "ml-10",     // Questions in sub-subblocks get maximum indentation
   };
   
   const textSizes = {
-    1: "text-base",
+    1: "text-sm",
     2: "text-sm",
     3: "text-xs",
   };
 
-  const marginLeft = {
-    1: "",
-    2: "ml-6",
-    3: "ml-12",
-  };
-
   return (
-    <div className={`${borderColors[level as keyof typeof borderColors]} pl-4 space-y-2 ${marginLeft[level as keyof typeof marginLeft]}`}>
+    <div className={`pl-4 py-2 bg-gray-50 rounded border border-gray-200 space-y-2 ${marginLeft[level as keyof typeof marginLeft]}`}>
       <div className="flex items-start gap-2">
         <div className="flex-1 space-y-2">
           <Input
