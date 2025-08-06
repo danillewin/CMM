@@ -1087,20 +1087,27 @@ function ResearchRecruitmentForm({
   );
 }
 
-// Types for Guide structure
+// Types for simplified 3-level Guide structure
 interface Question {
   id: string;
   text: string;
   comment: string;
-  order?: number; // Add order field to maintain sequence
+  order: number;
+}
+
+interface SubBlock {
+  id: string;
+  name: string;
+  questions: Question[];
+  order: number;
 }
 
 interface QuestionBlock {
   id: string;
   name: string;
   questions: Question[];
-  subblocks: QuestionBlock[];
-  order?: number; // Add order field to maintain sequence
+  subblocks: SubBlock[];
+  order: number;
 }
 
 // Component for Guide tab
@@ -1123,26 +1130,33 @@ function ResearchGuideForm({
       const parsed = JSON.parse(data);
       if (!Array.isArray(parsed)) return [];
       
-      return parsed.map((item: any) => {
+      return parsed.map((item: any, blockIndex: number) => {
         // Ensure order fields exist for backward compatibility
-        if (item.questions) {
-          item.questions = item.questions.map((q: any, index: number) => ({
-            ...q,
-            order: q.order !== undefined ? q.order : index,
-          }));
-        }
-        if (item.subblocks) {
-          item.subblocks = item.subblocks.map((s: any, index: number) => ({
-            ...s,
-            order:
-              s.order !== undefined
-                ? s.order
-                : (item.questions?.length || 0) + index,
-          }));
-        }
+        const questions = (item.questions || []).map((q: any, qIndex: number) => ({
+          id: q.id || Math.random().toString(),
+          text: q.text || '',
+          comment: q.comment || '',
+          order: q.order !== undefined ? q.order : qIndex,
+        }));
+        
+        const subblocks = (item.subblocks || []).map((s: any, sIndex: number) => ({
+          id: s.id || Math.random().toString(),
+          name: s.name || '',
+          questions: (s.questions || []).map((sq: any, sqIndex: number) => ({
+            id: sq.id || Math.random().toString(),
+            text: sq.text || '',
+            comment: sq.comment || '',
+            order: sq.order !== undefined ? sq.order : sqIndex,
+          })),
+          order: s.order !== undefined ? s.order : questions.length + sIndex,
+        }));
+        
         return {
-          ...item,
-          order: item.order !== undefined ? item.order : 0,
+          id: item.id || Math.random().toString(),
+          name: item.name || '',
+          questions,
+          subblocks,
+          order: item.order !== undefined ? item.order : blockIndex,
         };
       });
     } catch {
@@ -1234,7 +1248,6 @@ function ResearchGuideForm({
                   comment: q.comment || "",
                   order: q.order || 0,
                 })),
-                subblocks: s.subblocks || [],
                 order: s.order || 0,
               })),
               order: block.order || 0,
@@ -1270,7 +1283,7 @@ function ResearchGuideForm({
       name: "",
       questions: [],
       subblocks: [],
-      order: 0,
+      order: currentBlocks.length,
     };
     form.setValue(sectionName, [...currentBlocks, newBlock]);
     // Update temp data
@@ -1305,38 +1318,39 @@ function ResearchGuideForm({
   const addQuestion = (
     sectionName: "guideMainQuestions",
     blockIndex: number,
-    subblockPath: number[] = [],
+    subblockIndex?: number,
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
+    
+    if (subblockIndex !== undefined) {
+      // Adding question to subblock
+      const targetSubblock = updatedBlocks[blockIndex].subblocks[subblockIndex];
+      const nextOrder = targetSubblock.questions.length;
+      const newQuestion: Question = {
+        id: Math.random().toString(),
+        text: "",
+        comment: "",
+        order: nextOrder,
+      };
+      targetSubblock.questions.push(newQuestion);
+    } else {
+      // Adding question to main block
+      const targetBlock = updatedBlocks[blockIndex];
+      const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order));
+      const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order));
+      const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
+      
+      const newQuestion: Question = {
+        id: Math.random().toString(),
+        text: "",
+        comment: "",
+        order: nextOrder,
+      };
+      targetBlock.questions.push(newQuestion);
     }
 
-    // Calculate next order based on existing items
-    const maxQuestionOrder = Math.max(
-      -1,
-      ...targetBlock.questions.map((q) => q.order || 0),
-    );
-    const maxSubblockOrder = Math.max(
-      -1,
-      ...targetBlock.subblocks.map((s) => s.order || 0),
-    );
-    const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
-
-    const newQuestion: Question = {
-      id: Math.random().toString(),
-      text: "",
-      comment: "",
-      order: nextOrder,
-    };
-
-    targetBlock.questions.push(newQuestion);
     form.setValue(sectionName, updatedBlocks);
-    // Update temp data
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
@@ -1344,61 +1358,51 @@ function ResearchGuideForm({
     sectionName: "guideMainQuestions",
     blockIndex: number,
     questionIndex: number,
-    subblockPath: number[] = [],
+    subblockIndex?: number,
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
+    
+    if (subblockIndex !== undefined) {
+      // Remove question from subblock
+      updatedBlocks[blockIndex].subblocks[subblockIndex].questions = 
+        updatedBlocks[blockIndex].subblocks[subblockIndex].questions.filter(
+          (_, i) => i !== questionIndex,
+        );
+    } else {
+      // Remove question from main block
+      updatedBlocks[blockIndex].questions = 
+        updatedBlocks[blockIndex].questions.filter(
+          (_, i) => i !== questionIndex,
+        );
     }
 
-    targetBlock.questions = targetBlock.questions.filter(
-      (_, i) => i !== questionIndex,
-    );
     form.setValue(sectionName, updatedBlocks);
-    // Update temp data
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const addSubblock = (
     sectionName: "guideMainQuestions",
     blockIndex: number,
-    subblockPath: number[] = [],
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
+    const targetBlock = updatedBlocks[blockIndex];
 
     // Calculate next order based on existing items
-    const maxQuestionOrder = Math.max(
-      -1,
-      ...targetBlock.questions.map((q) => q.order || 0),
-    );
-    const maxSubblockOrder = Math.max(
-      -1,
-      ...targetBlock.subblocks.map((s) => s.order || 0),
-    );
+    const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order));
+    const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order));
     const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
 
-    const newSubblock: QuestionBlock = {
+    const newSubblock: SubBlock = {
       id: Math.random().toString(),
       name: "",
       questions: [],
-      subblocks: [],
       order: nextOrder,
     };
 
     targetBlock.subblocks.push(newSubblock);
     form.setValue(sectionName, updatedBlocks);
-    // Update temp data
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
@@ -1496,21 +1500,22 @@ interface QuestionItemProps {
   question: Question;
   blockIndex: number;
   questionIndex: number;
-  subblockPath: number[];
+  subblockIndex?: number;
   sectionName: "guideMainQuestions";
   updateQuestion: (
     blockIndex: number,
     questionIndex: number,
     field: "text" | "comment",
     value: string,
-    subblockPath?: number[],
+    subblockIndex?: number,
   ) => void;
   removeQuestion: (
     sectionName: "guideMainQuestions",
     blockIndex: number,
     questionIndex: number,
-    subblockPath?: number[],
+    subblockIndex?: number,
   ) => void;
+  level: number; // 1 for main block, 2 for subblock
   t: any;
 }
 
@@ -1518,16 +1523,28 @@ function QuestionItem({
   question,
   blockIndex,
   questionIndex,
-  subblockPath,
+  subblockIndex,
   sectionName,
   updateQuestion,
   removeQuestion,
+  level,
   t,
 }: QuestionItemProps) {
   const [showComment, setShowComment] = useState(!!question.comment);
+  
+  // Different styling based on level
+  const borderColors = {
+    1: "border-l-4 border-blue-500",
+    2: "border-l-3 border-green-400",
+  };
+  
+  const textSizes = {
+    1: "text-base",
+    2: "text-sm",
+  };
 
   return (
-    <div className="border-l-4 border-blue-200 pl-4 space-y-2">
+    <div className={`${borderColors[level as keyof typeof borderColors]} pl-4 space-y-2 ${level === 2 ? 'ml-6' : ''}`}>
       <div className="flex items-start gap-2">
         <div className="flex-1 space-y-2">
           <Input
@@ -1539,16 +1556,17 @@ function QuestionItem({
                 questionIndex,
                 "text",
                 e.target.value,
-                subblockPath,
+                subblockIndex,
               )
             }
+            className={textSizes[level as keyof typeof textSizes]}
           />
           
           {/* Optional comment field */}
           {showComment && (
             <div className="relative">
               <Input
-                placeholder="На что обратить внимание (optional)"
+                placeholder="Comment (optional)"
                 value={question.comment}
                 onChange={(e) =>
                   updateQuestion(
@@ -1556,10 +1574,10 @@ function QuestionItem({
                     questionIndex,
                     "comment",
                     e.target.value,
-                    subblockPath,
+                    subblockIndex,
                   )
                 }
-                className="text-sm text-gray-600 pr-8"
+                className={`text-gray-600 pr-8 ${level === 2 ? 'text-xs' : 'text-sm'}`}
               />
               <Button
                 type="button"
@@ -1568,7 +1586,7 @@ function QuestionItem({
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
                 onClick={() => {
                   setShowComment(false);
-                  updateQuestion(blockIndex, questionIndex, "comment", "", subblockPath);
+                  updateQuestion(blockIndex, questionIndex, "comment", "", subblockIndex);
                 }}
               >
                 <X className="h-3 w-3" />
@@ -1599,7 +1617,7 @@ function QuestionItem({
               sectionName,
               blockIndex,
               questionIndex,
-              subblockPath,
+              subblockIndex,
             )
           }
         >
@@ -1634,18 +1652,17 @@ interface QuestionSectionProps {
   addQuestion: (
     sectionName: "guideMainQuestions",
     blockIndex: number,
-    subblockPath?: number[],
+    subblockIndex?: number,
   ) => void;
   removeQuestion: (
     sectionName: "guideMainQuestions",
     blockIndex: number,
     questionIndex: number,
-    subblockPath?: number[],
+    subblockIndex?: number,
   ) => void;
   addSubblock: (
     sectionName: "guideMainQuestions",
     blockIndex: number,
-    subblockPath?: number[],
   ) => void;
   handleFieldChange: (field: string, value: string) => void;
 }
@@ -1668,20 +1685,20 @@ function QuestionSection({
   const updateQuestionBlockName = (
     blockIndex: number,
     name: string,
-    subblockPath: number[] = [],
+    subblockIndex?: number,
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
+    
+    if (subblockIndex !== undefined) {
+      // Update subblock name
+      updatedBlocks[blockIndex].subblocks[subblockIndex].name = name;
+    } else {
+      // Update main block name
+      updatedBlocks[blockIndex].name = name;
     }
 
-    targetBlock.name = name;
     form.setValue(sectionName, updatedBlocks);
-    // Update temp data
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
@@ -1690,103 +1707,70 @@ function QuestionSection({
     questionIndex: number,
     field: "text" | "comment",
     value: string,
-    subblockPath: number[] = [],
+    subblockIndex?: number,
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
+    
+    if (subblockIndex !== undefined) {
+      // Update question in subblock
+      updatedBlocks[blockIndex].subblocks[subblockIndex].questions[questionIndex] = {
+        ...updatedBlocks[blockIndex].subblocks[subblockIndex].questions[questionIndex],
+        [field]: value,
+      };
+    } else {
+      // Update question in main block
+      updatedBlocks[blockIndex].questions[questionIndex] = {
+        ...updatedBlocks[blockIndex].questions[questionIndex],
+        [field]: value,
+      };
     }
-
-    targetBlock.questions[questionIndex] = {
-      ...targetBlock.questions[questionIndex],
-      [field]: value,
-    };
+    
     form.setValue(sectionName, updatedBlocks);
-    // Update temp data
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
-  const renderQuestionBlock = (
-    block: QuestionBlock,
-    blockIndex: number,
-    subblockPath: number[] = [],
-    level: number = 0,
-  ) => {
-    const indent = level * 20;
-
+  const renderQuestionBlock = (block: QuestionBlock, blockIndex: number) => {
     return (
-      <div
-        key={block.id}
-        className="border rounded-lg p-4 space-y-4"
-        style={{ marginLeft: `${indent}px` }}
-      >
+      <div key={block.id} className="border-2 border-gray-200 rounded-lg p-6 space-y-6 bg-white shadow-sm">
+        {/* Level 1: Main Block Header */}
         <div className="flex items-center justify-between">
           <div className="flex-1 mr-4">
             <Input
-              placeholder={t("research.questionBlockNamePlaceholder")}
+              placeholder="Block name (e.g., Opening Questions)"
               value={block.name}
               onChange={(e) =>
-                updateQuestionBlockName(
-                  blockIndex,
-                  e.target.value,
-                  subblockPath,
-                )
+                updateQuestionBlockName(blockIndex, e.target.value)
               }
-              className="font-medium"
+              className="text-xl font-bold border-2 border-blue-300 focus:border-blue-500"
             />
           </div>
           <Button
             type="button"
             variant="destructive"
             size="sm"
-            onClick={() => {
-              if (subblockPath.length === 0) {
-                removeQuestionBlock(sectionName, blockIndex);
-              } else {
-                // Handle subblock removal
-                const currentBlocks = form.getValues(sectionName) || [];
-                const updatedBlocks = [...currentBlocks];
-                let parentBlock = updatedBlocks[blockIndex];
-
-                // Navigate to parent of the subblock to be removed
-                for (let i = 0; i < subblockPath.length - 1; i++) {
-                  parentBlock = parentBlock.subblocks[subblockPath[i]];
-                }
-
-                // Remove the subblock
-                parentBlock.subblocks = parentBlock.subblocks.filter(
-                  (_, i) => i !== subblockPath[subblockPath.length - 1],
-                );
-                form.setValue(sectionName, updatedBlocks);
-                // Update temp data
-                handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-              }
-            }}
+            onClick={() => removeQuestionBlock(sectionName, blockIndex)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Combined Questions and Subblocks in order */}
-        <div className="space-y-3">
-          {/* Create combined items array with type indicators */}
+        {/* Content Area */}
+        <div className="space-y-4">
+          {/* Combined Questions and Subblocks in order */}
           {(() => {
             const items = [
               ...block.questions.map((question, questionIndex) => ({
                 type: "question" as const,
                 item: question,
                 index: questionIndex,
-                order: question.order || questionIndex,
+                order: question.order,
               })),
               ...block.subblocks.map((subblock, subblockIndex) => ({
                 type: "subblock" as const,
                 item: subblock,
                 index: subblockIndex,
-                order: subblock.order || block.questions.length + subblockIndex,
+                order: subblock.order,
               })),
             ];
 
@@ -1803,79 +1787,148 @@ function QuestionSection({
                     question={question}
                     blockIndex={blockIndex}
                     questionIndex={questionIndex}
-                    subblockPath={subblockPath}
                     sectionName={sectionName}
                     updateQuestion={updateQuestion}
                     removeQuestion={removeQuestion}
+                    level={1}
                     t={t}
                   />
                 );
               } else {
-                const subblock = item.item as QuestionBlock;
+                const subblock = item.item as SubBlock;
                 const subblockIndex = item.index;
-                return renderQuestionBlock(
-                  subblock,
-                  blockIndex,
-                  [...subblockPath, subblockIndex],
-                  level + 1,
-                );
+                return renderSubblock(subblock, blockIndex, subblockIndex);
               }
             });
           })()}
         </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-2 pt-2 border-t">
+        {/* Level 1: Action buttons */}
+        <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => addQuestion(sectionName, blockIndex, subblockPath)}
+            onClick={() => addQuestion(sectionName, blockIndex)}
+            className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {t("research.addQuestion")}
+            Add Question
           </Button>
-          {/* Only show Add Subblock button if depth is less than 4 */}
-          {level < 4 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => addSubblock(sectionName, blockIndex, subblockPath)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t("research.addSubblock")}
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addSubblock(sectionName, blockIndex)}
+            className="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Subblock
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSubblock = (subblock: SubBlock, blockIndex: number, subblockIndex: number) => {
+    return (
+      <div key={subblock.id} className="ml-8 border-l-4 border-green-300 pl-6 py-4 bg-green-50 rounded-r-lg">
+        {/* Level 2: Subblock Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex-1 mr-4">
+            <Input
+              placeholder="Subblock name (e.g., Follow-up Questions)"
+              value={subblock.name}
+              onChange={(e) =>
+                updateQuestionBlockName(blockIndex, e.target.value, subblockIndex)
+              }
+              className="text-lg font-semibold border-green-300 focus:border-green-500 bg-white"
+            />
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              const currentBlocks = form.getValues(sectionName) || [];
+              const updatedBlocks = [...currentBlocks];
+              updatedBlocks[blockIndex].subblocks = updatedBlocks[blockIndex].subblocks.filter(
+                (_, i) => i !== subblockIndex,
+              );
+              form.setValue(sectionName, updatedBlocks);
+              handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
+            }}
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+
+        {/* Level 2: Subblock Questions */}
+        <div className="space-y-3">
+          {subblock.questions
+            .sort((a, b) => a.order - b.order)
+            .map((question, questionIndex) => (
+              <QuestionItem
+                key={question.id}
+                question={question}
+                blockIndex={blockIndex}
+                questionIndex={questionIndex}
+                subblockIndex={subblockIndex}
+                sectionName={sectionName}
+                updateQuestion={updateQuestion}
+                removeQuestion={removeQuestion}
+                level={2}
+                t={t}
+              />
+            ))}
+        </div>
+
+        {/* Level 2: Action buttons */}
+        <div className="mt-4 pt-3 border-t border-green-200">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addQuestion(sectionName, blockIndex, subblockIndex)}
+            className="bg-green-100 hover:bg-green-200 text-green-700 border-green-400 text-sm"
+          >
+            <Plus className="h-3 w-3 mr-2" />
+            Add Question
+          </Button>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{title}</h3>
+        <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
         <Button
           type="button"
-          variant="outline"
-          size="sm"
+          variant="default"
+          size="lg"
           onClick={() => addQuestionBlock(sectionName)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          {t("research.addQuestionBlock")}
+          <Plus className="h-5 w-5 mr-2" />
+          Add Question Block
         </Button>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {questionBlocks.map((block, index) =>
           renderQuestionBlock(block, index),
         )}
       </div>
 
       {questionBlocks.length === 0 && (
-        <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-200 rounded-lg">
-          No question blocks yet. Click "Add Question Block" to get started.
+        <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
+          <div className="space-y-3">
+            <div className="text-4xl">📝</div>
+            <p className="text-lg font-medium">No question blocks yet</p>
+            <p className="text-sm">Click "Add Question Block" to create your first set of questions</p>
+          </div>
         </div>
       )}
     </div>
