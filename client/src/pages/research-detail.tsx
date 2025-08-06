@@ -55,29 +55,8 @@ import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp, Trash2, GripVertical } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  useSensor,
-  useSensors,
-  PointerSensor,
-  KeyboardSensor,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  useSortable,
-} from "@dnd-kit/sortable";
-import { useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { Plus, X, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import SimpleGuide from "@/components/simple-guide";
 import {
   Select,
   SelectContent,
@@ -1815,147 +1794,7 @@ function ResearchGuideForm({
     }
   };
 
-  // Helper functions for managing question blocks
-  const addQuestionBlock = (
-    sectionName: "guideMainQuestions",
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const newBlock: QuestionBlock = {
-      id: Math.random().toString(),
-      name: "",
-      questions: [],
-      subblocks: [],
-      order: 0,
-    };
-    form.setValue(sectionName, [...currentBlocks, newBlock]);
-    // Update temp data
-    const currentFormData = form.getValues();
-    handleFieldChange(sectionName, JSON.stringify(currentFormData[sectionName]));
-  };
 
-  const removeQuestionBlock = (
-    sectionName: "guideMainQuestions",
-    index: number,
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = currentBlocks.filter((_, i) => i !== index);
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  const updateQuestionBlock = (
-    sectionName: "guideMainQuestions",
-    index: number,
-    updatedBlock: QuestionBlock,
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    updatedBlocks[index] = updatedBlock;
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  const addQuestion = (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    subblockPath: number[] = [],
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    // Calculate next order based on existing items
-    const maxQuestionOrder = Math.max(
-      -1,
-      ...targetBlock.questions.map((q) => q.order || 0),
-    );
-    const maxSubblockOrder = Math.max(
-      -1,
-      ...targetBlock.subblocks.map((s) => s.order || 0),
-    );
-    const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
-
-    const newQuestion: Question = {
-      id: Math.random().toString(),
-      text: "",
-      comment: "",
-      order: nextOrder,
-    };
-
-    targetBlock.questions.push(newQuestion);
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  const removeQuestion = (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    questionIndex: number,
-    subblockPath: number[] = [],
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    targetBlock.questions = targetBlock.questions.filter(
-      (_, i) => i !== questionIndex,
-    );
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  const addSubblock = (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    subblockPath: number[] = [],
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    // Calculate next order based on existing items
-    const maxQuestionOrder = Math.max(
-      -1,
-      ...targetBlock.questions.map((q) => q.order || 0),
-    );
-    const maxSubblockOrder = Math.max(
-      -1,
-      ...targetBlock.subblocks.map((s) => s.order || 0),
-    );
-    const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
-
-    const newSubblock: QuestionBlock = {
-      id: Math.random().toString(),
-      name: "",
-      questions: [],
-      subblocks: [],
-      order: nextOrder,
-    };
-
-    targetBlock.subblocks.push(newSubblock);
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
 
   return (
     <Form {...form}>
@@ -2023,18 +1862,24 @@ function ResearchGuideForm({
           )}
         />
 
-        {/* Questions */}
-        <QuestionSection
-          title="Questions"
-          sectionName="guideMainQuestions"
-          form={form}
-          addQuestionBlock={addQuestionBlock}
-          removeQuestionBlock={removeQuestionBlock}
-          updateQuestionBlock={updateQuestionBlock}
-          addQuestion={addQuestion}
-          removeQuestion={removeQuestion}
-          addSubblock={addSubblock}
-          handleFieldChange={handleFieldChange}
+        {/* Questions - Simplified Version */}
+        <FormField
+          control={form.control}
+          name="guideMainQuestions"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <SimpleGuide
+                  questionBlocks={field.value || []}
+                  onUpdateBlocks={(blocks) => {
+                    field.onChange(blocks);
+                  }}
+                  onFieldChange={handleFieldChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         <Button type="submit" disabled={isLoading}>
@@ -2046,1150 +1891,174 @@ function ResearchGuideForm({
   );
 }
 
-// QuestionItem component for individual questions with optional comment
-interface QuestionItemProps {
-  question: Question;
-  blockIndex: number;
-  questionIndex: number;
-  subblockPath: number[];
-  sectionName: "guideMainQuestions";
-  updateQuestion: (
-    blockIndex: number,
-    questionIndex: number,
-    field: "text" | "comment",
-    value: string,
-    subblockPath?: number[],
-  ) => void;
-  removeQuestion: (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    questionIndex: number,
-    subblockPath?: number[],
-  ) => void;
-  t: any;
-}
-
-function QuestionItem({
-  question,
-  blockIndex,
-  questionIndex,
-  subblockPath,
-  sectionName,
-  updateQuestion,
-  removeQuestion,
-  t,
-}: QuestionItemProps) {
-  const [showComment, setShowComment] = useState(!!question.comment);
-
-  return (
-    <div className="border-l-4 border-blue-200 pl-4 space-y-2">
-      <div className="flex items-start gap-2">
-        <div className="flex-1 space-y-2">
-          <Input
-            placeholder={t("research.questionTextPlaceholder")}
-            value={question.text}
-            onChange={(e) =>
-              updateQuestion(
-                blockIndex,
-                questionIndex,
-                "text",
-                e.target.value,
-                subblockPath,
-              )
-            }
-          />
-          
-          {/* Optional comment field */}
-          {showComment && (
-            <div className="relative">
-              <Input
-                placeholder="На что обратить внимание (optional)"
-                value={question.comment}
-                onChange={(e) =>
-                  updateQuestion(
-                    blockIndex,
-                    questionIndex,
-                    "comment",
-                    e.target.value,
-                    subblockPath,
-                  )
-                }
-                className="text-sm text-gray-600 pr-8"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
-                onClick={() => {
-                  setShowComment(false);
-                  updateQuestion(blockIndex, questionIndex, "comment", "", subblockPath);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-          
-          {/* Add comment button */}
-          {!showComment && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-gray-500 h-8 px-2"
-              onClick={() => setShowComment(true)}
-            >
-              <Plus className="h-3 w-3 mr-1" />
-              Add comment
-            </Button>
-          )}
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            removeQuestion(
-              sectionName,
-              blockIndex,
-              questionIndex,
-              subblockPath,
-            )
-          }
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// QuestionSection component for the Guide form
-interface QuestionSectionProps {
-  title: string;
-  sectionName: "guideMainQuestions";
-  form: UseFormReturn<{
-    guide: string;
-    guideIntroText: string;
-    guideMainQuestions: QuestionBlock[];
-  }>;
-  addQuestionBlock: (
-    sectionName: "guideMainQuestions",
-  ) => void;
-  removeQuestionBlock: (
-    sectionName: "guideMainQuestions",
-    index: number,
-  ) => void;
-  updateQuestionBlock: (
-    sectionName: "guideMainQuestions",
-    index: number,
-    updatedBlock: QuestionBlock,
-  ) => void;
-  addQuestion: (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    subblockPath?: number[],
-  ) => void;
-  removeQuestion: (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    questionIndex: number,
-    subblockPath?: number[],
-  ) => void;
-  addSubblock: (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-    subblockPath?: number[],
-  ) => void;
-  handleFieldChange: (field: string, value: string) => void;
-}
-
-function QuestionSection({
-  title,
-  sectionName,
-  form,
-  addQuestionBlock,
-  removeQuestionBlock,
-  updateQuestionBlock,
-  addQuestion,
-  removeQuestion,
-  addSubblock,
-  handleFieldChange,
-}: QuestionSectionProps) {
-  const { t } = useTranslation();
-  const questionBlocks = form.watch(sectionName) || [];
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const updateQuestionBlockName = (
-    blockIndex: number,
-    name: string,
-    subblockPath: number[] = [],
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    targetBlock.name = name;
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  const updateQuestion = (
-    blockIndex: number,
-    questionIndex: number,
-    field: "text" | "comment",
-    value: string,
-    subblockPath: number[] = [],
-  ) => {
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = [...currentBlocks];
-    let targetBlock = updatedBlocks[blockIndex];
-
-    // Navigate to the correct subblock if needed
-    for (const subIndex of subblockPath) {
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    targetBlock.questions[questionIndex] = {
-      ...targetBlock.questions[questionIndex],
-      [field]: value,
-    };
-    form.setValue(sectionName, updatedBlocks);
-    // Update temp data
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  // Improved cross-level move handler
-  const handleCrossLevelMove = (activeId: string, targetBlockIndex: number, targetSubblockPath: number[]) => {
-    console.log('Cross-level move:', { activeId, targetBlockIndex, targetSubblockPath });
-    
-    const currentBlocks = form.getValues(sectionName) || [];
-    const updatedBlocks = JSON.parse(JSON.stringify(currentBlocks)); // Deep copy
-
-    // Find and remove the active item
-    let activeItem: Question | QuestionBlock | null = null;
-    let activeType: 'question' | 'subblock' | null = null;
-
-    // Recursive search and remove function
-    const searchAndRemove = (blocks: QuestionBlock[]): boolean => {
-      for (const block of blocks) {
-        // Search in questions
-        const questionIndex = block.questions.findIndex(q => q.id === activeId);
-        if (questionIndex !== -1) {
-          activeItem = block.questions[questionIndex];
-          activeType = 'question';
-          block.questions.splice(questionIndex, 1);
-          return true;
-        }
-
-        // Search in subblocks
-        const subblockIndex = block.subblocks.findIndex(s => s.id === activeId);
-        if (subblockIndex !== -1) {
-          activeItem = block.subblocks[subblockIndex];
-          activeType = 'subblock';
-          block.subblocks.splice(subblockIndex, 1);
-          return true;
-        }
-
-        // Recursively search in nested subblocks
-        if (searchAndRemove(block.subblocks)) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    if (!searchAndRemove(updatedBlocks)) {
-      console.warn('Item not found:', activeId);
-      return;
-    }
-
-    if (!activeItem || !activeType) {
-      console.warn('No active item found');
-      return;
-    }
-
-    console.log('Found item:', { activeType, activeItem });
-
-    // Navigate to target location
-    let targetBlock = updatedBlocks[targetBlockIndex];
-    for (const subIndex of targetSubblockPath) {
-      if (!targetBlock.subblocks[subIndex]) {
-        console.warn('Target path not found');
-        return;
-      }
-      targetBlock = targetBlock.subblocks[subIndex];
-    }
-
-    // Add item to target location
-    if (activeType === 'question') {
-      const maxOrder = Math.max(
-        -1,
-        ...targetBlock.questions.map((q: Question) => q.order || 0),
-        ...targetBlock.subblocks.map((s: QuestionBlock) => s.order || 0)
-      );
-      (activeItem as Question).order = maxOrder + 1;
-      targetBlock.questions.push(activeItem as Question);
-    } else {
-      const maxOrder = Math.max(
-        -1,
-        ...targetBlock.questions.map((q: Question) => q.order || 0),
-        ...targetBlock.subblocks.map((s: QuestionBlock) => s.order || 0)
-      );
-      (activeItem as QuestionBlock).order = maxOrder + 1;
-      targetBlock.subblocks.push(activeItem as QuestionBlock);
-    }
-
-    console.log('Updated blocks:', updatedBlocks);
-    form.setValue(sectionName, updatedBlocks);
-    handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-  };
-
-  // Handle drag end for top-level question blocks
-  const handleTopLevelDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id) {
-      return;
-    }
-
-    // Check if it's a cross-level drop to a dropzone
-    if (over.data?.current?.type === 'dropzone') {
-      const targetBlockIndex = over.data.current.blockIndex;
-      const targetSubblockPath = over.data.current.subblockPath;
-      handleCrossLevelMove(active.id as string, targetBlockIndex, targetSubblockPath);
-      return;
-    }
-
-    const questionBlocks = form.getValues(sectionName) || [];
-    const activeIndex = questionBlocks.findIndex(block => block.id === active.id);
-    const overIndex = questionBlocks.findIndex(block => block.id === over.id);
-
-    if (activeIndex !== -1 && overIndex !== -1) {
-      const reorderedBlocks = arrayMove(questionBlocks, activeIndex, overIndex);
-      
-      // Update orders
-      reorderedBlocks.forEach((block, index) => {
-        block.order = index;
-      });
-
-      form.setValue(sectionName, reorderedBlocks);
-      handleFieldChange(sectionName, JSON.stringify(reorderedBlocks));
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">{title}</h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => addQuestionBlock(sectionName)}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          {t("research.addQuestionBlock")}
-        </Button>
-      </div>
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleTopLevelDragEnd}
-      >
-        <SortableContext
-          items={questionBlocks.map(block => block.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          <div className="space-y-4">
-            {questionBlocks.map((block, index) => (
-              <SortableQuestionBlock
-                key={block.id}
-                block={block}
-                blockIndex={index}
-                subblockPath={[]}
-                level={0}
-                sectionName={sectionName}
-                form={form}
-                updateQuestionBlockName={updateQuestionBlockName}
-                updateQuestion={updateQuestion}
-                removeQuestion={removeQuestion}
-                addQuestion={addQuestion}
-                addSubblock={addSubblock}
-                handleFieldChange={handleFieldChange}
-                removeQuestionBlock={removeQuestionBlock}
-                onCrossLevelMove={handleCrossLevelMove}
-                t={t}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-
-      {/* Top-level drop zone for cross-level moves */}
-      <DropZone
-        blockIndex={-1}
-        subblockPath={[]}
-        level={0}
-        onDrop={(activeId) => {
-          console.log('Top-level drop:', activeId);
-          // Special handler for creating new top-level blocks
-          const currentBlocks = form.getValues(sectionName) || [];
-          const updatedBlocks = JSON.parse(JSON.stringify(currentBlocks));
-          
-          let activeItem: Question | QuestionBlock | null = null;
-          let activeType: 'question' | 'subblock' | null = null;
-
-          // Find and remove the item
-          const searchAndRemove = (blocks: QuestionBlock[]): boolean => {
-            for (const block of blocks) {
-              const questionIndex = block.questions.findIndex(q => q.id === activeId);
-              if (questionIndex !== -1) {
-                activeItem = block.questions[questionIndex];
-                activeType = 'question';
-                block.questions.splice(questionIndex, 1);
-                return true;
-              }
-
-              const subblockIndex = block.subblocks.findIndex(s => s.id === activeId);
-              if (subblockIndex !== -1) {
-                activeItem = block.subblocks[subblockIndex];
-                activeType = 'subblock';
-                block.subblocks.splice(subblockIndex, 1);
-                return true;
-              }
-
-              if (searchAndRemove(block.subblocks)) {
-                return true;
-              }
-            }
-            return false;
-          };
-
-          if (searchAndRemove(updatedBlocks) && activeItem) {
-            if (activeType === 'question') {
-              // Create new top-level block with the question
-              const newBlock: QuestionBlock = {
-                id: Math.random().toString(),
-                name: "",
-                questions: [activeItem as Question],
-                subblocks: [],
-                order: updatedBlocks.length,
-              };
-              updatedBlocks.push(newBlock);
-            } else {
-              // Add subblock as new top-level block
-              (activeItem as QuestionBlock).order = updatedBlocks.length;
-              updatedBlocks.push(activeItem as QuestionBlock);
-            }
-            
-            form.setValue(sectionName, updatedBlocks);
-            handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
-          }
-        }}
-        t={t}
-        label="🎯 Drop questions or blocks here to create new top-level sections"
-      />
-
-      {questionBlocks.length === 0 && (
-        <div className="text-center text-gray-500 py-8 border-2 border-dashed border-gray-200 rounded-lg">
-          No question blocks yet. Click "Add Question Block" to get started.
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Component for Results tab
-function ResearchResultsForm({
-  research,
-  onUpdate,
-  isLoading,
-  onTempDataUpdate,
-}: {
-  research?: Research;
-  onUpdate: (data: InsertResearch) => void;
-  isLoading: boolean;
-  onTempDataUpdate?: (data: { fullText: string }) => void;
-}) {
-  const { t } = useTranslation();
-  const form = useForm<{ artifactLink: string; fullText: string }>({
-    defaultValues: {
-      artifactLink: research?.artifactLink || "",
-      fullText: research?.fullText || "",
-    },
-  });
-  // Reset form when research data changes
-  useEffect(() => {
-    form.reset({
-      artifactLink: research?.artifactLink || "",
-      fullText: research?.fullText || "",
-    });
-  }, [research, form]);
-  const handleSubmit = (data: { artifactLink: string; fullText: string }) => {
-    if (research) {
-      onUpdate({
-        name: research.name,
-        team: research.team,
-        researcher: research.researcher,
-        description: research.description,
-        dateStart: research.dateStart,
-        dateEnd: research.dateEnd,
-        status: research.status as ResearchStatusType,
-        color: research.color,
-        researchType: research.researchType as any,
-        products: research.products || [],
-        customerFullName: research.customerFullName || undefined,
-        additionalStakeholders: research.additionalStakeholders || undefined,
-        resultFormat:
-          (research.resultFormat as "Презентация" | "Figma") || "Презентация",
-        customerSegmentDescription:
-          research.customerSegmentDescription || undefined,
-        projectBackground: research.projectBackground || undefined,
-        problemToSolve: research.problemToSolve || undefined,
-        resultsUsage: research.resultsUsage || undefined,
-        productMetrics: research.productMetrics || undefined,
-        limitations: research.limitations || undefined,
-        researchGoals: research.researchGoals || undefined,
-        researchHypotheses: research.researchHypotheses || undefined,
-        keyQuestions: research.keyQuestions || undefined,
-        previousResources: research.previousResources || undefined,
-        additionalMaterials: research.additionalMaterials || undefined,
-        relatedResearches: research.relatedResearches || undefined,
-        figmaPrototypeLink: research.figmaPrototypeLink || undefined,
-        artifactLink: data.artifactLink,
-        brief: research.brief || undefined,
-        guide: research.guide || undefined,
-        fullText: data.fullText,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
-      });
-    }
-  };
-
-  // Handle form field changes to update temporary data
-  const handleFieldChange = (field: string, value: string) => {
-    if (onTempDataUpdate) {
-      onTempDataUpdate({ [field]: value } as any);
-    }
-  };
-
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Artifact Link Field */}
-        <FormField
-          control={form.control}
-          name="artifactLink"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                {t("research.artifactLink")}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="url"
-                  placeholder={t("research.artifactLinkPlaceholder")}
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleFieldChange("artifactLink", e.target.value);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="fullText"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
-              <FormControl>
-                <MDEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("fullText", newValue);
-                  }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter full text content...",
-                    style: { resize: 'none' }
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
-                      });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Results
-        </Button>
-      </form>
-    </Form>
-  );
-}
-
 function ResearchDetail() {
-  const { t } = useTranslation();
-  const [, setLocation] = useLocation();
-  const params = useParams<{ id: string }>();
-  const isNew = params.id === "new";
-  const id = isNew ? null : parseInt(params.id);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const { id } = useParams();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
-  // State to manage form data across tabs during creation AND editing
-  const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
+  const { t } = useTranslation();
 
+  const {
+    data: research,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["/api/researches", id],
+    enabled: !!id,
+  });
 
+  const [tempData, setTempData] = useState({});
 
-  // Handler to update temporary form data
-  const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
-    setTempFormData((prev) => ({ ...prev, ...newData }));
+  // Handler for temporary data updates
+  const handleTempDataUpdate = (data: any) => {
+    setTempData(prev => ({ ...prev, ...data }));
   };
 
-  // Clear temporary data when navigating to a different research
-  useEffect(() => {
-    setTempFormData({});
-  }, [id]);
-  
-  // Query all researches for autocomplete functionality in Brief tab
-  const { data: allResearches = [] } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
-  });
-
-  const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
-    queryKey: ["/api/researches", id],
-    queryFn: async () => {
-      if (isNew) return undefined;
-      try {
-        const res = await apiRequest("GET", `/api/researches/${id}`);
-        if (!res.ok) {
-          throw new Error("Research not found");
-        }
-        const data = await res.json();
-        return data;
-      } catch (error) {
-        console.error("Error fetching research:", error);
-        throw error;
-      }
-    },
-    enabled: !isNew && !!id,
-  });
-
-  // Combine existing research data with temporary changes from form data
-  const effectiveResearch = useMemo(() => {
-    if (isNew) {
-      return { ...tempFormData } as unknown as Research;
-    } else if (research) {
-      // Handle special parsing for relatedResearches field
-      const parsedTempData = { ...tempFormData };
-      if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
-        try {
-          parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
-        } catch (error) {
-          console.error("Error parsing relatedResearches from temp data:", error);
-          parsedTempData.relatedResearches = [];
-        }
-      }
-      return { ...research, ...parsedTempData } as Research;
-    }
-    return research;
-  }, [isNew, research, tempFormData]);
-
-  const { data: researches = [] } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
-    enabled: isNew, // Only load all researches when creating a new one (for duplicate detection)
-  });
-
-  // Fetch all meetings to filter the ones related to this research
-  const { data: meetings = [], isLoading: isMeetingsLoading } = useQuery<
-    Meeting[]
-  >({
-    queryKey: ["/api/meetings"],
-    enabled: !isNew && !!id, // Only load meetings when viewing an existing research
-  });
-
-  // Filter meetings related to this research
-  const researchMeetings = meetings.filter(
-    (meeting) => meeting.researchId === id,
-  );
-
-  const createMutation = useMutation({
-    mutationFn: async (researchData: InsertResearch) => {
-      const res = await apiRequest("POST", "/api/researches", researchData);
-      return res.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      toast({ title: "Research created successfully" });
-      // Redirect to the newly created research detail page
-      setLocation(`/researches/${data.id}`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error creating research",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
+  // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: ResearchWithId) => {
-      const { id, ...updateData } = data;
-      const res = await apiRequest(
-        "PATCH",
-        `/api/researches/${id}`,
-        updateData,
-      );
-      return res.json();
+    mutationFn: async (data: InsertResearch) => {
+      if (!id) throw new Error("No research ID");
+      return await apiRequest(`/api/researches/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Research updated successfully",
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/researches", id] });
-      toast({ title: "Research updated successfully" });
+      // Clear temp data after successful save
+      setTempData({});
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error updating research",
-        description: error.message,
+        title: "Error",
+        description: error.message || "Failed to update research",
         variant: "destructive",
       });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!id) return;
-      const res = await apiRequest("DELETE", `/api/researches/${id}`);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to delete research");
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      toast({ title: "Research deleted successfully" });
-      setLocation("/researches"); // Return to researches list
-    },
-    onError: (error: Error) => {
-      // Check if the error is due to associated meetings
-      if (error.message?.includes("associated meetings")) {
-        setErrorMessage(
-          "This research cannot be deleted because it has associated meetings. Please delete all related meetings first.",
-        );
-      } else {
-        setErrorMessage(
-          error.message || "An error occurred while deleting the research.",
-        );
-      }
-      setErrorDialogOpen(true);
-    },
-  });
-
-  // Unified save function that combines all tab data
-  const handleUnifiedSave = (overviewFormData: InsertResearch) => {
-    // Merge overview form data with temporary data from all tabs
-    const parsedTempData = { ...tempFormData };
-    
-    // Parse relatedResearches if it's a JSON string
-    if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
-      try {
-        parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
-      } catch (error) {
-        console.error("Error parsing relatedResearches for save:", error);
-        parsedTempData.relatedResearches = [];
-      }
-    }
-    
-    const completeFormData: InsertResearch = {
-      ...overviewFormData,
-      ...parsedTempData, // This contains data from Brief, Guide, Recruitment, Results tabs
-    };
-
-    if (!isNew && id) {
-      // For update, we need to include the ID
-      const updateData = { ...completeFormData, id } as unknown as ResearchWithId;
-      updateMutation.mutate(updateData);
-    } else {
-      // For create, we check for duplicates first
-      const duplicateResearch = researches.find(
-        (r) =>
-          r.name.toLowerCase() === completeFormData.name.toLowerCase() &&
-          r.team.toLowerCase() === completeFormData.team.toLowerCase(),
-      );
-      if (duplicateResearch) {
-        if (
-          confirm(
-            "A research with this name and team already exists. Create anyway?",
-          )
-        ) {
-          createMutation.mutate(completeFormData);
-        }
-      } else {
-        createMutation.mutate(completeFormData);
-      }
-    }
-  };
-
-  const handleSubmit = handleUnifiedSave;
-
-  const handleDelete = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDelete = () => {
-    deleteMutation.mutate();
-    setShowDeleteConfirm(false);
-  };
-
-  const handleCancel = () => {
-    setLocation("/researches");
-  };
-
-  const isLoading = isResearchLoading || isMeetingsLoading;
-  const isPending =
-    createMutation.isPending ||
-    updateMutation.isPending ||
-    deleteMutation.isPending;
-
-  if (isLoading && !isNew) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center">
+          <Loader2 className="mr-2 h-8 w-8 animate-spin" />
+          Loading research...
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !research) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card className="p-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Research not found</h2>
+            <p className="text-gray-600 mb-4">
+              The research you're looking for doesn't exist or has been removed.
+            </p>
+            <Button onClick={() => setLocation("/researches")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Researches
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#ffffff] px-4 py-6">
-      <div className="container mx-auto max-w-4xl">
-        {/* Header with breadcrumb-style navigation */}
-        <div className="mb-6 flex items-center text-sm text-gray-500">
+    <div className="container mx-auto py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            className="p-1 text-gray-400 hover:text-gray-700 rounded-full"
+            size="sm"
             onClick={() => setLocation("/researches")}
+            className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
+            Back to Researches
           </Button>
-          <span className="mx-2 text-gray-300">/</span>
-          <span
-            className="hover:text-gray-800 cursor-pointer"
-            onClick={() => setLocation("/researches")}
-          >
-            Researches
-          </span>
-          <span className="mx-2 text-gray-300">/</span>
-          <span className="text-gray-800 font-medium truncate">
-            {isNew ? "New Research" : research?.name || "Research Details"}
-          </span>
-        </div>
-
-        {/* Main content container - Notion-style UI */}
-        <div className="bg-white overflow-hidden">
-          {/* Document title - Notion style */}
-          <div className="px-8 pt-8 pb-4 border-b border-gray-100">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
-              {isNew ? "Create New Research" : research?.name}
-            </h1>
-            <div className="flex items-center gap-3 text-sm text-gray-500 my-2">
-              {!isNew && research && (
-                <>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium
-                      ${
-                        research.status === ResearchStatus.DONE
-                          ? "bg-green-100 text-green-800"
-                          : research.status === ResearchStatus.IN_PROGRESS
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {research.status}
-                    </span>
-                  </div>
-                  <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium">
-                    {research.team}
-                  </div>
-                  <div className="flex items-center">
-                    <div
-                      className="w-3 h-3 rounded-full mr-1"
-                      style={{ backgroundColor: research.color }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {new Date(research?.dateStart).toLocaleDateString()} -{" "}
-                    {new Date(research?.dateEnd).toLocaleDateString()}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Main content area with tabs */}
-          <div className="px-8 py-6">
-            <Tabs defaultValue="info" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="info">
-                  {t("research.tabs.overview")}
-                </TabsTrigger>
-                <TabsTrigger value="brief">
-                  {t("research.tabs.brief")}
-                </TabsTrigger>
-                <TabsTrigger value="guide">
-                  {t("research.tabs.guide")}
-                </TabsTrigger>
-                <TabsTrigger value="recruitment">
-                  {t("research.tabs.recruitment")}
-                </TabsTrigger>
-                <TabsTrigger value="results">
-                  {t("research.tabs.results")}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="info" className="mt-6">
-                <ResearchForm
-                  onSubmit={handleSubmit}
-                  initialData={effectiveResearch || undefined}
-                  isLoading={isPending}
-                  onCancel={handleCancel}
-                  onDelete={!isNew ? handleDelete : undefined}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
-              </TabsContent>
-
-              <TabsContent value="brief" className="mt-6">
-                <ResearchBriefForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  allResearches={allResearches}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
-              </TabsContent>
-
-              <TabsContent value="guide" className="mt-6">
-                <ResearchGuideForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
-              </TabsContent>
-
-              <TabsContent value="recruitment" className="mt-6">
-                <ResearchRecruitmentForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
-              </TabsContent>
-
-              <TabsContent value="results" className="mt-6">
-                <ResearchResultsForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
-              </TabsContent>
-            </Tabs>
-
-            {/* Connected Meetings Section */}
-            {!isNew && id && (
-              <div className="mt-10">
-                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
-                  <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-xl">
-                      Connected Meetings
-                    </CardTitle>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setLocation(`/meetings/new?researchId=${id}`)
-                      }
-                      className="flex items-center gap-1"
-                    >
-                      <PlusIcon className="h-4 w-4" /> Create Meeting
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {researchMeetings.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        No meetings are connected to this research yet.
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
-                              <TableHead className="w-[15%]">Status</TableHead>
-                              <TableHead className="w-[15%]">
-                                Company Name
-                              </TableHead>
-                              <TableHead className="w-[15%]">
-                                Respondent Name
-                              </TableHead>
-                              <TableHead className="w-[15%]">
-                                Position
-                              </TableHead>
-                              <TableHead className="w-[15%]">Date</TableHead>
-                              <TableHead className="w-[15%]">
-                                Recruiter
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {researchMeetings.map((meeting) => (
-                              <TableRow
-                                key={meeting.id}
-                                className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
-                                onClick={() =>
-                                  setLocation(`/meetings/${meeting.id}`)
-                                }
-                              >
-                                <TableCell>
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
-                                    ${
-                                      meeting.status === "Done"
-                                        ? "bg-green-100 text-green-800"
-                                        : meeting.status === "In Progress"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : meeting.status === "Meeting Set"
-                                            ? "bg-purple-100 text-purple-800"
-                                            : "bg-gray-100 text-gray-800"
-                                    }`}
-                                    title={meeting.status}
-                                  >
-                                    {meeting.status}
-                                  </span>
-                                </TableCell>
-                                <TableCell
-                                  className="font-medium truncate max-w-[150px]"
-                                  title={meeting.companyName || ""}
-                                >
-                                  {meeting.companyName || "—"}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.respondentName}
-                                >
-                                  {meeting.respondentName}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.respondentPosition}
-                                >
-                                  {meeting.respondentPosition}
-                                </TableCell>
-                                <TableCell className="whitespace-nowrap">
-                                  {new Date(meeting.date).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.salesPerson}
-                                >
-                                  {meeting.salesPerson}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+          <div>
+            <h1 className="text-3xl font-bold">{research.name}</h1>
+            <p className="text-gray-600">Research Details</p>
           </div>
         </div>
-
-        <AlertDialog
-          open={showDeleteConfirm}
-          onOpenChange={setShowDeleteConfirm}
-        >
-          <AlertDialogContent className="bg-white rounded-lg border-0 shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold">
-                Delete Research
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-600">
-                Are you sure you want to delete this research? This action
-                cannot be undone. If this research has associated meetings, they
-                must be deleted first.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-              <AlertDialogCancel className="bg-white border border-gray-200 hover:bg-gray-50">
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDelete}
-                className="bg-red-500 hover:bg-red-600 text-white border-0"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-          <AlertDialogContent className="bg-white rounded-lg border-0 shadow-lg">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-xl font-semibold">
-                Error
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-600">
-                {errorMessage}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction className="bg-primary hover:bg-primary/90 text-white border-0">
-                OK
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </div>
+
+      <Tabs defaultValue="brief" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="brief">Brief</TabsTrigger>
+          <TabsTrigger value="guide">Guide</TabsTrigger>
+          <TabsTrigger value="recruitment">Recruitment</TabsTrigger>
+          <TabsTrigger value="results">Results</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="brief" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Research Brief</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResearchBriefForm 
+                research={research}
+                onUpdate={updateMutation.mutate}
+                isLoading={updateMutation.isPending}
+                allResearches={[]}
+                onTempDataUpdate={handleTempDataUpdate}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="guide" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Research Guide</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResearchGuideForm 
+                research={research}
+                onUpdate={updateMutation.mutate}
+                isLoading={updateMutation.isPending}
+                onTempDataUpdate={handleTempDataUpdate}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="recruitment" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recruitment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResearchRecruitmentForm 
+                research={research}
+                onUpdate={updateMutation.mutate}
+                isLoading={updateMutation.isPending}
+                onTempDataUpdate={handleTempDataUpdate}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="results" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">Results functionality coming soon...</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
