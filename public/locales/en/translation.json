@@ -49,7 +49,12 @@
     "noResearches": "No researches found",
     "statusPlanned": "Planned",
     "statusInProgress": "In Progress",
-    "statusDone": "Done"
+    "statusDone": "Done",
+    "relatedResearches": "Related Researches",
+    "addRelatedResearch": "Add Related Research",
+    "selectRelatedResearch": "Select research...",
+    "previousResources": "Previous Resources",
+    "additionalMaterials": "Additional Materials"
   },
   "meetings": {
     "title": "Meetings",

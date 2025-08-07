@@ -49,7 +49,12 @@
     "noResearches": "Исследования не найдены",
     "statusPlanned": "Запланировано",
     "statusInProgress": "В процессе",
-    "statusDone": "Завершено"
+    "statusDone": "Завершено",
+    "relatedResearches": "Связанные исследования",
+    "addRelatedResearch": "Добавить связанное исследование",
+    "selectRelatedResearch": "Выберите исследование...",
+    "previousResources": "Предыдущие ресурсы",
+    "additionalMaterials": "Дополнительные материалы"
   },
   "meetings": {
     "title": "Встречи",
