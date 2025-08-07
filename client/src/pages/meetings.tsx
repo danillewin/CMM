@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Meeting, MeetingStatus, Research, MeetingTableItem, PaginatedResponse } from "@shared/schema";
+import { Meeting, MeetingStatus, Research, MeetingTableItem, PaginatedResponse, ResearchTableItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,10 +40,19 @@ export default function Meetings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Ensure research data is loaded first and wait for it to complete
-  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
+  // Load research data for filters (lightweight version)
+  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<PaginatedResponse<ResearchTableItem>>({
+    queryKey: ["/api/researches", "for-filters"],
+    queryFn: async () => {
+      const response = await fetch(`/api/researches?page=1&limit=100`); // Get enough for filters
+      if (!response.ok) {
+        throw new Error("Failed to fetch researches");
+      }
+      return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
+    },
   });
+  
+  const researches = researchesResponse?.data || [];
 
   // Use infinite scroll for meetings
   const {
@@ -98,14 +107,12 @@ export default function Meetings() {
       [t("meetings.respondentName")]: meeting.respondentName,
       [t("meetings.respondentPosition")]: meeting.respondentPosition,
       [t("meetings.cnum")]: meeting.cnum,
-      [t("meetings.gcc")]: meeting.gcc || '—',
       [t("meetings.companyName")]: meeting.companyName,
       [t("meetings.relationshipManager")]: meeting.relationshipManager,
       [t("meetings.recruiter")]: meeting.salesPerson,
       [t("meetings.researcher")]: meeting.researcher || '—',
       [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
       [t("meetings.status")]: meeting.status,
-      [t("meetings.hasGift")]: meeting.hasGift === "yes" ? t("meetings.giftYes") : t("meetings.giftNo"),
       [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
@@ -126,14 +133,12 @@ export default function Meetings() {
       [t("meetings.respondentName")]: meeting.respondentName,
       [t("meetings.respondentPosition")]: meeting.respondentPosition,
       [t("meetings.cnum")]: meeting.cnum,
-      [t("meetings.gcc")]: meeting.gcc || '—',
       [t("meetings.companyName")]: meeting.companyName,
       [t("meetings.relationshipManager")]: meeting.relationshipManager,
       [t("meetings.recruiter")]: meeting.salesPerson,
       [t("meetings.researcher")]: meeting.researcher || '—',
       [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
       [t("meetings.status")]: meeting.status,
-      [t("meetings.hasGift")]: meeting.hasGift === "yes" ? t("meetings.giftYes") : t("meetings.giftNo"),
       [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
     }));
 
@@ -144,14 +149,12 @@ export default function Meetings() {
   };
 
   // Helper function to get the value for sorting
-  const getValueForSorting = (meeting: Meeting, field: string) => {
+  const getValueForSorting = (meeting: MeetingTableItem, field: string) => {
     switch (field) {
       case "date":
         return new Date(meeting.date);
       case "cnum":
         return meeting.cnum;
-      case "gcc":
-        return meeting.gcc || "";
       case "respondentPosition":
         return meeting.respondentPosition || "";
       case "companyName":
@@ -181,7 +184,6 @@ export default function Meetings() {
       (meeting) =>
         (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
           meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.gcc?.toLowerCase() || "").includes(search.toLowerCase()) ||
           (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase()) ||
           (meeting.respondentPosition?.toLowerCase() || "").includes(search.toLowerCase()) ||
           meeting.relationshipManager.toLowerCase().includes(search.toLowerCase()) ||
@@ -195,8 +197,7 @@ export default function Meetings() {
         (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
         (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
         (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
-        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter) &&
-        (giftFilter === "ALL" || !giftFilter || meeting.hasGift === giftFilter)
+        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter)
     )
     .sort((a, b) => {
       const aVal = getValueForSorting(a, sortBy);
@@ -216,7 +217,7 @@ export default function Meetings() {
     }
   };
   
-  const handleRowClick = (meeting: Meeting) => {
+  const handleRowClick = (meeting: MeetingTableItem) => {
     // Navigate to the meeting detail page
     setLocation(`/meetings/${meeting.id}`);
   };
