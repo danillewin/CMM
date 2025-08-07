@@ -250,7 +250,12 @@
     "uploadFiles": "Upload Files",
     "uploadDescription": "Upload audio or video files to automatically transcribe and add to Full Text",
     "processing": "Processing files...",
-    "processComplete": "Processing complete!"
+    "processComplete": "Processing complete!",
+    "relatedResearches": "Related Researches",
+    "addRelatedResearch": "Add Related Research",
+    "selectRelatedResearch": "Select research...",
+    "previousResources": "Previous Resources",
+    "additionalMaterials": "Additional Materials"
   },
   "researchTypes": {
     "cati": "CATI (Telephone Survey)",

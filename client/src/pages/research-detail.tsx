@@ -88,6 +88,34 @@ function ResearchBriefForm({
   onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[] }) => void;
 }) {
   const { t } = useTranslation();
+
+  // Query to fetch research details for related researches to display their names
+  const { data: relatedResearchesData = [] } = useQuery<Research[]>({
+    queryKey: ["/api/researches", "byIds", research?.relatedResearches],
+    queryFn: async () => {
+      if (!research?.relatedResearches || research.relatedResearches.length === 0) {
+        return [];
+      }
+      
+      // Fetch each research by ID
+      const researchPromises = research.relatedResearches.map(async (id) => {
+        try {
+          const res = await apiRequest("GET", `/api/researches/${id}`);
+          if (res.ok) {
+            return await res.json();
+          }
+          return null;
+        } catch (error) {
+          console.error(`Error fetching research ${id}:`, error);
+          return null;
+        }
+      });
+      
+      const results = await Promise.all(researchPromises);
+      return results.filter(Boolean) as Research[];
+    },
+    enabled: !!(research?.relatedResearches && research.relatedResearches.length > 0),
+  });
   const form = useForm<{
     researchType: string;
     customerFullName: string;
@@ -699,10 +727,13 @@ function ResearchBriefForm({
                   </Button>
                 </div>
                 {relatedResearchFields.map((field, index) => {
+                  const currentValue = form.watch(`relatedResearches.${index}.value`);
+                  const relatedResearch = relatedResearchesData.find(r => r.id.toString() === currentValue);
+                  
                   return (
                     <div key={field.id} className="flex items-center space-x-2">
                       <ResearchSelector
-                        value={form.watch(`relatedResearches.${index}.value`) ? parseInt(form.watch(`relatedResearches.${index}.value`)) : undefined}
+                        value={currentValue ? parseInt(currentValue) : undefined}
                         onValueChange={(value) => {
                           form.setValue(`relatedResearches.${index}.value`, value?.toString() || "");
                           // Update temp data for related researches
@@ -718,6 +749,7 @@ function ResearchBriefForm({
                         onResearchSelect={() => {}} // Not needed for related researches
                         placeholder={t("research.selectRelatedResearch")}
                         excludeResearchId={research?.id} // Exclude current research from results
+                        displayName={relatedResearch ? `${relatedResearch.name} (${relatedResearch.team})` : undefined}
                       />
                       <Button
                         type="button"

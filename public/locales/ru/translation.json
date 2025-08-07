@@ -227,7 +227,12 @@
     "uploadFiles": "Загрузить файлы",
     "uploadDescription": "Загрузите аудио или видео файлы для автоматической транскрипции и добавления в полный текст",
     "processing": "Обработка файлов...",
-    "processComplete": "Обработка завершена!"
+    "processComplete": "Обработка завершена!",
+    "relatedResearches": "Связанные исследования",
+    "addRelatedResearch": "Добавить связанное исследование",
+    "selectRelatedResearch": "Выберите исследование...",
+    "previousResources": "Предыдущие ресурсы",
+    "additionalMaterials": "Дополнительные материалы"
   },
   "researchTypes": {
     "cati": "CATI (Телефонный опрос)",
