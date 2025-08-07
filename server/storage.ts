@@ -103,9 +103,18 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
-    // Build WHERE clause for research filtering
-    const whereClause = researchId ? 'WHERE m.research_id = $3' : '';
-    const queryParams = researchId ? [limit + 1, offset, researchId] : [limit + 1, offset];
+    // Build WHERE clause and parameters for research filtering
+    let whereClause = '';
+    let queryParams: any[] = [];
+    let countParams: any[] = [];
+    
+    if (researchId) {
+      whereClause = 'WHERE m.research_id = $1';
+      queryParams = [researchId, limit + 1, offset];
+      countParams = [researchId];
+    } else {
+      queryParams = [limit + 1, offset];
+    }
     
     // Query for only essential fields for table display with research info via JOIN
     const query = `
@@ -117,12 +126,11 @@ export class DatabaseStorage implements IStorage {
       LEFT JOIN researches r ON m.research_id = r.id
       ${whereClause}
       ORDER BY m.${dbColumn} ${direction}
-      LIMIT $1 OFFSET $2
+      LIMIT $${researchId ? '2' : '1'} OFFSET $${researchId ? '3' : '2'}
     `;
     
     // Count total for hasMore calculation with same filtering  
-    const countQuery = `SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id ${whereClause}`;
-    const countParams = researchId ? [researchId] : [];
+    const countQuery = `SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id ${whereClause}`;;
     
     const [dataResult, countResult] = await Promise.all([
       pool.query(query, queryParams), // Fetch one extra to check if more exists
