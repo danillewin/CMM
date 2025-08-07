@@ -265,6 +265,7 @@ export type PaginationParams = {
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
   search?: string;
+  researchId?: number;
 };
 
 export type PaginatedResponse<T> = {

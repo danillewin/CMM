@@ -2645,18 +2645,21 @@ function ResearchDetail() {
     enabled: isNew, // Only load all researches when creating a new one (for duplicate detection)
   });
 
-  // Fetch all meetings to filter the ones related to this research
-  const { data: meetings = [], isLoading: isMeetingsLoading } = useQuery<
+  // Fetch meetings by research ID using a specific API endpoint
+  const { data: researchMeetings = [], isLoading: isMeetingsLoading } = useQuery<
     Meeting[]
   >({
-    queryKey: ["/api/meetings"],
+    queryKey: ["/api/meetings", "by-research", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const res = await apiRequest("GET", `/api/meetings?researchId=${id}`);
+      if (!res.ok) throw new Error("Failed to fetch meetings");
+      const result = await res.json();
+      // Handle both paginated response {data: Meeting[]} and direct Meeting[] array
+      return Array.isArray(result) ? result : (result.data || []);
+    },
     enabled: !isNew && !!id, // Only load meetings when viewing an existing research
   });
-
-  // Filter meetings related to this research
-  const researchMeetings = meetings.filter(
-    (meeting) => meeting.researchId === id,
-  );
 
   const createMutation = useMutation({
     mutationFn: async (researchData: InsertResearch) => {

@@ -84,7 +84,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingsPaginated(params: PaginationParams): Promise<PaginatedResponse<MeetingTableItem>> {
-    const { page = 1, limit = 20, sortBy = 'date', sortDir = 'desc' } = params;
+    const { page = 1, limit = 20, sortBy = 'date', sortDir = 'desc', researchId } = params;
     const offset = (page - 1) * limit;
     
     // Map frontend field names to database column names
@@ -103,6 +103,10 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
+    // Build WHERE clause for research filtering
+    const whereClause = researchId ? 'WHERE m.research_id = $3' : '';
+    const queryParams = researchId ? [limit + 1, offset, researchId] : [limit + 1, offset];
+    
     // Query for only essential fields for table display with research info via JOIN
     const query = `
       SELECT 
@@ -111,16 +115,18 @@ export class DatabaseStorage implements IStorage {
         m.cnum, r.name as research_name
       FROM meetings m
       LEFT JOIN researches r ON m.research_id = r.id
+      ${whereClause}
       ORDER BY m.${dbColumn} ${direction}
       LIMIT $1 OFFSET $2
     `;
     
-    // Count total for hasMore calculation  
-    const countQuery = 'SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id';
+    // Count total for hasMore calculation with same filtering  
+    const countQuery = `SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id ${whereClause}`;
+    const countParams = researchId ? [researchId] : [];
     
     const [dataResult, countResult] = await Promise.all([
-      pool.query(query, [limit + 1, offset]), // Fetch one extra to check if more exists
-      pool.query(countQuery)
+      pool.query(query, queryParams), // Fetch one extra to check if more exists
+      pool.query(countQuery, countParams)
     ]);
     
     const meetings = dataResult.rows;
