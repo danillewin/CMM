@@ -156,8 +156,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeeting(id: number): Promise<Meeting | undefined> {
-    const [meeting] = await db.select().from(meetings).where(eq(meetings.id, id));
-    return meeting;
+    // Get meeting with research information via JOIN
+    const query = `
+      SELECT 
+        m.*, r.name as research_name
+      FROM meetings m
+      LEFT JOIN researches r ON m.research_id = r.id
+      WHERE m.id = $1
+    `;
+    
+    const result = await pool.query(query, [id]);
+    if (result.rows.length === 0) return undefined;
+    
+    const row = result.rows[0];
+    
+    // Map database fields to Meeting type
+    return {
+      id: row.id,
+      respondentName: row.respondent_name,
+      respondentPosition: row.respondent_position,
+      cnum: row.cnum,
+      gcc: row.gcc,
+      companyName: row.company_name,
+      email: row.email,
+      researcher: row.researcher,
+      relationshipManager: row.relationship_manager,
+      salesPerson: row.recruiter,
+      date: row.date,
+      researchId: row.research_id,
+      status: row.status,
+      notes: row.notes,
+      fullText: row.full_text,
+      hasGift: row.has_gift,
+      // Include research name from JOIN
+      researchName: row.research_name
+    };
   }
 
   async createMeeting(meeting: InsertMeeting): Promise<Meeting> {

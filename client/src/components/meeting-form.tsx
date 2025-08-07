@@ -54,9 +54,11 @@ export default function MeetingForm({
 }: MeetingFormProps) {
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
   
-  const { data: researches = [] } = useQuery<Research[]>({
+  const { data: researchesResponse } = useQuery<{data: Research[]}>({
     queryKey: ["/api/researches"],
   });
+  
+  const researches = researchesResponse?.data || [];
   const { lastUsedManager, addManager } = useManagers();
 
   // Properly handle the date conversion for the form

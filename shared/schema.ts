@@ -219,7 +219,9 @@ export type Position = typeof positions.$inferSelect;
 export type InsertResearch = z.infer<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
-export type Meeting = typeof meetings.$inferSelect;
+export type Meeting = typeof meetings.$inferSelect & {
+  researchName?: string; // Optional research name from JOIN queries
+};
 export type InsertJtbd = z.infer<typeof insertJtbdSchema>;
 export type Jtbd = typeof jtbds.$inferSelect;
 export type ResearchJtbd = typeof researchJtbds.$inferSelect;

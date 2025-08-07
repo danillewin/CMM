@@ -306,8 +306,10 @@ export default function MeetingDetail() {
     enabled: isNew, // Only load all meetings when creating a new one (for duplicate detection)
   });
 
+  // Only fetch research data when creating a new meeting for the dropdown
   const { data: researchesResponse, isLoading: isResearchesLoading } = useQuery<{data: Research[]}>({
     queryKey: ["/api/researches"],
+    enabled: isNew, // Only load when creating a new meeting
   });
   
   const researches = researchesResponse?.data || [];
@@ -505,9 +507,9 @@ export default function MeetingDetail() {
                     e.stopPropagation(); // Prevent event bubbling
                     setLocation(`/researches/${meeting.researchId}`);
                   }}
-                  title={`${researches && Array.isArray(researches) ? researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research' : 'Research'} - Click to view research details`}
+                  title={`${meeting.researchName || 'Research'} - Click to view research details`}
                 >
-                  <span className="truncate">{researches && Array.isArray(researches) ? researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research' : 'Research'}</span>
+                  <span className="truncate">{meeting.researchName || 'Research'}</span>
                   <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 </div>
               )}
@@ -635,12 +637,12 @@ export default function MeetingDetail() {
                 </TableHeader>
                 <TableBody>
                   {duplicateMeetings.map((meeting) => {
-                    const research = researches && Array.isArray(researches) ? researches.find(r => r.id === meeting.researchId) : null;
+                    const research = { name: meeting.researchName || 'Unknown Research' };
                     return (
                       <TableRow key={meeting.id}>
                         <TableCell>{new Date(meeting.date).toLocaleDateString()}</TableCell>
                         <TableCell>{meeting.respondentName}</TableCell>
-                        <TableCell>{research?.name || 'Unknown Research'}</TableCell>
+                        <TableCell>{research.name}</TableCell>
                         <TableCell>
                           <Button 
                             variant="ghost" 
