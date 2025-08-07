@@ -401,14 +401,14 @@ export default function MeetingForm({
                       onValueChange={(value) => {
                         // Update the research ID
                         field.onChange(value);
+                        handleFieldChange("researchId", value);
                       }}
                       onResearchSelect={(research) => {
                         // Update the researcher field with the researcher from the selected research
                         form.setValue('researcher', research.researcher);
+                        handleFieldChange("researcher", research.researcher);
                       }}
                       placeholder="Select research..."
-                      disabled={!isCreating} // Only allow changes when creating new meetings
-                      displayName={!isCreating && initialData ? (initialData as any).researchName : undefined}
                     />
                   </FormControl>
                   <FormMessage />
