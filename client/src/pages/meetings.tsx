@@ -40,7 +40,7 @@ export default function Meetings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
-  // Load research data for filters (lightweight version)
+  // Research data for filters - only load when research filter is actively being used
   const { data: researchesResponse, isLoading: researchesLoading } = useQuery<PaginatedResponse<ResearchTableItem>>({
     queryKey: ["/api/researches", "for-filters"],
     queryFn: async () => {
@@ -50,6 +50,7 @@ export default function Meetings() {
       }
       return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
     },
+    enabled: false, // No longer needed since research options come from meetings data
   });
   
   const researches = researchesResponse?.data || [];
@@ -79,7 +80,7 @@ export default function Meetings() {
     enabled: true, // No need to wait for researches since we JOIN them in the query
   });
   
-  // Combined loading state
+  // Loading state - only meetings since research data comes from JOIN
   const isLoading = meetingsLoading;
 
   // Status update mutation for the dropdown in the table
@@ -405,7 +406,7 @@ export default function Meetings() {
         </span>
       )
     }
-  ], [t, researches, meetings, updateStatusMutation]); // Dependencies for useMemo
+  ], [t, meetings, updateStatusMutation]); // Dependencies for useMemo
 
   // Prepare filter configurations with useMemo to update on language change
   const filterConfigs = useMemo(() => [
@@ -430,7 +431,14 @@ export default function Meetings() {
       name: t("meetings.research"),
       options: [
         { label: t("filters.all"), value: "ALL" },
-        ...researches.map(research => ({ 
+        // Get unique research options from meetings data
+        ...Array.from(
+          new Map(
+            meetings
+              .filter(m => m.researchName && m.researchId)
+              .map(m => [m.researchId!, { id: m.researchId!, name: m.researchName! }])
+          ).values()
+        ).map(research => ({ 
           label: research.name, 
           value: research.id.toString() 
         }))
