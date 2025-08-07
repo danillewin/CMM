@@ -25,6 +25,7 @@ interface ResearchSelectorProps {
   disabled?: boolean;
   onResearchSelect?: (research: Research) => void; // Callback to pass full research data
   displayName?: string; // For displaying existing research name when disabled
+  excludeResearchId?: number; // Research ID to exclude from results (for Related Researches)
 }
 
 export function ResearchSelector({
@@ -33,7 +34,8 @@ export function ResearchSelector({
   placeholder = "Select research...",
   disabled = false,
   onResearchSelect,
-  displayName
+  displayName,
+  excludeResearchId
 }: ResearchSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,7 +59,7 @@ export function ResearchSelector({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["/api/researches", "selector", debouncedSearchQuery],
+    queryKey: ["/api/researches", "selector", debouncedSearchQuery, excludeResearchId],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
         page: pageParam.toString(),
@@ -74,7 +76,14 @@ export function ResearchSelector({
       if (!response.ok) {
         throw new Error("Failed to fetch researches");
       }
-      return response.json() as Promise<PaginatedResponse<Research>>;
+      const result = await response.json() as PaginatedResponse<Research>;
+      
+      // Filter out excluded research if specified
+      if (excludeResearchId) {
+        result.data = result.data.filter(research => research.id !== excludeResearchId);
+      }
+      
+      return result;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {

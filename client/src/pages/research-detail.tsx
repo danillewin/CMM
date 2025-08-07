@@ -63,6 +63,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ResearchSelector } from "@/components/research-selector";
 import {
   Collapsible,
   CollapsibleContent,
@@ -79,14 +80,12 @@ function ResearchBriefForm({
   research,
   onUpdate,
   isLoading,
-  allResearches,
   onTempDataUpdate,
 }: {
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  allResearches: Research[];
-  onTempDataUpdate?: (data: { brief: string }) => void;
+  onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[] }) => void;
 }) {
   const { t } = useTranslation();
   const form = useForm<{
@@ -688,98 +687,55 @@ function ResearchBriefForm({
                   <FormLabel className="text-base font-medium">
                     {t("research.relatedResearches")}
                   </FormLabel>
-                  {(() => {
-                    const selectedIds = form
-                      .watch("relatedResearches")
-                      .map((item) => item.value)
-                      .filter((id) => id && id.trim() !== "");
-                    const availableResearches = allResearches.filter(
-                      (r) =>
-                        r.id !== research?.id &&
-                        !selectedIds.includes(r.id.toString()),
-                    );
-                    return (
-                      availableResearches.length > 0 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => appendRelatedResearch({ value: "" })}
-                          className="text-sm"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          {t("research.addRelatedResearch")}
-                        </Button>
-                      )
-                    );
-                  })()}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendRelatedResearch({ value: "" })}
+                    className="text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("research.addRelatedResearch")}
+                  </Button>
                 </div>
                 {relatedResearchFields.map((field, index) => {
-                  const selectedValue = form.watch(
-                    `relatedResearches.${index}.value`,
-                  );
-                  const selectedResearch = allResearches.find(
-                    (r) => r.id.toString() === selectedValue,
-                  );
-
                   return (
                     <div key={field.id} className="flex items-center space-x-2">
-                      <Select
-                        value={selectedValue}
+                      <ResearchSelector
+                        value={form.watch(`relatedResearches.${index}.value`) ? parseInt(form.watch(`relatedResearches.${index}.value`)) : undefined}
                         onValueChange={(value) => {
-                          console.log("Setting related research value:", value, "at index:", index);
-                          form.setValue(
-                            `relatedResearches.${index}.value`,
-                            value,
-                          );
+                          form.setValue(`relatedResearches.${index}.value`, value?.toString() || "");
                           // Update temp data for related researches
                           const currentValues = form.getValues("relatedResearches");
-                          const cleanValues = currentValues.map(s => s.value).filter(v => v && v.trim() !== "");
-                          console.log("Current related researches values:", cleanValues);
-                          handleFieldChange("relatedResearches", JSON.stringify(cleanValues));
+                          const updatedValues = currentValues.map((item, i) => 
+                            i === index ? { ...item, value: value?.toString() || "" } : item
+                          );
+                          const cleanValues = updatedValues.map(s => s.value).filter(v => v && v.trim() !== "");
+                          onTempDataUpdate?.({
+                            relatedResearches: cleanValues
+                          });
                         }}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue
-                            placeholder={t(
-                              "research.relatedResearchesPlaceholder",
-                            )}
-                          >
-                            {selectedResearch
-                              ? `${selectedResearch.name} (${selectedResearch.team})`
-                              : t("research.relatedResearchesPlaceholder")}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {allResearches
-                            .filter((r: Research) => {
-                              // Exclude current research
-                              if (r.id === research?.id) return false;
-                              // Exclude already selected researches, but allow the currently selected one for this field
-                              const selectedIds = form
-                                .watch("relatedResearches")
-                                .map((item, idx) =>
-                                  idx !== index ? item.value : null,
-                                )
-                                .filter((id) => id && id.trim() !== "");
-                              return !selectedIds.includes(r.id.toString());
-                            })
-                            .map((researchItem: Research) => (
-                              <SelectItem
-                                key={researchItem.id}
-                                value={researchItem.id.toString()}
-                              >
-                                {researchItem.name} ({researchItem.team})
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                        onResearchSelect={() => {}} // Not needed for related researches
+                        placeholder={t("research.selectRelatedResearch")}
+                        excludeResearchId={research?.id} // Exclude current research from results
+                      />
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => removeRelatedResearch(index)}
-                        className="text-red-600 hover:text-red-700"
+                        onClick={() => {
+                          removeRelatedResearch(index);
+                          // Update temp data for related researches
+                          const currentValues = form.getValues("relatedResearches");
+                          const filteredValues = currentValues
+                            .filter((_, i) => i !== index)
+                            .map(item => item.value)
+                            .filter(v => v && v.trim() !== "");
+                          onTempDataUpdate?.({
+                            relatedResearches: filteredValues
+                          });
+                        }}
+                        className="p-2"
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -2596,17 +2552,8 @@ function ResearchDetail() {
     setTempFormData({});
   }, [id]);
   
-  // Query all researches for autocomplete functionality in Brief tab
-  const { data: allResearches = [] } = useQuery<Research[]>({
-    queryKey: ["/api/researches", "all"],
-    queryFn: async () => {
-      const res = await apiRequest("GET", "/api/researches?limit=1000"); // Get all researches for autocomplete
-      if (!res.ok) throw new Error("Failed to fetch researches");
-      const result = await res.json();
-      // Handle paginated response - extract the data array
-      return Array.isArray(result) ? result : (result.data || []);
-    },
-  });
+  // Remove the inefficient query that loads all researches
+  // Related researches will now use a searchable component instead
 
   const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
     queryKey: ["/api/researches", id],
@@ -2919,7 +2866,6 @@ function ResearchDetail() {
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
-                  allResearches={allResearches}
                   onTempDataUpdate={handleTempDataUpdate}
                 />
               </TabsContent>
