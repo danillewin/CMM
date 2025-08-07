@@ -76,11 +76,11 @@ export default function Meetings() {
       }
       return response.json() as Promise<PaginatedResponse<MeetingTableItem>>;
     },
-    enabled: !researchesLoading, // This ensures meetings are fetched after researches
+    enabled: true, // No need to wait for researches since we JOIN them in the query
   });
   
   // Combined loading state
-  const isLoading = researchesLoading || meetingsLoading;
+  const isLoading = meetingsLoading;
 
   // Status update mutation for the dropdown in the table
   const updateStatusMutation = useMutation({
@@ -119,7 +119,7 @@ export default function Meetings() {
       [t("meetings.researcher")]: meeting.researcher || '—',
       [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
       [t("meetings.status")]: meeting.status,
-      [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
+      [t("meetings.research")]: meeting.researchName || '—'
     }));
 
     const csvString = [
@@ -145,7 +145,7 @@ export default function Meetings() {
       [t("meetings.researcher")]: meeting.researcher || '—',
       [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
       [t("meetings.status")]: meeting.status,
-      [t("meetings.research")]: meeting.researchId ? researches.find(r => r.id === meeting.researchId)?.name : '—'
+      [t("meetings.research")]: meeting.researchName || '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
@@ -176,9 +176,7 @@ export default function Meetings() {
       case "respondentName":
         return meeting.respondentName;
       case "research":
-        return meeting.researchId 
-          ? researches.find(r => r.id === meeting.researchId)?.name || ""
-          : "";
+        return meeting.researchName || "";
       default:
         return meeting.respondentName;
     }
@@ -197,7 +195,7 @@ export default function Meetings() {
           (meeting.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
           meeting.status.toLowerCase().includes(search.toLowerCase()) ||
           new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.researchId && researches.find(r => r.id === meeting.researchId)?.name.toLowerCase().includes(search.toLowerCase()))) &&
+          (meeting.researchName?.toLowerCase().includes(search.toLowerCase()))) &&
         (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
         (!researchFilter || meeting.researchId === researchFilter) &&
         (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
@@ -353,26 +351,20 @@ export default function Meetings() {
       name: t("meetings.research"),
       visible: true,
       sortField: "research",
-      render: (meeting: Meeting) => {
-        // Find matching research with safe checks
+      render: (meeting: MeetingTableItem) => {
+        // Use research name directly from JOIN query
+        const researchName = meeting.researchName;
         const researchId = meeting.researchId;
-        const matchingResearch = researches.find(r => r.id === researchId);
         
         return (
           <div className="max-w-[200px] truncate">
-            {researchId ? (
+            {researchName ? (
               <div className="flex items-center">
-                {matchingResearch ? (
-                  <>
-                    <div
-                      className="w-2 h-2 rounded-full mr-2 shadow-sm flex-shrink-0"
-                      style={{ backgroundColor: matchingResearch.color || '#3b82f6' }}
-                    />
-                    <span className="truncate">{matchingResearch.name}</span>
-                  </>
-                ) : (
-                  <span className="text-gray-500">{t("forms.loading")}</span>
-                )}
+                <div
+                  className="w-2 h-2 rounded-full mr-2 shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: getResearchColor(researchId || 0) }}
+                />
+                <span className="truncate">{researchName}</span>
               </div>
             ) : (
               <span className="text-gray-400">—</span>

@@ -103,19 +103,20 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
-    // Query for only essential fields for table display (no full_text, notes etc.)
+    // Query for only essential fields for table display with research info via JOIN
     const query = `
       SELECT 
-        id, respondent_name, respondent_position, company_name, researcher,
-        relationship_manager, recruiter as sales_person, date, status, research_id,
-        cnum
-      FROM meetings 
-      ORDER BY ${dbColumn} ${direction}
+        m.id, m.respondent_name, m.respondent_position, m.company_name, m.researcher,
+        m.relationship_manager, m.recruiter as sales_person, m.date, m.status, m.research_id,
+        m.cnum, r.name as research_name
+      FROM meetings m
+      LEFT JOIN researches r ON m.research_id = r.id
+      ORDER BY m.${dbColumn} ${direction}
       LIMIT $1 OFFSET $2
     `;
     
-    // Count total for hasMore calculation
-    const countQuery = 'SELECT COUNT(*) as total FROM meetings';
+    // Count total for hasMore calculation  
+    const countQuery = 'SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id';
     
     const [dataResult, countResult] = await Promise.all([
       pool.query(query, [limit + 1, offset]), // Fetch one extra to check if more exists
@@ -131,7 +132,7 @@ export class DatabaseStorage implements IStorage {
       meetings.pop();
     }
     
-    // Map database fields to match MeetingTableItem type (only essential fields)
+    // Map database fields to match MeetingTableItem type (including research name from JOIN)
     const mappedMeetings: MeetingTableItem[] = meetings.map(row => ({
       id: row.id,
       respondentName: row.respondent_name,
@@ -143,7 +144,8 @@ export class DatabaseStorage implements IStorage {
       date: row.date,
       status: row.status,
       researchId: row.research_id,
-      cnum: row.cnum
+      cnum: row.cnum,
+      researchName: row.research_name
     }));
     
     return {

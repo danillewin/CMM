@@ -275,7 +275,9 @@ export type PaginatedResponse<T> = {
 export type MeetingTableItem = Pick<Meeting, 
   'id' | 'respondentName' | 'respondentPosition' | 'companyName' | 'researcher' | 
   'relationshipManager' | 'salesPerson' | 'date' | 'status' | 'researchId' | 'cnum'
->;
+> & {
+  researchName?: string; // Added from JOIN with researches table
+};
 
 export type ResearchTableItem = Pick<Research, 
   'id' | 'name' | 'team' | 'researcher' | 'dateStart' | 'dateEnd' | 'status' | 
