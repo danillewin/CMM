@@ -37,7 +37,17 @@ export function ResearchSelector({
 }: ResearchSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search query with 400ms delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const {
     data,
@@ -47,7 +57,7 @@ export function ResearchSelector({
     isLoading,
     isError,
   } = useInfiniteQuery({
-    queryKey: ["/api/researches", "selector", searchQuery],
+    queryKey: ["/api/researches", "selector", debouncedSearchQuery],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
         page: pageParam.toString(),
@@ -56,8 +66,8 @@ export function ResearchSelector({
         sortDir: "asc",
       });
       
-      if (searchQuery.trim()) {
-        params.append("search", searchQuery.trim());
+      if (debouncedSearchQuery.trim()) {
+        params.append("search", debouncedSearchQuery.trim());
       }
 
       const response = await fetch(`/api/researches?${params}`);
@@ -134,6 +144,13 @@ export function ResearchSelector({
               <div className="flex items-center justify-center p-4">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span className="ml-2">Loading researches...</span>
+              </div>
+            )}
+            
+            {searchQuery !== debouncedSearchQuery && searchQuery.trim() && (
+              <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                Searching...
               </div>
             )}
             
