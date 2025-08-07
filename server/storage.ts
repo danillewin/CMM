@@ -328,7 +328,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>> {
-    const { page = 1, limit = 20, sortBy = 'dateStart', sortDir = 'desc' } = params;
+    const { page = 1, limit = 20, sortBy = 'dateStart', sortDir = 'desc', search } = params;
     const offset = (page - 1) * limit;
     
     // Map frontend field names to database column names
@@ -345,22 +345,32 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date_start';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
+    // Build WHERE clause for search
+    const searchCondition = search ? 
+      `WHERE (name ILIKE $3 OR team ILIKE $3 OR researcher ILIKE $3 OR description ILIKE $3)` : '';
+    const searchParam = search ? `%${search}%` : null;
+    
     // Query for lightweight table data only
     const query = `
       SELECT 
         id, name, team, researcher, date_start, date_end, status,
         color, research_type, products, description
       FROM researches 
+      ${searchCondition}
       ORDER BY ${dbColumn} ${direction}
       LIMIT $1 OFFSET $2
     `;
     
     // Count total for hasMore calculation
-    const countQuery = 'SELECT COUNT(*) as total FROM researches';
+    const countQuery = `SELECT COUNT(*) as total FROM researches ${searchCondition}`;
+    
+    const queryParams = search ? 
+      [limit + 1, offset, searchParam] : [limit + 1, offset];
+    const countParams = search ? [searchParam] : [];
     
     const [dataResult, countResult] = await Promise.all([
-      pool.query(query, [limit + 1, offset]), // Fetch one extra to check if more exists
-      pool.query(countQuery)
+      pool.query(query, queryParams), // Fetch one extra to check if more exists
+      pool.query(countQuery, countParams)
     ]);
     
     const researches = dataResult.rows;

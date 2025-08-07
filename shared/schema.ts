@@ -264,6 +264,7 @@ export type PaginationParams = {
   cursor?: string;
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
+  search?: string;
 };
 
 export type PaginatedResponse<T> = {

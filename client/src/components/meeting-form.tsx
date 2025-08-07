@@ -28,6 +28,7 @@ import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
 import DOMPurify from 'dompurify';
 import { RequiredFieldIndicator } from "./required-field-indicator";
+import { ResearchSelector } from "./research-selector";
 
 interface MeetingFormProps {
   onSubmit: (data: InsertMeeting) => void;
@@ -397,34 +398,22 @@ export default function MeetingForm({
                     Research
                     <RequiredFieldIndicator />
                   </FormLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      // Update the research ID
-                      field.onChange(Number(value));
-                      
-                      // Find the selected research
-                      const selectedResearch = researches.find(r => r.id.toString() === value);
-                      
-                      // Update the researcher field with the researcher from the selected research
-                      if (selectedResearch) {
-                        form.setValue('researcher', selectedResearch.researcher);
-                      }
-                    }}
-                    value={field.value ? field.value.toString() : ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select research" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {researches.map((research) => (
-                        <SelectItem key={research.id} value={research.id.toString()}>
-                          {research.name} - {research.team}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <ResearchSelector
+                      value={field.value || undefined}
+                      onValueChange={(value) => {
+                        // Update the research ID
+                        field.onChange(value);
+                      }}
+                      onResearchSelect={(research) => {
+                        // Update the researcher field with the researcher from the selected research
+                        form.setValue('researcher', research.researcher);
+                      }}
+                      placeholder="Select research..."
+                      disabled={!isCreating} // Only allow changes when creating new meetings
+                      displayName={!isCreating && initialData ? (initialData as any).researchName : undefined}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

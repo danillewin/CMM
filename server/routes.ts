@@ -202,13 +202,15 @@ export function registerRoutes(app: Express): Server {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const sortBy = req.query.sortBy as string;
       const sortDir = req.query.sortDir as 'asc' | 'desc';
+      const search = req.query.search as string;
       
       // Always use paginated endpoint for efficiency
       const paginatedResearches = await storage.getResearchesPaginated({ 
         page: page || 1, 
         limit: limit || 20,
         sortBy,
-        sortDir
+        sortDir,
+        search
       });
       res.json(paginatedResearches);
     } catch (error) {
