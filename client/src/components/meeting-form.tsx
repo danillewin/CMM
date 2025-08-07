@@ -409,6 +409,7 @@ export default function MeetingForm({
                         handleFieldChange("researcher", research.researcher);
                       }}
                       placeholder="Select research..."
+                      displayName={!isCreating && initialData ? (initialData as any).researchName : undefined}
                     />
                   </FormControl>
                   <FormMessage />
