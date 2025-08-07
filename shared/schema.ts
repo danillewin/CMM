@@ -254,3 +254,29 @@ export const insertCustomFilterSchema = createInsertSchema(customFilters, {
 
 export type CustomFilter = typeof customFilters.$inferSelect;
 export type InsertCustomFilter = z.infer<typeof insertCustomFilterSchema>;
+
+// Pagination types
+export type PaginationParams = {
+  page?: number;
+  limit?: number;
+  cursor?: string;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  hasMore: boolean;
+  nextCursor?: string;
+  total?: number;
+};
+
+// Lightweight versions for table view (only essential fields)
+export type MeetingTableItem = Pick<Meeting, 
+  'id' | 'respondentName' | 'respondentPosition' | 'companyName' | 'researcher' | 
+  'relationshipManager' | 'salesPerson' | 'date' | 'status' | 'hasGift' | 'researchId' |
+  'cnum' | 'gcc' | 'email' | 'notes' | 'fullText'
+>;
+
+export type ResearchTableItem = Pick<Research, 
+  'id' | 'name' | 'team' | 'researcher' | 'dateStart' | 'dateEnd' | 'status' | 
+  'color' | 'researchType' | 'products' | 'description'
+>;

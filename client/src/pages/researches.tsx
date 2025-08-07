@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Research, ResearchStatus } from "@shared/schema";
+import { Research, ResearchStatus, ResearchTableItem, PaginatedResponse } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { addWeeks } from "date-fns";
 import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 
 type ViewMode = "table" | "cards";
 
@@ -52,8 +54,22 @@ export default function Researches() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const { data: researches = [], isLoading } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
+  // Use infinite scroll for researches
+  const {
+    data: researches,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteScroll<ResearchTableItem>({
+    queryKey: ["/api/researches", "paginated"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await fetch(`/api/researches?page=${pageParam}&limit=20`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch researches");
+      }
+      return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
+    },
   });
 
   // Get unique researchers, teams, and research types for filters
@@ -111,7 +127,7 @@ export default function Researches() {
     }
   }, [statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, showStartsInNWeeks, weeksNumber]);
 
-  const getValueForSorting = (research: Research, field: string) => {
+  const getValueForSorting = (research: ResearchTableItem, field: string) => {
     switch (field) {
       case "name": return research.name;
       case "team": return research.team;
@@ -165,7 +181,7 @@ export default function Researches() {
       return 0;
     });
 
-  const handleItemClick = (research: Research) => {
+  const handleItemClick = (research: ResearchTableItem) => {
     setLocation(`/researches/${research.id}`);
   };
 
@@ -175,7 +191,7 @@ export default function Researches() {
       id: "color",
       name: "",
       visible: true,
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <div
           className="w-3 h-3 rounded-full mt-1"
           style={{ backgroundColor: research.color }}
@@ -187,7 +203,7 @@ export default function Researches() {
       name: t("researches.name"),
       visible: true,
       sortField: "name",
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <span className="font-medium">{research.name}</span>
       )
     },
@@ -196,14 +212,14 @@ export default function Researches() {
       name: t("researches.team"),
       visible: true,
       sortField: "team",
-      render: (research: Research) => research.team
+      render: (research: ResearchTableItem) => research.team
     },
     {
       id: "researchType",
       name: t("researches.researchType"),
       visible: true,
       sortField: "researchType",
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <span className="text-sm text-gray-600">{research.researchType || "Interviews"}</span>
       )
     },
@@ -212,14 +228,14 @@ export default function Researches() {
       name: t("researches.researcher"),
       visible: true,
       sortField: "researcher",
-      render: (research: Research) => research.researcher
+      render: (research: ResearchTableItem) => research.researcher
     },
     {
       id: "status",
       name: t("researches.status"),
       visible: true,
       sortField: "status",
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
           ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
             research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
@@ -235,20 +251,20 @@ export default function Researches() {
       name: t("researches.dateStart"),
       visible: true,
       sortField: "dateStart",
-      render: (research: Research) => new Date(research.dateStart).toLocaleDateString()
+      render: (research: ResearchTableItem) => new Date(research.dateStart).toLocaleDateString()
     },
     {
       id: "dateEnd",
       name: t("researches.dateEnd"),
       visible: true,
       sortField: "dateEnd",
-      render: (research: Research) => new Date(research.dateEnd).toLocaleDateString()
+      render: (research: ResearchTableItem) => new Date(research.dateEnd).toLocaleDateString()
     },
     {
       id: "products",
       name: t("researches.products"),
       visible: true,
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <div className="flex flex-wrap gap-1">
           {research.products && research.products.length > 0 ? (
             research.products.slice(0, 3).map((product, index) => (
@@ -269,7 +285,7 @@ export default function Researches() {
       id: "description",
       name: t("researches.description"),
       visible: false,
-      render: (research: Research) => (
+      render: (research: ResearchTableItem) => (
         <div className="line-clamp-2 prose prose-sm max-w-none">
           <ReactMarkdown 
             remarkPlugins={[remarkGfm]}
@@ -571,9 +587,13 @@ export default function Researches() {
         </div>
 
         {viewMode === "table" ? (
-          <ConfigurableTable
+          <InfiniteScrollTable
             data={filteredResearches}
             columns={tableColumns}
+            isLoading={isLoading}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
             onRowClick={handleItemClick}
             rowClassName="cursor-pointer hover:bg-gray-50/80 transition-all duration-200"
             sortField={sortBy}
@@ -583,6 +603,7 @@ export default function Researches() {
             searchValue={search}
             onSearchChange={setSearch}
             storeConfigKey="researches-table-columns"
+            emptyStateMessage={t("researches.noResearches", "No researches found")}
           />
         ) : filteredResearches.length === 0 ? (
           <div className="text-center py-12">

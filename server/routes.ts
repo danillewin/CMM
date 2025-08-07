@@ -196,10 +196,20 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Research routes
-  app.get("/api/researches", async (_req, res) => {
+  app.get("/api/researches", async (req, res) => {
     try {
-      const researches = await storage.getResearches();
-      res.json(researches);
+      const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      // If pagination params are provided, use paginated endpoint
+      if (page || limit) {
+        const paginatedResearches = await storage.getResearchesPaginated({ page, limit });
+        res.json(paginatedResearches);
+      } else {
+        // Fallback to full data for backward compatibility
+        const researches = await storage.getResearches();
+        res.json(researches);
+      }
     } catch (error) {
       console.error("Error fetching researches:", error);
       res.status(500).json({ message: "Failed to fetch researches" });
@@ -295,10 +305,20 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Meeting routes
-  app.get("/api/meetings", async (_req, res) => {
+  app.get("/api/meetings", async (req, res) => {
     try {
-      const meetings = await storage.getMeetings();
-      res.json(meetings);
+      const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      
+      // If pagination params are provided, use paginated endpoint
+      if (page || limit) {
+        const paginatedMeetings = await storage.getMeetingsPaginated({ page, limit });
+        res.json(paginatedMeetings);
+      } else {
+        // Fallback to full data for backward compatibility
+        const meetings = await storage.getMeetings();
+        res.json(meetings);
+      }
     } catch (error) {
       console.error("Error fetching meetings:", error);
       res.status(500).json({ message: "Failed to fetch meetings" });

@@ -20,7 +20,11 @@ import {
   type ResearchJtbd,
   type MeetingJtbd,
   type CustomFilter,
-  type InsertCustomFilter
+  type InsertCustomFilter,
+  type PaginatedResponse,
+  type PaginationParams,
+  type MeetingTableItem,
+  type ResearchTableItem
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -28,12 +32,14 @@ import { kafkaService } from "./kafka-service";
 
 export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
+  getMeetingsPaginated(params: PaginationParams): Promise<PaginatedResponse<MeetingTableItem>>;
   getMeeting(id: number): Promise<Meeting | undefined>;
   createMeeting(meeting: InsertMeeting): Promise<Meeting>;
   updateMeeting(id: number, meeting: InsertMeeting): Promise<Meeting | undefined>;
   deleteMeeting(id: number): Promise<boolean>;
 
   getResearches(): Promise<Research[]>;
+  getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>>;
   getResearch(id: number): Promise<Research | undefined>;
   createResearch(research: InsertResearch): Promise<Research>;
   updateResearch(id: number, research: InsertResearch): Promise<Research | undefined>;
@@ -75,6 +81,65 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getMeetings(): Promise<Meeting[]> {
     return db.select().from(meetings);
+  }
+
+  async getMeetingsPaginated(params: PaginationParams): Promise<PaginatedResponse<MeetingTableItem>> {
+    const { page = 1, limit = 20 } = params;
+    const offset = (page - 1) * limit;
+    
+    // Query for lightweight table data only
+    const query = `
+      SELECT 
+        id, respondent_name, respondent_position, company_name, researcher,
+        relationship_manager, recruiter as sales_person, date, status, has_gift, research_id,
+        cnum, gcc, email, notes, full_text
+      FROM meetings 
+      ORDER BY date DESC 
+      LIMIT $1 OFFSET $2
+    `;
+    
+    // Count total for hasMore calculation
+    const countQuery = 'SELECT COUNT(*) as total FROM meetings';
+    
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(query, [limit + 1, offset]), // Fetch one extra to check if more exists
+      pool.query(countQuery)
+    ]);
+    
+    const meetings = dataResult.rows;
+    const total = parseInt(countResult.rows[0].total);
+    const hasMore = meetings.length > limit;
+    
+    // Remove the extra item if it exists
+    if (hasMore) {
+      meetings.pop();
+    }
+    
+    // Map database fields to match MeetingTableItem type
+    const mappedMeetings: MeetingTableItem[] = meetings.map(row => ({
+      id: row.id,
+      respondentName: row.respondent_name,
+      respondentPosition: row.respondent_position,
+      companyName: row.company_name,
+      researcher: row.researcher,
+      relationshipManager: row.relationship_manager,
+      salesPerson: row.sales_person,
+      date: row.date,
+      status: row.status,
+      hasGift: row.has_gift,
+      researchId: row.research_id,
+      cnum: row.cnum,
+      gcc: row.gcc,
+      email: row.email,
+      notes: row.notes,
+      fullText: row.full_text
+    }));
+    
+    return {
+      data: mappedMeetings,
+      hasMore,
+      total
+    };
   }
 
   async getMeeting(id: number): Promise<Meeting | undefined> {
@@ -214,6 +279,59 @@ export class DatabaseStorage implements IStorage {
 
   async getResearches(): Promise<Research[]> {
     return db.select().from(researches);
+  }
+
+  async getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>> {
+    const { page = 1, limit = 20 } = params;
+    const offset = (page - 1) * limit;
+    
+    // Query for lightweight table data only
+    const query = `
+      SELECT 
+        id, name, team, researcher, date_start, date_end, status,
+        color, research_type, products, description
+      FROM researches 
+      ORDER BY date_start DESC 
+      LIMIT $1 OFFSET $2
+    `;
+    
+    // Count total for hasMore calculation
+    const countQuery = 'SELECT COUNT(*) as total FROM researches';
+    
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(query, [limit + 1, offset]), // Fetch one extra to check if more exists
+      pool.query(countQuery)
+    ]);
+    
+    const researches = dataResult.rows;
+    const total = parseInt(countResult.rows[0].total);
+    const hasMore = researches.length > limit;
+    
+    // Remove the extra item if it exists
+    if (hasMore) {
+      researches.pop();
+    }
+    
+    // Map database fields to match ResearchTableItem type
+    const mappedResearches: ResearchTableItem[] = researches.map(row => ({
+      id: row.id,
+      name: row.name,
+      team: row.team,
+      researcher: row.researcher,
+      dateStart: row.date_start,
+      dateEnd: row.date_end,
+      status: row.status,
+      color: row.color,
+      researchType: row.research_type,
+      products: row.products,
+      description: row.description
+    }));
+    
+    return {
+      data: mappedResearches,
+      hasMore,
+      total
+    };
   }
 
   async getResearch(id: number): Promise<Research | undefined> {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Meeting, MeetingStatus, Research } from "@shared/schema";
+import { Meeting, MeetingStatus, Research, MeetingTableItem, PaginatedResponse } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,8 @@ import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 
 export default function Meetings() {
   const { t } = useTranslation();
@@ -43,11 +45,23 @@ export default function Meetings() {
     queryKey: ["/api/researches"],
   });
 
-  // Then load meetings data after researches are loaded
-  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
-    // This ensures meetings are fetched after researches
-    enabled: !researchesLoading
+  // Use infinite scroll for meetings
+  const {
+    data: meetings,
+    isLoading: meetingsLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteScroll<MeetingTableItem>({
+    queryKey: ["/api/meetings", "paginated"],
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await fetch(`/api/meetings?page=${pageParam}&limit=20`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch meetings");
+      }
+      return response.json() as Promise<PaginatedResponse<MeetingTableItem>>;
+    },
+    enabled: !researchesLoading, // This ensures meetings are fetched after researches
   });
   
   // Combined loading state
@@ -602,23 +616,24 @@ export default function Meetings() {
 
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
-            {isLoading ? (
-              <SectionLoader text={t("forms.loading")} />
-            ) : (
-              <ConfigurableTable
-                data={filteredMeetings}
-                columns={columns}
-                onSort={handleSort}
-                sortField={sortBy}
-                sortDirection={sortDir}
-                onRowClick={handleRowClick}
-                rowClassName="hover:bg-gray-50/80 transition-all duration-200"
-                storeConfigKey="meetings-table"
-                filters={filterConfigs}
-                searchValue={search}
-                onSearchChange={setSearch}
-              />
-            )}
+            <InfiniteScrollTable
+              data={filteredMeetings}
+              columns={columns}
+              isLoading={isLoading}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+              onSort={handleSort}
+              sortField={sortBy}
+              sortDirection={sortDir}
+              onRowClick={handleRowClick}
+              rowClassName="hover:bg-gray-50/80 transition-all duration-200"
+              storeConfigKey="meetings-table"
+              filters={filterConfigs}
+              searchValue={search}
+              onSearchChange={setSearch}
+              emptyStateMessage={t("meetings.noMeetings", "No meetings found")}
+            />
           </CardContent>
         </Card>
       </div>
