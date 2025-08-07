@@ -306,13 +306,15 @@ export default function MeetingDetail() {
     enabled: isNew, // Only load all meetings when creating a new one (for duplicate detection)
   });
 
-  const { data: researches = [], isLoading: isResearchesLoading } = useQuery<Research[]>({
+  const { data: researchesResponse, isLoading: isResearchesLoading } = useQuery<{data: Research[]}>({
     queryKey: ["/api/researches"],
   });
+  
+  const researches = researchesResponse?.data || [];
 
   // Effect to set preselected research when researches data is loaded
   useEffect(() => {
-    if (isNew && preselectedResearchId > 0 && researches.length > 0) {
+    if (isNew && preselectedResearchId > 0 && researches && Array.isArray(researches) && researches.length > 0) {
       const research = researches.find((r: Research) => r.id === preselectedResearchId);
       if (research) {
         setPreselectedResearch(research);
@@ -503,9 +505,9 @@ export default function MeetingDetail() {
                     e.stopPropagation(); // Prevent event bubbling
                     setLocation(`/researches/${meeting.researchId}`);
                   }}
-                  title={`${researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research'} - Click to view research details`}
+                  title={`${researches && Array.isArray(researches) ? researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research' : 'Research'} - Click to view research details`}
                 >
-                  <span className="truncate">{researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research'}</span>
+                  <span className="truncate">{researches && Array.isArray(researches) ? researches.find((r: Research) => r.id === meeting.researchId)?.name || 'Research' : 'Research'}</span>
                   <ExternalLink className="h-3 w-3 flex-shrink-0" />
                 </div>
               )}
@@ -633,7 +635,7 @@ export default function MeetingDetail() {
                 </TableHeader>
                 <TableBody>
                   {duplicateMeetings.map((meeting) => {
-                    const research = researches.find(r => r.id === meeting.researchId);
+                    const research = researches && Array.isArray(researches) ? researches.find(r => r.id === meeting.researchId) : null;
                     return (
                       <TableRow key={meeting.id}>
                         <TableCell>{new Date(meeting.date).toLocaleDateString()}</TableCell>
