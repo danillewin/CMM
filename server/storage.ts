@@ -87,12 +87,12 @@ export class DatabaseStorage implements IStorage {
     const { page = 1, limit = 20 } = params;
     const offset = (page - 1) * limit;
     
-    // Query for lightweight table data only
+    // Query for only essential fields for table display (no full_text, notes etc.)
     const query = `
       SELECT 
         id, respondent_name, respondent_position, company_name, researcher,
-        relationship_manager, recruiter as sales_person, date, status, has_gift, research_id,
-        cnum, gcc, email, notes, full_text
+        relationship_manager, recruiter as sales_person, date, status, research_id,
+        cnum
       FROM meetings 
       ORDER BY date DESC 
       LIMIT $1 OFFSET $2
@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
       meetings.pop();
     }
     
-    // Map database fields to match MeetingTableItem type
+    // Map database fields to match MeetingTableItem type (only essential fields)
     const mappedMeetings: MeetingTableItem[] = meetings.map(row => ({
       id: row.id,
       respondentName: row.respondent_name,
@@ -126,13 +126,8 @@ export class DatabaseStorage implements IStorage {
       salesPerson: row.sales_person,
       date: row.date,
       status: row.status,
-      hasGift: row.has_gift,
       researchId: row.research_id,
-      cnum: row.cnum,
-      gcc: row.gcc,
-      email: row.email,
-      notes: row.notes,
-      fullText: row.full_text
+      cnum: row.cnum
     }));
     
     return {

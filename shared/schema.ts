@@ -272,8 +272,7 @@ export type PaginatedResponse<T> = {
 // Lightweight versions for table view (only essential fields)
 export type MeetingTableItem = Pick<Meeting, 
   'id' | 'respondentName' | 'respondentPosition' | 'companyName' | 'researcher' | 
-  'relationshipManager' | 'salesPerson' | 'date' | 'status' | 'hasGift' | 'researchId' |
-  'cnum' | 'gcc' | 'email' | 'notes' | 'fullText'
+  'relationshipManager' | 'salesPerson' | 'date' | 'status' | 'researchId' | 'cnum'
 >;
 
 export type ResearchTableItem = Pick<Research, 

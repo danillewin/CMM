@@ -201,15 +201,9 @@ export function registerRoutes(app: Express): Server {
       const page = req.query.page ? parseInt(req.query.page as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       
-      // If pagination params are provided, use paginated endpoint
-      if (page || limit) {
-        const paginatedResearches = await storage.getResearchesPaginated({ page, limit });
-        res.json(paginatedResearches);
-      } else {
-        // Fallback to full data for backward compatibility
-        const researches = await storage.getResearches();
-        res.json(researches);
-      }
+      // Always use paginated endpoint for efficiency
+      const paginatedResearches = await storage.getResearchesPaginated({ page: page || 1, limit: limit || 20 });
+      res.json(paginatedResearches);
     } catch (error) {
       console.error("Error fetching researches:", error);
       res.status(500).json({ message: "Failed to fetch researches" });
@@ -310,15 +304,9 @@ export function registerRoutes(app: Express): Server {
       const page = req.query.page ? parseInt(req.query.page as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       
-      // If pagination params are provided, use paginated endpoint
-      if (page || limit) {
-        const paginatedMeetings = await storage.getMeetingsPaginated({ page, limit });
-        res.json(paginatedMeetings);
-      } else {
-        // Fallback to full data for backward compatibility
-        const meetings = await storage.getMeetings();
-        res.json(meetings);
-      }
+      // Always use paginated endpoint for efficiency
+      const paginatedMeetings = await storage.getMeetingsPaginated({ page: page || 1, limit: limit || 20 });
+      res.json(paginatedMeetings);
     } catch (error) {
       console.error("Error fetching meetings:", error);
       res.status(500).json({ message: "Failed to fetch meetings" });

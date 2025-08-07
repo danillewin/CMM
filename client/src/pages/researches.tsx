@@ -54,7 +54,7 @@ export default function Researches() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Use infinite scroll for researches
+  // Use infinite scroll for researches - only load when component mounts
   const {
     data: researches,
     isLoading,
@@ -70,6 +70,7 @@ export default function Researches() {
       }
       return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
     },
+    enabled: true, // Only fetch when explicitly enabled
   });
 
   // Get unique researchers, teams, and research types for filters
