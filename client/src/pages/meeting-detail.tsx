@@ -67,6 +67,7 @@ function MeetingInfoForm({
       isLoading={isLoading}
       hideNotesAndFullText={true}
       onTempDataUpdate={onTempDataUpdate}
+      isCreating={false}
     />
   );
 }
@@ -547,6 +548,7 @@ export default function MeetingDetail() {
                   notes: null
                 } as Meeting : undefined}
                 isLoading={isPending}
+                isCreating={true}
                 onCancel={handleCancel}
                 onCnumChange={handleCnumChange}
                 meetings={meetings}

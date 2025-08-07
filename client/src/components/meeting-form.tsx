@@ -39,6 +39,7 @@ interface MeetingFormProps {
   meetings?: Meeting[];
   hideNotesAndFullText?: boolean;
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
+  isCreating?: boolean; // Flag to indicate if we're creating a new meeting
 }
 
 export default function MeetingForm({
@@ -50,12 +51,14 @@ export default function MeetingForm({
   onCnumChange,
   meetings = [],
   hideNotesAndFullText = false,
-  onTempDataUpdate
+  onTempDataUpdate,
+  isCreating = false
 }: MeetingFormProps) {
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
   
   const { data: researchesResponse } = useQuery<{data: Research[]}>({
     queryKey: ["/api/researches"],
+    enabled: isCreating, // Only load when creating a new meeting
   });
   
   const researches = researchesResponse?.data || [];
