@@ -2598,7 +2598,14 @@ function ResearchDetail() {
   
   // Query all researches for autocomplete functionality in Brief tab
   const { data: allResearches = [] } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
+    queryKey: ["/api/researches", "all"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/researches?limit=1000"); // Get all researches for autocomplete
+      if (!res.ok) throw new Error("Failed to fetch researches");
+      const result = await res.json();
+      // Handle paginated response - extract the data array
+      return Array.isArray(result) ? result : (result.data || []);
+    },
   });
 
   const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
