@@ -302,28 +302,30 @@ export default function MeetingDetail() {
     enabled: !isNew && !!id,
   });
 
+  // Meetings will be loaded on-demand when checking for duplicates via CNUM
   const { data: meetings = [] } = useQuery<Meeting[]>({
     queryKey: ["/api/meetings"],
-    enabled: isNew, // Only load all meetings when creating a new one (for duplicate detection)
+    enabled: false, // Never auto-load, only load when specifically needed for duplicate detection
   });
 
-  // Only fetch research data when creating a new meeting for the dropdown
-  const { data: researchesResponse, isLoading: isResearchesLoading } = useQuery<{data: Research[]}>({
-    queryKey: ["/api/researches"],
-    enabled: isNew, // Only load when creating a new meeting
-  });
-  
-  const researches = researchesResponse?.data || [];
+  // Research data is now loaded on-demand via ResearchSelector component
+  // No need to pre-load all researches
+  const researches: Research[] = [];
 
-  // Effect to set preselected research when researches data is loaded
+  // Effect to load specific research when preselected via query param
   useEffect(() => {
-    if (isNew && preselectedResearchId > 0 && researches && Array.isArray(researches) && researches.length > 0) {
-      const research = researches.find((r: Research) => r.id === preselectedResearchId);
-      if (research) {
-        setPreselectedResearch(research);
-      }
+    if (isNew && preselectedResearchId > 0) {
+      // Load the specific research if preselected via URL
+      fetch(`/api/researches/${preselectedResearchId}`)
+        .then(res => res.json())
+        .then(research => {
+          if (research) {
+            setPreselectedResearch(research);
+          }
+        })
+        .catch(err => console.warn('Could not load preselected research:', err));
     }
-  }, [isNew, preselectedResearchId, researches]);
+  }, [isNew, preselectedResearchId]);
 
   // When editing a meeting, store the combined data of the existing meeting and temporary form data
   const effectiveMeeting = isNew 
@@ -441,7 +443,7 @@ export default function MeetingDetail() {
     setLocation("/");
   };
 
-  const isLoading = isMeetingLoading || isResearchesLoading;
+  const isLoading = isMeetingLoading;
   const isPending = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
 
   if (isLoading && !isNew) {
