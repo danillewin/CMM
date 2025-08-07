@@ -57,12 +57,9 @@ export default function MeetingForm({
 }: MeetingFormProps) {
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
   
-  const { data: researchesResponse } = useQuery<{data: Research[]}>({
-    queryKey: ["/api/researches"],
-    enabled: isCreating, // Only load when creating a new meeting
-  });
-  
-  const researches = researchesResponse?.data || [];
+  // Research data is now loaded on-demand via ResearchSelector component
+  // No need to pre-load all researches
+  const researches: Research[] = [];
   const { lastUsedManager, addManager } = useManagers();
 
   // Properly handle the date conversion for the form
