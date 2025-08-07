@@ -62,9 +62,15 @@ export default function Researches() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<ResearchTableItem>({
-    queryKey: ["/api/researches", "paginated"],
+    queryKey: ["/api/researches", "paginated", sortBy, sortDir],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetch(`/api/researches?page=${pageParam}&limit=20`);
+      const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: '20',
+        sortBy: sortBy,
+        sortDir: sortDir
+      });
+      const response = await fetch(`/api/researches?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch researches");
       }
@@ -145,6 +151,7 @@ export default function Researches() {
   const currentDate = new Date();
   const futureDate = addWeeks(currentDate, parseInt(weeksNumber));
   
+  // Filter researches (sorting is now done server-side)
   const filteredResearches = researches
     .filter(
       (research) => {
@@ -172,15 +179,7 @@ export default function Researches() {
           startsInRange
         );
       }
-    )
-    .sort((a, b) => {
-      const aVal = getValueForSorting(a, sortBy);
-      const bVal = getValueForSorting(b, sortBy);
-      
-      if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
+    );
 
   const handleItemClick = (research: ResearchTableItem) => {
     setLocation(`/researches/${research.id}`);

@@ -62,9 +62,15 @@ export default function Meetings() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<MeetingTableItem>({
-    queryKey: ["/api/meetings", "paginated"],
+    queryKey: ["/api/meetings", "paginated", sortBy, sortDir],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await fetch(`/api/meetings?page=${pageParam}&limit=20`);
+      const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: '20',
+        sortBy: sortBy,
+        sortDir: sortDir
+      });
+      const response = await fetch(`/api/meetings?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch meetings");
       }
@@ -178,7 +184,7 @@ export default function Meetings() {
     }
   };
 
-  // Filter and sort meetings
+  // Filter meetings (sorting is now done server-side)
   const filteredMeetings = meetings
     .filter(
       (meeting) =>
@@ -198,15 +204,7 @@ export default function Meetings() {
         (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
         (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
         (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter)
-    )
-    .sort((a, b) => {
-      const aVal = getValueForSorting(a, sortBy);
-      const bVal = getValueForSorting(b, sortBy);
-      
-      return sortDir === "asc"
-        ? String(aVal).localeCompare(String(bVal))
-        : String(bVal).localeCompare(String(aVal));
-    });
+    );
 
   const handleSort = (field: string) => {
     if (sortBy === field) {

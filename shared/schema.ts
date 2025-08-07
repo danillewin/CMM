@@ -260,6 +260,8 @@ export type PaginationParams = {
   page?: number;
   limit?: number;
   cursor?: string;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
 };
 
 export type PaginatedResponse<T> = {

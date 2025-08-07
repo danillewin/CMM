@@ -200,9 +200,16 @@ export function registerRoutes(app: Express): Server {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const sortBy = req.query.sortBy as string;
+      const sortDir = req.query.sortDir as 'asc' | 'desc';
       
       // Always use paginated endpoint for efficiency
-      const paginatedResearches = await storage.getResearchesPaginated({ page: page || 1, limit: limit || 20 });
+      const paginatedResearches = await storage.getResearchesPaginated({ 
+        page: page || 1, 
+        limit: limit || 20,
+        sortBy,
+        sortDir
+      });
       res.json(paginatedResearches);
     } catch (error) {
       console.error("Error fetching researches:", error);
@@ -303,9 +310,16 @@ export function registerRoutes(app: Express): Server {
     try {
       const page = req.query.page ? parseInt(req.query.page as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const sortBy = req.query.sortBy as string;
+      const sortDir = req.query.sortDir as 'asc' | 'desc';
       
       // Always use paginated endpoint for efficiency
-      const paginatedMeetings = await storage.getMeetingsPaginated({ page: page || 1, limit: limit || 20 });
+      const paginatedMeetings = await storage.getMeetingsPaginated({ 
+        page: page || 1, 
+        limit: limit || 20,
+        sortBy,
+        sortDir
+      });
       res.json(paginatedMeetings);
     } catch (error) {
       console.error("Error fetching meetings:", error);

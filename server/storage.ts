@@ -84,8 +84,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingsPaginated(params: PaginationParams): Promise<PaginatedResponse<MeetingTableItem>> {
-    const { page = 1, limit = 20 } = params;
+    const { page = 1, limit = 20, sortBy = 'date', sortDir = 'desc' } = params;
     const offset = (page - 1) * limit;
+    
+    // Map frontend field names to database column names
+    const fieldMapping: { [key: string]: string } = {
+      'date': 'date',
+      'respondentName': 'respondent_name',
+      'respondentPosition': 'respondent_position',
+      'companyName': 'company_name',
+      'researcher': 'researcher',
+      'relationshipManager': 'relationship_manager',
+      'salesPerson': 'recruiter',
+      'status': 'status',
+      'cnum': 'cnum'
+    };
+    
+    const dbColumn = fieldMapping[sortBy] || 'date';
+    const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
     // Query for only essential fields for table display (no full_text, notes etc.)
     const query = `
@@ -94,7 +110,7 @@ export class DatabaseStorage implements IStorage {
         relationship_manager, recruiter as sales_person, date, status, research_id,
         cnum
       FROM meetings 
-      ORDER BY date DESC 
+      ORDER BY ${dbColumn} ${direction}
       LIMIT $1 OFFSET $2
     `;
     
@@ -277,8 +293,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>> {
-    const { page = 1, limit = 20 } = params;
+    const { page = 1, limit = 20, sortBy = 'dateStart', sortDir = 'desc' } = params;
     const offset = (page - 1) * limit;
+    
+    // Map frontend field names to database column names
+    const fieldMapping: { [key: string]: string } = {
+      'name': 'name',
+      'team': 'team',
+      'researcher': 'researcher',
+      'dateStart': 'date_start',
+      'dateEnd': 'date_end',
+      'status': 'status',
+      'researchType': 'research_type'
+    };
+    
+    const dbColumn = fieldMapping[sortBy] || 'date_start';
+    const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
     // Query for lightweight table data only
     const query = `
@@ -286,7 +316,7 @@ export class DatabaseStorage implements IStorage {
         id, name, team, researcher, date_start, date_end, status,
         color, research_type, products, description
       FROM researches 
-      ORDER BY date_start DESC 
+      ORDER BY ${dbColumn} ${direction}
       LIMIT $1 OFFSET $2
     `;
     
