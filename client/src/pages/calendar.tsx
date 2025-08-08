@@ -47,13 +47,16 @@ export default function Calendar() {
   const { t } = useTranslation();
 
 
-  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
+  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: Research[] }>({
     queryKey: ["/api/researches"],
   });
 
-  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
+  const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: Meeting[] }>({
     queryKey: ["/api/meetings"],
   });
+
+  const researches = researchesResponse?.data || [];
+  const meetings = meetingsResponse?.data || [];
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...meeting }: Meeting) => {

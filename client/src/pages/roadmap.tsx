@@ -79,9 +79,11 @@ export default function RoadmapPage() {
   const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
 
-  const { data: researches = [], isLoading } = useQuery<Research[]>({
+  const { data: researchesResponse, isLoading } = useQuery<{ data: Research[] }>({
     queryKey: ["/api/researches"],
   });
+
+  const researches = researchesResponse?.data || [];
 
   // Get unique teams, researchers, and research types for filters
   const teamSet = new Set(researches.map(r => r.team));

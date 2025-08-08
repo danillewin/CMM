@@ -53,13 +53,16 @@ export default function Dashboard() {
   const [managerFilter, setManagerFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
 
-  const { data: meetings = [], isLoading: meetingsLoading } = useQuery<Meeting[]>({
+  const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: Meeting[] }>({
     queryKey: ["/api/meetings"],
   });
 
-  const { data: researches = [], isLoading: researchesLoading } = useQuery<Research[]>({
+  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: Research[] }>({
     queryKey: ["/api/researches"],
   });
+
+  const meetings = meetingsResponse?.data || [];
+  const researches = researchesResponse?.data || [];
 
   // Get unique teams, managers, and researchers for filters
   const teams = [...new Set(researches.map(r => r.team))].filter(Boolean).sort();
