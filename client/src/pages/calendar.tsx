@@ -37,8 +37,7 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 
 export default function Calendar() {
-  // Initialize to January 2025 where we have data
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1)); // January 2025
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
