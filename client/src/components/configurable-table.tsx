@@ -297,21 +297,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
               </button>
             )}
           </div>
-          
-          {onApplyFilters && (
-            <Button 
-              variant={hasUnappliedFilters ? "default" : "outline"}
-              size="sm" 
-              onClick={onApplyFilters}
-              className={hasUnappliedFilters 
-                ? "bg-primary hover:bg-primary/90 text-white" 
-                : "bg-white border-gray-200 hover:bg-gray-50"
-              }
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Apply Filters
-            </Button>
-          )}
+
         </div>
         
         <div className="flex gap-3">
@@ -362,12 +348,26 @@ export function ConfigurableTable<T extends { id: number | string }>({
                       </div>
                     ))}
                   </div>
-                  {activeFilterCount > 0 && (
-                    <div className="col-span-2 mt-2">
+                  <div className="col-span-2 mt-4 flex gap-2">
+                    {onApplyFilters && (
+                      <Button 
+                        variant={hasUnappliedFilters ? "default" : "outline"}
+                        size="sm" 
+                        onClick={onApplyFilters}
+                        className={`flex-1 ${hasUnappliedFilters 
+                          ? "bg-primary hover:bg-primary/90 text-white" 
+                          : "bg-white border-gray-200 hover:bg-gray-50"
+                        }`}
+                      >
+                        <Filter className="h-4 w-4 mr-2" />
+                        Apply Filters
+                      </Button>
+                    )}
+                    {activeFilterCount > 0 && (
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="w-full bg-white"
+                        className="flex-1 bg-white"
                         onClick={() => {
                           // Reset all filters
                           filters.forEach(filter => {
@@ -379,8 +379,8 @@ export function ConfigurableTable<T extends { id: number | string }>({
                       >
                         Clear All Filters
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </PopoverContent>
             </Popover>

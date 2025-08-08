@@ -539,15 +539,7 @@ export default function Researches() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
-        <div className="container mx-auto max-w-[1400px] space-y-8">
-          <SectionLoader text="Loading researches..." />
-        </div>
-      </div>
-    );
-  }
+  // Remove the full-page loading check to keep search and header visible
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
