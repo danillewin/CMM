@@ -390,12 +390,22 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         size="sm" 
                         className="flex-1 bg-white"
                         onClick={() => {
-                          // Reset all filters
+                          // Reset all filters to empty arrays or "ALL"
                           filters?.forEach(filter => {
-                            if (filter.value !== "ALL" && filter.onChange) {
-                              (filter.onChange as (value: string) => void)("ALL");
+                            if (filter.onChange) {
+                              // For SearchMultiselect components, reset to empty array
+                              if (Array.isArray(filter.value)) {
+                                (filter.onChange as (value: string[]) => void)([]);
+                              } else if (filter.value !== "ALL") {
+                                // For regular dropdowns, reset to "ALL"
+                                (filter.onChange as (value: string) => void)("ALL");
+                              }
                             }
                           });
+                          // Auto-apply filters after clearing
+                          if (onApplyFilters) {
+                            setTimeout(() => onApplyFilters(), 100);
+                          }
                         }}
                       >
                         Clear All Filters
