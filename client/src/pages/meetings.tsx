@@ -25,16 +25,17 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { SearchableMultiSelect } from "@/components/searchable-multi-select";
 
 export default function Meetings() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [researchFilter, setResearchFilter] = useState<number | null>(null);
-  const [managerFilter, setManagerFilter] = useState<string>("");
-  const [recruiterFilter, setRecruiterFilter] = useState<string>("");
-  const [researcherFilter, setResearcherFilter] = useState<string>("");
-  const [positionFilter, setPositionFilter] = useState<string>("");
+  const [researchFilter, setResearchFilter] = useState<string[]>([]);
+  const [managerFilter, setManagerFilter] = useState<string[]>([]);
+  const [recruiterFilter, setRecruiterFilter] = useState<string[]>([]);
+  const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
+  const [positionFilter, setPositionFilter] = useState<string[]>([]);
   const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -42,11 +43,11 @@ export default function Meetings() {
   // Applied filters state for "Apply Filters" button
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
-  const [appliedResearchFilter, setAppliedResearchFilter] = useState<number | null>(null);
-  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string>("");
-  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string>("");
-  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("");
-  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string>("");
+  const [appliedResearchFilter, setAppliedResearchFilter] = useState<string[]>([]);
+  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string[]>([]);
+  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string[]>([]);
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string[]>([]);
+  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string[]>([]);
   const [appliedGiftFilter, setAppliedGiftFilter] = useState<string>("");
   
   // Debounced search value - only search is debounced, filters wait for apply button
@@ -74,11 +75,11 @@ export default function Meetings() {
   const applyFilters = () => {
     setAppliedSearch(debouncedSearch);
     setAppliedStatusFilter(statusFilter);
-    setAppliedResearchFilter(researchFilter);
-    setAppliedManagerFilter(managerFilter);
-    setAppliedRecruiterFilter(recruiterFilter);
-    setAppliedResearcherFilter(researcherFilter);
-    setAppliedPositionFilter(positionFilter);
+    setAppliedResearchFilter([...researchFilter]);
+    setAppliedManagerFilter([...managerFilter]);
+    setAppliedRecruiterFilter([...recruiterFilter]);
+    setAppliedResearcherFilter([...researcherFilter]);
+    setAppliedPositionFilter([...positionFilter]);
     setAppliedGiftFilter(giftFilter);
   };
 
@@ -127,24 +128,25 @@ export default function Meetings() {
         params.append('status', appliedStatusFilter);
       }
       
-      if (appliedResearchFilter) {
-        params.append('researchId', appliedResearchFilter.toString());
+      // Handle array-based filters
+      if (appliedResearchFilter && appliedResearchFilter.length > 0) {
+        appliedResearchFilter.forEach(id => params.append('researchId', id));
       }
       
-      if (appliedManagerFilter && appliedManagerFilter !== "ALL") {
-        params.append('manager', appliedManagerFilter);
+      if (appliedManagerFilter && appliedManagerFilter.length > 0) {
+        appliedManagerFilter.forEach(manager => params.append('manager', manager));
       }
       
-      if (appliedRecruiterFilter && appliedRecruiterFilter !== "ALL") {
-        params.append('recruiter', appliedRecruiterFilter);
+      if (appliedRecruiterFilter && appliedRecruiterFilter.length > 0) {
+        appliedRecruiterFilter.forEach(recruiter => params.append('recruiter', recruiter));
       }
       
-      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
-        params.append('researcher', appliedResearcherFilter);
+      if (appliedResearcherFilter && appliedResearcherFilter.length > 0) {
+        appliedResearcherFilter.forEach(researcher => params.append('researcher', researcher));
       }
       
-      if (appliedPositionFilter && appliedPositionFilter !== "ALL") {
-        params.append('position', appliedPositionFilter);
+      if (appliedPositionFilter && appliedPositionFilter.length > 0) {
+        appliedPositionFilter.forEach(position => params.append('position', position));
       }
       
       if (appliedGiftFilter && appliedGiftFilter !== "ALL") {
@@ -490,83 +492,78 @@ export default function Meetings() {
     {
       id: "research",
       name: t("meetings.research"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        // Get unique research options from meetings data
-        ...Array.from(
-          new Map(
-            meetings
-              .filter(m => m.researchName && m.researchId)
-              .map(m => [m.researchId!, { id: m.researchId!, name: m.researchName! }])
-          ).values()
-        ).map(research => ({ 
-          label: research.name, 
-          value: research.id.toString() 
-        }))
-      ],
-      value: researchFilter?.toString() ?? "ALL",
-      onChange: (value: string) => setResearchFilter(value === "ALL" ? null : Number(value))
+      customComponent: (
+        <SearchableMultiSelect
+          placeholder={t("meetings.research")}
+          searchEndpoint="/api/search/researches"
+          value={researchFilter}
+          onChange={setResearchFilter}
+        />
+      ),
+      options: [], // Not used with customComponent
+      value: "",
+      onChange: () => {}
     },
     {
       id: "manager",
       name: t("meetings.relationshipManager"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.relationshipManager)
-        )).filter(Boolean).sort().map(manager => ({ 
-          label: manager, 
-          value: manager 
-        }))
-      ],
-      value: managerFilter || "ALL",
-      onChange: setManagerFilter
+      customComponent: (
+        <SearchableMultiSelect
+          placeholder={t("meetings.relationshipManager")}
+          searchEndpoint="/api/search/managers"
+          value={managerFilter}
+          onChange={setManagerFilter}
+        />
+      ),
+      options: [], // Not used with customComponent
+      value: "",
+      onChange: () => {}
     },
     {
       id: "recruiter",
       name: t("meetings.recruiter"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.salesPerson)
-        )).filter(Boolean).sort().map(recruiter => ({ 
-          label: recruiter, 
-          value: recruiter 
-        }))
-      ],
-      value: recruiterFilter || "ALL",
-      onChange: setRecruiterFilter
+      customComponent: (
+        <SearchableMultiSelect
+          placeholder={t("meetings.recruiter")}
+          searchEndpoint="/api/search/recruiters"
+          value={recruiterFilter}
+          onChange={setRecruiterFilter}
+        />
+      ),
+      options: [], // Not used with customComponent
+      value: "",
+      onChange: () => {}
     },
     {
       id: "researcher",
       name: t("meetings.researcher"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.researcher)
-        )).filter(Boolean).sort().map(researcher => ({ 
-          label: researcher, 
-          value: researcher 
-        }))
-      ],
-      value: researcherFilter || "ALL",
-      onChange: setResearcherFilter,
+      customComponent: (
+        <SearchableMultiSelect
+          placeholder={t("meetings.researcher")}
+          searchEndpoint="/api/search/researchers"
+          value={researcherFilter}
+          onChange={setResearcherFilter}
+        />
+      ),
+      options: [], // Not used with customComponent
+      value: "",
+      onChange: () => {},
       enableCustomFilters: true
     },
     {
       id: "position",
       name: t("meetings.respondentPosition"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.respondentPosition)
-        )).filter(Boolean).sort().map(position => ({ 
-          label: position, 
-          value: position 
-        }))
-      ],
-      value: positionFilter || "ALL",
-      onChange: setPositionFilter
+      customComponent: (
+        <SearchableMultiSelect
+          placeholder={t("meetings.respondentPosition")}
+          searchEndpoint="/api/search/positions"
+          value={positionFilter}
+          onChange={setPositionFilter}
+        />
+      ),
+      options: [], // Not used with customComponent
+      value: "",
+      onChange: () => {}
     },
     {
       id: "hasGift",
@@ -588,11 +585,11 @@ export default function Meetings() {
       if (savedFilters) {
         const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
-        if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
-        if (manager) setManagerFilter(manager);
-        if (recruiter) setRecruiterFilter(recruiter);
-        if (researcher) setResearcherFilter(researcher);
-        if (position) setPositionFilter(position);
+        if (research && Array.isArray(research)) setResearchFilter(research);
+        if (manager && Array.isArray(manager)) setManagerFilter(manager);
+        if (recruiter && Array.isArray(recruiter)) setRecruiterFilter(recruiter);
+        if (researcher && Array.isArray(researcher)) setResearcherFilter(researcher);
+        if (position && Array.isArray(position)) setPositionFilter(position);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -636,11 +633,11 @@ export default function Meetings() {
               onApplyFilter={(filters) => {
                 if (filters.search !== undefined) setSearch(filters.search);
                 if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
-                if (filters.researchFilter !== undefined) setResearchFilter(filters.researchFilter);
-                if (filters.managerFilter !== undefined) setManagerFilter(filters.managerFilter);
-                if (filters.recruiterFilter !== undefined) setRecruiterFilter(filters.recruiterFilter);
-                if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
-                if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
+                if (filters.researchFilter !== undefined) setResearchFilter(Array.isArray(filters.researchFilter) ? filters.researchFilter : []);
+                if (filters.managerFilter !== undefined) setManagerFilter(Array.isArray(filters.managerFilter) ? filters.managerFilter : []);
+                if (filters.recruiterFilter !== undefined) setRecruiterFilter(Array.isArray(filters.recruiterFilter) ? filters.recruiterFilter : []);
+                if (filters.researcherFilter !== undefined) setResearcherFilter(Array.isArray(filters.researcherFilter) ? filters.researcherFilter : []);
+                if (filters.positionFilter !== undefined) setPositionFilter(Array.isArray(filters.positionFilter) ? filters.positionFilter : []);
                 if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
               }}
             />
@@ -696,21 +693,21 @@ export default function Meetings() {
               onApplyFilters={applyFilters}
               hasUnappliedFilters={
                 statusFilter !== appliedStatusFilter ||
-                researchFilter !== appliedResearchFilter ||
-                managerFilter !== appliedManagerFilter ||
-                recruiterFilter !== appliedRecruiterFilter ||
-                researcherFilter !== appliedResearcherFilter ||
-                positionFilter !== appliedPositionFilter ||
+                JSON.stringify(researchFilter) !== JSON.stringify(appliedResearchFilter) ||
+                JSON.stringify(managerFilter) !== JSON.stringify(appliedManagerFilter) ||
+                JSON.stringify(recruiterFilter) !== JSON.stringify(appliedRecruiterFilter) ||
+                JSON.stringify(researcherFilter) !== JSON.stringify(appliedResearcherFilter) ||
+                JSON.stringify(positionFilter) !== JSON.stringify(appliedPositionFilter) ||
                 giftFilter !== appliedGiftFilter
               }
               onClearAllFilters={() => {
-                setStatusFilter("ALL");
-                setResearchFilter(null);
-                setManagerFilter("ALL");
-                setRecruiterFilter("ALL");
-                setResearcherFilter("ALL");
-                setPositionFilter("ALL");
-                setGiftFilter("ALL");
+                setStatusFilter("");
+                setResearchFilter([]);
+                setManagerFilter([]);
+                setRecruiterFilter([]);
+                setResearcherFilter([]);
+                setPositionFilter([]);
+                setGiftFilter("");
               }}
             />
           </CardContent>

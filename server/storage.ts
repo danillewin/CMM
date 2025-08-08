@@ -106,6 +106,13 @@ export interface IStorage {
   // Calendar specific methods for optimized calendar queries
   getCalendarMeetings(startDate: Date, endDate: Date): Promise<any[]>;
   getCalendarResearches(startDate: Date, endDate: Date): Promise<any[]>;
+
+  // Search methods for filter options
+  searchResearches(search: string, limit: number): Promise<{ id: number; name: string }[]>;
+  searchManagers(search: string, limit: number): Promise<{ value: string; label: string }[]>;
+  searchRecruiters(search: string, limit: number): Promise<{ value: string; label: string }[]>;
+  searchResearchers(search: string, limit: number): Promise<{ value: string; label: string }[]>;
+  searchPositions(search: string, limit: number): Promise<{ value: string; label: string }[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -180,39 +187,76 @@ export class DatabaseStorage implements IStorage {
       paramIndex++;
     }
     
-    if (researchId) {
-      whereConditions.push(`m.research_id = $${paramIndex}`);
-      queryParams.push(researchId);
-      countParams.push(researchId);
-      paramIndex++;
+    // Handle researchId filter (support for array of research IDs)
+    if (researchId && (Array.isArray(researchId) ? researchId.length > 0 : true)) {
+      if (Array.isArray(researchId)) {
+        const placeholders = researchId.map(() => `$${paramIndex++}`).join(', ');
+        whereConditions.push(`m.research_id IN (${placeholders})`);
+        queryParams.push(...researchId);
+        countParams.push(...researchId);
+      } else {
+        whereConditions.push(`m.research_id = $${paramIndex}`);
+        queryParams.push(researchId);
+        countParams.push(researchId);
+        paramIndex++;
+      }
     }
     
-    if (manager && manager !== "ALL") {
-      whereConditions.push(`m.relationship_manager = $${paramIndex}`);
-      queryParams.push(manager);
-      countParams.push(manager);
-      paramIndex++;
+    // Handle array-based filters (support for multi-select)
+    if (manager && (Array.isArray(manager) ? manager.length > 0 : manager !== "ALL")) {
+      if (Array.isArray(manager)) {
+        const placeholders = manager.map(() => `$${paramIndex++}`).join(', ');
+        whereConditions.push(`m.relationship_manager IN (${placeholders})`);
+        queryParams.push(...manager);
+        countParams.push(...manager);
+      } else {
+        whereConditions.push(`m.relationship_manager = $${paramIndex}`);
+        queryParams.push(manager);
+        countParams.push(manager);
+        paramIndex++;
+      }
     }
     
-    if (recruiter && recruiter !== "ALL") {
-      whereConditions.push(`m.recruiter = $${paramIndex}`);
-      queryParams.push(recruiter);
-      countParams.push(recruiter);
-      paramIndex++;
+    if (recruiter && (Array.isArray(recruiter) ? recruiter.length > 0 : recruiter !== "ALL")) {
+      if (Array.isArray(recruiter)) {
+        const placeholders = recruiter.map(() => `$${paramIndex++}`).join(', ');
+        whereConditions.push(`m.recruiter IN (${placeholders})`);
+        queryParams.push(...recruiter);
+        countParams.push(...recruiter);
+      } else {
+        whereConditions.push(`m.recruiter = $${paramIndex}`);
+        queryParams.push(recruiter);
+        countParams.push(recruiter);
+        paramIndex++;
+      }
     }
     
-    if (researcher && researcher !== "ALL") {
-      whereConditions.push(`m.researcher = $${paramIndex}`);
-      queryParams.push(researcher);
-      countParams.push(researcher);
-      paramIndex++;
+    if (researcher && (Array.isArray(researcher) ? researcher.length > 0 : researcher !== "ALL")) {
+      if (Array.isArray(researcher)) {
+        const placeholders = researcher.map(() => `$${paramIndex++}`).join(', ');
+        whereConditions.push(`m.researcher IN (${placeholders})`);
+        queryParams.push(...researcher);
+        countParams.push(...researcher);
+      } else {
+        whereConditions.push(`m.researcher = $${paramIndex}`);
+        queryParams.push(researcher);
+        countParams.push(researcher);
+        paramIndex++;
+      }
     }
     
-    if (position && position !== "ALL") {
-      whereConditions.push(`m.respondent_position = $${paramIndex}`);
-      queryParams.push(position);
-      countParams.push(position);
-      paramIndex++;
+    if (position && (Array.isArray(position) ? position.length > 0 : position !== "ALL")) {
+      if (Array.isArray(position)) {
+        const placeholders = position.map(() => `$${paramIndex++}`).join(', ');
+        whereConditions.push(`m.respondent_position IN (${placeholders})`);
+        queryParams.push(...position);
+        countParams.push(...position);
+      } else {
+        whereConditions.push(`m.respondent_position = $${paramIndex}`);
+        queryParams.push(position);
+        countParams.push(position);
+        paramIndex++;
+      }
     }
     
     if (gift && gift !== "ALL") {
@@ -1082,6 +1126,87 @@ export class DatabaseStorage implements IStorage {
     }).from(researches).where(
       sql`(date_start <= ${endDate.toISOString()} AND date_end >= ${startDate.toISOString()})`
     );
+  }
+
+  // Search methods for filter options
+  async searchResearches(search: string, limit: number): Promise<{ id: number; name: string }[]> {
+    const searchPattern = `%${search}%`;
+    const results = await db.select({
+      id: researches.id,
+      name: researches.name
+    }).from(researches)
+      .where(sql`name ILIKE ${searchPattern}`)
+      .limit(limit);
+    
+    return results;
+  }
+
+  async searchManagers(search: string, limit: number): Promise<{ value: string; label: string }[]> {
+    const searchPattern = `%${search}%`;
+    const results = await db.select({
+      manager: meetings.relationshipManager
+    }).from(meetings)
+      .where(and(
+        isNotNull(meetings.relationshipManager),
+        sql`relationship_manager ILIKE ${searchPattern}`
+      ))
+      .groupBy(meetings.relationshipManager)
+      .limit(limit);
+
+    return results
+      .filter(r => r.manager)
+      .map(r => ({ value: r.manager!, label: r.manager! }));
+  }
+
+  async searchRecruiters(search: string, limit: number): Promise<{ value: string; label: string }[]> {
+    const searchPattern = `%${search}%`;
+    const results = await db.select({
+      recruiter: meetings.salesPerson
+    }).from(meetings)
+      .where(and(
+        isNotNull(meetings.salesPerson),
+        sql`sales_person ILIKE ${searchPattern}`
+      ))
+      .groupBy(meetings.salesPerson)
+      .limit(limit);
+
+    return results
+      .filter(r => r.recruiter)
+      .map(r => ({ value: r.recruiter!, label: r.recruiter! }));
+  }
+
+  async searchResearchers(search: string, limit: number): Promise<{ value: string; label: string }[]> {
+    const searchPattern = `%${search}%`;
+    const results = await db.select({
+      researcher: meetings.researcher
+    }).from(meetings)
+      .where(and(
+        isNotNull(meetings.researcher),
+        sql`researcher ILIKE ${searchPattern}`
+      ))
+      .groupBy(meetings.researcher)
+      .limit(limit);
+
+    return results
+      .filter(r => r.researcher)
+      .map(r => ({ value: r.researcher!, label: r.researcher! }));
+  }
+
+  async searchPositions(search: string, limit: number): Promise<{ value: string; label: string }[]> {
+    const searchPattern = `%${search}%`;
+    const results = await db.select({
+      position: meetings.respondentPosition
+    }).from(meetings)
+      .where(and(
+        isNotNull(meetings.respondentPosition),
+        sql`respondent_position ILIKE ${searchPattern}`
+      ))
+      .groupBy(meetings.respondentPosition)
+      .limit(limit);
+
+    return results
+      .filter(r => r.position)
+      .map(r => ({ value: r.position!, label: r.position! }));
   }
 }
 

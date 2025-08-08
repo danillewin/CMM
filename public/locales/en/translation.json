@@ -238,7 +238,11 @@
     "russian": "Russian",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "search": "Search",
+    "loading": "Loading",
+    "noResults": "No results found",
+    "startTyping": "Start typing to search"
   },
   "research": {
     "title": "Research",
