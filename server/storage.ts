@@ -1037,23 +1037,31 @@ export class DatabaseStorage implements IStorage {
     try {
       const searchPattern = `%${search.toLowerCase()}%`;
       
-      // Get total count
+      // Get total count from both meetings and researches tables
       const countResult = await pool.query(`
         SELECT COUNT(DISTINCT researcher)::int as count
-        FROM meetings 
-        WHERE researcher IS NOT NULL 
-        AND researcher != ''
-        AND LOWER(researcher) LIKE $1
+        FROM (
+          SELECT researcher FROM meetings 
+          WHERE researcher IS NOT NULL AND researcher != ''
+          UNION
+          SELECT researcher FROM researches 
+          WHERE researcher IS NOT NULL AND researcher != ''
+        ) AS combined_researchers
+        WHERE LOWER(researcher) LIKE $1
       `, [searchPattern]);
       const total = countResult.rows[0].count;
 
-      // Get paginated data
+      // Get paginated data from both meetings and researches tables
       const result = await pool.query(`
         SELECT DISTINCT researcher as name
-        FROM meetings 
-        WHERE researcher IS NOT NULL 
-        AND researcher != ''
-        AND LOWER(researcher) LIKE $1
+        FROM (
+          SELECT researcher FROM meetings 
+          WHERE researcher IS NOT NULL AND researcher != ''
+          UNION
+          SELECT researcher FROM researches 
+          WHERE researcher IS NOT NULL AND researcher != ''
+        ) AS combined_researchers
+        WHERE LOWER(researcher) LIKE $1
         ORDER BY researcher ASC
         LIMIT $2 OFFSET $3
       `, [searchPattern, limit, offset]);
