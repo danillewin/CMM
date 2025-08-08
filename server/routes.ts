@@ -10,111 +10,14 @@ import {
   insertJtbdSchema,
   insertCustomFilterSchema
 } from "@shared/schema";
-import { 
-  meetings, 
-  researches, 
-  positions, 
-  teams, 
-  jtbds, 
-  researchJtbds, 
-  meetingJtbds,
-  customFilters 
-} from "@shared/schema";
-import { db, pool } from "./db";
+
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
-import { sql, eq, and, or, isNotNull } from "drizzle-orm";
 
-// Initialize database
-async function initializeDatabase() {
-  try {
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS teams (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      )
-    `);
-
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS positions (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      )
-    `);
-
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS researches (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL,
-        team TEXT NOT NULL REFERENCES teams(name),
-        researcher TEXT NOT NULL,
-        description TEXT NOT NULL,
-        date_start TIMESTAMP NOT NULL,
-        date_end TIMESTAMP NOT NULL,
-        status TEXT NOT NULL DEFAULT 'Planned'
-      )
-    `);
-
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS meetings (
-        id SERIAL PRIMARY KEY,
-        respondent_name TEXT NOT NULL,
-        respondent_position TEXT REFERENCES positions(name),
-        cnum TEXT NOT NULL,
-        gcc TEXT,
-        company_name TEXT,
-        manager TEXT NOT NULL,
-        date TIMESTAMP NOT NULL,
-        research_id INTEGER NOT NULL REFERENCES researches(id),
-        status TEXT NOT NULL DEFAULT 'In Progress'
-      )
-    `);
-
-    // Create JTBD table
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS jtbds (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        category TEXT,
-        priority TEXT,
-        created_at TIMESTAMP NOT NULL DEFAULT NOW()
-      )
-    `);
-
-    // Create Research to JTBD relations table
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS research_jtbds (
-        research_id INTEGER NOT NULL REFERENCES researches(id) ON DELETE CASCADE,
-        jtbd_id INTEGER NOT NULL REFERENCES jtbds(id) ON DELETE CASCADE,
-        PRIMARY KEY (research_id, jtbd_id)
-      )
-    `);
-
-    // Create Meeting to JTBD relations table
-    await db.execute(`
-      CREATE TABLE IF NOT EXISTS meeting_jtbds (
-        meeting_id INTEGER NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
-        jtbd_id INTEGER NOT NULL REFERENCES jtbds(id) ON DELETE CASCADE,
-        PRIMARY KEY (meeting_id, jtbd_id)
-      )
-    `);
-    
-    console.log("Database initialized successfully");
-  } catch (error) {
-    console.error("Failed to initialize database:", error);
-    throw error;
-  }
-}
+// Database initialization is handled by the storage layer
 
 export function registerRoutes(app: Express): Server {
-  // Initialize database before setting up routes
-  initializeDatabase().catch(error => {
-    console.error("Failed to initialize database:", error);
-    process.exit(1);
-  });
+  // Database initialization is handled by storage layer
 
   // Team routes
   app.get("/api/teams", async (_req, res) => {
@@ -201,149 +104,20 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/dashboard", async (req, res) => {
     try {
       const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
-      const researchFilter = req.query.researchFilter ? parseInt(req.query.researchFilter as string) : null;
+      const researchFilter = req.query.researchFilter ? parseInt(req.query.researchFilter as string) : undefined;
       const teamFilter = req.query.teamFilter as string;
       const managerFilter = req.query.managerFilter as string;
       const researcherFilter = req.query.researcherFilter as string;
       
-      const startOfYear = new Date(year, 0, 1);
-      const endOfYear = new Date(year, 11, 31, 23, 59, 59);
-      
-      // Base query for meetings with research joins
-      let meetingsQuery = db.select({
-        meeting_id: meetings.id,
-        respondentName: meetings.respondentName,
-        companyName: meetings.companyName,
-        date: meetings.date,
-        status: meetings.status,
-        relationshipManager: meetings.relationshipManager,
-        salesPerson: meetings.salesPerson,
-        researchId: meetings.researchId,
-        research_team: researches.team,
-        research_researcher: researches.researcher,
-        research_name: researches.name,
-      }).from(meetings)
-        .leftJoin(researches, eq(meetings.researchId, researches.id))
-        .where(
-          sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
-        );
-      
-      // Apply filters
-      const conditions = [];
-      if (researchFilter) {
-        conditions.push(eq(meetings.researchId, researchFilter));
-      }
-      if (teamFilter && teamFilter !== "ALL") {
-        conditions.push(eq(researches.team, teamFilter));
-      }
-      if (managerFilter && managerFilter !== "ALL") {
-        conditions.push(
-          or(
-            eq(meetings.relationshipManager, managerFilter),
-            eq(meetings.salesPerson, managerFilter)
-          )
-        );
-      }
-      if (researcherFilter && researcherFilter !== "ALL") {
-        conditions.push(eq(researches.researcher, researcherFilter));
-      }
-      
-      if (conditions.length > 0) {
-        meetingsQuery = meetingsQuery.where(and(...conditions));
-      }
-      
-      const meetingsData = await meetingsQuery;
-      
-      // Get filter options
-      const teamsData = await db.selectDistinct({ team: researches.team }).from(researches).where(isNotNull(researches.team));
-      const managersData = await db.selectDistinct({ manager: meetings.relationshipManager }).from(meetings).where(isNotNull(meetings.relationshipManager))
-        .union(db.selectDistinct({ manager: meetings.salesPerson }).from(meetings).where(isNotNull(meetings.salesPerson)));
-      const researchersData = await db.selectDistinct({ researcher: researches.researcher }).from(researches).where(isNotNull(researches.researcher));
-      const researchesData = await db.select({ id: researches.id, name: researches.name }).from(researches).where(
-        sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
-      );
-      
-      // Calculate aggregated data
-      const meetingsByStatus = {};
-      Object.values(['SET', 'IN_PROGRESS', 'DONE', 'DECLINED']).forEach(status => {
-        meetingsByStatus[status] = meetingsData.filter(m => m.status === status).length;
-      });
-      
-      // Calculate meetings over time (last 30 days)
-      const last30Days = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dayStart = new Date(date);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(date);
-        dayEnd.setHours(23, 59, 59, 999);
-        
-        const dayData = {
-          name: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          SET: meetingsData.filter(m => 
-            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'SET'
-          ).length,
-          IN_PROGRESS: meetingsData.filter(m => 
-            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'IN_PROGRESS'
-          ).length,
-          DONE: meetingsData.filter(m => 
-            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DONE'
-          ).length,
-          DECLINED: meetingsData.filter(m => 
-            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DECLINED'
-          ).length,
-        };
-        last30Days.push(dayData);
-      }
-      
-      // Calculate top managers
-      const managerMeetings = {};
-      meetingsData.forEach(meeting => {
-        [meeting.relationshipManager, meeting.salesPerson].forEach(manager => {
-          if (manager) {
-            if (!managerMeetings[manager]) {
-              managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
-            }
-            managerMeetings[manager][meeting.status]++;
-          }
-        });
-      });
-      
-      const topManagers = Object.entries(managerMeetings)
-        .sort(([, a], [, b]) => 
-          Object.values(b).reduce((sum, val) => sum + val, 0) - Object.values(a).reduce((sum, val) => sum + val, 0)
-        )
-        .slice(0, 5)
-        .map(([name, statusCounts]) => ({ name, ...statusCounts }));
-      
-      // Get recent meetings
-      const recentMeetings = meetingsData
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5)
-        .map(m => ({
-          id: m.meeting_id,
-          respondentName: m.respondentName,
-          companyName: m.companyName,
-          date: m.date,
-          status: m.status
-        }));
-      
-      res.json({
+      const dashboardData = await storage.getDashboardData({
         year,
-        filters: {
-          teams: teamsData.map(t => t.team).filter(Boolean).sort(),
-          managers: managersData.map(m => m.manager).filter(Boolean).sort(),
-          researchers: researchersData.map(r => r.researcher).filter(Boolean).sort(),
-          researches: researchesData
-        },
-        analytics: {
-          meetingsByStatus: Object.entries(meetingsByStatus).map(([name, value]) => ({ name, value })),
-          meetingsOverTime: last30Days,
-          topManagers,
-          recentMeetings
-        }
+        researchFilter,
+        teamFilter,
+        managerFilter,
+        researcherFilter
       });
+      
+      res.json(dashboardData);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       res.status(500).json({ message: "Failed to fetch dashboard data" });
@@ -354,26 +128,8 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/roadmap/researches", async (req, res) => {
     try {
       const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
-      const startOfYear = new Date(year, 0, 1); // January 1st of the year
-      const endOfYear = new Date(year, 11, 31, 23, 59, 59); // December 31st of the year
       
-      // Only fetch researches that overlap with the specified year
-      // Include research that starts or ends within the year, or spans across it
-      const researchData = await db.select({
-        id: researches.id,
-        name: researches.name,
-        dateStart: researches.dateStart,
-        dateEnd: researches.dateEnd,
-        team: researches.team,
-        researcher: researches.researcher,
-        status: researches.status,
-        researchType: researches.researchType,
-        color: researches.color,
-      }).from(researches).where(
-        // Research overlaps with the year if:
-        // - research starts before year ends AND research ends after year starts
-        sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
-      );
+      const researchData = await storage.getRoadmapResearches(year);
       
       res.json({ data: researchData, total: researchData.length, year });
     } catch (error) {
@@ -393,19 +149,22 @@ export function registerRoutes(app: Express): Server {
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
       
-      // If date range is provided, filter by date range
+      // If date range is provided, use a year calculation and filter via storage
       if (startDate && endDate) {
         try {
           const start = new Date(startDate);
           const end = new Date(endDate);
           
-          const researchData = await db.select().from(researches).where(
-            // Research overlaps with the date range if:
-            // - research starts before range ends AND research ends after range starts
-            sql`(date_start <= ${end.toISOString()} AND date_end >= ${start.toISOString()})`
-          );
+          // For date range queries, we'll still get all researches and filter them
+          // This could be optimized further by adding a date range method to storage
+          const allResearches = await storage.getResearches();
+          const filteredResearches = allResearches.filter(research => {
+            const resStart = new Date(research.dateStart);
+            const resEnd = new Date(research.dateEnd);
+            return resStart <= end && resEnd >= start;
+          });
           
-          res.json({ data: researchData, total: researchData.length });
+          res.json({ data: filteredResearches, total: filteredResearches.length });
         } catch (dateError) {
           console.error("Error parsing dates:", dateError);
           res.status(400).json({ message: "Invalid date format" });
@@ -530,16 +289,7 @@ export function registerRoutes(app: Express): Server {
         const start = new Date(startDate);
         const end = new Date(endDate);
         
-        // Select only minimal fields needed for calendar
-        const meetingsData = await db.select({
-          id: meetings.id,
-          respondentName: meetings.respondentName,
-          date: meetings.date,
-          researchId: meetings.researchId,
-          status: meetings.status
-        }).from(meetings).where(
-          sql`(date >= ${start.toISOString()} AND date <= ${end.toISOString()})`
-        );
+        const meetingsData = await storage.getCalendarMeetings(start, end);
         
         res.json({ data: meetingsData, total: meetingsData.length });
       } catch (dateError) {
@@ -565,21 +315,7 @@ export function registerRoutes(app: Express): Server {
         const start = new Date(startDate);
         const end = new Date(endDate);
         
-        // Select only minimal fields needed for calendar
-        const researchData = await db.select({
-          id: researches.id,
-          name: researches.name,
-          team: researches.team,
-          researcher: researches.researcher,
-          dateStart: researches.dateStart,
-          dateEnd: researches.dateEnd,
-          status: researches.status,
-          color: researches.color
-        }).from(researches).where(
-          // Research overlaps with the date range if:
-          // - research starts before range ends AND research ends after range starts
-          sql`(date_start <= ${end.toISOString()} AND date_end >= ${start.toISOString()})`
-        );
+        const researchData = await storage.getCalendarResearches(start, end);
         
         res.json({ data: researchData, total: researchData.length });
       } catch (dateError) {
@@ -603,16 +339,13 @@ export function registerRoutes(app: Express): Server {
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
       
-      // If date range is provided, filter by date range (full data)
+      // If date range is provided, filter by date range (use calendar meetings method)
       if (startDate && endDate) {
         try {
           const start = new Date(startDate);
           const end = new Date(endDate);
           
-          const meetingsData = await db.select().from(meetings).where(
-            // Meeting is within the date range
-            sql`(date >= ${start.toISOString()} AND date <= ${end.toISOString()})`
-          );
+          const meetingsData = await storage.getCalendarMeetings(start, end);
           
           res.json({ data: meetingsData, total: meetingsData.length });
         } catch (dateError) {

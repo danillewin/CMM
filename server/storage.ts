@@ -27,7 +27,7 @@ import {
   type ResearchTableItem
 } from "@shared/schema";
 import { db, pool } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, or, isNotNull } from "drizzle-orm";
 import { kafkaService } from "./kafka-service";
 
 export interface IStorage {
@@ -76,6 +76,36 @@ export interface IStorage {
   createCustomFilter(filter: InsertCustomFilter): Promise<CustomFilter>;
   updateCustomFilter(id: number, filter: Partial<InsertCustomFilter>): Promise<CustomFilter | undefined>;
   deleteCustomFilter(id: number): Promise<boolean>;
+  
+  // Dashboard and analytics methods
+  getDashboardData(filters: {
+    year: number;
+    researchFilter?: number;
+    teamFilter?: string;
+    managerFilter?: string;
+    researcherFilter?: string;
+  }): Promise<{
+    year: number;
+    filters: {
+      teams: string[];
+      managers: string[];
+      researchers: string[];
+      researches: { id: number; name: string }[];
+    };
+    analytics: {
+      meetingsByStatus: { name: string; value: number }[];
+      meetingsOverTime: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
+      topManagers: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
+      recentMeetings: Array<{ id: number; respondentName: string; companyName: string; date: string; status: string }>;
+    };
+  }>;
+  
+  // Roadmap specific methods
+  getRoadmapResearches(year: number): Promise<Research[]>;
+
+  // Calendar specific methods for optimized calendar queries
+  getCalendarMeetings(startDate: Date, endDate: Date): Promise<any[]>;
+  getCalendarResearches(startDate: Date, endDate: Date): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -716,6 +746,207 @@ export class DatabaseStorage implements IStorage {
       .where(eq(customFilters.id, id))
       .returning();
     return !!deletedFilter;
+  }
+
+  async getDashboardData(filters: {
+    year: number;
+    researchFilter?: number;
+    teamFilter?: string;
+    managerFilter?: string;
+    researcherFilter?: string;
+  }) {
+    const { year, researchFilter, teamFilter, managerFilter, researcherFilter } = filters;
+    
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+    
+    // SQL and operators are already imported at the top
+    
+    // Base query for meetings with research joins
+    let meetingsQuery = db.select({
+      meeting_id: meetings.id,
+      respondentName: meetings.respondentName,
+      companyName: meetings.companyName,
+      date: meetings.date,
+      status: meetings.status,
+      relationshipManager: meetings.relationshipManager,
+      salesPerson: meetings.salesPerson,
+      researchId: meetings.researchId,
+      research_team: researches.team,
+      research_researcher: researches.researcher,
+      research_name: researches.name,
+    }).from(meetings)
+      .leftJoin(researches, eq(meetings.researchId, researches.id))
+      .where(
+        sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
+      );
+    
+    // Apply filters
+    const conditions = [];
+    if (researchFilter) {
+      conditions.push(eq(meetings.researchId, researchFilter));
+    }
+    if (teamFilter && teamFilter !== "ALL") {
+      conditions.push(eq(researches.team, teamFilter));
+    }
+    if (managerFilter && managerFilter !== "ALL") {
+      conditions.push(
+        or(
+          eq(meetings.relationshipManager, managerFilter),
+          eq(meetings.salesPerson, managerFilter)
+        )
+      );
+    }
+    if (researcherFilter && researcherFilter !== "ALL") {
+      conditions.push(eq(researches.researcher, researcherFilter));
+    }
+    
+    if (conditions.length > 0) {
+      meetingsQuery = meetingsQuery.where(and(...conditions));
+    }
+    
+    const meetingsData = await meetingsQuery;
+    
+    // Get filter options
+    const teamsData = await db.selectDistinct({ team: researches.team }).from(researches).where(isNotNull(researches.team));
+    const managersData = await db.selectDistinct({ manager: meetings.relationshipManager }).from(meetings).where(isNotNull(meetings.relationshipManager))
+      .union(db.selectDistinct({ manager: meetings.salesPerson }).from(meetings).where(isNotNull(meetings.salesPerson)));
+    const researchersData = await db.selectDistinct({ researcher: researches.researcher }).from(researches).where(isNotNull(researches.researcher));
+    const researchesData = await db.select({ id: researches.id, name: researches.name }).from(researches).where(
+      sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
+    );
+    
+    // Calculate aggregated data
+    const meetingsByStatus: { [key: string]: number } = {};
+    Object.values(['SET', 'IN_PROGRESS', 'DONE', 'DECLINED']).forEach(status => {
+      meetingsByStatus[status] = meetingsData.filter(m => m.status === status).length;
+    });
+    
+    // Calculate meetings over time (last 30 days)
+    const last30Days = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
+      
+      const dayData = {
+        name: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        SET: meetingsData.filter(m => 
+          new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'SET'
+        ).length,
+        IN_PROGRESS: meetingsData.filter(m => 
+          new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'IN_PROGRESS'
+        ).length,
+        DONE: meetingsData.filter(m => 
+          new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DONE'
+        ).length,
+        DECLINED: meetingsData.filter(m => 
+          new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DECLINED'
+        ).length,
+      };
+      last30Days.push(dayData);
+    }
+    
+    // Calculate top managers
+    const managerMeetings: { [key: string]: { SET: number, IN_PROGRESS: number, DONE: number, DECLINED: number } } = {};
+    meetingsData.forEach(meeting => {
+      [meeting.relationshipManager, meeting.salesPerson].forEach(manager => {
+        if (manager) {
+          if (!managerMeetings[manager]) {
+            managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
+          }
+          managerMeetings[manager][meeting.status]++;
+        }
+      });
+    });
+    
+    const topManagers = Object.entries(managerMeetings)
+      .sort(([, a], [, b]) => 
+        Object.values(b).reduce((sum, val) => sum + val, 0) - Object.values(a).reduce((sum, val) => sum + val, 0)
+      )
+      .slice(0, 5)
+      .map(([name, statusCounts]) => ({ name, ...statusCounts }));
+    
+    // Get recent meetings
+    const recentMeetings = meetingsData
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5)
+      .map(m => ({
+        id: m.meeting_id,
+        respondentName: m.respondentName,
+        companyName: m.companyName,
+        date: m.date,
+        status: m.status
+      }));
+    
+    return {
+      year,
+      filters: {
+        teams: teamsData.map(t => t.team).filter(Boolean).sort(),
+        managers: managersData.map(m => m.manager).filter(Boolean).sort(),
+        researchers: researchersData.map(r => r.researcher).filter(Boolean).sort(),
+        researches: researchesData
+      },
+      analytics: {
+        meetingsByStatus: Object.entries(meetingsByStatus).map(([name, value]) => ({ name, value })),
+        meetingsOverTime: last30Days,
+        topManagers,
+        recentMeetings
+      }
+    };
+  }
+
+  async getRoadmapResearches(year: number): Promise<Research[]> {
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+    
+    // Only fetch researches that overlap with the specified year
+    const researchData = await db.select({
+      id: researches.id,
+      name: researches.name,
+      dateStart: researches.dateStart,
+      dateEnd: researches.dateEnd,
+      team: researches.team,
+      researcher: researches.researcher,
+      status: researches.status,
+      researchType: researches.researchType,
+      color: researches.color,
+    }).from(researches).where(
+      // Research overlaps with the year if:
+      // - research starts before year ends AND research ends after year starts
+      sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
+    );
+    
+    return researchData as Research[];
+  }
+
+  // Calendar-specific methods for optimized calendar queries
+  async getCalendarMeetings(startDate: Date, endDate: Date): Promise<any[]> {
+    return db.select({
+      id: meetings.id,
+      respondentName: meetings.respondentName,
+      date: meetings.date,
+      researchId: meetings.researchId,
+      status: meetings.status
+    }).from(meetings).where(
+      sql`(date >= ${startDate.toISOString()} AND date <= ${endDate.toISOString()})`
+    );
+  }
+
+  async getCalendarResearches(startDate: Date, endDate: Date): Promise<any[]> {
+    return db.select({
+      id: researches.id,
+      name: researches.name,
+      dateStart: researches.dateStart,
+      dateEnd: researches.dateEnd,
+      status: researches.status,
+      color: researches.color
+    }).from(researches).where(
+      sql`(date_start <= ${endDate.toISOString()} AND date_end >= ${startDate.toISOString()})`
+    );
   }
 }
 
