@@ -368,7 +368,9 @@ export default function Calendar() {
                   gcc: data.gcc || null,
                   email: data.email || null,
                   companyName: data.companyName || null,
-                  researcher: data.researcher || null
+                  researcher: data.researcher || null,
+                  fullText: data.fullText || null,
+                  notes: data.notes || null
                 });
               }}
               isLoading={updateMutation.isPending}
