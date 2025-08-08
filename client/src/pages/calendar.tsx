@@ -37,7 +37,8 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 
 export default function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  // Initialize to January 2025 where we have data
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1)); // January 2025
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
@@ -152,13 +153,7 @@ export default function Calendar() {
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
 
 
-  if (researchesLoading || meetingsLoading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <SectionLoader text="Loading calendar data..." />
-      </div>
-    );
-  }
+  // Don't show full page loading - we'll show inline loading states instead
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -293,8 +288,16 @@ export default function Calendar() {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-px bg-muted">
-              {calendarDays.map((day) => {
+            {(researchesLoading || meetingsLoading) ? (
+              <div className="flex items-center justify-center h-64 bg-card">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Loading calendar data...</span>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-7 gap-px bg-muted">
+                {calendarDays.map((day) => {
                 const dayMeetings = getMeetingsForDay(day);
 
                 return (
@@ -330,7 +333,8 @@ export default function Calendar() {
                   </div>
                 );
               })}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
