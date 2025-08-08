@@ -47,12 +47,18 @@ export default function Calendar() {
   const { t } = useTranslation();
 
 
+  // Calculate date range for current month
+  const monthStart = useMemo(() => startOfMonth(currentDate), [currentDate]);
+  const monthEnd = useMemo(() => endOfMonth(currentDate), [currentDate]);
+
   const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: Research[] }>({
-    queryKey: ["/api/researches"],
+    queryKey: ["/api/researches", monthStart.toISOString(), monthEnd.toISOString()],
+    queryFn: () => fetch(`/api/researches?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
   });
 
   const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: Meeting[] }>({
-    queryKey: ["/api/meetings"],
+    queryKey: ["/api/meetings", monthStart.toISOString(), monthEnd.toISOString()],
+    queryFn: () => fetch(`/api/meetings?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
   });
 
   const researches = researchesResponse?.data || [];
@@ -64,7 +70,7 @@ export default function Calendar() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
       setSelectedMeeting(null);
       toast({ title: "Meeting updated successfully" });
     },

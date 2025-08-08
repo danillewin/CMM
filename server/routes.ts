@@ -22,6 +22,7 @@ import {
 import { db, pool } from "./db";
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
+import { sql } from "drizzle-orm";
 
 // Initialize database
 async function initializeDatabase() {
@@ -203,6 +204,28 @@ export function registerRoutes(app: Express): Server {
       const sortBy = req.query.sortBy as string;
       const sortDir = req.query.sortDir as 'asc' | 'desc';
       const search = req.query.search as string;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      // If date range is provided, filter by date range
+      if (startDate && endDate) {
+        try {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          
+          const researchData = await db.select().from(researches).where(
+            // Research overlaps with the date range if:
+            // - research starts before range ends AND research ends after range starts
+            sql`(date_start <= ${end.toISOString()} AND date_end >= ${start.toISOString()})`
+          );
+          
+          res.json({ data: researchData, total: researchData.length });
+        } catch (dateError) {
+          console.error("Error parsing dates:", dateError);
+          res.status(400).json({ message: "Invalid date format" });
+        }
+        return;
+      }
       
       // Always use paginated endpoint for efficiency
       const paginatedResearches = await storage.getResearchesPaginated({ 
@@ -315,6 +338,27 @@ export function registerRoutes(app: Express): Server {
       const sortBy = req.query.sortBy as string;
       const sortDir = req.query.sortDir as 'asc' | 'desc';
       const researchId = req.query.researchId ? parseInt(req.query.researchId as string) : undefined;
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      // If date range is provided, filter by date range
+      if (startDate && endDate) {
+        try {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          
+          const meetingsData = await db.select().from(meetings).where(
+            // Meeting is within the date range
+            sql`(date >= ${start.toISOString()} AND date <= ${end.toISOString()})`
+          );
+          
+          res.json({ data: meetingsData, total: meetingsData.length });
+        } catch (dateError) {
+          console.error("Error parsing dates:", dateError);
+          res.status(400).json({ message: "Invalid date format" });
+        }
+        return;
+      }
       
       // Always use paginated endpoint for efficiency
       const paginatedMeetings = await storage.getMeetingsPaginated({ 
