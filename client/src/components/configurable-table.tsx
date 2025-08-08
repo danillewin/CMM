@@ -214,7 +214,11 @@ export function ConfigurableTable<T extends { id: number | string }>({
     if (filter.isActive) {
       return filter.isActive();
     }
-    // Handle array values (SearchMultiselect components)
+    // Handle SearchMultiselect components (use selectedValues property)
+    if (filter.component === "searchMultiselect" && filter.selectedValues) {
+      return Array.isArray(filter.selectedValues) && filter.selectedValues.length > 0;
+    }
+    // Handle array values (SearchMultiselect components using value property)
     if (Array.isArray(filter.value)) {
       return filter.value.length > 0;
     }
@@ -402,7 +406,9 @@ export function ConfigurableTable<T extends { id: number | string }>({
                           filters?.forEach(filter => {
                             if (filter.onChange) {
                               // For SearchMultiselect components, reset to empty array
-                              if (Array.isArray(filter.value)) {
+                              if (filter.component === "searchMultiselect") {
+                                (filter.onChange as (value: string[]) => void)([]);
+                              } else if (Array.isArray(filter.value)) {
                                 (filter.onChange as (value: string[]) => void)([]);
                               } else if (filter.value !== "ALL") {
                                 // For regular dropdowns, reset to "ALL"
