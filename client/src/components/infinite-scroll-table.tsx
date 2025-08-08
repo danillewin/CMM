@@ -78,14 +78,6 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
     );
   }
 
-  if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-gray-500">
-        {emptyStateMessage}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <ConfigurableTable
@@ -100,6 +92,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
         filters={filters}
         searchValue={searchValue}
         onSearchChange={onSearchChange}
+        emptyStateMessage={data.length === 0 ? emptyStateMessage : undefined}
       />
       
       {/* Load more trigger */}

@@ -87,6 +87,7 @@ interface ConfigurableTableProps<T> {
   filters?: FilterConfig[];
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  emptyStateMessage?: string;
 }
 
 // Props for the sortable item component
@@ -150,7 +151,8 @@ export function ConfigurableTable<T extends { id: number | string }>({
   storeConfigKey = "tableConfig",
   filters = [],
   searchValue = "",
-  onSearchChange
+  onSearchChange,
+  emptyStateMessage
 }: ConfigurableTableProps<T>) {
   // Load column config from local storage or use initial columns
   const loadSavedConfig = useCallback(() => {
@@ -424,19 +426,27 @@ export function ConfigurableTable<T extends { id: number | string }>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
-              <TableRow
-                key={item.id}
-                className={`${rowClassName} ${onRowClick ? "cursor-pointer" : ""}`}
-                onClick={onRowClick ? () => onRowClick(item) : undefined}
-              >
-                {visibleColumns.map((column) => (
-                  <TableCell key={`${item.id}-${column.id}`}>
-                    {column.render(item)}
-                  </TableCell>
-                ))}
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length} className="text-center py-8 text-gray-500">
+                  {emptyStateMessage || "No data available"}
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((item) => (
+                <TableRow
+                  key={item.id}
+                  className={`${rowClassName} ${onRowClick ? "cursor-pointer" : ""}`}
+                  onClick={onRowClick ? () => onRowClick(item) : undefined}
+                >
+                  {visibleColumns.map((column) => (
+                    <TableCell key={`${item.id}-${column.id}`}>
+                      {column.render(item)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
