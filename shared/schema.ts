@@ -275,6 +275,26 @@ export type PaginatedResponse<T> = {
   total?: number;
 };
 
+// Calendar-specific minimal types for optimized calendar view
+export type CalendarMeeting = {
+  id: number;
+  respondentName: string;
+  date: Date;
+  researchId: number | null;
+  status: string;
+};
+
+export type CalendarResearch = {
+  id: number;
+  name: string;
+  team: string;
+  researcher: string;
+  dateStart: Date;
+  dateEnd: Date;
+  status: string;
+  color: string;
+};
+
 // Lightweight versions for table view (only essential fields)
 export type MeetingTableItem = Pick<Meeting, 
   'id' | 'respondentName' | 'respondentPosition' | 'companyName' | 'researcher' | 

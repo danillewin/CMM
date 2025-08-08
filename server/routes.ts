@@ -330,6 +330,82 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Calendar optimized endpoints - return minimal data for calendar view
+  app.get("/api/calendar/meetings", async (req, res) => {
+    try {
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "startDate and endDate are required" });
+      }
+      
+      try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Select only minimal fields needed for calendar
+        const meetingsData = await db.select({
+          id: meetings.id,
+          respondentName: meetings.respondentName,
+          date: meetings.date,
+          researchId: meetings.researchId,
+          status: meetings.status
+        }).from(meetings).where(
+          sql`(date >= ${start.toISOString()} AND date <= ${end.toISOString()})`
+        );
+        
+        res.json({ data: meetingsData, total: meetingsData.length });
+      } catch (dateError) {
+        console.error("Error parsing dates:", dateError);
+        res.status(400).json({ message: "Invalid date format" });
+      }
+    } catch (error) {
+      console.error("Error fetching calendar meetings:", error);
+      res.status(500).json({ message: "Failed to fetch calendar meetings" });
+    }
+  });
+
+  app.get("/api/calendar/researches", async (req, res) => {
+    try {
+      const startDate = req.query.startDate as string;
+      const endDate = req.query.endDate as string;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "startDate and endDate are required" });
+      }
+      
+      try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Select only minimal fields needed for calendar
+        const researchData = await db.select({
+          id: researches.id,
+          name: researches.name,
+          team: researches.team,
+          researcher: researches.researcher,
+          dateStart: researches.dateStart,
+          dateEnd: researches.dateEnd,
+          status: researches.status,
+          color: researches.color
+        }).from(researches).where(
+          // Research overlaps with the date range if:
+          // - research starts before range ends AND research ends after range starts
+          sql`(date_start <= ${end.toISOString()} AND date_end >= ${start.toISOString()})`
+        );
+        
+        res.json({ data: researchData, total: researchData.length });
+      } catch (dateError) {
+        console.error("Error parsing dates:", dateError);
+        res.status(400).json({ message: "Invalid date format" });
+      }
+    } catch (error) {
+      console.error("Error fetching calendar researches:", error);
+      res.status(500).json({ message: "Failed to fetch calendar researches" });
+    }
+  });
+
   // Meeting routes
   app.get("/api/meetings", async (req, res) => {
     try {
@@ -341,7 +417,7 @@ export function registerRoutes(app: Express): Server {
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
       
-      // If date range is provided, filter by date range
+      // If date range is provided, filter by date range (full data)
       if (startDate && endDate) {
         try {
           const start = new Date(startDate);

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { type Research, type Meeting, ResearchStatus } from "@shared/schema";
+import { type Research, type Meeting, type CalendarMeeting, type CalendarResearch, ResearchStatus } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +39,7 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [selectedMeeting, setSelectedMeeting] = useState<CalendarMeeting | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -51,14 +51,22 @@ export default function Calendar() {
   const monthStart = useMemo(() => startOfMonth(currentDate), [currentDate]);
   const monthEnd = useMemo(() => endOfMonth(currentDate), [currentDate]);
 
-  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: Research[] }>({
-    queryKey: ["/api/researches", monthStart.toISOString(), monthEnd.toISOString()],
-    queryFn: () => fetch(`/api/researches?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
+  // Use optimized calendar endpoints for minimal data
+  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: CalendarResearch[] }>({
+    queryKey: ["/api/calendar/researches", monthStart.toISOString(), monthEnd.toISOString()],
+    queryFn: () => fetch(`/api/calendar/researches?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
   });
 
-  const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: Meeting[] }>({
-    queryKey: ["/api/meetings", monthStart.toISOString(), monthEnd.toISOString()],
-    queryFn: () => fetch(`/api/meetings?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
+  const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: CalendarMeeting[] }>({
+    queryKey: ["/api/calendar/meetings", monthStart.toISOString(), monthEnd.toISOString()],
+    queryFn: () => fetch(`/api/calendar/meetings?startDate=${monthStart.toISOString()}&endDate=${monthEnd.toISOString()}`).then(res => res.json()),
+  });
+
+  // Separate query for full meeting details when clicked
+  const { data: fullMeetingData, isLoading: fullMeetingLoading } = useQuery<Meeting>({
+    queryKey: ["/api/meetings", selectedMeeting?.id],
+    queryFn: () => fetch(`/api/meetings/${selectedMeeting?.id}`).then(res => res.json()),
+    enabled: !!selectedMeeting?.id,
   });
 
   const researches = researchesResponse?.data || [];
@@ -70,13 +78,15 @@ export default function Calendar() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
+      // Invalidate both calendar and full meeting queries
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings", selectedMeeting?.id] });
       setSelectedMeeting(null);
-      toast({ title: "Meeting updated successfully" });
+      toast({ title: t("meeting_updated_successfully") });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update meeting",
+        title: t("failed_to_update_meeting"),
         description: error.message,
         variant: "destructive"
       });
@@ -89,8 +99,8 @@ export default function Calendar() {
   );
 
   // Get unique teams and researchers for filters
-  const teams = [...new Set(researches.map(r => r.team))].sort();
-  const researchers = [...new Set(researches.map(r => r.researcher))].sort();
+  const teams = Array.from(new Set(researches.map(r => r.team))).sort();
+  const researchers = Array.from(new Set(researches.map(r => r.researcher))).sort();
 
   // Update selectedResearchIds when researches data is loaded
   useMemo(() => {
@@ -325,7 +335,7 @@ export default function Calendar() {
                             setSelectedMeeting(meeting);
                           }}
                         >
-                          {meeting.respondentName} - {meeting.companyName || 'No company'}
+                          {meeting.respondentName}
                         </div>
                       ))}
                     </div>
@@ -341,21 +351,40 @@ export default function Calendar() {
       {/* Meeting Details Dialog */}
       <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
         <DialogContent className="w-[90vw] max-w-xl">
-          <MeetingForm
-            initialData={selectedMeeting}
-            onSubmit={(data) => {
-              if (selectedMeeting) {
+          {fullMeetingLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                <span className="text-sm text-muted-foreground">{t("loading_meeting_details")}...</span>
+              </div>
+            </div>
+          ) : fullMeetingData ? (
+            <MeetingForm
+              initialData={fullMeetingData}
+              onSubmit={(data) => {
                 updateMutation.mutate({ 
                   ...data, 
-                  id: selectedMeeting.id,
+                  id: fullMeetingData.id,
                   gcc: data.gcc || null,
-                  email: data.email || null
+                  email: data.email || null,
+                  companyName: data.companyName || null,
+                  researcher: data.researcher || null
                 });
-              }
-            }}
-            isLoading={updateMutation.isPending}
-            onCancel={() => setSelectedMeeting(null)}
-          />
+              }}
+              isLoading={updateMutation.isPending}
+              onCancel={() => setSelectedMeeting(null)}
+            />
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground">{t("error_loading_meeting")}</p>
+              <Button 
+                onClick={() => setSelectedMeeting(null)}
+                className="mt-4"
+              >
+                {t("close")}
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
