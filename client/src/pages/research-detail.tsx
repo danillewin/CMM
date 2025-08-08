@@ -2746,11 +2746,11 @@ function ResearchDetail() {
       updateMutation.mutate(updateData);
     } else {
       // For create, we check for duplicates first
-      const duplicateResearch = researches.find(
+      const duplicateResearch = researches && Array.isArray(researches) ? researches.find(
         (r) =>
           r.name.toLowerCase() === completeFormData.name.toLowerCase() &&
           r.team.toLowerCase() === completeFormData.team.toLowerCase(),
-      );
+      ) : null;
       if (duplicateResearch) {
         if (
           confirm(
