@@ -113,6 +113,7 @@ export interface IStorage {
   getRecruitersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
   getResearchersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
   getPositionsForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
+  getTeamsForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -521,8 +522,8 @@ export class DatabaseStorage implements IStorage {
       sortDir = 'desc', 
       search,
       status,
-      team,
-      researcher,
+      teams,
+      researchResearchers,
       researchType,
       products
     } = params;
@@ -565,18 +566,26 @@ export class DatabaseStorage implements IStorage {
       paramIndex++;
     }
     
-    if (team && team !== "ALL") {
-      whereConditions.push(`team = $${paramIndex}`);
-      queryParams.push(team);
-      countParams.push(team);
-      paramIndex++;
+    // Handle array filter for teams
+    if (teams && teams.trim()) {
+      const teamList = teams.split(',').map((t: string) => t.trim()).filter((t: string) => t);
+      if (teamList.length > 0) {
+        const placeholders = teamList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`team IN (${placeholders})`);
+        queryParams.push(...teamList);
+        countParams.push(...teamList);
+      }
     }
     
-    if (researcher && researcher !== "ALL") {
-      whereConditions.push(`researcher = $${paramIndex}`);
-      queryParams.push(researcher);
-      countParams.push(researcher);
-      paramIndex++;
+    // Handle array filter for researchers
+    if (researchResearchers && researchResearchers.trim()) {
+      const researcherList = researchResearchers.split(',').map((r: string) => r.trim()).filter((r: string) => r);
+      if (researcherList.length > 0) {
+        const placeholders = researcherList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`researcher IN (${placeholders})`);
+        queryParams.push(...researcherList);
+        countParams.push(...researcherList);
+      }
     }
     
     if (researchType && researchType !== "ALL") {
@@ -1092,6 +1101,42 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error("Error getting positions for filter:", error);
+      throw error;
+    }
+  }
+
+  async getTeamsForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count from researches table
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT team)::int as count
+        FROM researches 
+        WHERE team IS NOT NULL 
+        AND team != ''
+        AND LOWER(team) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT team as name
+        FROM researches 
+        WHERE team IS NOT NULL 
+        AND team != ''
+        AND LOWER(team) LIKE $1
+        ORDER BY team ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting teams for filter:", error);
       throw error;
     }
   }

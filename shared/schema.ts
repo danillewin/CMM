@@ -281,6 +281,8 @@ export type PaginationParams = {
   positions?: string;
   // Research filters
   team?: string;
+  teams?: string;
+  researchResearchers?: string;
   researchType?: string;
   products?: string[];
 };

@@ -36,14 +36,15 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { SearchMultiselect } from "@/components/search-multiselect";
 
 type ViewMode = "table" | "cards";
 
 export default function Researches() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
-  const [teamFilter, setTeamFilter] = useState<string>("ALL");
+  const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
+  const [teamFilter, setTeamFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [productFilters, setProductFilters] = useState<string[]>([]);
@@ -56,8 +57,8 @@ export default function Researches() {
   // Applied filters state for "Apply Filters" button
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("ALL");
-  const [appliedTeamFilter, setAppliedTeamFilter] = useState<string>("ALL");
-  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("ALL");
+  const [appliedTeamFilter, setAppliedTeamFilter] = useState<string[]>([]);
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string[]>([]);
   const [appliedResearchTypeFilters, setAppliedResearchTypeFilters] = useState<string[]>([]);
   const [appliedProductFilters, setAppliedProductFilters] = useState<string[]>([]);
   
@@ -120,12 +121,12 @@ export default function Researches() {
         params.append('status', appliedStatusFilter);
       }
       
-      if (appliedTeamFilter && appliedTeamFilter !== "ALL") {
-        params.append('team', appliedTeamFilter);
+      if (appliedTeamFilter && appliedTeamFilter.length > 0) {
+        appliedTeamFilter.forEach(team => params.append('teams', team));
       }
       
-      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
-        params.append('researcher', appliedResearcherFilter);
+      if (appliedResearcherFilter && appliedResearcherFilter.length > 0) {
+        appliedResearcherFilter.forEach(researcher => params.append('researchers', researcher));
       }
       
       if (appliedResearchTypeFilters && appliedResearchTypeFilters.length > 0) {
@@ -363,28 +364,20 @@ export default function Researches() {
     {
       id: "researcher",
       name: t("researches.researcher"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...researchers.map(researcher => ({ 
-          label: researcher, 
-          value: researcher 
-        }))
-      ],
-      value: researcherFilter || "ALL",
-      onChange: setResearcherFilter
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/researchers",
+      selectedValues: researcherFilter,
+      onChange: setResearcherFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "team",
       name: t("researches.team"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...teams.map(team => ({ 
-          label: team, 
-          value: team 
-        }))
-      ],
-      value: teamFilter || "ALL",
-      onChange: setTeamFilter
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/teams",
+      selectedValues: teamFilter,
+      onChange: setTeamFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "research-type",

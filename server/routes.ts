@@ -174,8 +174,8 @@ export function registerRoutes(app: Express): Server {
       
       // Server-side filtering parameters for researches
       const status = req.query.status as string;
-      const team = req.query.team as string;
-      const researcher = req.query.researcher as string;
+      const teams = req.query.teams as string | string[];
+      const researchers = req.query.researchers as string | string[];
       const researchType = req.query.researchType as string;
       const products = req.query.products as string[];
       
@@ -187,8 +187,8 @@ export function registerRoutes(app: Express): Server {
         sortDir,
         search,
         status,
-        team,
-        researcher,
+        teams: Array.isArray(teams) ? teams.join(',') : teams || '',
+        researchResearchers: Array.isArray(researchers) ? researchers.join(',') : researchers || '',
         researchType,
         products
       });
@@ -909,6 +909,21 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching positions for filter:", error);
       res.status(500).json({ message: "Failed to fetch positions" });
+    }
+  });
+
+  app.get("/api/filters/teams", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getTeamsForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching teams for filter:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
     }
   });
 
