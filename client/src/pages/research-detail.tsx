@@ -2626,10 +2626,7 @@ function ResearchDetail() {
     return research;
   }, [isNew, research, tempFormData]);
 
-  const { data: researches = [] } = useQuery<Research[]>({
-    queryKey: ["/api/researches"],
-    enabled: isNew, // Only load all researches when creating a new one (for duplicate detection)
-  });
+  // Removed duplicate check query - no longer needed
 
   // Fetch meetings by research ID using a specific API endpoint
   const { data: researchMeetings = [], isLoading: isMeetingsLoading } = useQuery<
@@ -2745,23 +2742,8 @@ function ResearchDetail() {
       const updateData = { ...completeFormData, id } as unknown as ResearchWithId;
       updateMutation.mutate(updateData);
     } else {
-      // For create, we check for duplicates first
-      const duplicateResearch = researches && Array.isArray(researches) ? researches.find(
-        (r) =>
-          r.name.toLowerCase() === completeFormData.name.toLowerCase() &&
-          r.team.toLowerCase() === completeFormData.team.toLowerCase(),
-      ) : null;
-      if (duplicateResearch) {
-        if (
-          confirm(
-            "A research with this name and team already exists. Create anyway?",
-          )
-        ) {
-          createMutation.mutate(completeFormData);
-        }
-      } else {
-        createMutation.mutate(completeFormData);
-      }
+      // Create new research directly without duplicate check
+      createMutation.mutate(completeFormData);
     }
   };
 
