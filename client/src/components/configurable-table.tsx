@@ -209,10 +209,18 @@ export function ConfigurableTable<T extends { id: number | string }>({
   
   const visibleColumns = columns.filter(col => col.visible);
 
-  // Count active filters
-  const activeFilterCount = filters.filter(filter => 
-    filter.isActive ? filter.isActive() : (filter.value && filter.value !== "ALL")
-  ).length;
+  // Count active filters - handle both array and string values
+  const activeFilterCount = filters.filter(filter => {
+    if (filter.isActive) {
+      return filter.isActive();
+    }
+    // Handle array values (SearchMultiselect components)
+    if (Array.isArray(filter.value)) {
+      return filter.value.length > 0;
+    }
+    // Handle string values (regular dropdowns)
+    return filter.value && filter.value !== "ALL" && filter.value !== "";
+  }).length;
 
   // Update search value when changed externally
   useEffect(() => {
