@@ -347,19 +347,17 @@ export function registerRoutes(app: Express): Server {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const sortBy = req.query.sortBy as string;
       const sortDir = req.query.sortDir as 'asc' | 'desc';
-      const researchId = Array.isArray(req.query.researchId) ? 
-        req.query.researchId.map(id => parseInt(id as string)).filter(id => !isNaN(id)) : 
-        (req.query.researchId ? [parseInt(req.query.researchId as string)].filter(id => !isNaN(id)) : undefined);
+      const researchId = req.query.researchId ? parseInt(req.query.researchId as string) : undefined;
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
       
-      // Server-side filtering parameters (handle array-based filters)
+      // Server-side filtering parameters
       const search = req.query.search as string;
       const status = req.query.status as string;
-      const manager = Array.isArray(req.query.manager) ? req.query.manager as string[] : (req.query.manager ? [req.query.manager as string] : undefined);
-      const recruiter = Array.isArray(req.query.recruiter) ? req.query.recruiter as string[] : (req.query.recruiter ? [req.query.recruiter as string] : undefined);
-      const researcher = Array.isArray(req.query.researcher) ? req.query.researcher as string[] : (req.query.researcher ? [req.query.researcher as string] : undefined);
-      const position = Array.isArray(req.query.position) ? req.query.position as string[] : (req.query.position ? [req.query.position as string] : undefined);
+      const manager = req.query.manager as string;
+      const recruiter = req.query.recruiter as string;
+      const researcher = req.query.researcher as string;
+      const position = req.query.position as string;
       const gift = req.query.gift as string;
       
       // If date range is provided, filter by date range (use calendar meetings method)
@@ -833,82 +831,6 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting custom filter:", error);
       res.status(500).json({ message: "Failed to delete custom filter" });
-    }
-  });
-
-  // Searchable filter options endpoints
-  app.get("/api/search/researches", async (req, res) => {
-    try {
-      const search = req.query.search as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-      
-      const results = await storage.searchResearches(search, limit, offset);
-      res.json(results.map(r => ({ value: r.name, label: r.name })));
-    } catch (error) {
-      console.error("Error searching researches:", error);
-      res.status(500).json({ message: "Failed to search researches" });
-    }
-  });
-
-  app.get("/api/search/managers", async (req, res) => {
-    try {
-      const search = req.query.search as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-      
-      const results = await storage.searchManagers(search, limit, offset);
-      res.json(results);
-    } catch (error) {
-      console.error("Error searching managers:", error);
-      res.status(500).json({ message: "Failed to search managers" });
-    }
-  });
-
-  app.get("/api/search/recruiters", async (req, res) => {
-    try {
-      const search = req.query.search as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-      
-      const results = await storage.searchRecruiters(search, limit, offset);
-      res.json(results);
-    } catch (error) {
-      console.error("Error searching recruiters:", error);
-      res.status(500).json({ message: "Failed to search recruiters" });
-    }
-  });
-
-  app.get("/api/search/researchers", async (req, res) => {
-    try {
-      const search = req.query.search as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-      
-      const results = await storage.searchResearchers(search, limit, offset);
-      res.json(results);
-    } catch (error) {
-      console.error("Error searching researchers:", error);
-      res.status(500).json({ message: "Failed to search researchers" });
-    }
-  });
-
-  app.get("/api/search/positions", async (req, res) => {
-    try {
-      const search = req.query.search as string || "";
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-      const offset = (page - 1) * limit;
-      
-      const results = await storage.searchPositions(search, limit, offset);
-      res.json(results);
-    } catch (error) {
-      console.error("Error searching positions:", error);
-      res.status(500).json({ message: "Failed to search positions" });
     }
   });
 

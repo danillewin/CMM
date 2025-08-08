@@ -25,36 +25,29 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { MeetingFiltersComponent, type MeetingFilters } from "@/components/meeting-filters";
 
 export default function Meetings() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [researchFilter, setResearchFilter] = useState<number | null>(null);
+  const [managerFilter, setManagerFilter] = useState<string>("");
+  const [recruiterFilter, setRecruiterFilter] = useState<string>("");
+  const [researcherFilter, setResearcherFilter] = useState<string>("");
+  const [positionFilter, setPositionFilter] = useState<string>("");
+  const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   
-  // Unified filters state
-  const [filters, setFilters] = useState<MeetingFilters>({
-    research: [],
-    manager: [],
-    recruiter: [],
-    researcher: [],
-    position: [],
-    status: "all",
-    gift: "all"
-  });
-  
   // Applied filters state for "Apply Filters" button
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState<MeetingFilters>({
-    research: [],
-    manager: [],
-    recruiter: [],
-    researcher: [],
-    position: [],
-    status: "all",
-    gift: "all"
-  });
+  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
+  const [appliedResearchFilter, setAppliedResearchFilter] = useState<number | null>(null);
+  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string>("");
+  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string>("");
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("");
+  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string>("");
+  const [appliedGiftFilter, setAppliedGiftFilter] = useState<string>("");
   
   // Debounced search value - only search is debounced, filters wait for apply button
   const debouncedSearch = useDebouncedValue(search, 500);
@@ -62,27 +55,31 @@ export default function Meetings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
+  // Research data for filters - only load when research filter is actively being used
+  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<PaginatedResponse<ResearchTableItem>>({
+    queryKey: ["/api/researches", "for-filters"],
+    queryFn: async () => {
+      const response = await fetch(`/api/researches?page=1&limit=100`); // Get enough for filters
+      if (!response.ok) {
+        throw new Error("Failed to fetch researches");
+      }
+      return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
+    },
+    enabled: false, // No longer needed since research options come from meetings data
+  });
+  
+  const researches = researchesResponse?.data || [];
+
   // Apply filters function
   const applyFilters = () => {
     setAppliedSearch(debouncedSearch);
-    setAppliedFilters({ ...filters });
-  };
-
-  // Clear filters function
-  const clearFilters = () => {
-    const emptyFilters: MeetingFilters = {
-      research: [],
-      manager: [],
-      recruiter: [],
-      researcher: [],
-      position: [],
-      status: "all",
-      gift: "all"
-    };
-    setFilters(emptyFilters);
-    setAppliedFilters(emptyFilters);
-    setSearch("");
-    setAppliedSearch("");
+    setAppliedStatusFilter(statusFilter);
+    setAppliedResearchFilter(researchFilter);
+    setAppliedManagerFilter(managerFilter);
+    setAppliedRecruiterFilter(recruiterFilter);
+    setAppliedResearcherFilter(researcherFilter);
+    setAppliedPositionFilter(positionFilter);
+    setAppliedGiftFilter(giftFilter);
   };
 
   // Auto-apply search when debounced value changes
@@ -104,7 +101,13 @@ export default function Meetings() {
       sortBy, 
       sortDir, 
       appliedSearch, 
-      appliedFilters
+      appliedStatusFilter, 
+      appliedResearchFilter, 
+      appliedManagerFilter, 
+      appliedRecruiterFilter, 
+      appliedResearcherFilter, 
+      appliedPositionFilter, 
+      appliedGiftFilter
     ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
@@ -119,34 +122,33 @@ export default function Meetings() {
         params.append('search', appliedSearch.trim());
       }
       
-      // Add filter parameters only if they have values and aren't "all" (using applied filters)
-      if (appliedFilters.status && appliedFilters.status !== "all") {
-        params.append('status', appliedFilters.status);
+      // Add filter parameters only if they have values and aren't "ALL" (using applied filters)
+      if (appliedStatusFilter && appliedStatusFilter !== "ALL") {
+        params.append('status', appliedStatusFilter);
       }
       
-      if (appliedFilters.gift && appliedFilters.gift !== "all") {
-        params.append('gift', appliedFilters.gift);
+      if (appliedResearchFilter) {
+        params.append('researchId', appliedResearchFilter.toString());
       }
       
-      // Handle array-based filters
-      if (appliedFilters.research && appliedFilters.research.length > 0) {
-        appliedFilters.research.forEach(name => params.append('researchName', name));
+      if (appliedManagerFilter && appliedManagerFilter !== "ALL") {
+        params.append('manager', appliedManagerFilter);
       }
       
-      if (appliedFilters.manager && appliedFilters.manager.length > 0) {
-        appliedFilters.manager.forEach(manager => params.append('manager', manager));
+      if (appliedRecruiterFilter && appliedRecruiterFilter !== "ALL") {
+        params.append('recruiter', appliedRecruiterFilter);
       }
       
-      if (appliedFilters.recruiter && appliedFilters.recruiter.length > 0) {
-        appliedFilters.recruiter.forEach(recruiter => params.append('recruiter', recruiter));
+      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
+        params.append('researcher', appliedResearcherFilter);
       }
       
-      if (appliedFilters.researcher && appliedFilters.researcher.length > 0) {
-        appliedFilters.researcher.forEach(researcher => params.append('researcher', researcher));
+      if (appliedPositionFilter && appliedPositionFilter !== "ALL") {
+        params.append('position', appliedPositionFilter);
       }
       
-      if (appliedFilters.position && appliedFilters.position.length > 0) {
-        appliedFilters.position.forEach(position => params.append('position', position));
+      if (appliedGiftFilter && appliedGiftFilter !== "ALL") {
+        params.append('gift', appliedGiftFilter);
       }
       
       const response = await fetch(`/api/meetings?${params}`);
@@ -179,7 +181,7 @@ export default function Meetings() {
     },
     onError: (error) => {
       toast({ 
-        title: t("forms.error"), 
+        title: t("errors.generic"), 
         description: error.message,
         variant: "destructive" 
       });
@@ -188,70 +190,114 @@ export default function Meetings() {
 
   // Export functions
   const exportToCSV = () => {
-    const csvData = meetings.map(meeting => ({
-      'Respondent Name': meeting.respondentName || '',
-      'Research': meeting.researchName || '',
-      'Status': meeting.status || '',
-      'Date': new Date(meeting.date).toLocaleDateString(),
-      'Manager': (meeting as any).manager || '',
-      'Recruiter': (meeting as any).recruiter || '',
-      'Researcher': (meeting as any).researcher || '',
-      'Position': meeting.respondentPosition || '',
-      'Gift': (meeting as any).hasGift ? 'Yes' : 'No',
-      'Phone': (meeting as any).phone || '',
-      'Email': (meeting as any).email || '',
-      'Notes': (meeting as any).notes || ''
+    const csvContent = filteredMeetings.map(meeting => ({
+      [t("meetings.respondentName")]: meeting.respondentName,
+      [t("meetings.respondentPosition")]: meeting.respondentPosition,
+      [t("meetings.cnum")]: meeting.cnum,
+      [t("meetings.companyName")]: meeting.companyName,
+      [t("meetings.relationshipManager")]: meeting.relationshipManager,
+      [t("meetings.recruiter")]: meeting.salesPerson,
+      [t("meetings.researcher")]: meeting.researcher || '—',
+      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.status")]: meeting.status,
+      [t("meetings.research")]: meeting.researchName || '—'
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(csvData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Meetings");
-    XLSX.writeFile(workbook, "meetings.csv");
+    const csvString = [
+      Object.keys(csvContent[0]).join(','),
+      ...csvContent.map(row => Object.values(row).map(value => `"${value}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `meetings_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
   const exportToExcel = () => {
-    const excelData = meetings.map(meeting => ({
-      'Respondent Name': meeting.respondentName || '',
-      'Research': meeting.researchName || '',
-      'Status': meeting.status || '',
-      'Date': new Date(meeting.date).toLocaleDateString(),
-      'Manager': (meeting as any).manager || '',
-      'Recruiter': (meeting as any).recruiter || '',
-      'Researcher': (meeting as any).researcher || '',
-      'Position': meeting.respondentPosition || '',
-      'Gift': (meeting as any).hasGift ? 'Yes' : 'No',
-      'Phone': (meeting as any).phone || '',
-      'Email': (meeting as any).email || '',
-      'Notes': (meeting as any).notes || ''
+    const excelData = filteredMeetings.map(meeting => ({
+      [t("meetings.respondentName")]: meeting.respondentName,
+      [t("meetings.respondentPosition")]: meeting.respondentPosition,
+      [t("meetings.cnum")]: meeting.cnum,
+      [t("meetings.companyName")]: meeting.companyName,
+      [t("meetings.relationshipManager")]: meeting.relationshipManager,
+      [t("meetings.recruiter")]: meeting.salesPerson,
+      [t("meetings.researcher")]: meeting.researcher || '—',
+      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.status")]: meeting.status,
+      [t("meetings.research")]: meeting.researchName || '—'
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Meetings");
-    XLSX.writeFile(workbook, "meetings.xlsx");
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, t("meetings.title"));
+    XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  // Handle row click to navigate to meeting detail
+  // Helper function to get the value for sorting
+  const getValueForSorting = (meeting: MeetingTableItem, field: string) => {
+    switch (field) {
+      case "date":
+        return new Date(meeting.date);
+      case "cnum":
+        return meeting.cnum;
+      case "respondentPosition":
+        return meeting.respondentPosition || "";
+      case "companyName":
+        return meeting.companyName || "";
+      case "relationshipManager":
+        return meeting.relationshipManager;
+      case "salesPerson":
+        return meeting.salesPerson;
+      case "researcher":
+        return meeting.researcher || "";
+      case "status":
+        return meeting.status;
+      case "respondentName":
+        return meeting.respondentName;
+      case "research":
+        return meeting.researchName || "";
+      default:
+        return meeting.respondentName;
+    }
+  };
+
+  // Server handles all filtering - no client-side filtering needed
+  const filteredMeetings = meetings;
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortDir(sortDir === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortDir("asc");
+    }
+  };
+  
   const handleRowClick = (meeting: MeetingTableItem) => {
+    // Navigate to the meeting detail page
     setLocation(`/meetings/${meeting.id}`);
   };
 
-  // Handle sort changes
-  const handleSort = (field: string) => {
-    const newDirection = sortBy === field && sortDir === "asc" ? "desc" : "asc";
-    setSortBy(field);
-    setSortDir(newDirection);
-  };
-
-  // Table columns configuration
-  const columns = useMemo(() => [
+  // Define columns for the configurable table with useMemo to update on language change
+  const columns: ColumnConfig[] = useMemo(() => [
     {
-      id: "respondentName",
-      name: t("meetings.respondentName"),
+      id: "hasGift", 
+      name: t("meetings.hasGift"),
       visible: true,
-      sortField: "respondentName",
-      render: (meeting: MeetingTableItem) => (
-        <span className="font-medium">{meeting.respondentName}</span>
+      sortField: "hasGift",
+      render: (meeting: Meeting) => (
+        <div className="flex justify-center">
+          {meeting.hasGift === "yes" ? (
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">✓</span>
+            </div>
+          ) : (
+            <div className="w-6 h-6 border border-gray-300 bg-gray-100 rounded-full">
+            </div>
+          )}
+        </div>
       )
     },
     {
@@ -259,71 +305,98 @@ export default function Meetings() {
       name: t("meetings.status"),
       visible: true,
       sortField: "status",
-      render: (meeting: MeetingTableItem) => (
-        <div className="w-24">
+      render: (meeting: Meeting) => (
+        <div onClick={(e) => e.stopPropagation()}>
           <Select
             value={meeting.status}
-            onValueChange={(value) => updateStatusMutation.mutate({ id: meeting.id, status: value })}
+            onValueChange={(value) =>
+              updateStatusMutation.mutate({ id: meeting.id, status: value })
+            }
           >
-            <SelectTrigger className="h-8 w-full">
-              <SelectValue />
+            <SelectTrigger
+              className="w-[140px] bg-white/80 backdrop-blur-sm shadow-sm"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+              <SelectValue>{meeting.status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                meeting.status === MeetingStatus.SET ? t("meetings.statusSet") :
+                meeting.status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                meeting.status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : meeting.status}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={MeetingStatus.SET}>{t("meetings.statusSet")}</SelectItem>
-              <SelectItem value={MeetingStatus.IN_PROGRESS}>{t("meetings.statusInProgress")}</SelectItem>
-              <SelectItem value={MeetingStatus.DONE}>{t("meetings.statusDone")}</SelectItem>
-              <SelectItem value={MeetingStatus.DECLINED}>{t("meetings.statusDeclined")}</SelectItem>
+              {Object.values(MeetingStatus).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                   status === MeetingStatus.SET ? t("meetings.statusSet") :
+                   status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                   status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       )
     },
     {
-      id: "research",
-      name: t("meetings.research"),
+      id: "cnum",
+      name: t("meetings.cnum"),
       visible: true,
-      sortField: "researchName",
-      render: (meeting: MeetingTableItem) => (
-        <div className="flex items-center gap-2">
-          {meeting.researchName ? (
-            <>
-              <div 
-                className="w-3 h-3 rounded-full flex-shrink-0" 
-                style={{ backgroundColor: getResearchColor(meeting.researchName) }}
-              />
-              <span className="truncate max-w-[200px]">{meeting.researchName}</span>
-            </>
-          ) : (
-            <span className="text-gray-400">—</span>
-          )}
-        </div>
+      sortField: "cnum",
+      render: (meeting: Meeting) => (
+        <span className="font-medium">{meeting.cnum}</span>
       )
     },
     {
-      id: "date",
-      name: t("meetings.date"),
+      id: "gcc",
+      name: t("meetings.gcc"),
       visible: true,
-      sortField: "date",
-      render: (meeting: MeetingTableItem) => (
-        <span>{new Date(meeting.date).toLocaleDateString()}</span>
+      sortField: "gcc",
+      render: (meeting: Meeting) => (
+        <span className="font-medium">{meeting.gcc || '—'}</span>
       )
     },
     {
-      id: "manager",
+      id: "companyName",
+      name: t("meetings.companyName"),
+      visible: true,
+      sortField: "companyName",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[200px]">{meeting.companyName}</span>
+      )
+    },
+    {
+      id: "respondentName",
+      name: t("meetings.respondentName"),
+      visible: true,
+      sortField: "respondentName",
+      render: (meeting: Meeting) => (
+        <span className="font-medium truncate max-w-[200px]">{meeting.respondentName}</span>
+      )
+    },
+    {
+      id: "respondentPosition",
+      name: t("meetings.respondentPosition"),
+      visible: true,
+      sortField: "respondentPosition",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[150px]">{meeting.respondentPosition}</span>
+      )
+    },
+    {
+      id: "relationshipManager",
       name: t("meetings.relationshipManager"),
       visible: true,
-      sortField: "manager",
-      render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{(meeting as any).manager || '—'}</span>
+      sortField: "relationshipManager",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[120px]">{meeting.relationshipManager}</span>
       )
     },
     {
-      id: "recruiter",
+      id: "salesPerson",
       name: t("meetings.recruiter"),
       visible: true,
-      sortField: "recruiter",
-      render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{(meeting as any).recruiter || '—'}</span>
+      sortField: "salesPerson",
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[120px]">{meeting.salesPerson}</span>
       )
     },
     {
@@ -331,34 +404,44 @@ export default function Meetings() {
       name: t("meetings.researcher"),
       visible: true,
       sortField: "researcher",
-      render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{meeting.researcher || '—'}</span>
+      render: (meeting: Meeting) => (
+        <span className="truncate max-w-[120px]">{meeting.researcher || '—'}</span>
       )
     },
     {
-      id: "position",
-      name: t("meetings.respondentPosition"),
-      visible: false,
-      sortField: "respondentPosition",
-      render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[200px]">{meeting.respondentPosition || '—'}</span>
-      )
+      id: "research",
+      name: t("meetings.research"),
+      visible: true,
+      sortField: "research",
+      render: (meeting: MeetingTableItem) => {
+        // Use research name directly from JOIN query
+        const researchName = meeting.researchName;
+        const researchId = meeting.researchId;
+        
+        return (
+          <div className="max-w-[200px] truncate">
+            {researchName ? (
+              <div className="flex items-center">
+                <div
+                  className="w-2 h-2 rounded-full mr-2 shadow-sm flex-shrink-0"
+                  style={{ backgroundColor: getResearchColor(researchId || 0) }}
+                />
+                <span className="truncate">{researchName}</span>
+              </div>
+            ) : (
+              <span className="text-gray-400">—</span>
+            )}
+          </div>
+        );
+      }
     },
     {
-      id: "gift",
-      name: t("meetings.hasGift"),
-      visible: false,
-      render: (meeting: MeetingTableItem) => (
-        <span>{(meeting as any).hasGift ? t("filters.yes") : t("filters.no")}</span>
-      )
-    },
-    {
-      id: "phone",
-      name: t("meetings.phone"),
-      visible: false,
-      sortField: "phone",
-      render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{(meeting as any).phone || '—'}</span>
+      id: "date",
+      name: t("meetings.date"),
+      visible: true,
+      sortField: "date",
+      render: (meeting: Meeting) => (
+        <span>{new Date(meeting.date).toLocaleDateString()}</span>
       )
     },
     {
@@ -366,7 +449,7 @@ export default function Meetings() {
       name: t("meetings.email"),
       visible: false,
       sortField: "email",
-      render: (meeting: MeetingTableItem) => (
+      render: (meeting: Meeting) => (
         <span className="truncate max-w-[200px]">{(meeting as any).email || '—'}</span>
       )
     },
@@ -374,9 +457,9 @@ export default function Meetings() {
       id: "notes",
       name: t("meetings.notes"),
       visible: false,
-      render: (meeting: MeetingTableItem) => (
+      render: (meeting: Meeting) => (
         <span className="truncate max-w-[300px]">
-          {(meeting as any).notes ? (
+          {meeting.notes ? (
             <span className="text-gray-500 italic">{t("meetings.notes")}</span>
           ) : (
             <span className="text-gray-400">{t("meetings.noMeetings")}</span>
@@ -384,26 +467,132 @@ export default function Meetings() {
         </span>
       )
     }
-  ], [t, meetings, updateStatusMutation]);
+  ], [t, meetings, updateStatusMutation]); // Dependencies for useMemo
 
-  // Check if there are unapplied filters
-  const hasUnappliedFilters = JSON.stringify(filters) !== JSON.stringify(appliedFilters) || search !== appliedSearch;
+  // Prepare filter configurations with useMemo to update on language change
+  const filterConfigs = useMemo(() => [
+    {
+      id: "status",
+      name: t("filters.status"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        ...Object.values(MeetingStatus).map(status => ({ 
+          label: status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                 status === MeetingStatus.SET ? t("meetings.statusSet") :
+                 status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                 status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status, 
+          value: status 
+        }))
+      ],
+      value: statusFilter || "ALL",
+      onChange: setStatusFilter
+    },
+    {
+      id: "research",
+      name: t("meetings.research"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        // Get unique research options from meetings data
+        ...Array.from(
+          new Map(
+            meetings
+              .filter(m => m.researchName && m.researchId)
+              .map(m => [m.researchId!, { id: m.researchId!, name: m.researchName! }])
+          ).values()
+        ).map(research => ({ 
+          label: research.name, 
+          value: research.id.toString() 
+        }))
+      ],
+      value: researchFilter?.toString() ?? "ALL",
+      onChange: (value: string) => setResearchFilter(value === "ALL" ? null : Number(value))
+    },
+    {
+      id: "manager",
+      name: t("meetings.relationshipManager"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.relationshipManager)
+        )).filter(Boolean).sort().map(manager => ({ 
+          label: manager, 
+          value: manager 
+        }))
+      ],
+      value: managerFilter || "ALL",
+      onChange: setManagerFilter
+    },
+    {
+      id: "recruiter",
+      name: t("meetings.recruiter"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.salesPerson)
+        )).filter(Boolean).sort().map(recruiter => ({ 
+          label: recruiter, 
+          value: recruiter 
+        }))
+      ],
+      value: recruiterFilter || "ALL",
+      onChange: setRecruiterFilter
+    },
+    {
+      id: "researcher",
+      name: t("meetings.researcher"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.researcher)
+        )).filter(Boolean).sort().map(researcher => ({ 
+          label: researcher, 
+          value: researcher 
+        }))
+      ],
+      value: researcherFilter || "ALL",
+      onChange: setResearcherFilter,
+      enableCustomFilters: true
+    },
+    {
+      id: "position",
+      name: t("meetings.respondentPosition"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        ...Array.from(new Set(
+          meetings.map(m => m.respondentPosition)
+        )).filter(Boolean).sort().map(position => ({ 
+          label: position, 
+          value: position 
+        }))
+      ],
+      value: positionFilter || "ALL",
+      onChange: setPositionFilter
+    },
+    {
+      id: "hasGift",
+      name: t("meetings.hasGift"),
+      options: [
+        { label: t("filters.all"), value: "ALL" },
+        { label: t("meetings.giftYes"), value: "yes" },
+        { label: t("meetings.giftNo"), value: "no" }
+      ],
+      value: giftFilter || "ALL",
+      onChange: setGiftFilter
+    }
+  ], [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, researches, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
-  // Load saved filters from localStorage on component mount
+  // Load saved filters from localStorage
   useEffect(() => {
     try {
       const savedFilters = localStorage.getItem("meetings-table-filters");
       if (savedFilters) {
-        const savedData = JSON.parse(savedFilters);
-        setFilters({
-          research: savedData.research || [],
-          manager: savedData.manager || [],
-          recruiter: savedData.recruiter || [],
-          researcher: savedData.researcher || [],
-          position: savedData.position || [],
-          status: savedData.status || "all",
-          gift: savedData.gift || "all"
-        });
+        const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
+        if (status) setStatusFilter(status);
+        if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
+        if (manager) setManagerFilter(manager);
+        if (recruiter) setRecruiterFilter(recruiter);
+        if (researcher) setResearcherFilter(researcher);
+        if (position) setPositionFilter(position);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -413,11 +602,18 @@ export default function Meetings() {
   // Save filters to localStorage when they change
   useEffect(() => {
     try {
-      localStorage.setItem("meetings-table-filters", JSON.stringify(filters));
+      localStorage.setItem("meetings-table-filters", JSON.stringify({
+        status: statusFilter,
+        research: researchFilter,
+        manager: managerFilter,
+        recruiter: recruiterFilter,
+        researcher: researcherFilter,
+        position: positionFilter
+      }));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [filters]);
+  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -429,23 +625,23 @@ export default function Meetings() {
               pageType="meetings"
               currentFilters={{
                 search,
-                statusFilter: filters.status,
-                researchFilter: filters.research,
-                managerFilter: filters.manager,
-                recruiterFilter: filters.recruiter,
-                researcherFilter: filters.researcher,
-                positionFilter: filters.position,
-                giftFilter: filters.gift,
+                statusFilter,
+                researchFilter,
+                managerFilter,
+                recruiterFilter,
+                researcherFilter,
+                positionFilter,
+                giftFilter,
               }}
-              onApplyFilter={(savedFilters) => {
-                if (savedFilters.search !== undefined) setSearch(savedFilters.search);
-                if (savedFilters.statusFilter !== undefined) setFilters(prev => ({ ...prev, status: savedFilters.statusFilter! }));
-                if (savedFilters.researchFilter !== undefined) setFilters(prev => ({ ...prev, research: Array.isArray(savedFilters.researchFilter) ? savedFilters.researchFilter : [] }));
-                if (savedFilters.managerFilter !== undefined) setFilters(prev => ({ ...prev, manager: Array.isArray(savedFilters.managerFilter) ? savedFilters.managerFilter : [] }));
-                if (savedFilters.recruiterFilter !== undefined) setFilters(prev => ({ ...prev, recruiter: Array.isArray(savedFilters.recruiterFilter) ? savedFilters.recruiterFilter : [] }));
-                if (savedFilters.researcherFilter !== undefined) setFilters(prev => ({ ...prev, researcher: Array.isArray(savedFilters.researcherFilter) ? savedFilters.researcherFilter : [] }));
-                if (savedFilters.positionFilter !== undefined) setFilters(prev => ({ ...prev, position: Array.isArray(savedFilters.positionFilter) ? savedFilters.positionFilter : [] }));
-                if (savedFilters.giftFilter !== undefined) setFilters(prev => ({ ...prev, gift: savedFilters.giftFilter! }));
+              onApplyFilter={(filters) => {
+                if (filters.search !== undefined) setSearch(filters.search);
+                if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
+                if (filters.researchFilter !== undefined) setResearchFilter(filters.researchFilter);
+                if (filters.managerFilter !== undefined) setManagerFilter(filters.managerFilter);
+                if (filters.recruiterFilter !== undefined) setRecruiterFilter(filters.recruiterFilter);
+                if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
+                if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
+                if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
               }}
             />
           </div>
@@ -478,40 +674,10 @@ export default function Meetings() {
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex gap-4">
-          <Input
-            placeholder={t("meetings.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
-          />
-        </div>
-
-        {/* Filters */}
-        <MeetingFiltersComponent
-          filters={filters}
-          onChange={setFilters}
-          onApply={applyFilters}
-          onClear={clearFilters}
-        />
-
-        {/* Apply/Clear Buttons */}
-        {hasUnappliedFilters && (
-          <div className="flex gap-2">
-            <Button onClick={applyFilters} className="bg-primary hover:bg-primary/90">
-              {t("filters.applyFilters")}
-            </Button>
-            <Button variant="outline" onClick={clearFilters}>
-              {t("filters.clearFilters")}
-            </Button>
-          </div>
-        )}
-
         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
           <CardContent className="p-0">
             <InfiniteScrollTable
-              data={meetings}
+              data={filteredMeetings}
               columns={columns}
               isLoading={meetingsLoading}
               hasNextPage={hasNextPage}
@@ -523,9 +689,20 @@ export default function Meetings() {
               onRowClick={handleRowClick}
               rowClassName="hover:bg-gray-50/80 transition-all duration-200"
               storeConfigKey="meetings-table"
+              filters={filterConfigs}
               searchValue={search}
               onSearchChange={setSearch}
               emptyStateMessage={t("meetings.noMeetings", "No meetings found")}
+              onApplyFilters={applyFilters}
+              hasUnappliedFilters={
+                statusFilter !== appliedStatusFilter ||
+                researchFilter !== appliedResearchFilter ||
+                managerFilter !== appliedManagerFilter ||
+                recruiterFilter !== appliedRecruiterFilter ||
+                researcherFilter !== appliedResearcherFilter ||
+                positionFilter !== appliedPositionFilter ||
+                giftFilter !== appliedGiftFilter
+              }
             />
           </CardContent>
         </Card>

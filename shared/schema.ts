@@ -265,13 +265,13 @@ export type PaginationParams = {
   sortBy?: string;
   sortDir?: 'asc' | 'desc';
   search?: string;
-  researchId?: number | number[]; // Support both single and multiple research IDs
-  // Meeting filters (now support arrays for multi-select)
+  researchId?: number;
+  // Meeting filters
   status?: string;
-  manager?: string | string[];
-  recruiter?: string | string[];
-  researcher?: string | string[];
-  position?: string | string[];
+  manager?: string;
+  recruiter?: string;
+  researcher?: string;
+  position?: string;
   gift?: string;
   // Research filters
   team?: string;

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, ChevronDown, Filter } from "lucide-react";
+import { SectionLoader } from "@/components/ui/loading-spinner";
 import { useLocation } from "wouter";
 import {
   Table,
@@ -538,7 +539,15 @@ export default function Researches() {
     }
   };
 
-
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
+        <div className="container mx-auto max-w-[1400px] space-y-8">
+          <SectionLoader text="Loading researches..." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -647,13 +656,6 @@ export default function Researches() {
               JSON.stringify(researchTypeFilters) !== JSON.stringify(appliedResearchTypeFilters) ||
               JSON.stringify(productFilters) !== JSON.stringify(appliedProductFilters)
             }
-            onClearAllFilters={() => {
-              setStatusFilter("ALL");
-              setTeamFilter("ALL");
-              setResearcherFilter("ALL");
-              setResearchTypeFilters([]);
-              setProductFilters([]);
-            }}
           />
         ) : filteredResearches.length === 0 ? (
           <div className="text-center py-12">

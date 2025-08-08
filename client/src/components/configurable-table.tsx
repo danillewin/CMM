@@ -90,7 +90,6 @@ interface ConfigurableTableProps<T> {
   emptyStateMessage?: string;
   onApplyFilters?: () => void;
   hasUnappliedFilters?: boolean;
-  onClearAllFilters?: () => void;
   isLoading?: boolean;
 }
 
@@ -159,7 +158,6 @@ export function ConfigurableTable<T extends { id: number | string }>({
   emptyStateMessage,
   onApplyFilters,
   hasUnappliedFilters,
-  onClearAllFilters,
   isLoading
 }: ConfigurableTableProps<T>) {
   // Load column config from local storage or use initial columns
@@ -299,6 +297,21 @@ export function ConfigurableTable<T extends { id: number | string }>({
               </button>
             )}
           </div>
+          
+          {onApplyFilters && (
+            <Button 
+              variant={hasUnappliedFilters ? "default" : "outline"}
+              size="sm" 
+              onClick={onApplyFilters}
+              className={hasUnappliedFilters 
+                ? "bg-primary hover:bg-primary/90 text-white" 
+                : "bg-white border-gray-200 hover:bg-gray-50"
+              }
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Apply Filters
+            </Button>
+          )}
         </div>
         
         <div className="flex gap-3">
@@ -349,55 +362,25 @@ export function ConfigurableTable<T extends { id: number | string }>({
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    {onApplyFilters && (
-                      <Button 
-                        variant={hasUnappliedFilters ? "default" : "outline"}
-                        size="sm" 
-                        onClick={() => {
-                          onApplyFilters();
-                          setFilterOpen(false);
-                        }}
-                        className={`flex-1 ${hasUnappliedFilters 
-                          ? "bg-primary hover:bg-primary/90 text-white" 
-                          : "bg-white border-gray-200 hover:bg-gray-50"
-                        }`}
-                      >
-                        <Filter className="h-4 w-4 mr-2" />
-                        Apply Filters
-                      </Button>
-                    )}
-                    
-                    {activeFilterCount > 0 && (
+                  {activeFilterCount > 0 && (
+                    <div className="col-span-2 mt-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className={`${onApplyFilters ? 'flex-1' : 'w-full'} bg-white`}
+                        className="w-full bg-white"
                         onClick={() => {
-                          // Use custom clear function if provided, otherwise use default logic
-                          if (onClearAllFilters) {
-                            onClearAllFilters();
-                          } else {
-                            // Default clear logic for standard filters
-                            filters.forEach(filter => {
-                              if (filter.value !== "ALL") {
-                                filter.onChange("ALL");
-                              }
-                            });
-                          }
-                          // Automatically apply the cleared filters
-                          if (onApplyFilters) {
-                            setTimeout(() => {
-                              onApplyFilters();
-                            }, 50);
-                          }
+                          // Reset all filters
+                          filters.forEach(filter => {
+                            if (filter.value !== "ALL") {
+                              filter.onChange("ALL");
+                            }
+                          });
                         }}
                       >
                         Clear All Filters
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>

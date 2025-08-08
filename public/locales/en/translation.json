@@ -186,19 +186,6 @@
     "corruptedData": "Filter data is corrupted and cannot be applied"
   },
   "filters": {
-    "title": "Filters",
-    "status": "Status",
-    "research": "Research",
-    "manager": "Relationship Manager",
-    "recruiter": "Recruiter",
-    "researcher": "Researcher", 
-    "position": "Position",
-    "gift": "Gift",
-    "all": "All",
-    "yes": "Yes",
-    "no": "No",
-    "applyFilters": "Apply Filters",
-    "clearFilters": "Clear Filters",
     "saveFilter": "Save Current Filter",
     "manage": "Manage Research Filters",
     "name": "Filter Name",
@@ -251,11 +238,7 @@
     "russian": "Russian",
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete",
-    "search": "Search",
-    "loading": "Loading",
-    "noResults": "No results found",
-    "startTyping": "Start typing to search"
+    "delete": "Delete"
   },
   "research": {
     "title": "Research",
