@@ -17,12 +17,13 @@ import {
   teams, 
   jtbds, 
   researchJtbds, 
-  meetingJtbds 
+  meetingJtbds,
+  customFilters 
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
-import { sql } from "drizzle-orm";
+import { sql, eq, and, or, isNotNull } from "drizzle-orm";
 
 // Initialize database
 async function initializeDatabase() {
@@ -193,6 +194,159 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting position:", error);
       res.status(500).json({ message: "Failed to delete position" });
+    }
+  });
+
+  // Dashboard data endpoint with server-side aggregation
+  app.get("/api/dashboard", async (req, res) => {
+    try {
+      const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
+      const researchFilter = req.query.researchFilter ? parseInt(req.query.researchFilter as string) : null;
+      const teamFilter = req.query.teamFilter as string;
+      const managerFilter = req.query.managerFilter as string;
+      const researcherFilter = req.query.researcherFilter as string;
+      
+      const startOfYear = new Date(year, 0, 1);
+      const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+      
+      // Base query for meetings with research joins
+      let meetingsQuery = db.select({
+        meeting_id: meetings.id,
+        respondentName: meetings.respondentName,
+        companyName: meetings.companyName,
+        date: meetings.date,
+        status: meetings.status,
+        relationshipManager: meetings.relationshipManager,
+        salesPerson: meetings.salesPerson,
+        researchId: meetings.researchId,
+        research_team: researches.team,
+        research_researcher: researches.researcher,
+        research_name: researches.name,
+      }).from(meetings)
+        .leftJoin(researches, eq(meetings.researchId, researches.id))
+        .where(
+          sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
+        );
+      
+      // Apply filters
+      const conditions = [];
+      if (researchFilter) {
+        conditions.push(eq(meetings.researchId, researchFilter));
+      }
+      if (teamFilter && teamFilter !== "ALL") {
+        conditions.push(eq(researches.team, teamFilter));
+      }
+      if (managerFilter && managerFilter !== "ALL") {
+        conditions.push(
+          or(
+            eq(meetings.relationshipManager, managerFilter),
+            eq(meetings.salesPerson, managerFilter)
+          )
+        );
+      }
+      if (researcherFilter && researcherFilter !== "ALL") {
+        conditions.push(eq(researches.researcher, researcherFilter));
+      }
+      
+      if (conditions.length > 0) {
+        meetingsQuery = meetingsQuery.where(and(...conditions));
+      }
+      
+      const meetingsData = await meetingsQuery;
+      
+      // Get filter options
+      const teamsData = await db.selectDistinct({ team: researches.team }).from(researches).where(isNotNull(researches.team));
+      const managersData = await db.selectDistinct({ manager: meetings.relationshipManager }).from(meetings).where(isNotNull(meetings.relationshipManager))
+        .union(db.selectDistinct({ manager: meetings.salesPerson }).from(meetings).where(isNotNull(meetings.salesPerson)));
+      const researchersData = await db.selectDistinct({ researcher: researches.researcher }).from(researches).where(isNotNull(researches.researcher));
+      const researchesData = await db.select({ id: researches.id, name: researches.name }).from(researches).where(
+        sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
+      );
+      
+      // Calculate aggregated data
+      const meetingsByStatus = {};
+      Object.values(['SET', 'IN_PROGRESS', 'DONE', 'DECLINED']).forEach(status => {
+        meetingsByStatus[status] = meetingsData.filter(m => m.status === status).length;
+      });
+      
+      // Calculate meetings over time (last 30 days)
+      const last30Days = [];
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
+        
+        const dayData = {
+          name: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          SET: meetingsData.filter(m => 
+            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'SET'
+          ).length,
+          IN_PROGRESS: meetingsData.filter(m => 
+            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'IN_PROGRESS'
+          ).length,
+          DONE: meetingsData.filter(m => 
+            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DONE'
+          ).length,
+          DECLINED: meetingsData.filter(m => 
+            new Date(m.date) >= dayStart && new Date(m.date) <= dayEnd && m.status === 'DECLINED'
+          ).length,
+        };
+        last30Days.push(dayData);
+      }
+      
+      // Calculate top managers
+      const managerMeetings = {};
+      meetingsData.forEach(meeting => {
+        [meeting.relationshipManager, meeting.salesPerson].forEach(manager => {
+          if (manager) {
+            if (!managerMeetings[manager]) {
+              managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
+            }
+            managerMeetings[manager][meeting.status]++;
+          }
+        });
+      });
+      
+      const topManagers = Object.entries(managerMeetings)
+        .sort(([, a], [, b]) => 
+          Object.values(b).reduce((sum, val) => sum + val, 0) - Object.values(a).reduce((sum, val) => sum + val, 0)
+        )
+        .slice(0, 5)
+        .map(([name, statusCounts]) => ({ name, ...statusCounts }));
+      
+      // Get recent meetings
+      const recentMeetings = meetingsData
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5)
+        .map(m => ({
+          id: m.meeting_id,
+          respondentName: m.respondentName,
+          companyName: m.companyName,
+          date: m.date,
+          status: m.status
+        }));
+      
+      res.json({
+        year,
+        filters: {
+          teams: teamsData.map(t => t.team).filter(Boolean).sort(),
+          managers: managersData.map(m => m.manager).filter(Boolean).sort(),
+          researchers: researchersData.map(r => r.researcher).filter(Boolean).sort(),
+          researches: researchesData
+        },
+        analytics: {
+          meetingsByStatus: Object.entries(meetingsByStatus).map(([name, value]) => ({ name, value })),
+          meetingsOverTime: last30Days,
+          topManagers,
+          recentMeetings
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard data" });
     }
   });
 

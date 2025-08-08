@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Meeting, MeetingStatus, Research } from "@shared/schema";
+import { MeetingStatus } from "@shared/schema";
 import {
   Card,
   CardContent,
@@ -21,24 +21,13 @@ import {
   Legend,
 } from "recharts";
 import {
-  format,
-  startOfDay,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameMonth,
-  isSameDay,
-  addMonths,
-  subMonths,
-  isWithinInterval,
-  parseISO
-} from "date-fns";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SectionLoader } from "@/components/ui/loading-spinner";
 
 const COLORS = {
   [MeetingStatus.IN_PROGRESS]: "#3b82f6", // blue-500
@@ -47,142 +36,83 @@ const COLORS = {
   [MeetingStatus.DECLINED]: "#ef4444", // red-500
 };
 
+type DashboardData = {
+  year: number;
+  filters: {
+    teams: string[];
+    managers: string[];
+    researchers: string[];
+    researches: { id: number; name: string }[];
+  };
+  analytics: {
+    meetingsByStatus: { name: string; value: number }[];
+    meetingsOverTime: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
+    topManagers: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
+    recentMeetings: Array<{ id: number; respondentName: string; companyName: string; date: string; status: string }>;
+  };
+};
+
 export default function Dashboard() {
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [researchFilter, setResearchFilter] = useState<number | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>("ALL");
   const [managerFilter, setManagerFilter] = useState<string>("ALL");
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
 
-  const { data: meetingsResponse, isLoading: meetingsLoading } = useQuery<{ data: Meeting[] }>({
-    queryKey: ["/api/meetings"],
+  // Generate available years (current year ± 2 years)
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
+
+  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
+    queryKey: ["/api/dashboard", selectedYear, researchFilter, teamFilter, managerFilter, researcherFilter],
+    queryFn: ({ queryKey }) => {
+      const [, year, researchId, team, manager, researcher] = queryKey;
+      const params = new URLSearchParams();
+      params.append('year', year.toString());
+      if (researchId) params.append('researchFilter', researchId.toString());
+      if (team && team !== 'ALL') params.append('teamFilter', team.toString());
+      if (manager && manager !== 'ALL') params.append('managerFilter', manager.toString());
+      if (researcher && researcher !== 'ALL') params.append('researcherFilter', researcher.toString());
+      
+      return fetch(`/api/dashboard?${params.toString()}`).then(res => res.json());
+    },
   });
 
-  const { data: researchesResponse, isLoading: researchesLoading } = useQuery<{ data: Research[] }>({
-    queryKey: ["/api/researches"],
-  });
-
-  const meetings = meetingsResponse?.data || [];
-  const researches = researchesResponse?.data || [];
-
-  // Get unique teams, managers, and researchers for filters
-  const teams = [...new Set(researches.map(r => r.team))].filter(Boolean).sort();
-  const managers = [...new Set([
-    ...meetings.map(m => m.relationshipManager),
-    ...meetings.map(m => m.salesPerson)
-  ])].filter(Boolean).sort();
-
-  // Get researchers from researches that have associated meetings
-  const researchersWithMeetings = useMemo(() => {
-    const meetingResearchIds = new Set(meetings.filter(m => m.researchId).map(m => m.researchId));
-    return [...new Set(researches
-      .filter(r => meetingResearchIds.has(r.id))
-      .map(r => r.researcher))]
-      .filter(Boolean)
-      .sort();
-  }, [meetings, researches]);
-
-  // Filter meetings based on selected filters
-  const filteredMeetings = meetings.filter(meeting => {
-    if (researchFilter && meeting.researchId !== researchFilter) {
-      return false;
-    }
-    if (teamFilter !== "ALL") {
-      const meetingResearch = researches.find(r => r.id === meeting.researchId);
-      if (!meetingResearch || meetingResearch.team !== teamFilter) {
-        return false;
-      }
-    }
-    if (managerFilter !== "ALL" && meeting.relationshipManager !== managerFilter && meeting.salesPerson !== managerFilter) {
-      return false;
-    }
-    if (researcherFilter !== "ALL") {
-      const meetingResearch = researches.find(r => r.id === meeting.researchId);
-      if (!meetingResearch || meetingResearch.researcher !== researcherFilter) {
-        return false;
-      }
-    }
-    return true;
-  });
-
-  // Calculate meetings by status
-  const meetingsByStatus = Object.values(MeetingStatus).map((status) => ({
-    name: status,
-    value: filteredMeetings.filter((m) => m.status === status).length,
-  }));
-
-  // Calculate meetings over time (last 30 days)
-  const last30Days = Array.from({ length: 30 }, (_, i) => {
-    const date = subMonths(new Date(), i);
-    const dayStart = startOfDay(date);
-    const dayEnd = subMonths(startOfDay(date), -1);
-
-    const dayData = {
-      name: format(date, 'MMM dd'),
-    };
-
-    Object.values(MeetingStatus).forEach(status => {
-      dayData[status] = filteredMeetings.filter(m =>
-        isWithinInterval(new Date(m.date), { start: dayStart, end: dayEnd }) &&
-        m.status === status
-      ).length;
-    });
-
-    return dayData;
-  }).reverse();
-
-  // Calculate top managers with status breakdown
-  const managerMeetings = filteredMeetings.reduce((acc, meeting) => {
-    // Process RM
-    if (meeting.relationshipManager) {
-      if (!acc[meeting.relationshipManager]) {
-        acc[meeting.relationshipManager] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
-          statusAcc[status] = 0;
-          return statusAcc;
-        }, {});
-      }
-      acc[meeting.relationshipManager][meeting.status]++;
-    }
-    
-    // Process Recruiters
-    if (meeting.salesPerson) {
-      if (!acc[meeting.salesPerson]) {
-        acc[meeting.salesPerson] = Object.values(MeetingStatus).reduce((statusAcc, status) => {
-          statusAcc[status] = 0;
-          return statusAcc;
-        }, {});
-      }
-      acc[meeting.salesPerson][meeting.status]++;
-    }
-    
-    return acc;
-  }, {} as Record<string, Record<string, number>>);
-
-  const topManagers = Object.entries(managerMeetings)
-    .sort(([, a], [, b]) =>
-      Object.values(b).reduce((sum, val) => sum + val, 0) -
-      Object.values(a).reduce((sum, val) => sum + val, 0)
-    )
-    .slice(0, 5)
-    .map(([name, statusCounts]) => ({
-      name,
-      ...statusCounts,
-    }));
-
-  // Get recent meetings
-  const recentMeetings = [...filteredMeetings]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
-
-  if (meetingsLoading || researchesLoading) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
+        <div className="container mx-auto max-w-[1400px] space-y-8">
+          <SectionLoader text="Loading dashboard data..." />
+        </div>
+      </div>
+    );
   }
+
+  if (!dashboardData) {
+    return <div>No data available</div>;
+  }
+
+  const { filters, analytics } = dashboardData;
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select
             value={researchFilter?.toString() ?? "ALL"}
             onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
@@ -192,7 +122,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Researches</SelectItem>
-              {researches.map((research) => (
+              {filters.researches.map((research) => (
                 <SelectItem key={research.id} value={research.id.toString()}>
                   {research.name}
                 </SelectItem>
@@ -209,7 +139,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
+              {filters.teams.map((team) => (
                 <SelectItem key={team} value={team}>
                   {team}
                 </SelectItem>
@@ -226,7 +156,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All RM</SelectItem>
-              {managers.map((manager) => (
+              {filters.managers.map((manager) => (
                 <SelectItem key={manager} value={manager}>
                   {manager}
                 </SelectItem>
@@ -243,7 +173,7 @@ export default function Dashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Researchers</SelectItem>
-              {researchersWithMeetings.map((researcher) => (
+              {filters.researchers.map((researcher) => (
                 <SelectItem key={researcher} value={researcher}>
                   {researcher}
                 </SelectItem>
@@ -263,7 +193,7 @@ export default function Dashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={meetingsByStatus}
+                      data={analytics.meetingsByStatus}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -271,7 +201,7 @@ export default function Dashboard() {
                       outerRadius={80}
                       label={({ name, value }) => `${name}: ${value}`}
                     >
-                      {meetingsByStatus.map((entry, index) => (
+                      {analytics.meetingsByStatus.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof MeetingStatus]} />
                       ))}
                     </Pie>
@@ -290,7 +220,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={last30Days}>
+                  <BarChart data={analytics.meetingsOverTime}>
                     <XAxis
                       dataKey="name"
                       angle={-45}
@@ -324,7 +254,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topManagers} layout="vertical">
+                  <BarChart data={analytics.topManagers} layout="vertical">
                     <XAxis type="number" />
                     <YAxis dataKey="name" type="category" width={100} />
                     <Tooltip />
@@ -351,7 +281,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentMeetings.map((meeting) => (
+                {analytics.recentMeetings.map((meeting) => (
                   <div
                     key={meeting.id}
                     className="flex items-center justify-between border-b pb-2 last:border-0"
@@ -364,7 +294,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm">
-                        {new Date(meeting.date).toLocaleDateString()}
+                        {meeting.date}
                       </div>
                       <div
                         style={{ color: COLORS[meeting.status as keyof typeof MeetingStatus] }}
