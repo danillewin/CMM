@@ -329,12 +329,12 @@ export class DatabaseStorage implements IStorage {
           respondent_name, respondent_position, cnum, 
           gcc, company_name, email, researcher, 
           relationship_manager, recruiter, date, 
-          research_id, status, notes, full_text, has_gift, manager
+          research_id, status, notes, full_text, has_gift
         ) VALUES (
           $1, $2, $3, 
           $4, $5, $6, $7, 
           $8, $9, $10, 
-          $11, $12, $13, $14, $15, $16
+          $11, $12, $13, $14, $15
         ) RETURNING *
       `;
       
@@ -353,8 +353,7 @@ export class DatabaseStorage implements IStorage {
         meeting.status,
         meeting.notes || null,
         meeting.fullText || null,
-        meeting.hasGift || "no", // Gift indicator field
-        relationshipManager // Use the same value for the manager field
+        meeting.hasGift || "no" // Gift indicator field
       ];
       
       const result = await pool.query(query, values);
@@ -390,9 +389,8 @@ export class DatabaseStorage implements IStorage {
           status = $12,
           notes = $13,
           full_text = $14,
-          has_gift = $15,
-          manager = $16
-        WHERE id = $17
+          has_gift = $15
+        WHERE id = $16
         RETURNING *
       `;
       
@@ -412,7 +410,6 @@ export class DatabaseStorage implements IStorage {
         meeting.notes || null,
         meeting.fullText || null,
         meeting.hasGift || "no", // Gift indicator field
-        relationshipManager, // Use the same value for the manager field
         id
       ];
       
