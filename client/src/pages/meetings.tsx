@@ -703,6 +703,15 @@ export default function Meetings() {
                 positionFilter !== appliedPositionFilter ||
                 giftFilter !== appliedGiftFilter
               }
+              onClearAllFilters={() => {
+                setStatusFilter("ALL");
+                setResearchFilter(null);
+                setManagerFilter("ALL");
+                setRecruiterFilter("ALL");
+                setResearcherFilter("ALL");
+                setPositionFilter("ALL");
+                setGiftFilter("ALL");
+              }}
             />
           </CardContent>
         </Card>

@@ -21,6 +21,7 @@ interface InfiniteScrollTableProps<T extends { id: string | number }> {
   emptyStateMessage?: string;
   onApplyFilters?: () => void;
   hasUnappliedFilters?: boolean;
+  onClearAllFilters?: () => void;
 }
 
 export function InfiniteScrollTable<T extends { id: string | number }>({
@@ -42,6 +43,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
   emptyStateMessage = "No data available",
   onApplyFilters,
   hasUnappliedFilters,
+  onClearAllFilters,
 }: InfiniteScrollTableProps<T>) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +92,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
         emptyStateMessage={data.length === 0 ? emptyStateMessage : undefined}
         onApplyFilters={onApplyFilters}
         hasUnappliedFilters={hasUnappliedFilters}
+        onClearAllFilters={onClearAllFilters}
         isLoading={isLoading}
       />
       

@@ -656,6 +656,13 @@ export default function Researches() {
               JSON.stringify(researchTypeFilters) !== JSON.stringify(appliedResearchTypeFilters) ||
               JSON.stringify(productFilters) !== JSON.stringify(appliedProductFilters)
             }
+            onClearAllFilters={() => {
+              setStatusFilter("ALL");
+              setTeamFilter("ALL");
+              setResearcherFilter("ALL");
+              setResearchTypeFilters([]);
+              setProductFilters([]);
+            }}
           />
         ) : filteredResearches.length === 0 ? (
           <div className="text-center py-12">
