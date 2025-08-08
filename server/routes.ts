@@ -203,27 +203,16 @@ export function registerRoutes(app: Express): Server {
       const sortBy = req.query.sortBy as string;
       const sortDir = req.query.sortDir as 'asc' | 'desc';
       const search = req.query.search as string;
-      const startDate = req.query.startDate as string;
-      const endDate = req.query.endDate as string;
-      const roadmap = req.query.roadmap === 'true'; // Flag for roadmap page
       
-      if (roadmap) {
-        // For roadmap page, return all researches with date filtering
-        const allResearches = await storage.getAllResearches({ startDate, endDate });
-        res.json({ data: allResearches, total: allResearches.length, page: 1, limit: allResearches.length });
-      } else {
-        // Use paginated endpoint for other pages
-        const paginatedResearches = await storage.getResearchesPaginated({ 
-          page: page || 1, 
-          limit: limit || 20,
-          sortBy,
-          sortDir,
-          search,
-          startDate,
-          endDate
-        });
-        res.json(paginatedResearches);
-      }
+      // Always use paginated endpoint for efficiency
+      const paginatedResearches = await storage.getResearchesPaginated({ 
+        page: page || 1, 
+        limit: limit || 20,
+        sortBy,
+        sortDir,
+        search
+      });
+      res.json(paginatedResearches);
     } catch (error) {
       console.error("Error fetching researches:", error);
       res.status(500).json({ message: "Failed to fetch researches" });

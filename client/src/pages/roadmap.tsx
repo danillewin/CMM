@@ -1,10 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { type Research, ResearchStatus } from "@shared/schema";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO, subMonths } from "date-fns";
+import { format, addMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval, parseISO } from "date-fns";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import { getResearchColor } from "@/lib/colors";
 import {
@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ZoomIn, ZoomOut, RotateCcw, ChevronDown } from "lucide-react";
 
 
 type ViewMode = "teams" | "researchers";
@@ -78,31 +78,10 @@ export default function RoadmapPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date()); // Current month being viewed
 
-  // Calculate date range for current view (3 months before and after current month)
-  const dateRange = useMemo(() => {
-    const start = startOfMonth(subMonths(currentMonth, 3));
-    const end = endOfMonth(addMonths(currentMonth, 3));
-    return { start, end };
-  }, [currentMonth]);
-
-  const { data: researchData, isLoading } = useQuery({
-    queryKey: ["/api/researches", "roadmap", dateRange.start.toISOString(), dateRange.end.toISOString()],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        roadmap: 'true',
-        startDate: dateRange.start.toISOString(),
-        endDate: dateRange.end.toISOString()
-      });
-      const response = await fetch(`/api/researches?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch researches');
-      return response.json();
-    }
+  const { data: researches = [], isLoading } = useQuery<Research[]>({
+    queryKey: ["/api/researches"],
   });
-
-  // Extract researches array from the response
-  const researches: Research[] = researchData?.data || [];
 
   // Get unique teams, researchers, and research types for filters
   const teamSet = new Set(researches.map(r => r.team));
@@ -146,11 +125,6 @@ export default function RoadmapPage() {
   const zoomOut = () => setZoomLevel(prev => Math.max(prev / 1.5, 0.3));
   const resetZoom = () => setZoomLevel(1);
 
-  // Month navigation functions
-  const goToPreviousMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
-  const goToNextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
-  const goToToday = () => setCurrentMonth(new Date());
-
   const [, setLocation] = useLocation();
 
   const handleResearchClick = (research: Research) => {
@@ -178,40 +152,6 @@ export default function RoadmapPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Research Roadmap</h1>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            {/* Month Navigation Controls */}
-            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToPreviousMonth}
-                className="h-8 w-8 p-0"
-                title="Previous month"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium text-gray-700 min-w-[120px] text-center">
-                {format(currentMonth, 'MMMM yyyy')}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToNextMonth}
-                className="h-8 w-8 p-0"
-                title="Next month"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToToday}
-                className="h-7 px-2 text-xs"
-                title="Go to current month"
-              >
-                Today
-              </Button>
-            </div>
-
             {/* Zoom Controls */}
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-1">
               <Button

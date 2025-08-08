@@ -39,7 +39,6 @@ export interface IStorage {
   deleteMeeting(id: number): Promise<boolean>;
 
   getResearches(): Promise<Research[]>;
-  getAllResearches(params?: { startDate?: string; endDate?: string }): Promise<Research[]>;
   getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>>;
   getResearch(id: number): Promise<Research | undefined>;
   createResearch(research: InsertResearch): Promise<Research>;
@@ -340,25 +339,6 @@ export class DatabaseStorage implements IStorage {
 
   async getResearches(): Promise<Research[]> {
     return db.select().from(researches);
-  }
-
-  async getAllResearches(params?: { startDate?: string; endDate?: string }): Promise<Research[]> {
-    let whereClause = '';
-    let queryParams: any[] = [];
-    
-    if (params?.startDate && params?.endDate) {
-      whereClause = 'WHERE (date_start <= $2 AND date_end >= $1)';
-      queryParams = [params.startDate, params.endDate];
-    }
-    
-    const query = `
-      SELECT * FROM researches 
-      ${whereClause}
-      ORDER BY date_start ASC
-    `;
-    
-    const result = await pool.query(query, queryParams);
-    return result.rows;
   }
 
   async getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>> {
