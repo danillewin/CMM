@@ -148,9 +148,9 @@ export function SearchableMultiSelect({
                 {t("common.startTyping")}
               </div>
             )}
-            {displayOptions.map((option) => (
+            {displayOptions.map((option, index) => (
               <div
-                key={option.value}
+                key={`${option.value}-${index}`}
                 className={cn(
                   "flex items-center px-2 py-1.5 text-sm cursor-pointer hover:bg-accent",
                   value.includes(option.value) && "bg-accent"
