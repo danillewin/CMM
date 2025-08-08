@@ -196,6 +196,38 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Roadmap-specific research endpoint
+  app.get("/api/roadmap/researches", async (req, res) => {
+    try {
+      const year = req.query.year ? parseInt(req.query.year as string) : new Date().getFullYear();
+      const startOfYear = new Date(year, 0, 1); // January 1st of the year
+      const endOfYear = new Date(year, 11, 31, 23, 59, 59); // December 31st of the year
+      
+      // Only fetch researches that overlap with the specified year
+      // Include research that starts or ends within the year, or spans across it
+      const researchData = await db.select({
+        id: researches.id,
+        name: researches.name,
+        dateStart: researches.dateStart,
+        dateEnd: researches.dateEnd,
+        team: researches.team,
+        researcher: researches.researcher,
+        status: researches.status,
+        researchType: researches.researchType,
+        color: researches.color,
+      }).from(researches).where(
+        // Research overlaps with the year if:
+        // - research starts before year ends AND research ends after year starts
+        sql`(date_start <= ${endOfYear.toISOString()} AND date_end >= ${startOfYear.toISOString()})`
+      );
+      
+      res.json({ data: researchData, total: researchData.length, year });
+    } catch (error) {
+      console.error("Error fetching roadmap researches:", error);
+      res.status(500).json({ message: "Failed to fetch roadmap researches" });
+    }
+  });
+
   // Research routes
   app.get("/api/researches", async (req, res) => {
     try {

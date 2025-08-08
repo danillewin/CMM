@@ -78,12 +78,21 @@ export default function RoadmapPage() {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [researchTypeFilters, setResearchTypeFilters] = useState<string[]>([]);
   const [zoomLevel, setZoomLevel] = useState<number>(1); // 1 = normal, 0.5 = zoomed out, 2 = zoomed in
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
-  const { data: researchesResponse, isLoading } = useQuery<{ data: Research[] }>({
-    queryKey: ["/api/researches"],
+  const { data: researchesResponse, isLoading } = useQuery<{ data: Research[]; year: number; total: number }>({
+    queryKey: ["/api/roadmap/researches", selectedYear],
+    queryFn: ({ queryKey }) => {
+      const [, year] = queryKey;
+      return fetch(`/api/roadmap/researches?year=${year}`).then(res => res.json());
+    },
   });
 
   const researches = researchesResponse?.data || [];
+  
+  // Generate available years (current year ± 2 years)
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from({ length: 5 }, (_, i) => currentYear - 2 + i);
 
   // Get unique teams, researchers, and research types for filters
   const teamSet = new Set(researches.map(r => r.team));
@@ -112,10 +121,18 @@ export default function RoadmapPage() {
   }, {} as Record<string, Research[]>);
 
 
-  // Calculate date range for all researches
+  // Calculate date range optimized for the selected year
+  // Always show the full selected year, but extend if researches go beyond
+  const yearStart = new Date(selectedYear, 0, 1); // January 1st
+  const yearEnd = new Date(selectedYear, 11, 31); // December 31st
+  
   const dates = researches.flatMap(r => [new Date(r.dateStart), new Date(r.dateEnd)]);
-  const minDate = dates.length ? startOfMonth(new Date(Math.min(...dates.map(d => d.getTime())))) : new Date();
-  const maxDate = dates.length ? endOfMonth(new Date(Math.max(...dates.map(d => d.getTime())))) : addMonths(new Date(), 3);
+  const researchMinDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : yearStart;
+  const researchMaxDate = dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : yearEnd;
+  
+  // Show at least the selected year, but extend if researches go beyond
+  const minDate = startOfMonth(new Date(Math.min(yearStart.getTime(), researchMinDate.getTime())));
+  const maxDate = endOfMonth(new Date(Math.max(yearEnd.getTime(), researchMaxDate.getTime())));
   const months = getMonthsBetween(minDate, maxDate);
 
   // Calculate month width based on zoom level
@@ -199,7 +216,18 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+            <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
               <SelectValue placeholder="Filter by team" />

@@ -111,6 +111,7 @@ This is a full-stack web application built for managing research interviews and 
 - July 25, 2025: Added handleTempDataUpdate functionality allowing users to edit multiple tabs without losing changes until Save is clicked
 - July 25, 2025: Enhanced MeetingForm component with onTempDataUpdate prop support and field-level change tracking for seamless tab switching
 - August 4, 2025: Successfully migrated from memory storage to PostgreSQL database using Neon serverless platform with complete data persistence
+- August 8, 2025: Optimized Roadmap page performance by implementing year-based filtering with dedicated API endpoint (/api/roadmap/researches) that loads only relevant research data per selected year instead of all research data
 
 ## User Preferences
 
