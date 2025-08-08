@@ -7,7 +7,7 @@ import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, FileDown } from "lucide-react";
+import { Plus, FileDown, Filter } from "lucide-react";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import {
   Select,
@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export default function Meetings() {
   const { t } = useTranslation();
@@ -37,6 +38,20 @@ export default function Meetings() {
   const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  
+  // Applied filters state for "Apply Filters" button
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
+  const [appliedResearchFilter, setAppliedResearchFilter] = useState<number | null>(null);
+  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string>("");
+  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string>("");
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("");
+  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string>("");
+  const [appliedGiftFilter, setAppliedGiftFilter] = useState<string>("");
+  
+  // Debounced search value - only search is debounced, filters wait for apply button
+  const debouncedSearch = useDebouncedValue(search, 500);
+  
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -55,7 +70,24 @@ export default function Meetings() {
   
   const researches = researchesResponse?.data || [];
 
-  // Use infinite scroll for meetings with server-side filtering
+  // Apply filters function
+  const applyFilters = () => {
+    setAppliedSearch(debouncedSearch);
+    setAppliedStatusFilter(statusFilter);
+    setAppliedResearchFilter(researchFilter);
+    setAppliedManagerFilter(managerFilter);
+    setAppliedRecruiterFilter(recruiterFilter);
+    setAppliedResearcherFilter(researcherFilter);
+    setAppliedPositionFilter(positionFilter);
+    setAppliedGiftFilter(giftFilter);
+  };
+
+  // Auto-apply search when debounced value changes
+  useEffect(() => {
+    setAppliedSearch(debouncedSearch);
+  }, [debouncedSearch]);
+
+  // Use infinite scroll for meetings with server-side filtering using applied filters
   const {
     data: meetings,
     isLoading: meetingsLoading,
@@ -68,14 +100,14 @@ export default function Meetings() {
       "paginated", 
       sortBy, 
       sortDir, 
-      search, 
-      statusFilter, 
-      researchFilter, 
-      managerFilter, 
-      recruiterFilter, 
-      researcherFilter, 
-      positionFilter, 
-      giftFilter
+      appliedSearch, 
+      appliedStatusFilter, 
+      appliedResearchFilter, 
+      appliedManagerFilter, 
+      appliedRecruiterFilter, 
+      appliedResearcherFilter, 
+      appliedPositionFilter, 
+      appliedGiftFilter
     ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
@@ -85,38 +117,38 @@ export default function Meetings() {
         sortDir: sortDir
       });
       
-      // Add search parameter
-      if (search && search.trim()) {
-        params.append('search', search.trim());
+      // Add search parameter (using applied search)
+      if (appliedSearch && appliedSearch.trim()) {
+        params.append('search', appliedSearch.trim());
       }
       
-      // Add filter parameters only if they have values and aren't "ALL"
-      if (statusFilter && statusFilter !== "ALL") {
-        params.append('status', statusFilter);
+      // Add filter parameters only if they have values and aren't "ALL" (using applied filters)
+      if (appliedStatusFilter && appliedStatusFilter !== "ALL") {
+        params.append('status', appliedStatusFilter);
       }
       
-      if (researchFilter) {
-        params.append('researchId', researchFilter.toString());
+      if (appliedResearchFilter) {
+        params.append('researchId', appliedResearchFilter.toString());
       }
       
-      if (managerFilter && managerFilter !== "ALL") {
-        params.append('manager', managerFilter);
+      if (appliedManagerFilter && appliedManagerFilter !== "ALL") {
+        params.append('manager', appliedManagerFilter);
       }
       
-      if (recruiterFilter && recruiterFilter !== "ALL") {
-        params.append('recruiter', recruiterFilter);
+      if (appliedRecruiterFilter && appliedRecruiterFilter !== "ALL") {
+        params.append('recruiter', appliedRecruiterFilter);
       }
       
-      if (researcherFilter && researcherFilter !== "ALL") {
-        params.append('researcher', researcherFilter);
+      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
+        params.append('researcher', appliedResearcherFilter);
       }
       
-      if (positionFilter && positionFilter !== "ALL") {
-        params.append('position', positionFilter);
+      if (appliedPositionFilter && appliedPositionFilter !== "ALL") {
+        params.append('position', appliedPositionFilter);
       }
       
-      if (giftFilter && giftFilter !== "ALL") {
-        params.append('gift', giftFilter);
+      if (appliedGiftFilter && appliedGiftFilter !== "ALL") {
+        params.append('gift', appliedGiftFilter);
       }
       
       const response = await fetch(`/api/meetings?${params}`);
@@ -647,7 +679,7 @@ export default function Meetings() {
             <InfiniteScrollTable
               data={filteredMeetings}
               columns={columns}
-              isLoading={isLoading}
+              isLoading={meetingsLoading}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
@@ -661,6 +693,16 @@ export default function Meetings() {
               searchValue={search}
               onSearchChange={setSearch}
               emptyStateMessage={t("meetings.noMeetings", "No meetings found")}
+              onApplyFilters={applyFilters}
+              hasUnappliedFilters={
+                statusFilter !== appliedStatusFilter ||
+                researchFilter !== appliedResearchFilter ||
+                managerFilter !== appliedManagerFilter ||
+                recruiterFilter !== appliedRecruiterFilter ||
+                researcherFilter !== appliedResearcherFilter ||
+                positionFilter !== appliedPositionFilter ||
+                giftFilter !== appliedGiftFilter
+              }
             />
           </CardContent>
         </Card>

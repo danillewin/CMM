@@ -19,6 +19,8 @@ interface InfiniteScrollTableProps<T extends { id: string | number }> {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   emptyStateMessage?: string;
+  onApplyFilters?: () => void;
+  hasUnappliedFilters?: boolean;
 }
 
 export function InfiniteScrollTable<T extends { id: string | number }>({
@@ -38,6 +40,8 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
   searchValue,
   onSearchChange,
   emptyStateMessage = "No data available",
+  onApplyFilters,
+  hasUnappliedFilters,
 }: InfiniteScrollTableProps<T>) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -69,15 +73,6 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
     };
   }, [handleLoadMore]);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading...</span>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <ConfigurableTable
@@ -93,6 +88,9 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
         searchValue={searchValue}
         onSearchChange={onSearchChange}
         emptyStateMessage={data.length === 0 ? emptyStateMessage : undefined}
+        onApplyFilters={onApplyFilters}
+        hasUnappliedFilters={hasUnappliedFilters}
+        isLoading={isLoading}
       />
       
       {/* Load more trigger */}

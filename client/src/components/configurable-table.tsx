@@ -47,7 +47,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Settings, Filter, Search, X, Save, Bookmark } from "lucide-react";
+import { GripVertical, Settings, Filter, Search, X, Save, Bookmark, Loader2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -88,6 +88,9 @@ interface ConfigurableTableProps<T> {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   emptyStateMessage?: string;
+  onApplyFilters?: () => void;
+  hasUnappliedFilters?: boolean;
+  isLoading?: boolean;
 }
 
 // Props for the sortable item component
@@ -152,7 +155,10 @@ export function ConfigurableTable<T extends { id: number | string }>({
   filters = [],
   searchValue = "",
   onSearchChange,
-  emptyStateMessage
+  emptyStateMessage,
+  onApplyFilters,
+  hasUnappliedFilters,
+  isLoading
 }: ConfigurableTableProps<T>) {
   // Load column config from local storage or use initial columns
   const loadSavedConfig = useCallback(() => {
@@ -272,26 +278,43 @@ export function ConfigurableTable<T extends { id: number | string }>({
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4 p-4 bg-white/80 backdrop-blur-sm rounded-md border border-gray-100 shadow-sm">
-        <div className="relative w-full sm:w-64 md:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-          <Input
-            type="text"
-            placeholder="Search..."
-            className="pl-8 pr-8 bg-white border-gray-200"
-            value={searchInputValue}
-            onChange={handleSearchChange}
-          />
-          {searchInputValue && (
-            <button 
-              className="absolute right-2.5 top-2.5 text-gray-500 hover:text-gray-700"
-              onClick={handleClearSearch}
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Input
+              type="text"
+              placeholder="Search..."
+              className="pl-8 pr-8 bg-white border-gray-200"
+              value={searchInputValue}
+              onChange={handleSearchChange}
+            />
+            {searchInputValue && (
+              <button 
+                className="absolute right-2.5 top-2.5 text-gray-500 hover:text-gray-700"
+                onClick={handleClearSearch}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          
+          {onApplyFilters && (
+            <Button 
+              variant={hasUnappliedFilters ? "default" : "outline"}
+              size="sm" 
+              onClick={onApplyFilters}
+              className={hasUnappliedFilters 
+                ? "bg-primary hover:bg-primary/90 text-white" 
+                : "bg-white border-gray-200 hover:bg-gray-50"
+              }
             >
-              <X className="h-4 w-4" />
-            </button>
+              <Filter className="h-4 w-4 mr-2" />
+              Apply Filters
+            </Button>
           )}
         </div>
         
-        <div className="flex gap-3 ml-auto">
+        <div className="flex gap-3">
           {filters.length > 0 && (
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
               <PopoverTrigger asChild>
@@ -426,7 +449,16 @@ export function ConfigurableTable<T extends { id: number | string }>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={visibleColumns.length} className="text-center py-16">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-gray-500 mr-2" />
+                    <span className="text-gray-500">Loading...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={visibleColumns.length} className="text-center py-8 text-gray-500">
                   {emptyStateMessage || "No data available"}

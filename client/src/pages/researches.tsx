@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Filter } from "lucide-react";
 import { SectionLoader } from "@/components/ui/loading-spinner";
 import { useLocation } from "wouter";
 import {
@@ -35,6 +35,7 @@ import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 type ViewMode = "table" | "cards";
 
@@ -51,10 +52,37 @@ export default function Researches() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [showStartsInNWeeks, setShowStartsInNWeeks] = useState(false);
   const [weeksNumber, setWeeksNumber] = useState<string>("1");
+  
+  // Applied filters state for "Apply Filters" button
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("ALL");
+  const [appliedTeamFilter, setAppliedTeamFilter] = useState<string>("ALL");
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("ALL");
+  const [appliedResearchTypeFilters, setAppliedResearchTypeFilters] = useState<string[]>([]);
+  const [appliedProductFilters, setAppliedProductFilters] = useState<string[]>([]);
+  
+  // Debounced search value - only search is debounced, filters wait for apply button
+  const debouncedSearch = useDebouncedValue(search, 500);
+  
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Use infinite scroll for researches with server-side filtering
+  // Apply filters function
+  const applyFilters = () => {
+    setAppliedSearch(debouncedSearch);
+    setAppliedStatusFilter(statusFilter);
+    setAppliedTeamFilter(teamFilter);
+    setAppliedResearcherFilter(researcherFilter);
+    setAppliedResearchTypeFilters(researchTypeFilters);
+    setAppliedProductFilters(productFilters);
+  };
+
+  // Auto-apply search when debounced value changes
+  useEffect(() => {
+    setAppliedSearch(debouncedSearch);
+  }, [debouncedSearch]);
+
+  // Use infinite scroll for researches with server-side filtering using applied filters
   const {
     data: researches,
     isLoading,
@@ -67,12 +95,12 @@ export default function Researches() {
       "paginated", 
       sortBy, 
       sortDir, 
-      search, 
-      statusFilter, 
-      teamFilter, 
-      researcherFilter, 
-      researchTypeFilters, 
-      productFilters
+      appliedSearch, 
+      appliedStatusFilter, 
+      appliedTeamFilter, 
+      appliedResearcherFilter, 
+      appliedResearchTypeFilters, 
+      appliedProductFilters
     ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
@@ -82,30 +110,30 @@ export default function Researches() {
         sortDir: sortDir
       });
       
-      // Add search parameter
-      if (search && search.trim()) {
-        params.append('search', search.trim());
+      // Add search parameter (using applied search)
+      if (appliedSearch && appliedSearch.trim()) {
+        params.append('search', appliedSearch.trim());
       }
       
-      // Add filter parameters only if they have values and aren't "ALL"
-      if (statusFilter && statusFilter !== "ALL") {
-        params.append('status', statusFilter);
+      // Add filter parameters only if they have values and aren't "ALL" (using applied filters)
+      if (appliedStatusFilter && appliedStatusFilter !== "ALL") {
+        params.append('status', appliedStatusFilter);
       }
       
-      if (teamFilter && teamFilter !== "ALL") {
-        params.append('team', teamFilter);
+      if (appliedTeamFilter && appliedTeamFilter !== "ALL") {
+        params.append('team', appliedTeamFilter);
       }
       
-      if (researcherFilter && researcherFilter !== "ALL") {
-        params.append('researcher', researcherFilter);
+      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
+        params.append('researcher', appliedResearcherFilter);
       }
       
-      if (researchTypeFilters && researchTypeFilters.length > 0) {
-        researchTypeFilters.forEach(type => params.append('researchType', type));
+      if (appliedResearchTypeFilters && appliedResearchTypeFilters.length > 0) {
+        appliedResearchTypeFilters.forEach(type => params.append('researchType', type));
       }
       
-      if (productFilters && productFilters.length > 0) {
-        productFilters.forEach(product => params.append('products', product));
+      if (appliedProductFilters && appliedProductFilters.length > 0) {
+        appliedProductFilters.forEach(product => params.append('products', product));
       }
       
       const response = await fetch(`/api/researches?${params}`);
@@ -620,6 +648,14 @@ export default function Researches() {
             onSearchChange={setSearch}
             storeConfigKey="researches-table-columns"
             emptyStateMessage={t("researches.noResearches", "No researches found")}
+            onApplyFilters={applyFilters}
+            hasUnappliedFilters={
+              statusFilter !== appliedStatusFilter ||
+              teamFilter !== appliedTeamFilter ||
+              researcherFilter !== appliedResearcherFilter ||
+              JSON.stringify(researchTypeFilters) !== JSON.stringify(appliedResearchTypeFilters) ||
+              JSON.stringify(productFilters) !== JSON.stringify(appliedProductFilters)
+            }
           />
         ) : filteredResearches.length === 0 ? (
           <div className="text-center py-12">
