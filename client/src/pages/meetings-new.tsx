@@ -215,14 +215,14 @@ export default function Meetings() {
       'Research': meeting.researchName || '',
       'Status': meeting.status || '',
       'Date': new Date(meeting.date).toLocaleDateString(),
-      'Manager': meeting.manager || '',
-      'Recruiter': meeting.recruiter || '',
-      'Researcher': meeting.researcher || '',
+      'Manager': (meeting as any).manager || '',
+      'Recruiter': (meeting as any).recruiter || '',
+      'Researcher': (meeting as any).researcher || '',
       'Position': meeting.respondentPosition || '',
-      'Gift': meeting.hasGift ? 'Yes' : 'No',
-      'Phone': meeting.phone || '',
-      'Email': meeting.email || '',
-      'Notes': meeting.notes || ''
+      'Gift': (meeting as any).hasGift ? 'Yes' : 'No',
+      'Phone': (meeting as any).phone || '',
+      'Email': (meeting as any).email || '',
+      'Notes': (meeting as any).notes || ''
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
@@ -237,9 +237,10 @@ export default function Meetings() {
   };
 
   // Handle sort changes
-  const handleSort = (field: string, direction: "asc" | "desc") => {
+  const handleSort = (field: string) => {
+    const newDirection = sortBy === field && sortDir === "asc" ? "desc" : "asc";
     setSortBy(field);
-    setSortDir(direction);
+    setSortDir(newDirection);
   };
 
   // Table columns configuration
@@ -313,7 +314,7 @@ export default function Meetings() {
       visible: true,
       sortField: "manager",
       render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{meeting.manager || '—'}</span>
+        <span className="truncate max-w-[150px]">{(meeting as any).manager || '—'}</span>
       )
     },
     {
@@ -322,7 +323,7 @@ export default function Meetings() {
       visible: true,
       sortField: "recruiter",
       render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{meeting.recruiter || '—'}</span>
+        <span className="truncate max-w-[150px]">{(meeting as any).recruiter || '—'}</span>
       )
     },
     {
@@ -348,7 +349,7 @@ export default function Meetings() {
       name: t("meetings.hasGift"),
       visible: false,
       render: (meeting: MeetingTableItem) => (
-        <span>{meeting.hasGift ? t("filters.yes") : t("filters.no")}</span>
+        <span>{(meeting as any).hasGift ? t("filters.yes") : t("filters.no")}</span>
       )
     },
     {
@@ -357,7 +358,7 @@ export default function Meetings() {
       visible: false,
       sortField: "phone",
       render: (meeting: MeetingTableItem) => (
-        <span className="truncate max-w-[150px]">{meeting.phone || '—'}</span>
+        <span className="truncate max-w-[150px]">{(meeting as any).phone || '—'}</span>
       )
     },
     {
@@ -375,7 +376,7 @@ export default function Meetings() {
       visible: false,
       render: (meeting: MeetingTableItem) => (
         <span className="truncate max-w-[300px]">
-          {meeting.notes ? (
+          {(meeting as any).notes ? (
             <span className="text-gray-500 italic">{t("meetings.notes")}</span>
           ) : (
             <span className="text-gray-400">{t("meetings.noMeetings")}</span>
