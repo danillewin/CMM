@@ -133,7 +133,7 @@ export default function Meetings() {
       }
       
       if (appliedManagerFilter && appliedManagerFilter.length > 0) {
-        params.append('relationship_managers', appliedManagerFilter.join(','));
+        params.append('managers', appliedManagerFilter.join(','));
       }
       
       if (appliedRecruiterFilter && appliedRecruiterFilter.length > 0) {
@@ -145,7 +145,7 @@ export default function Meetings() {
       }
       
       if (appliedPositionFilter && appliedPositionFilter.length > 0) {
-        params.append('respondent_positions', appliedPositionFilter.join(','));
+        params.append('positions', appliedPositionFilter.join(','));
       }
       
       if (appliedGiftFilter && appliedGiftFilter !== "ALL") {

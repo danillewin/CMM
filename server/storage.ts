@@ -133,7 +133,12 @@ export class DatabaseStorage implements IStorage {
       recruiter,
       researcher,
       position,
-      gift
+      gift,
+      researchIds,
+      managers,
+      recruiters,
+      researchers,
+      positions
     } = params;
     const offset = (page - 1) * limit;
     
@@ -194,6 +199,58 @@ export class DatabaseStorage implements IStorage {
       paramIndex++;
     }
     
+    // Handle array-based filters (for multiselect components)
+    if (researchIds && researchIds.trim()) {
+      const ids = researchIds.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      if (ids.length > 0) {
+        const placeholders = ids.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`m.research_id IN (${placeholders})`);
+        queryParams.push(...ids);
+        countParams.push(...ids);
+      }
+    }
+    
+    if (managers && managers.trim()) {
+      const managerList = managers.split(',').map(m => m.trim()).filter(m => m);
+      if (managerList.length > 0) {
+        const placeholders = managerList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`m.relationship_manager IN (${placeholders})`);
+        queryParams.push(...managerList);
+        countParams.push(...managerList);
+      }
+    }
+    
+    if (recruiters && recruiters.trim()) {
+      const recruiterList = recruiters.split(',').map(r => r.trim()).filter(r => r);
+      if (recruiterList.length > 0) {
+        const placeholders = recruiterList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`m.recruiter IN (${placeholders})`);
+        queryParams.push(...recruiterList);
+        countParams.push(...recruiterList);
+      }
+    }
+    
+    if (researchers && researchers.trim()) {
+      const researcherList = researchers.split(',').map(r => r.trim()).filter(r => r);
+      if (researcherList.length > 0) {
+        const placeholders = researcherList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`m.researcher IN (${placeholders})`);
+        queryParams.push(...researcherList);
+        countParams.push(...researcherList);
+      }
+    }
+    
+    if (positions && positions.trim()) {
+      const positionList = positions.split(',').map(p => p.trim()).filter(p => p);
+      if (positionList.length > 0) {
+        const placeholders = positionList.map(() => `$${paramIndex++}`).join(',');
+        whereConditions.push(`m.respondent_position IN (${placeholders})`);
+        queryParams.push(...positionList);
+        countParams.push(...positionList);
+      }
+    }
+    
+    // Keep single-value filters for backward compatibility
     if (manager && manager !== "ALL") {
       whereConditions.push(`m.relationship_manager = $${paramIndex}`);
       queryParams.push(manager);

@@ -273,6 +273,12 @@ export type PaginationParams = {
   researcher?: string;
   position?: string;
   gift?: string;
+  // Array-based filters for multi-select
+  researchIds?: string;
+  managers?: string;
+  recruiters?: string;
+  researchers?: string;
+  positions?: string;
   // Research filters
   team?: string;
   researchType?: string;

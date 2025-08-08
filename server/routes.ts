@@ -354,10 +354,11 @@ export function registerRoutes(app: Express): Server {
       // Server-side filtering parameters
       const search = req.query.search as string;
       const status = req.query.status as string;
-      const manager = req.query.manager as string;
-      const recruiter = req.query.recruiter as string;
-      const researcher = req.query.researcher as string;
-      const position = req.query.position as string;
+      const researchIds = req.query.research_ids as string;
+      const managers = req.query.managers as string;
+      const recruiters = req.query.recruiters as string;
+      const researchers = req.query.researchers as string;
+      const positions = req.query.positions as string;
       const gift = req.query.gift as string;
       
       // If date range is provided, filter by date range (use calendar meetings method)
@@ -385,10 +386,11 @@ export function registerRoutes(app: Express): Server {
         researchId,
         search,
         status,
-        manager,
-        recruiter,
-        researcher,
-        position,
+        researchIds,
+        managers,
+        recruiters,
+        researchers,
+        positions,
         gift
       });
       res.json(paginatedMeetings);
