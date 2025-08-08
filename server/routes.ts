@@ -834,5 +834,81 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Filter data endpoints for search multiselect
+  app.get("/api/filters/researches", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getResearchesForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching researches for filter:", error);
+      res.status(500).json({ message: "Failed to fetch researches" });
+    }
+  });
+
+  app.get("/api/filters/managers", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getManagersForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching managers for filter:", error);
+      res.status(500).json({ message: "Failed to fetch managers" });
+    }
+  });
+
+  app.get("/api/filters/recruiters", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getRecruitersForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching recruiters for filter:", error);
+      res.status(500).json({ message: "Failed to fetch recruiters" });
+    }
+  });
+
+  app.get("/api/filters/researchers", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getResearchersForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching researchers for filter:", error);
+      res.status(500).json({ message: "Failed to fetch researchers" });
+    }
+  });
+
+  app.get("/api/filters/positions", async (req, res) => {
+    try {
+      const { search = "", page = "1", limit = "20" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await storage.getPositionsForFilter(search as string, limitNum, offset);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching positions for filter:", error);
+      res.status(500).json({ message: "Failed to fetch positions" });
+    }
+  });
+
   return createServer(app);
 }

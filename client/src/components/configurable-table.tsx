@@ -47,6 +47,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { SearchMultiselect } from "@/components/search-multiselect";
 import { GripVertical, Settings, Filter, Search, X, Save, Bookmark, Loader2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -66,12 +67,17 @@ export type ColumnConfig = {
 export type FilterConfig = {
   id: string;
   name: string;
-  options: { label: string | null; value: string | null }[];
-  value: string;
-  onChange: (value: string) => void;
+  options?: { label: string | null; value: string | null }[];
+  value?: string;
+  onChange?: (value: string) => void | ((values: string[]) => void);
   customComponent?: React.ReactNode;
   isActive?: () => boolean; // Custom function to determine if filter is active
   enableCustomFilters?: boolean; // Enable custom filter save/load for this filter
+  // For SearchMultiselect components
+  component?: "searchMultiselect";
+  apiEndpoint?: string;
+  selectedValues?: string[];
+  formatOption?: (option: any) => { label: string; value: string };
 };
 
 // Props for the ConfigurableTable component
@@ -321,10 +327,25 @@ export function ConfigurableTable<T extends { id: number | string }>({
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Filters</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    {filters.map(filter => (
+                    {filters?.map(filter => (
                       <div key={filter.id} className="space-y-1">
                         {filter.customComponent ? (
                           filter.customComponent
+                        ) : filter.component === "searchMultiselect" ? (
+                          <>
+                            <label className="text-sm font-medium">{filter.name}</label>
+                            <SearchMultiselect
+                              apiEndpoint={filter.apiEndpoint || ""}
+                              placeholder={`Select ${filter.name}`}
+                              selectedValues={filter.selectedValues || []}
+                              onSelectionChange={(values: string[]) => {
+                                if (filter.onChange) {
+                                  (filter.onChange as (values: string[]) => void)(values);
+                                }
+                              }}
+                              formatOption={filter.formatOption}
+                            />
+                          </>
                         ) : (
                           <>
                             <label className="text-sm font-medium">{filter.name}</label>
@@ -333,7 +354,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                                 <SelectValue placeholder={`Select ${filter.name}`} />
                               </SelectTrigger>
                               <SelectContent>
-                                {filter.options.map(option => (
+                                {filter.options?.map(option => (
                                   <SelectItem 
                                     key={option.value || 'empty'} 
                                     value={option.value || ''}
@@ -346,7 +367,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                           </>
                         )}
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                   <div className="col-span-2 mt-4 flex gap-2">
                     {onApplyFilters && (

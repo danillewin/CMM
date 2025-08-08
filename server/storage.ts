@@ -106,6 +106,13 @@ export interface IStorage {
   // Calendar specific methods for optimized calendar queries
   getCalendarMeetings(startDate: Date, endDate: Date): Promise<any[]>;
   getCalendarResearches(startDate: Date, endDate: Date): Promise<any[]>;
+
+  // Filter data methods for search multiselect
+  getResearchesForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{id: number, name: string}>, hasMore: boolean, total: number }>;
+  getManagersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
+  getRecruitersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
+  getResearchersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
+  getPositionsForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -853,6 +860,183 @@ export class DatabaseStorage implements IStorage {
       .from(customFilters)
       .where(eq(customFilters.id, id));
     return filter;
+  }
+
+  // Filter data methods for search multiselect
+  async getResearchesForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{id: number, name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT r.id)::int as count
+        FROM researches r 
+        WHERE LOWER(r.name) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT r.id, r.name
+        FROM researches r 
+        WHERE LOWER(r.name) LIKE $1
+        ORDER BY r.name ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting researches for filter:", error);
+      throw error;
+    }
+  }
+
+  async getManagersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT relationship_manager)::int as count
+        FROM meetings 
+        WHERE relationship_manager IS NOT NULL 
+        AND relationship_manager != ''
+        AND LOWER(relationship_manager) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT relationship_manager as name
+        FROM meetings 
+        WHERE relationship_manager IS NOT NULL 
+        AND relationship_manager != ''
+        AND LOWER(relationship_manager) LIKE $1
+        ORDER BY relationship_manager ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting managers for filter:", error);
+      throw error;
+    }
+  }
+
+  async getRecruitersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT recruiter)::int as count
+        FROM meetings 
+        WHERE recruiter IS NOT NULL 
+        AND recruiter != ''
+        AND LOWER(recruiter) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT recruiter as name
+        FROM meetings 
+        WHERE recruiter IS NOT NULL 
+        AND recruiter != ''
+        AND LOWER(recruiter) LIKE $1
+        ORDER BY recruiter ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting recruiters for filter:", error);
+      throw error;
+    }
+  }
+
+  async getResearchersForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT researcher)::int as count
+        FROM meetings 
+        WHERE researcher IS NOT NULL 
+        AND researcher != ''
+        AND LOWER(researcher) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT researcher as name
+        FROM meetings 
+        WHERE researcher IS NOT NULL 
+        AND researcher != ''
+        AND LOWER(researcher) LIKE $1
+        ORDER BY researcher ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting researchers for filter:", error);
+      throw error;
+    }
+  }
+
+  async getPositionsForFilter(search: string, limit: number, offset: number): Promise<{ data: Array<{name: string}>, hasMore: boolean, total: number }> {
+    try {
+      const searchPattern = `%${search.toLowerCase()}%`;
+      
+      // Get total count
+      const countResult = await pool.query(`
+        SELECT COUNT(DISTINCT respondent_position)::int as count
+        FROM meetings 
+        WHERE respondent_position IS NOT NULL 
+        AND respondent_position != ''
+        AND LOWER(respondent_position) LIKE $1
+      `, [searchPattern]);
+      const total = countResult.rows[0].count;
+
+      // Get paginated data
+      const result = await pool.query(`
+        SELECT DISTINCT respondent_position as name
+        FROM meetings 
+        WHERE respondent_position IS NOT NULL 
+        AND respondent_position != ''
+        AND LOWER(respondent_position) LIKE $1
+        ORDER BY respondent_position ASC
+        LIMIT $2 OFFSET $3
+      `, [searchPattern, limit, offset]);
+
+      return {
+        data: result.rows,
+        hasMore: offset + limit < total,
+        total
+      };
+    } catch (error) {
+      console.error("Error getting positions for filter:", error);
+      throw error;
+    }
   }
 
   async createCustomFilter(filter: InsertCustomFilter): Promise<CustomFilter> {

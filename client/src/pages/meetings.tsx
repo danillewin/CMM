@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
+import { SearchMultiselect } from "@/components/search-multiselect";
 import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -30,11 +31,11 @@ export default function Meetings() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const [researchFilter, setResearchFilter] = useState<number | null>(null);
-  const [managerFilter, setManagerFilter] = useState<string>("");
-  const [recruiterFilter, setRecruiterFilter] = useState<string>("");
-  const [researcherFilter, setResearcherFilter] = useState<string>("");
-  const [positionFilter, setPositionFilter] = useState<string>("");
+  const [researchFilter, setResearchFilter] = useState<string[]>([]);
+  const [managerFilter, setManagerFilter] = useState<string[]>([]);
+  const [recruiterFilter, setRecruiterFilter] = useState<string[]>([]);
+  const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
+  const [positionFilter, setPositionFilter] = useState<string[]>([]);
   const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
@@ -42,11 +43,11 @@ export default function Meetings() {
   // Applied filters state for "Apply Filters" button
   const [appliedSearch, setAppliedSearch] = useState("");
   const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
-  const [appliedResearchFilter, setAppliedResearchFilter] = useState<number | null>(null);
-  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string>("");
-  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string>("");
-  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string>("");
-  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string>("");
+  const [appliedResearchFilter, setAppliedResearchFilter] = useState<string[]>([]);
+  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string[]>([]);
+  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string[]>([]);
+  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string[]>([]);
+  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string[]>([]);
   const [appliedGiftFilter, setAppliedGiftFilter] = useState<string>("");
   
   // Debounced search value - only search is debounced, filters wait for apply button
@@ -127,24 +128,24 @@ export default function Meetings() {
         params.append('status', appliedStatusFilter);
       }
       
-      if (appliedResearchFilter) {
-        params.append('researchId', appliedResearchFilter.toString());
+      if (appliedResearchFilter && appliedResearchFilter.length > 0) {
+        params.append('research_ids', appliedResearchFilter.join(','));
       }
       
-      if (appliedManagerFilter && appliedManagerFilter !== "ALL") {
-        params.append('manager', appliedManagerFilter);
+      if (appliedManagerFilter && appliedManagerFilter.length > 0) {
+        params.append('relationship_managers', appliedManagerFilter.join(','));
       }
       
-      if (appliedRecruiterFilter && appliedRecruiterFilter !== "ALL") {
-        params.append('recruiter', appliedRecruiterFilter);
+      if (appliedRecruiterFilter && appliedRecruiterFilter.length > 0) {
+        params.append('recruiters', appliedRecruiterFilter.join(','));
       }
       
-      if (appliedResearcherFilter && appliedResearcherFilter !== "ALL") {
-        params.append('researcher', appliedResearcherFilter);
+      if (appliedResearcherFilter && appliedResearcherFilter.length > 0) {
+        params.append('researchers', appliedResearcherFilter.join(','));
       }
       
-      if (appliedPositionFilter && appliedPositionFilter !== "ALL") {
-        params.append('position', appliedPositionFilter);
+      if (appliedPositionFilter && appliedPositionFilter.length > 0) {
+        params.append('respondent_positions', appliedPositionFilter.join(','));
       }
       
       if (appliedGiftFilter && appliedGiftFilter !== "ALL") {
@@ -470,7 +471,86 @@ export default function Meetings() {
   ], [t, meetings, updateStatusMutation]); // Dependencies for useMemo
 
   // Prepare filter configurations with useMemo to update on language change
-  const filterConfigs = useMemo(() => [
+  const filterConfigs = useMemo(() => {
+    // Ensure meetings data is available before creating filter configurations
+    if (!meetings) {
+      return [
+        {
+          id: "status",
+          name: t("filters.status"),
+          options: [
+            { label: t("filters.all"), value: "ALL" },
+            ...Object.values(MeetingStatus).map(status => ({ 
+              label: status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
+                     status === MeetingStatus.SET ? t("meetings.statusSet") :
+                     status === MeetingStatus.DONE ? t("meetings.statusDone") :
+                     status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status, 
+              value: status 
+            }))
+          ],
+          value: statusFilter || "ALL",
+          onChange: setStatusFilter
+        },
+        {
+          id: "research",
+          name: t("meetings.research"),
+          component: "searchMultiselect" as const,
+          apiEndpoint: "/api/filters/researches",
+          selectedValues: researchFilter,
+          onChange: setResearchFilter,
+          formatOption: (option: any) => ({ label: option.name, value: option.id.toString() })
+        },
+        {
+          id: "manager",
+          name: t("meetings.relationshipManager"),
+          component: "searchMultiselect" as const,
+          apiEndpoint: "/api/filters/managers",
+          selectedValues: managerFilter,
+          onChange: setManagerFilter,
+          formatOption: (option: any) => ({ label: option.name, value: option.name })
+        },
+        {
+          id: "recruiter",
+          name: t("meetings.recruiter"),
+          component: "searchMultiselect" as const,
+          apiEndpoint: "/api/filters/recruiters",
+          selectedValues: recruiterFilter,
+          onChange: setRecruiterFilter,
+          formatOption: (option: any) => ({ label: option.name, value: option.name })
+        },
+        {
+          id: "researcher",
+          name: t("meetings.researcher"),
+          component: "searchMultiselect" as const,
+          apiEndpoint: "/api/filters/researchers",
+          selectedValues: researcherFilter,
+          onChange: setResearcherFilter,
+          formatOption: (option: any) => ({ label: option.name, value: option.name })
+        },
+        {
+          id: "position",
+          name: t("meetings.respondentPosition"),
+          component: "searchMultiselect" as const,
+          apiEndpoint: "/api/filters/positions",
+          selectedValues: positionFilter,
+          onChange: setPositionFilter,
+          formatOption: (option: any) => ({ label: option.name, value: option.name })
+        },
+        {
+          id: "hasGift",
+          name: t("meetings.hasGift"),
+          options: [
+            { label: t("filters.all"), value: "ALL" },
+            { label: t("meetings.giftYes"), value: "yes" },
+            { label: t("meetings.giftNo"), value: "no" }
+          ],
+          value: giftFilter || "ALL",
+          onChange: setGiftFilter
+        }
+      ];
+    }
+    
+    return [
     {
       id: "status",
       name: t("filters.status"),
@@ -490,83 +570,47 @@ export default function Meetings() {
     {
       id: "research",
       name: t("meetings.research"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        // Get unique research options from meetings data
-        ...Array.from(
-          new Map(
-            meetings
-              .filter(m => m.researchName && m.researchId)
-              .map(m => [m.researchId!, { id: m.researchId!, name: m.researchName! }])
-          ).values()
-        ).map(research => ({ 
-          label: research.name, 
-          value: research.id.toString() 
-        }))
-      ],
-      value: researchFilter?.toString() ?? "ALL",
-      onChange: (value: string) => setResearchFilter(value === "ALL" ? null : Number(value))
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/researches",
+      selectedValues: researchFilter,
+      onChange: setResearchFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.id.toString() })
     },
     {
       id: "manager",
       name: t("meetings.relationshipManager"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.relationshipManager)
-        )).filter(Boolean).sort().map(manager => ({ 
-          label: manager, 
-          value: manager 
-        }))
-      ],
-      value: managerFilter || "ALL",
-      onChange: setManagerFilter
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/managers",
+      selectedValues: managerFilter,
+      onChange: setManagerFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "recruiter",
       name: t("meetings.recruiter"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.salesPerson)
-        )).filter(Boolean).sort().map(recruiter => ({ 
-          label: recruiter, 
-          value: recruiter 
-        }))
-      ],
-      value: recruiterFilter || "ALL",
-      onChange: setRecruiterFilter
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/recruiters",
+      selectedValues: recruiterFilter,
+      onChange: setRecruiterFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "researcher",
       name: t("meetings.researcher"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.researcher)
-        )).filter(Boolean).sort().map(researcher => ({ 
-          label: researcher, 
-          value: researcher 
-        }))
-      ],
-      value: researcherFilter || "ALL",
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/researchers",
+      selectedValues: researcherFilter,
       onChange: setResearcherFilter,
-      enableCustomFilters: true
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "position",
       name: t("meetings.respondentPosition"),
-      options: [
-        { label: t("filters.all"), value: "ALL" },
-        ...Array.from(new Set(
-          meetings.map(m => m.respondentPosition)
-        )).filter(Boolean).sort().map(position => ({ 
-          label: position, 
-          value: position 
-        }))
-      ],
-      value: positionFilter || "ALL",
-      onChange: setPositionFilter
+      component: "searchMultiselect" as const,
+      apiEndpoint: "/api/filters/positions",
+      selectedValues: positionFilter,
+      onChange: setPositionFilter,
+      formatOption: (option: any) => ({ label: option.name, value: option.name })
     },
     {
       id: "hasGift",
@@ -579,7 +623,8 @@ export default function Meetings() {
       value: giftFilter || "ALL",
       onChange: setGiftFilter
     }
-  ], [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, researches, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
+    ];
+  }, [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
   // Load saved filters from localStorage
   useEffect(() => {
@@ -696,11 +741,11 @@ export default function Meetings() {
               onApplyFilters={applyFilters}
               hasUnappliedFilters={
                 statusFilter !== appliedStatusFilter ||
-                researchFilter !== appliedResearchFilter ||
-                managerFilter !== appliedManagerFilter ||
-                recruiterFilter !== appliedRecruiterFilter ||
-                researcherFilter !== appliedResearcherFilter ||
-                positionFilter !== appliedPositionFilter ||
+                JSON.stringify(researchFilter) !== JSON.stringify(appliedResearchFilter) ||
+                JSON.stringify(managerFilter) !== JSON.stringify(appliedManagerFilter) ||
+                JSON.stringify(recruiterFilter) !== JSON.stringify(appliedRecruiterFilter) ||
+                JSON.stringify(researcherFilter) !== JSON.stringify(appliedResearcherFilter) ||
+                JSON.stringify(positionFilter) !== JSON.stringify(appliedPositionFilter) ||
                 giftFilter !== appliedGiftFilter
               }
             />
