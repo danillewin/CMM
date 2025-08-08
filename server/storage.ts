@@ -1129,80 +1129,104 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Search methods for filter options
-  async searchResearches(search: string, limit: number): Promise<{ id: number; name: string }[]> {
-    const searchPattern = `%${search}%`;
-    const results = await db.select({
+  async searchResearches(search: string, limit: number, offset: number = 0): Promise<{ id: number; name: string }[]> {
+    let query = db.select({
       id: researches.id,
       name: researches.name
     }).from(researches)
-      .where(sql`name ILIKE ${searchPattern}`)
-      .limit(limit);
+      .orderBy(researches.name)
+      .limit(limit)
+      .offset(offset);
+
+    if (search.trim()) {
+      const searchPattern = `%${search}%`;
+      query = query.where(sql`name ILIKE ${searchPattern}`) as any;
+    }
     
-    return results;
+    return await query;
   }
 
-  async searchManagers(search: string, limit: number): Promise<{ value: string; label: string }[]> {
-    const searchPattern = `%${search}%`;
+  async searchManagers(search: string, limit: number, offset: number = 0): Promise<{ value: string; label: string }[]> {
+    let whereCondition = isNotNull(meetings.relationshipManager);
+    
+    if (search.trim()) {
+      const searchPattern = `%${search}%`;
+      whereCondition = and(whereCondition, sql`relationship_manager ILIKE ${searchPattern}`);
+    }
+
     const results = await db.select({
       manager: meetings.relationshipManager
     }).from(meetings)
-      .where(and(
-        isNotNull(meetings.relationshipManager),
-        sql`relationship_manager ILIKE ${searchPattern}`
-      ))
+      .where(whereCondition)
       .groupBy(meetings.relationshipManager)
-      .limit(limit);
+      .orderBy(meetings.relationshipManager)
+      .limit(limit)
+      .offset(offset);
 
     return results
       .filter(r => r.manager)
       .map(r => ({ value: r.manager!, label: r.manager! }));
   }
 
-  async searchRecruiters(search: string, limit: number): Promise<{ value: string; label: string }[]> {
-    const searchPattern = `%${search}%`;
+  async searchRecruiters(search: string, limit: number, offset: number = 0): Promise<{ value: string; label: string }[]> {
+    let whereCondition = isNotNull(sql`recruiter`);
+    
+    if (search.trim()) {
+      const searchPattern = `%${search}%`;
+      whereCondition = and(whereCondition, sql`recruiter ILIKE ${searchPattern}`);
+    }
+
     const results = await db.select({
-      recruiter: meetings.salesPerson
+      recruiter: sql<string>`DISTINCT recruiter`
     }).from(meetings)
-      .where(and(
-        isNotNull(meetings.salesPerson),
-        sql`sales_person ILIKE ${searchPattern}`
-      ))
-      .groupBy(meetings.salesPerson)
-      .limit(limit);
+      .where(whereCondition)
+      .orderBy(sql`recruiter`)
+      .limit(limit)
+      .offset(offset);
 
     return results
       .filter(r => r.recruiter)
       .map(r => ({ value: r.recruiter!, label: r.recruiter! }));
   }
 
-  async searchResearchers(search: string, limit: number): Promise<{ value: string; label: string }[]> {
-    const searchPattern = `%${search}%`;
+  async searchResearchers(search: string, limit: number, offset: number = 0): Promise<{ value: string; label: string }[]> {
+    let whereCondition = isNotNull(meetings.researcher);
+    
+    if (search.trim()) {
+      const searchPattern = `%${search}%`;
+      whereCondition = and(whereCondition, sql`researcher ILIKE ${searchPattern}`);
+    }
+
     const results = await db.select({
       researcher: meetings.researcher
     }).from(meetings)
-      .where(and(
-        isNotNull(meetings.researcher),
-        sql`researcher ILIKE ${searchPattern}`
-      ))
+      .where(whereCondition)
       .groupBy(meetings.researcher)
-      .limit(limit);
+      .orderBy(meetings.researcher)
+      .limit(limit)
+      .offset(offset);
 
     return results
       .filter(r => r.researcher)
       .map(r => ({ value: r.researcher!, label: r.researcher! }));
   }
 
-  async searchPositions(search: string, limit: number): Promise<{ value: string; label: string }[]> {
-    const searchPattern = `%${search}%`;
+  async searchPositions(search: string, limit: number, offset: number = 0): Promise<{ value: string; label: string }[]> {
+    let whereCondition = isNotNull(meetings.respondentPosition);
+    
+    if (search.trim()) {
+      const searchPattern = `%${search}%`;
+      whereCondition = and(whereCondition, sql`respondent_position ILIKE ${searchPattern}`);
+    }
+
     const results = await db.select({
       position: meetings.respondentPosition
     }).from(meetings)
-      .where(and(
-        isNotNull(meetings.respondentPosition),
-        sql`respondent_position ILIKE ${searchPattern}`
-      ))
+      .where(whereCondition)
       .groupBy(meetings.respondentPosition)
-      .limit(limit);
+      .orderBy(meetings.respondentPosition)
+      .limit(limit)
+      .offset(offset);
 
     return results
       .filter(r => r.position)

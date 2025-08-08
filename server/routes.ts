@@ -840,9 +840,12 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/search/researches", async (req, res) => {
     try {
       const search = req.query.search as string || "";
-      const limit = parseInt(req.query.limit as string) || 10;
-      const results = await storage.searchResearches(search, limit);
-      res.json(results);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      
+      const results = await storage.searchResearches(search, limit, offset);
+      res.json(results.map(r => ({ value: r.name, label: r.name })));
     } catch (error) {
       console.error("Error searching researches:", error);
       res.status(500).json({ message: "Failed to search researches" });
@@ -852,8 +855,11 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/search/managers", async (req, res) => {
     try {
       const search = req.query.search as string || "";
-      const limit = parseInt(req.query.limit as string) || 10;
-      const results = await storage.searchManagers(search, limit);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      
+      const results = await storage.searchManagers(search, limit, offset);
       res.json(results);
     } catch (error) {
       console.error("Error searching managers:", error);
@@ -864,8 +870,11 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/search/recruiters", async (req, res) => {
     try {
       const search = req.query.search as string || "";
-      const limit = parseInt(req.query.limit as string) || 10;
-      const results = await storage.searchRecruiters(search, limit);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      
+      const results = await storage.searchRecruiters(search, limit, offset);
       res.json(results);
     } catch (error) {
       console.error("Error searching recruiters:", error);
@@ -876,8 +885,11 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/search/researchers", async (req, res) => {
     try {
       const search = req.query.search as string || "";
-      const limit = parseInt(req.query.limit as string) || 10;
-      const results = await storage.searchResearchers(search, limit);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      
+      const results = await storage.searchResearchers(search, limit, offset);
       res.json(results);
     } catch (error) {
       console.error("Error searching researchers:", error);
@@ -888,8 +900,11 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/search/positions", async (req, res) => {
     try {
       const search = req.query.search as string || "";
-      const limit = parseInt(req.query.limit as string) || 10;
-      const results = await storage.searchPositions(search, limit);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      
+      const results = await storage.searchPositions(search, limit, offset);
       res.json(results);
     } catch (error) {
       console.error("Error searching positions:", error);

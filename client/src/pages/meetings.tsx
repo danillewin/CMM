@@ -25,30 +25,36 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { SearchableMultiSelect } from "@/components/searchable-multi-select";
+import { MeetingFiltersComponent, type MeetingFilters } from "@/components/meeting-filters";
 
 export default function Meetings() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
-  const [researchFilter, setResearchFilter] = useState<string[]>([]);
-  const [managerFilter, setManagerFilter] = useState<string[]>([]);
-  const [recruiterFilter, setRecruiterFilter] = useState<string[]>([]);
-  const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
-  const [positionFilter, setPositionFilter] = useState<string[]>([]);
-  const [giftFilter, setGiftFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   
+  // Unified filters state
+  const [filters, setFilters] = useState<MeetingFilters>({
+    research: [],
+    manager: [],
+    recruiter: [],
+    researcher: [],
+    position: [],
+    status: "all",
+    gift: "all"
+  });
+  
   // Applied filters state for "Apply Filters" button
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [appliedStatusFilter, setAppliedStatusFilter] = useState<string>("");
-  const [appliedResearchFilter, setAppliedResearchFilter] = useState<string[]>([]);
-  const [appliedManagerFilter, setAppliedManagerFilter] = useState<string[]>([]);
-  const [appliedRecruiterFilter, setAppliedRecruiterFilter] = useState<string[]>([]);
-  const [appliedResearcherFilter, setAppliedResearcherFilter] = useState<string[]>([]);
-  const [appliedPositionFilter, setAppliedPositionFilter] = useState<string[]>([]);
-  const [appliedGiftFilter, setAppliedGiftFilter] = useState<string>("");
+  const [appliedFilters, setAppliedFilters] = useState<MeetingFilters>({
+    research: [],
+    manager: [],
+    recruiter: [],
+    researcher: [],
+    position: [],
+    status: "all",
+    gift: "all"
+  });
   
   // Debounced search value - only search is debounced, filters wait for apply button
   const debouncedSearch = useDebouncedValue(search, 500);
@@ -74,13 +80,24 @@ export default function Meetings() {
   // Apply filters function
   const applyFilters = () => {
     setAppliedSearch(debouncedSearch);
-    setAppliedStatusFilter(statusFilter);
-    setAppliedResearchFilter([...researchFilter]);
-    setAppliedManagerFilter([...managerFilter]);
-    setAppliedRecruiterFilter([...recruiterFilter]);
-    setAppliedResearcherFilter([...researcherFilter]);
-    setAppliedPositionFilter([...positionFilter]);
-    setAppliedGiftFilter(giftFilter);
+    setAppliedFilters({ ...filters });
+  };
+
+  // Clear filters function
+  const clearFilters = () => {
+    const emptyFilters: MeetingFilters = {
+      research: [],
+      manager: [],
+      recruiter: [],
+      researcher: [],
+      position: [],
+      status: "all",
+      gift: "all"
+    };
+    setFilters(emptyFilters);
+    setAppliedFilters(emptyFilters);
+    setSearch("");
+    setAppliedSearch("");
   };
 
   // Auto-apply search when debounced value changes
@@ -102,13 +119,7 @@ export default function Meetings() {
       sortBy, 
       sortDir, 
       appliedSearch, 
-      appliedStatusFilter, 
-      appliedResearchFilter, 
-      appliedManagerFilter, 
-      appliedRecruiterFilter, 
-      appliedResearcherFilter, 
-      appliedPositionFilter, 
-      appliedGiftFilter
+      appliedFilters
     ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
@@ -123,34 +134,34 @@ export default function Meetings() {
         params.append('search', appliedSearch.trim());
       }
       
-      // Add filter parameters only if they have values and aren't "ALL" (using applied filters)
-      if (appliedStatusFilter && appliedStatusFilter !== "ALL") {
-        params.append('status', appliedStatusFilter);
+      // Add filter parameters only if they have values and aren't "all" (using applied filters)
+      if (appliedFilters.status && appliedFilters.status !== "all") {
+        params.append('status', appliedFilters.status);
+      }
+      
+      if (appliedFilters.gift && appliedFilters.gift !== "all") {
+        params.append('gift', appliedFilters.gift);
       }
       
       // Handle array-based filters
-      if (appliedResearchFilter && appliedResearchFilter.length > 0) {
-        appliedResearchFilter.forEach(id => params.append('researchId', id));
+      if (appliedFilters.research && appliedFilters.research.length > 0) {
+        appliedFilters.research.forEach(name => params.append('researchName', name));
       }
       
-      if (appliedManagerFilter && appliedManagerFilter.length > 0) {
-        appliedManagerFilter.forEach(manager => params.append('manager', manager));
+      if (appliedFilters.manager && appliedFilters.manager.length > 0) {
+        appliedFilters.manager.forEach(manager => params.append('manager', manager));
       }
       
-      if (appliedRecruiterFilter && appliedRecruiterFilter.length > 0) {
-        appliedRecruiterFilter.forEach(recruiter => params.append('recruiter', recruiter));
+      if (appliedFilters.recruiter && appliedFilters.recruiter.length > 0) {
+        appliedFilters.recruiter.forEach(recruiter => params.append('recruiter', recruiter));
       }
       
-      if (appliedResearcherFilter && appliedResearcherFilter.length > 0) {
-        appliedResearcherFilter.forEach(researcher => params.append('researcher', researcher));
+      if (appliedFilters.researcher && appliedFilters.researcher.length > 0) {
+        appliedFilters.researcher.forEach(researcher => params.append('researcher', researcher));
       }
       
-      if (appliedPositionFilter && appliedPositionFilter.length > 0) {
-        appliedPositionFilter.forEach(position => params.append('position', position));
-      }
-      
-      if (appliedGiftFilter && appliedGiftFilter !== "ALL") {
-        params.append('gift', appliedGiftFilter);
+      if (appliedFilters.position && appliedFilters.position.length > 0) {
+        appliedFilters.position.forEach(position => params.append('position', position));
       }
       
       const response = await fetch(`/api/meetings?${params}`);
