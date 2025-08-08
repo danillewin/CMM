@@ -69,7 +69,7 @@ export type FilterConfig = {
   name: string;
   options?: { label: string | null; value: string | null }[];
   value?: string;
-  onChange?: (value: string) => void | ((values: string[]) => void);
+  onChange?: ((value: string) => void) | ((values: string[]) => void);
   customComponent?: React.ReactNode;
   isActive?: () => boolean; // Custom function to determine if filter is active
   enableCustomFilters?: boolean; // Enable custom filter save/load for this filter
@@ -349,7 +349,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         ) : (
                           <>
                             <label className="text-sm font-medium">{filter.name}</label>
-                            <Select value={filter.value} onValueChange={filter.onChange}>
+                            <Select value={filter.value} onValueChange={filter.onChange as (value: string) => void}>
                               <SelectTrigger className="w-full bg-white">
                                 <SelectValue placeholder={`Select ${filter.name}`} />
                               </SelectTrigger>
@@ -391,9 +391,9 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         className="flex-1 bg-white"
                         onClick={() => {
                           // Reset all filters
-                          filters.forEach(filter => {
-                            if (filter.value !== "ALL") {
-                              filter.onChange("ALL");
+                          filters?.forEach(filter => {
+                            if (filter.value !== "ALL" && filter.onChange) {
+                              (filter.onChange as (value: string) => void)("ALL");
                             }
                           });
                         }}

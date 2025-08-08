@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,9 @@ export function SearchMultiselect({
 }: SearchMultiselectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Ensure selectedValues is always an array
+  const safeSelectedValues = Array.isArray(selectedValues) ? selectedValues : [];
   const debouncedSearch = useDebouncedValue(searchTerm, 300);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -71,16 +74,33 @@ export function SearchMultiselect({
     enabled: isOpen, // Only fetch when popover is open
   });
 
-  // Set up infinite scroll
-  useInfiniteScroll({
-    ref: scrollRef,
-    onIntersect: () => {
-      if (hasNextPage && !isFetching) {
-        fetchNextPage();
+  // Set up infinite scroll with intersection observer
+  useEffect(() => {
+    const scrollElement = scrollRef.current;
+    if (!scrollElement || !isOpen || !hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetching) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    // Observe the scroll container itself for when we reach the bottom
+    const bottomTrigger = document.createElement('div');
+    bottomTrigger.style.height = '1px';
+    scrollElement.appendChild(bottomTrigger);
+    observer.observe(bottomTrigger);
+
+    return () => {
+      observer.disconnect();
+      if (bottomTrigger.parentNode) {
+        bottomTrigger.parentNode.removeChild(bottomTrigger);
       }
-    },
-    enabled: isOpen && hasNextPage,
-  });
+    };
+  }, [hasNextPage, isFetching, fetchNextPage, isOpen]);
 
   // Flatten all pages of data
   const options = useMemo(() => {
@@ -104,12 +124,12 @@ export function SearchMultiselect({
 
   // Handle option selection
   const handleOptionToggle = useCallback((value: string) => {
-    if (selectedValues.includes(value)) {
-      onSelectionChange(selectedValues.filter(v => v !== value));
+    if (safeSelectedValues.includes(value)) {
+      onSelectionChange(safeSelectedValues.filter(v => v !== value));
     } else {
-      onSelectionChange([...selectedValues, value]);
+      onSelectionChange([...safeSelectedValues, value]);
     }
-  }, [selectedValues, onSelectionChange]);
+  }, [safeSelectedValues, onSelectionChange]);
 
   // Handle clear all
   const handleClearAll = useCallback(() => {
@@ -118,18 +138,18 @@ export function SearchMultiselect({
 
   // Handle removing individual selection
   const handleRemoveSelection = useCallback((value: string) => {
-    onSelectionChange(selectedValues.filter(v => v !== value));
-  }, [selectedValues, onSelectionChange]);
+    onSelectionChange(safeSelectedValues.filter(v => v !== value));
+  }, [safeSelectedValues, onSelectionChange]);
 
   // Get display text for selected values
   const getSelectedDisplayText = useCallback(() => {
-    if (selectedValues.length === 0) return placeholder;
-    if (selectedValues.length === 1) {
-      const option = formattedOptions.find(opt => opt.value === selectedValues[0]);
-      return option?.label || selectedValues[0];
+    if (safeSelectedValues.length === 0) return placeholder;
+    if (safeSelectedValues.length === 1) {
+      const option = formattedOptions.find(opt => opt.value === safeSelectedValues[0]);
+      return option?.label || safeSelectedValues[0];
     }
-    return `${selectedValues.length} selected`;
-  }, [selectedValues, formattedOptions, placeholder]);
+    return `${safeSelectedValues.length} selected`;
+  }, [safeSelectedValues, formattedOptions, placeholder]);
 
   // Reset search when closing
   useEffect(() => {
@@ -148,24 +168,24 @@ export function SearchMultiselect({
           disabled={disabled}
           className={cn(
             "w-full justify-between h-auto min-h-[40px] py-2",
-            selectedValues.length > 1 && "h-auto",
+            safeSelectedValues.length > 1 && "h-auto",
             className
           )}
         >
           <div className="flex flex-wrap gap-1 flex-1 min-w-0">
-            {selectedValues.length === 0 && (
+            {safeSelectedValues.length === 0 && (
               <span className="text-muted-foreground truncate">
                 {placeholder}
               </span>
             )}
-            {selectedValues.length === 1 && (
+            {safeSelectedValues.length === 1 && (
               <span className="truncate">
                 {getSelectedDisplayText()}
               </span>
             )}
-            {selectedValues.length > 1 && (
+            {safeSelectedValues.length > 1 && (
               <div className="flex flex-wrap gap-1">
-                {selectedValues.slice(0, 2).map((value) => {
+                {safeSelectedValues.slice(0, 2).map((value) => {
                   const option = formattedOptions.find(opt => opt.value === value);
                   return (
                     <Badge
@@ -185,9 +205,9 @@ export function SearchMultiselect({
                     </Badge>
                   );
                 })}
-                {selectedValues.length > 2 && (
+                {safeSelectedValues.length > 2 && (
                   <Badge variant="secondary" className="text-xs">
-                    +{selectedValues.length - 2} more
+                    +{safeSelectedValues.length - 2} more
                   </Badge>
                 )}
               </div>
@@ -208,10 +228,10 @@ export function SearchMultiselect({
               autoFocus
             />
           </div>
-          {selectedValues.length > 0 && (
+          {safeSelectedValues.length > 0 && (
             <div className="flex items-center justify-between mt-2">
               <span className="text-sm text-muted-foreground">
-                {selectedValues.length} selected
+                {safeSelectedValues.length} selected
               </span>
               <Button
                 variant="ghost"
@@ -248,7 +268,7 @@ export function SearchMultiselect({
                 onClick={() => handleOptionToggle(option.value)}
               >
                 <Checkbox
-                  checked={selectedValues.includes(option.value)}
+                  checked={safeSelectedValues.includes(option.value)}
                   onChange={() => handleOptionToggle(option.value)}
                   className="pointer-events-none"
                 />

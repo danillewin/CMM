@@ -633,11 +633,11 @@ export default function Meetings() {
       if (savedFilters) {
         const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
         if (status) setStatusFilter(status);
-        if (research !== undefined) setResearchFilter(research === null ? null : Number(research));
-        if (manager) setManagerFilter(manager);
-        if (recruiter) setRecruiterFilter(recruiter);
-        if (researcher) setResearcherFilter(researcher);
-        if (position) setPositionFilter(position);
+        if (research !== undefined) setResearchFilter(Array.isArray(research) ? research : research === null ? [] : [research.toString()]);
+        if (manager) setManagerFilter(Array.isArray(manager) ? manager : [manager]);
+        if (recruiter) setRecruiterFilter(Array.isArray(recruiter) ? recruiter : [recruiter]);
+        if (researcher) setResearcherFilter(Array.isArray(researcher) ? researcher : [researcher]);
+        if (position) setPositionFilter(Array.isArray(position) ? position : [position]);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
