@@ -55,7 +55,7 @@ export default function Meetings() {
   
   const researches = researchesResponse?.data || [];
 
-  // Use infinite scroll for meetings
+  // Use infinite scroll for meetings with server-side filtering
   const {
     data: meetings,
     isLoading: meetingsLoading,
@@ -63,7 +63,20 @@ export default function Meetings() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<MeetingTableItem>({
-    queryKey: ["/api/meetings", "paginated", sortBy, sortDir],
+    queryKey: [
+      "/api/meetings", 
+      "paginated", 
+      sortBy, 
+      sortDir, 
+      search, 
+      statusFilter, 
+      researchFilter, 
+      managerFilter, 
+      recruiterFilter, 
+      researcherFilter, 
+      positionFilter, 
+      giftFilter
+    ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
         page: pageParam.toString(),
@@ -71,13 +84,48 @@ export default function Meetings() {
         sortBy: sortBy,
         sortDir: sortDir
       });
+      
+      // Add search parameter
+      if (search && search.trim()) {
+        params.append('search', search.trim());
+      }
+      
+      // Add filter parameters only if they have values and aren't "ALL"
+      if (statusFilter && statusFilter !== "ALL") {
+        params.append('status', statusFilter);
+      }
+      
+      if (researchFilter) {
+        params.append('researchId', researchFilter.toString());
+      }
+      
+      if (managerFilter && managerFilter !== "ALL") {
+        params.append('manager', managerFilter);
+      }
+      
+      if (recruiterFilter && recruiterFilter !== "ALL") {
+        params.append('recruiter', recruiterFilter);
+      }
+      
+      if (researcherFilter && researcherFilter !== "ALL") {
+        params.append('researcher', researcherFilter);
+      }
+      
+      if (positionFilter && positionFilter !== "ALL") {
+        params.append('position', positionFilter);
+      }
+      
+      if (giftFilter && giftFilter !== "ALL") {
+        params.append('gift', giftFilter);
+      }
+      
       const response = await fetch(`/api/meetings?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch meetings");
       }
       return response.json() as Promise<PaginatedResponse<MeetingTableItem>>;
     },
-    enabled: true, // No need to wait for researches since we JOIN them in the query
+    enabled: true, // Server handles all filtering now
   });
   
   // Loading state - only meetings since research data comes from JOIN
@@ -183,27 +231,8 @@ export default function Meetings() {
     }
   };
 
-  // Filter meetings (sorting is now done server-side)
-  const filteredMeetings = meetings
-    .filter(
-      (meeting) =>
-        (meeting.respondentName.toLowerCase().includes(search.toLowerCase()) ||
-          meeting.cnum.toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.companyName?.toLowerCase() || "").includes(search.toLowerCase()) ||
-          (meeting.respondentPosition?.toLowerCase() || "").includes(search.toLowerCase()) ||
-          meeting.relationshipManager.toLowerCase().includes(search.toLowerCase()) ||
-          meeting.salesPerson.toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
-          meeting.status.toLowerCase().includes(search.toLowerCase()) ||
-          new Date(meeting.date).toLocaleDateString().toLowerCase().includes(search.toLowerCase()) ||
-          (meeting.researchName?.toLowerCase().includes(search.toLowerCase()))) &&
-        (statusFilter === "ALL" || !statusFilter || meeting.status === statusFilter) &&
-        (!researchFilter || meeting.researchId === researchFilter) &&
-        (managerFilter === "ALL" || !managerFilter || meeting.relationshipManager === managerFilter) &&
-        (recruiterFilter === "ALL" || !recruiterFilter || meeting.salesPerson === recruiterFilter) &&
-        (researcherFilter === "ALL" || !researcherFilter || meeting.researcher === researcherFilter) &&
-        (positionFilter === "ALL" || !positionFilter || meeting.respondentPosition === positionFilter)
-    );
+  // Server handles all filtering - no client-side filtering needed
+  const filteredMeetings = meetings;
 
   const handleSort = (field: string) => {
     if (sortBy === field) {

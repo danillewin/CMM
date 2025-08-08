@@ -54,7 +54,7 @@ export default function Researches() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Use infinite scroll for researches - only load when component mounts
+  // Use infinite scroll for researches with server-side filtering
   const {
     data: researches,
     isLoading,
@@ -62,7 +62,18 @@ export default function Researches() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<ResearchTableItem>({
-    queryKey: ["/api/researches", "paginated", sortBy, sortDir],
+    queryKey: [
+      "/api/researches", 
+      "paginated", 
+      sortBy, 
+      sortDir, 
+      search, 
+      statusFilter, 
+      teamFilter, 
+      researcherFilter, 
+      researchTypeFilters, 
+      productFilters
+    ],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams({
         page: pageParam.toString(),
@@ -70,13 +81,40 @@ export default function Researches() {
         sortBy: sortBy,
         sortDir: sortDir
       });
+      
+      // Add search parameter
+      if (search && search.trim()) {
+        params.append('search', search.trim());
+      }
+      
+      // Add filter parameters only if they have values and aren't "ALL"
+      if (statusFilter && statusFilter !== "ALL") {
+        params.append('status', statusFilter);
+      }
+      
+      if (teamFilter && teamFilter !== "ALL") {
+        params.append('team', teamFilter);
+      }
+      
+      if (researcherFilter && researcherFilter !== "ALL") {
+        params.append('researcher', researcherFilter);
+      }
+      
+      if (researchTypeFilters && researchTypeFilters.length > 0) {
+        researchTypeFilters.forEach(type => params.append('researchType', type));
+      }
+      
+      if (productFilters && productFilters.length > 0) {
+        productFilters.forEach(product => params.append('products', product));
+      }
+      
       const response = await fetch(`/api/researches?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch researches");
       }
       return response.json() as Promise<PaginatedResponse<ResearchTableItem>>;
     },
-    enabled: true, // Only fetch when explicitly enabled
+    enabled: true, // Server handles all filtering now
   });
 
   // Get unique researchers, teams, and research types for filters
@@ -151,35 +189,13 @@ export default function Researches() {
   const currentDate = new Date();
   const futureDate = addWeeks(currentDate, parseInt(weeksNumber));
   
-  // Filter researches (sorting is now done server-side)
-  const filteredResearches = researches
-    .filter(
-      (research) => {
+  // Server handles all main filtering - only client-side date range filtering remains for "starts in N weeks"
+  const filteredResearches = showStartsInNWeeks 
+    ? researches.filter(research => {
         const startDate = new Date(research.dateStart);
-        
-        // Check if research starts within the specified weeks range
-        const startsInRange = !showStartsInNWeeks || 
-          (startDate >= currentDate && startDate <= futureDate);
-        
-        // Check if research has any of the selected products
-        const hasSelectedProducts = productFilters.length === 0 || 
-          (research.products && Array.isArray(research.products) && 
-           research.products.some(product => productFilters.includes(product)));
-
-        return (
-          (research.name.toLowerCase().includes(search.toLowerCase()) ||
-            research.team.toLowerCase().includes(search.toLowerCase()) ||
-            (research.researcher?.toLowerCase() || "").includes(search.toLowerCase()) ||
-            research.description.toLowerCase().includes(search.toLowerCase())) &&
-          (researcherFilter === "ALL" || research.researcher === researcherFilter) &&
-          (teamFilter === "ALL" || research.team === teamFilter) &&
-          (statusFilter === "ALL" || research.status === statusFilter) &&
-          (researchTypeFilters.length === 0 || researchTypeFilters.includes(research.researchType)) &&
-          hasSelectedProducts &&
-          startsInRange
-        );
-      }
-    );
+        return startDate >= currentDate && startDate <= futureDate;
+      })
+    : researches;
 
   const handleItemClick = (research: ResearchTableItem) => {
     setLocation(`/researches/${research.id}`);

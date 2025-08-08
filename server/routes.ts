@@ -172,13 +172,25 @@ export function registerRoutes(app: Express): Server {
         return;
       }
       
-      // Always use paginated endpoint for efficiency
+      // Server-side filtering parameters for researches
+      const status = req.query.status as string;
+      const team = req.query.team as string;
+      const researcher = req.query.researcher as string;
+      const researchType = req.query.researchType as string;
+      const products = req.query.products as string[];
+      
+      // Use paginated endpoint with all filter parameters for server-side filtering
       const paginatedResearches = await storage.getResearchesPaginated({ 
         page: page || 1, 
         limit: limit || 20,
         sortBy,
         sortDir,
-        search
+        search,
+        status,
+        team,
+        researcher,
+        researchType,
+        products
       });
       res.json(paginatedResearches);
     } catch (error) {
@@ -339,6 +351,15 @@ export function registerRoutes(app: Express): Server {
       const startDate = req.query.startDate as string;
       const endDate = req.query.endDate as string;
       
+      // Server-side filtering parameters
+      const search = req.query.search as string;
+      const status = req.query.status as string;
+      const manager = req.query.manager as string;
+      const recruiter = req.query.recruiter as string;
+      const researcher = req.query.researcher as string;
+      const position = req.query.position as string;
+      const gift = req.query.gift as string;
+      
       // If date range is provided, filter by date range (use calendar meetings method)
       if (startDate && endDate) {
         try {
@@ -355,13 +376,20 @@ export function registerRoutes(app: Express): Server {
         return;
       }
       
-      // Always use paginated endpoint for efficiency
+      // Use paginated endpoint with all filter parameters for server-side filtering
       const paginatedMeetings = await storage.getMeetingsPaginated({ 
         page: page || 1, 
         limit: limit || 20,
         sortBy,
         sortDir,
-        researchId
+        researchId,
+        search,
+        status,
+        manager,
+        recruiter,
+        researcher,
+        position,
+        gift
       });
       res.json(paginatedMeetings);
     } catch (error) {

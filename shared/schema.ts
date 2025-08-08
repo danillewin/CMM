@@ -266,6 +266,17 @@ export type PaginationParams = {
   sortDir?: 'asc' | 'desc';
   search?: string;
   researchId?: number;
+  // Meeting filters
+  status?: string;
+  manager?: string;
+  recruiter?: string;
+  researcher?: string;
+  position?: string;
+  gift?: string;
+  // Research filters
+  team?: string;
+  researchType?: string;
+  products?: string[];
 };
 
 export type PaginatedResponse<T> = {

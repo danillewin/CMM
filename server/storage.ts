@@ -114,7 +114,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingsPaginated(params: PaginationParams): Promise<PaginatedResponse<MeetingTableItem>> {
-    const { page = 1, limit = 20, sortBy = 'date', sortDir = 'desc', researchId } = params;
+    const { 
+      page = 1, 
+      limit = 20, 
+      sortBy = 'date', 
+      sortDir = 'desc', 
+      researchId,
+      search,
+      status,
+      manager,
+      recruiter,
+      researcher,
+      position,
+      gift
+    } = params;
     const offset = (page - 1) * limit;
     
     // Map frontend field names to database column names
@@ -133,18 +146,86 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
-    // Build WHERE clause and parameters for research filtering
-    let whereClause = '';
-    let queryParams: any[] = [];
-    let countParams: any[] = [];
+    // Build WHERE clause and parameters dynamically
+    const whereConditions: string[] = [];
+    let paramIndex = 1;
+    const queryParams: any[] = [];
+    const countParams: any[] = [];
+    
+    // Add search filter - match multiple fields like client-side logic
+    if (search && search.trim()) {
+      const searchPattern = `%${search.trim().toLowerCase()}%`;
+      whereConditions.push(`(
+        LOWER(m.respondent_name) LIKE $${paramIndex} OR 
+        LOWER(m.cnum) LIKE $${paramIndex} OR
+        LOWER(m.company_name) LIKE $${paramIndex} OR
+        LOWER(m.respondent_position) LIKE $${paramIndex} OR
+        LOWER(m.relationship_manager) LIKE $${paramIndex} OR
+        LOWER(m.recruiter) LIKE $${paramIndex} OR
+        LOWER(m.researcher) LIKE $${paramIndex} OR
+        LOWER(m.status) LIKE $${paramIndex} OR
+        LOWER(r.name) LIKE $${paramIndex} OR
+        TO_CHAR(m.date, 'YYYY-MM-DD') LIKE $${paramIndex}
+      )`);
+      queryParams.push(searchPattern);
+      countParams.push(searchPattern);
+      paramIndex++;
+    }
+    
+    // Add individual filters
+    if (status && status !== "ALL") {
+      whereConditions.push(`m.status = $${paramIndex}`);
+      queryParams.push(status);
+      countParams.push(status);
+      paramIndex++;
+    }
     
     if (researchId) {
-      whereClause = 'WHERE m.research_id = $1';
-      queryParams = [researchId, limit + 1, offset];
-      countParams = [researchId];
-    } else {
-      queryParams = [limit + 1, offset];
+      whereConditions.push(`m.research_id = $${paramIndex}`);
+      queryParams.push(researchId);
+      countParams.push(researchId);
+      paramIndex++;
     }
+    
+    if (manager && manager !== "ALL") {
+      whereConditions.push(`m.relationship_manager = $${paramIndex}`);
+      queryParams.push(manager);
+      countParams.push(manager);
+      paramIndex++;
+    }
+    
+    if (recruiter && recruiter !== "ALL") {
+      whereConditions.push(`m.recruiter = $${paramIndex}`);
+      queryParams.push(recruiter);
+      countParams.push(recruiter);
+      paramIndex++;
+    }
+    
+    if (researcher && researcher !== "ALL") {
+      whereConditions.push(`m.researcher = $${paramIndex}`);
+      queryParams.push(researcher);
+      countParams.push(researcher);
+      paramIndex++;
+    }
+    
+    if (position && position !== "ALL") {
+      whereConditions.push(`m.respondent_position = $${paramIndex}`);
+      queryParams.push(position);
+      countParams.push(position);
+      paramIndex++;
+    }
+    
+    if (gift && gift !== "ALL") {
+      whereConditions.push(`m.has_gift = $${paramIndex}`);
+      queryParams.push(gift);
+      countParams.push(gift);
+      paramIndex++;
+    }
+    
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
+    // Add LIMIT and OFFSET parameters
+    queryParams.push(limit + 1, offset);
     
     // Query for only essential fields for table display with research info via JOIN
     const query = `
@@ -156,11 +237,11 @@ export class DatabaseStorage implements IStorage {
       LEFT JOIN researches r ON m.research_id = r.id
       ${whereClause}
       ORDER BY m.${dbColumn} ${direction}
-      LIMIT $${researchId ? '2' : '1'} OFFSET $${researchId ? '3' : '2'}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
     // Count total for hasMore calculation with same filtering  
-    const countQuery = `SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id ${whereClause}`;;
+    const countQuery = `SELECT COUNT(*) as total FROM meetings m LEFT JOIN researches r ON m.research_id = r.id ${whereClause}`;
     
     const [dataResult, countResult] = await Promise.all([
       pool.query(query, queryParams), // Fetch one extra to check if more exists
@@ -372,7 +453,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getResearchesPaginated(params: PaginationParams): Promise<PaginatedResponse<ResearchTableItem>> {
-    const { page = 1, limit = 20, sortBy = 'dateStart', sortDir = 'desc', search } = params;
+    const { 
+      page = 1, 
+      limit = 20, 
+      sortBy = 'dateStart', 
+      sortDir = 'desc', 
+      search,
+      status,
+      team,
+      researcher,
+      researchType,
+      products
+    } = params;
     const offset = (page - 1) * limit;
     
     // Map frontend field names to database column names
@@ -389,19 +481,62 @@ export class DatabaseStorage implements IStorage {
     const dbColumn = fieldMapping[sortBy] || 'date_start';
     const direction = sortDir.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
     
-    // Build WHERE clause for search with proper parameter numbering
-    let whereClause = '';
-    let queryParams: any[] = [limit + 1, offset];
-    let countParams: any[] = [];
-    let countWhereClause = '';
+    // Build WHERE clause and parameters dynamically
+    const whereConditions: string[] = [];
+    let paramIndex = 1;
+    const queryParams: any[] = [];
+    const countParams: any[] = [];
     
+    // Add search filter - match multiple fields
     if (search && search.trim()) {
       const searchPattern = `%${search.trim()}%`;
-      whereClause = `WHERE (name ILIKE $3 OR team ILIKE $3 OR researcher ILIKE $3 OR description ILIKE $3)`;
-      countWhereClause = `WHERE (name ILIKE $1 OR team ILIKE $1 OR researcher ILIKE $1 OR description ILIKE $1)`;
+      whereConditions.push(`(name ILIKE $${paramIndex} OR team ILIKE $${paramIndex} OR researcher ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`);
       queryParams.push(searchPattern);
       countParams.push(searchPattern);
+      paramIndex++;
     }
+    
+    // Add individual filters
+    if (status && status !== "ALL") {
+      whereConditions.push(`status = $${paramIndex}`);
+      queryParams.push(status);
+      countParams.push(status);
+      paramIndex++;
+    }
+    
+    if (team && team !== "ALL") {
+      whereConditions.push(`team = $${paramIndex}`);
+      queryParams.push(team);
+      countParams.push(team);
+      paramIndex++;
+    }
+    
+    if (researcher && researcher !== "ALL") {
+      whereConditions.push(`researcher = $${paramIndex}`);
+      queryParams.push(researcher);
+      countParams.push(researcher);
+      paramIndex++;
+    }
+    
+    if (researchType && researchType !== "ALL") {
+      whereConditions.push(`research_type = $${paramIndex}`);
+      queryParams.push(researchType);
+      countParams.push(researchType);
+      paramIndex++;
+    }
+    
+    // Handle array filter for products
+    if (products && products.length > 0) {
+      whereConditions.push(`products && $${paramIndex}`);
+      queryParams.push(products);
+      countParams.push(products);
+      paramIndex++;
+    }
+    
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    
+    // Add LIMIT and OFFSET parameters
+    queryParams.push(limit + 1, offset);
     
     // Query for lightweight table data only
     const query = `
@@ -411,11 +546,11 @@ export class DatabaseStorage implements IStorage {
       FROM researches 
       ${whereClause}
       ORDER BY ${dbColumn} ${direction}
-      LIMIT $1 OFFSET $2
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `;
     
     // Count total for hasMore calculation
-    const countQuery = `SELECT COUNT(*) as total FROM researches ${countWhereClause}`;
+    const countQuery = `SELECT COUNT(*) as total FROM researches ${whereClause}`;
     
     const [dataResult, countResult] = await Promise.all([
       pool.query(query, queryParams), // Fetch one extra to check if more exists
