@@ -558,12 +558,24 @@ export class DatabaseStorage implements IStorage {
       paramIndex++;
     }
     
-    // Add individual filters
+    // Add status filter - support multiple statuses separated by comma
     if (status && status !== "ALL") {
-      whereConditions.push(`status = $${paramIndex}`);
-      queryParams.push(status);
-      countParams.push(status);
-      paramIndex++;
+      const statusList = status.split(',').map((s: string) => s.trim()).filter((s: string) => s);
+      if (statusList.length > 0) {
+        if (statusList.length === 1) {
+          // Single status filter
+          whereConditions.push(`status = $${paramIndex}`);
+          queryParams.push(statusList[0]);
+          countParams.push(statusList[0]);
+          paramIndex++;
+        } else {
+          // Multiple status filter
+          const placeholders = statusList.map(() => `$${paramIndex++}`).join(',');
+          whereConditions.push(`status IN (${placeholders})`);
+          queryParams.push(...statusList);
+          countParams.push(...statusList);
+        }
+      }
     }
     
     // Handle array filter for teams
