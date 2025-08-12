@@ -130,7 +130,7 @@ export function TeamAutocomplete({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput
             placeholder="Search team..."
@@ -150,7 +150,7 @@ export function TeamAutocomplete({
               </Button>
             </div>
           </CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-64 overflow-y-auto">
             {teams.map((team) => (
               <CommandItem
                 key={team.id}
