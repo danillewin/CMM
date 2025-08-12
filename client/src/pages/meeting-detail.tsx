@@ -582,6 +582,7 @@ export default function MeetingDetail() {
                   onTempDataUpdate={handleTempDataUpdate}
                   selectedJtbds={selectedJtbdsForNewMeeting}
                   onJtbdsChange={setSelectedJtbdsForNewMeeting}
+                  preselectedResearch={preselectedResearch}
                 />
               )
             ) : (

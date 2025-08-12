@@ -43,6 +43,7 @@ interface MeetingFormProps {
   isCreating?: boolean; // Flag to indicate if we're creating a new meeting
   selectedJtbds?: Jtbd[]; // For passing selected JTBDs from parent
   onJtbdsChange?: (jtbds: Jtbd[]) => void; // For updating selected JTBDs in parent
+  preselectedResearch?: Research | null; // For showing preselected research name
 }
 
 export default function MeetingForm({
@@ -57,7 +58,8 @@ export default function MeetingForm({
   onTempDataUpdate,
   isCreating = false,
   selectedJtbds: parentSelectedJtbds,
-  onJtbdsChange
+  onJtbdsChange,
+  preselectedResearch
 }: MeetingFormProps) {
   const [localSelectedJtbds, setLocalSelectedJtbds] = useState<Jtbd[]>([]);
   
@@ -415,7 +417,13 @@ export default function MeetingForm({
                         handleFieldChange("researcher", research.researcher);
                       }}
                       placeholder="Select research..."
-                      displayName={!isCreating && initialData ? (initialData as any).researchName : undefined}
+                      displayName={
+                        !isCreating && initialData 
+                          ? (initialData as any).researchName 
+                          : isCreating && preselectedResearch 
+                            ? `${preselectedResearch.name} (${preselectedResearch.team})`
+                            : undefined
+                      }
                     />
                   </FormControl>
                   <FormMessage />
