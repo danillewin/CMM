@@ -278,6 +278,9 @@ export default function MeetingDetail() {
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] = useState<Research | null>(null);
+  
+  // For storing selected JTBDs during meeting creation
+  const [selectedJtbdsForNewMeeting, setSelectedJtbdsForNewMeeting] = useState<any[]>([]);
 
   // Handler to update temporary form data
   const handleTempDataUpdate = (newData: Partial<InsertMeeting>) => {
@@ -337,9 +340,24 @@ export default function MeetingDetail() {
       const res = await apiRequest("POST", "/api/meetings", meetingData);
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: "Meeting created successfully" });
+      
+      // If there are selected JTBDs, link them to the newly created meeting
+      if (selectedJtbdsForNewMeeting.length > 0) {
+        try {
+          for (const jtbd of selectedJtbdsForNewMeeting) {
+            await apiRequest("POST", `/api/meetings/${data.id}/jtbds/${jtbd.id}`, {});
+          }
+          toast({ title: "Meeting created successfully with linked JTBDs" });
+        } catch (error) {
+          console.error("Error linking JTBDs to meeting:", error);
+          toast({ title: "Meeting created successfully, but some JTBDs couldn't be linked" });
+        }
+      } else {
+        toast({ title: "Meeting created successfully" });
+      }
+      
       // Redirect to the newly created meeting detail page
       setLocation(`/meetings/${data.id}`);
     },
@@ -561,6 +579,9 @@ export default function MeetingDetail() {
                   onCancel={handleCancel}
                   onCnumChange={handleCnumChange}
                   meetings={meetings}
+                  onTempDataUpdate={handleTempDataUpdate}
+                  selectedJtbds={selectedJtbdsForNewMeeting}
+                  onJtbdsChange={setSelectedJtbdsForNewMeeting}
                 />
               )
             ) : (

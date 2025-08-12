@@ -53,11 +53,12 @@ export function JtbdSelector({
        (jtbd.description || '').toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Fetch JTBDs connected to this entity when the component mounts
+  // Fetch JTBDs connected to this entity when the component mounts (only for existing entities)
   useEffect(() => {
     const fetchEntityJtbds = async () => {
       try {
-        if (!entityId) return;
+        // Skip API call for new entities (entityId = 0 or undefined)
+        if (!entityId || entityId === 0) return;
         
         const response = await apiRequest("GET", `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds`);
         if (!response.ok) {
@@ -77,6 +78,18 @@ export function JtbdSelector({
   // Add a JTBD to the entity
   const addJtbd = async (jtbd: Jtbd) => {
     try {
+      // For new entities (entityId = 0), just add to local state without API call
+      if (!entityId || entityId === 0) {
+        const updatedJtbds = [...selectedJtbds, jtbd];
+        onJtbdsChange(updatedJtbds);
+        
+        toast({
+          title: "JTBD added",
+          description: `"${jtbd.title}" will be linked when the ${entityType} is saved`
+        });
+        return;
+      }
+      
       const res = await apiRequest(
         "POST", 
         `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds/${jtbd.id}`,
@@ -107,6 +120,18 @@ export function JtbdSelector({
   // Remove a JTBD from the entity
   const removeJtbd = async (jtbd: Jtbd) => {
     try {
+      // For new entities (entityId = 0), just remove from local state without API call
+      if (!entityId || entityId === 0) {
+        const updatedJtbds = selectedJtbds.filter(j => j.id !== jtbd.id);
+        onJtbdsChange(updatedJtbds);
+        
+        toast({
+          title: "JTBD removed",
+          description: `Removed "${jtbd.title}" from selection`
+        });
+        return;
+      }
+      
       const res = await apiRequest(
         "DELETE", 
         `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds/${jtbd.id}`

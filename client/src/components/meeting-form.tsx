@@ -41,6 +41,8 @@ interface MeetingFormProps {
   hideNotesAndFullText?: boolean;
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
   isCreating?: boolean; // Flag to indicate if we're creating a new meeting
+  selectedJtbds?: Jtbd[]; // For passing selected JTBDs from parent
+  onJtbdsChange?: (jtbds: Jtbd[]) => void; // For updating selected JTBDs in parent
 }
 
 export default function MeetingForm({
@@ -53,9 +55,15 @@ export default function MeetingForm({
   meetings = [],
   hideNotesAndFullText = false,
   onTempDataUpdate,
-  isCreating = false
+  isCreating = false,
+  selectedJtbds: parentSelectedJtbds,
+  onJtbdsChange
 }: MeetingFormProps) {
-  const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
+  const [localSelectedJtbds, setLocalSelectedJtbds] = useState<Jtbd[]>([]);
+  
+  // Use parent-provided JTBDs if available, otherwise use local state
+  const selectedJtbds = parentSelectedJtbds || localSelectedJtbds;
+  const handleJtbdsChange = onJtbdsChange || setLocalSelectedJtbds;
   
   // Research data is now loaded on-demand via ResearchSelector component
   // No need to pre-load all researches
@@ -126,22 +134,20 @@ export default function MeetingForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmitWrapper)} className="space-y-6">
         {/* Jobs to be Done section - moved to top as requested */}
-        {initialData && initialData.id && (
-          <div className="mb-6 pb-4 border-b border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-base font-medium">Jobs to be Done</h3>
-            </div>
-            <p className="text-sm text-gray-500 mb-3">
-              Track which jobs were discussed during this meeting
-            </p>
-            <JtbdSelector 
-              entityId={initialData.id} 
-              entityType="meeting"
-              selectedJtbds={selectedJtbds}
-              onJtbdsChange={setSelectedJtbds}
-            />
+        <div className="mb-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-base font-medium">Jobs to be Done</h3>
           </div>
-        )}
+          <p className="text-sm text-gray-500 mb-3">
+            Track which jobs were discussed during this meeting
+          </p>
+          <JtbdSelector 
+            entityId={initialData?.id || 0} 
+            entityType="meeting"
+            selectedJtbds={selectedJtbds}
+            onJtbdsChange={handleJtbdsChange}
+          />
+        </div>
         
         {/* Date and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
