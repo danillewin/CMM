@@ -185,8 +185,7 @@ export function JtbdSelector({
         ))}
 
         {/* Add JTBD Button */}
-        {entityId > 0 && (
-          <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="h-8">
                 <Plus className="h-3.5 w-3.5 mr-1" />
@@ -254,7 +253,6 @@ export function JtbdSelector({
               </div>
             </DialogContent>
           </Dialog>
-        )}
       </div>
     </div>
   );
