@@ -274,7 +274,7 @@ export default function MeetingDetail() {
   
   // Parse query parameters if we're creating a new meeting
   const searchParams = isNew ? new URLSearchParams(window.location.search) : null;
-  const preselectedResearchId = searchParams ? parseInt(searchParams.get("researchId") || "0") : 0;
+  const preselectedResearchId = searchParams ? (searchParams.get("researchId") ? parseInt(searchParams.get("researchId")!) : undefined) : undefined;
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] = useState<Research | null>(null);
@@ -314,7 +314,7 @@ export default function MeetingDetail() {
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
-    if (isNew && preselectedResearchId > 0) {
+    if (isNew && preselectedResearchId) {
       // Load the specific research if preselected via URL
       fetch(`/api/researches/${preselectedResearchId}`)
         .then(res => res.json())
@@ -530,31 +530,39 @@ export default function MeetingDetail() {
           <div className="px-8 py-6">
             {isNew ? (
               // For new meetings, show the full meeting form without tabs
-              <MeetingForm
-                onSubmit={handleSubmit}
-                initialData={preselectedResearchId ? {
-                  id: 0, // New meeting
-                  researchId: preselectedResearchId,
-                  date: new Date(),
-                  // Default values for required fields
-                  respondentName: "",
-                  respondentPosition: "",
-                  cnum: "",
-                  gcc: null,
-                  companyName: null,
-                  email: "",
-                  researcher: preselectedResearch?.researcher || "", // Set the researcher from the selected research
-                  relationshipManager: "",
-                  salesPerson: "",
-                  status: MeetingStatus.IN_PROGRESS,
-                  notes: null
-                } as Meeting : undefined}
-                isLoading={isPending}
-                isCreating={true}
-                onCancel={handleCancel}
-                onCnumChange={handleCnumChange}
-                meetings={meetings}
-              />
+              // Show loading state if we're waiting for preselected research data
+              preselectedResearchId && !preselectedResearch ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Loading research data...</span>
+                </div>
+              ) : (
+                <MeetingForm
+                  onSubmit={handleSubmit}
+                  initialData={preselectedResearchId && preselectedResearch ? {
+                    id: 0, // New meeting
+                    researchId: preselectedResearchId,
+                    date: new Date(),
+                    // Default values for required fields
+                    respondentName: "",
+                    respondentPosition: "",
+                    cnum: "",
+                    gcc: null,
+                    companyName: null,
+                    email: "",
+                    researcher: preselectedResearch.researcher || "", // Set the researcher from the selected research
+                    relationshipManager: "",
+                    salesPerson: "",
+                    status: MeetingStatus.IN_PROGRESS,
+                    notes: null
+                  } as Meeting : undefined}
+                  isLoading={isPending}
+                  isCreating={true}
+                  onCancel={handleCancel}
+                  onCnumChange={handleCnumChange}
+                  meetings={meetings}
+                />
+              )
             ) : (
               // For existing meetings, show tabbed interface
               <Tabs defaultValue="info" className="w-full">
