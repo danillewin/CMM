@@ -59,7 +59,7 @@ export function JtbdSelector({
       try {
         if (!entityId) return;
         
-        const response = await apiRequest("GET", `/api/${entityType}s/${entityId}/jtbds`);
+        const response = await apiRequest("GET", `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds`);
         if (!response.ok) {
           throw new Error(`Error fetching JTBDs: ${response.statusText}`);
         }
@@ -79,7 +79,7 @@ export function JtbdSelector({
     try {
       const res = await apiRequest(
         "POST", 
-        `/api/${entityType}s/${entityId}/jtbds/${jtbd.id}`,
+        `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds/${jtbd.id}`,
         {}
       );
       
@@ -109,7 +109,7 @@ export function JtbdSelector({
     try {
       const res = await apiRequest(
         "DELETE", 
-        `/api/${entityType}s/${entityId}/jtbds/${jtbd.id}`
+        `/api/${entityType === 'research' ? 'researches' : entityType + 's'}/${entityId}/jtbds/${jtbd.id}`
       );
       
       if (res.ok) {
