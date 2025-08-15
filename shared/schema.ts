@@ -153,7 +153,7 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Interviews",
     "Desk research",
     "Not assigned"
-  ]).default("Interviews"),
+  ]).default("Not assigned"),
   products: z.array(z.string()).optional().default([]),
   customerFullName: z.string().optional(),
   additionalStakeholders: z.array(z.string()).optional(),

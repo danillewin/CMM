@@ -117,6 +117,7 @@ This is a full-stack web application built for managing research interviews and 
 - August 8, 2025: Optimized Research page UX by implementing improved loading states (keeping search bar and table header visible during data load), moved Apply Filters button to filters modal for better organization, and removed unnecessary duplicate check API call from new research creation flow for better performance
 - August 15, 2025: Moved Research Type field from Brief tab to Overview tab for better form organization and user experience
 - August 15, 2025: Added "Not assigned" option to Research Type field dropdown to provide additional flexibility in research classification
+- August 15, 2025: Set "Not assigned" as the default value for Research Type field
 
 ## User Preferences
 

@@ -122,7 +122,7 @@ export default function ResearchForm({
       dateStart: startDate,
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: (initialData?.researchType as any) || "Interviews",
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     },
   });
@@ -147,7 +147,7 @@ export default function ResearchForm({
       dateStart: newStartDate,
       dateEnd: newEndDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: (initialData?.researchType as any) || "Interviews",
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     });
   }, [initialData, form]);
