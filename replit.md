@@ -118,6 +118,7 @@ This is a full-stack web application built for managing research interviews and 
 - August 15, 2025: Moved Research Type field from Brief tab to Overview tab for better form organization and user experience
 - August 15, 2025: Added "Not assigned" option to Research Type field dropdown to provide additional flexibility in research classification
 - August 15, 2025: Set "Not assigned" as the default value for Research Type field
+- August 15, 2025: Repositioned Research Type field to center position in Overview tab (Status, Research Type, Color order)
 
 ## User Preferences
 
