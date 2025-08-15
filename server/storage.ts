@@ -96,7 +96,7 @@ export interface IStorage {
       meetingsByStatus: { name: string; value: number }[];
       meetingsOverTime: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
       topManagers: Array<{ name: string; SET: number; IN_PROGRESS: number; DONE: number; DECLINED: number }>;
-      recentMeetings: Array<{ id: number; respondentName: string; companyName: string; date: string; status: string }>;
+      recentMeetings: Array<{ id: number; respondentName: string; companyName: string | null; date: Date; status: string }>;
     };
   }>;
   
@@ -1240,7 +1240,24 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      meetingsQuery = meetingsQuery.where(and(...conditions));
+      meetingsQuery = db.select({
+        meeting_id: meetings.id,
+        respondentName: meetings.respondentName,
+        companyName: meetings.companyName,
+        date: meetings.date,
+        status: meetings.status,
+        relationshipManager: meetings.relationshipManager,
+        salesPerson: meetings.salesPerson,
+        researchId: meetings.researchId,
+        research_team: researches.team,
+        research_researcher: researches.researcher,
+        research_name: researches.name,
+      }).from(meetings)
+        .leftJoin(researches, eq(meetings.researchId, researches.id))
+        .where(and(
+          sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`,
+          ...conditions
+        ));
     }
     
     const meetingsData = await meetingsQuery;
@@ -1296,7 +1313,7 @@ export class DatabaseStorage implements IStorage {
           if (!managerMeetings[manager]) {
             managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
           }
-          managerMeetings[manager][meeting.status]++;
+          (managerMeetings[manager] as any)[meeting.status]++;
         }
       });
     });
