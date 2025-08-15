@@ -412,6 +412,7 @@ export default function ResearchForm({
                         </SelectItem>
                         <SelectItem value="Interviews">Interviews</SelectItem>
                         <SelectItem value="Desk research">Desk research</SelectItem>
+                        <SelectItem value="Not assigned">Not assigned</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

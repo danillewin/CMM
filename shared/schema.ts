@@ -151,7 +151,8 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Unmoderated usability testing",
     "Co-creation session",
     "Interviews",
-    "Desk research"
+    "Desk research",
+    "Not assigned"
   ]).default("Interviews"),
   products: z.array(z.string()).optional().default([]),
   customerFullName: z.string().optional(),

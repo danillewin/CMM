@@ -115,6 +115,8 @@ This is a full-stack web application built for managing research interviews and 
 - August 8, 2025: Completed comprehensive database architecture refactoring by centralizing all database access in storage layer, removing direct database calls from routes.ts to implement proper separation of concerns with repository pattern
 - August 8, 2025: Enhanced performance optimization with server-side data processing for dashboard analytics and calendar endpoints, reducing client-side computation and API request overhead
 - August 8, 2025: Optimized Research page UX by implementing improved loading states (keeping search bar and table header visible during data load), moved Apply Filters button to filters modal for better organization, and removed unnecessary duplicate check API call from new research creation flow for better performance
+- August 15, 2025: Moved Research Type field from Brief tab to Overview tab for better form organization and user experience
+- August 15, 2025: Added "Not assigned" option to Research Type field dropdown to provide additional flexibility in research classification
 
 ## User Preferences
 
