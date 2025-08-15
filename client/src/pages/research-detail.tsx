@@ -85,7 +85,7 @@ function ResearchBriefForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[] }) => void;
+  onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[]; customerFullName?: string; additionalStakeholders?: string[]; resultFormat?: string }) => void;
 }) {
   const { t } = useTranslation();
 
@@ -117,7 +117,6 @@ function ResearchBriefForm({
     enabled: !!(research?.relatedResearches && research.relatedResearches.length > 0),
   });
   const form = useForm<{
-    researchType: string;
     customerFullName: string;
     additionalStakeholders: { value: string }[];
     resultFormat: string;
@@ -137,7 +136,6 @@ function ResearchBriefForm({
     brief: string;
   }>({
     defaultValues: {
-      researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
       additionalStakeholders:
         Array.isArray(research?.additionalStakeholders) 
@@ -166,7 +164,6 @@ function ResearchBriefForm({
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
       additionalStakeholders:
         Array.isArray(research?.additionalStakeholders) 
@@ -213,7 +210,6 @@ function ResearchBriefForm({
     useState(true);
 
   const handleSubmit = (data: {
-    researchType: string;
     customerFullName: string;
     additionalStakeholders: { value: string }[];
     resultFormat: string;
@@ -243,7 +239,7 @@ function ResearchBriefForm({
         dateEnd: research.dateEnd,
         status: research.status as ResearchStatusType,
         color: research.color,
-        researchType: data.researchType as any,
+        researchType: research.researchType as any,
         products: research.products || [],
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders
@@ -284,48 +280,6 @@ function ResearchBriefForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Research Type Field */}
-        <FormField
-          control={form.control}
-          name="researchType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                {t("research.researchType")}
-              </FormLabel>
-              <Select onValueChange={(value) => {
-                field.onChange(value);
-                handleFieldChange("researchType", value);
-              }} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select research type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CATI (Telephone Survey)">
-                    CATI (Telephone Survey)
-                  </SelectItem>
-                  <SelectItem value="CAWI (Online Survey)">
-                    CAWI (Online Survey)
-                  </SelectItem>
-                  <SelectItem value="Moderated usability testing">
-                    Moderated usability testing
-                  </SelectItem>
-                  <SelectItem value="Unmoderated usability testing">
-                    Unmoderated usability testing
-                  </SelectItem>
-                  <SelectItem value="Co-creation session">
-                    Co-creation session
-                  </SelectItem>
-                  <SelectItem value="Interviews">Interviews</SelectItem>
-                  <SelectItem value="Desk research">Desk research</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}
