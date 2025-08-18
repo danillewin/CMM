@@ -503,7 +503,9 @@ export default function MeetingDetail() {
             <>
               <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/researches")}>Researches</span>
               <span className="mx-2 text-gray-300">/</span>
-              <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation(`/researches/${fromResearchId}`)}>Research Details</span>
+              <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation(`/researches/${fromResearchId}`)}>
+                {!isNew && meeting?.researchName ? meeting.researchName : "Research Details"}
+              </span>
             </>
           ) : (
             <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Meetings</span>
