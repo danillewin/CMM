@@ -2924,7 +2924,7 @@ function ResearchDetail() {
                       size="sm"
                       variant="outline"
                       onClick={() =>
-                        setLocation(`/meetings/new?researchId=${id}`)
+                        setLocation(`/meetings/new?researchId=${id}&from=research`)
                       }
                       className="flex items-center gap-1"
                     >
@@ -2963,7 +2963,7 @@ function ResearchDetail() {
                                 key={meeting.id}
                                 className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
                                 onClick={() =>
-                                  setLocation(`/meetings/${meeting.id}`)
+                                  setLocation(`/meetings/${meeting.id}?from=research&researchId=${id}`)
                                 }
                               >
                                 <TableCell>
