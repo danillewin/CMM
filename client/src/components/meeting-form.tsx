@@ -125,6 +125,16 @@ export default function MeetingForm({
 
   // Handle form submission
   const onSubmitWrapper = (data: FormValues) => {
+    // Check if at least one of CNUM or GCC is provided
+    const hasCnum = data.cnum && data.cnum.trim().length > 0;
+    const hasGcc = data.gcc && data.gcc.trim().length > 0;
+    
+    if (!hasCnum && !hasGcc) {
+      // Show a general alert or toast instead of field-level errors
+      alert("Either CNUM or GCC is required");
+      return; // Prevent form submission
+    }
+    
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
