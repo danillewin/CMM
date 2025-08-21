@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType, type Jtbd } from "@shared/schema";
@@ -63,6 +63,7 @@ export default function MeetingForm({
 }: MeetingFormProps) {
   const [localSelectedJtbds, setLocalSelectedJtbds] = useState<Jtbd[]>([]);
   const [validationError, setValidationError] = useState<boolean>(false);
+  const cnumFieldRef = useRef<HTMLDivElement>(null);
   
   // Use parent-provided JTBDs if available, otherwise use local state
   const selectedJtbds = parentSelectedJtbds || localSelectedJtbds;
@@ -133,6 +134,20 @@ export default function MeetingForm({
     if (!hasCnum && !hasGcc) {
       // Highlight the disclaimer text in red
       setValidationError(true);
+      
+      // Scroll to the CNUM field
+      if (cnumFieldRef.current) {
+        cnumFieldRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        // Focus the CNUM input field
+        const input = cnumFieldRef.current.querySelector('input');
+        if (input) {
+          setTimeout(() => input.focus(), 300);
+        }
+      }
+      
       return; // Prevent form submission
     }
     
@@ -343,7 +358,7 @@ export default function MeetingForm({
               control={form.control}
               name="cnum"
               render={({ field }) => (
-                <FormItem>
+                <FormItem ref={cnumFieldRef}>
                   <FormLabel className="text-base">
                     CNUM
                     <RequiredFieldIndicator />
