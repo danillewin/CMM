@@ -62,6 +62,7 @@ export default function MeetingForm({
   preselectedResearch
 }: MeetingFormProps) {
   const [localSelectedJtbds, setLocalSelectedJtbds] = useState<Jtbd[]>([]);
+  const [validationError, setValidationError] = useState<boolean>(false);
   
   // Use parent-provided JTBDs if available, otherwise use local state
   const selectedJtbds = parentSelectedJtbds || localSelectedJtbds;
@@ -130,16 +131,32 @@ export default function MeetingForm({
     const hasGcc = data.gcc && data.gcc.trim().length > 0;
     
     if (!hasCnum && !hasGcc) {
-      // Show a general alert or toast instead of field-level errors
-      alert("Either CNUM or GCC is required");
+      // Highlight the disclaimer text in red
+      setValidationError(true);
       return; // Prevent form submission
     }
+    
+    // Clear validation error if submission is valid
+    setValidationError(false);
     
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
     // Convert form data to InsertMeeting type
     onSubmit(data as unknown as InsertMeeting);
+  };
+
+  // Clear validation error when user starts typing in either field
+  const handleCnumChange = (value: string) => {
+    if (validationError && value.trim().length > 0) {
+      setValidationError(false);
+    }
+  };
+
+  const handleGccChange = (value: string) => {
+    if (validationError && value.trim().length > 0) {
+      setValidationError(false);
+    }
   };
 
   return (
@@ -330,13 +347,17 @@ export default function MeetingForm({
                   <FormLabel className="text-base">
                     CNUM
                     <RequiredFieldIndicator />
-                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
+                    <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       className="w-full uppercase"
-                      onChange={e => field.onChange(e.target.value.toUpperCase())}
+                      onChange={e => {
+                        const value = e.target.value.toUpperCase();
+                        field.onChange(value);
+                        handleCnumChange(value);
+                      }}
                       onBlur={(e) => {
                         field.onBlur(); // Call the original onBlur
                         
@@ -361,12 +382,16 @@ export default function MeetingForm({
                   <FormLabel className="text-base">
                     GCC
                     <RequiredFieldIndicator />
-                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
+                    <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
                       className="w-full" 
+                      onChange={e => {
+                        field.onChange(e.target.value);
+                        handleGccChange(e.target.value);
+                      }}
                       placeholder="GCC..."
                     />
                   </FormControl>
