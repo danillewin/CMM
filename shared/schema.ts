@@ -175,9 +175,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
 }).extend({
   date: z.coerce.date(),
-  cnum: z.string()
-    .min(1, "CNUM is required")
-    .transform(val => val.toUpperCase()),
+  cnum: z.string().optional().transform((val) => val ? val.toUpperCase() : val),
   gcc: z.string().optional(),
   status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.IN_PROGRESS),
@@ -194,6 +192,22 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   notes: z.string().optional(),
   fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
+}).refine((data) => {
+  // Check if at least one of CNUM or GCC is provided
+  const hasCnum = data.cnum && data.cnum.trim().length > 0;
+  const hasGcc = data.gcc && data.gcc.trim().length > 0;
+  return hasCnum || hasGcc;
+}, {
+  message: "CNUM or GCC is required",
+  path: ["cnum"], // This will show the error on the cnum field
+}).refine((data) => {
+  // Duplicate refinement for gcc field to show error on both fields
+  const hasCnum = data.cnum && data.cnum.trim().length > 0;
+  const hasGcc = data.gcc && data.gcc.trim().length > 0;
+  return hasCnum || hasGcc;
+}, {
+  message: "CNUM or GCC is required",
+  path: ["gcc"], // This will show the error on the gcc field
 });
 
 // JTBD insert schema

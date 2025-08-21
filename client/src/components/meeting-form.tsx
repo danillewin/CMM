@@ -319,7 +319,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">
                     CNUM
-                    <RequiredFieldIndicator />
+                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -348,7 +348,10 @@ export default function MeetingForm({
               name="gcc"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">GCC</FormLabel>
+                  <FormLabel className="text-base">
+                    GCC
+                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
