@@ -319,7 +319,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">
                     CNUM
-                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
+                    <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -350,7 +350,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">
                     GCC
-                    <span className="text-xs text-gray-500 font-normal ml-2">(CNUM or GCC required)</span>
+                    <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
                     <Input 
