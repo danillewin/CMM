@@ -198,16 +198,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   const hasGcc = data.gcc && data.gcc.trim().length > 0;
   return hasCnum || hasGcc;
 }, {
-  message: "CNUM or GCC is required",
-  path: ["cnum"], // This will show the error on the cnum field
-}).refine((data) => {
-  // Duplicate refinement for gcc field to show error on both fields
-  const hasCnum = data.cnum && data.cnum.trim().length > 0;
-  const hasGcc = data.gcc && data.gcc.trim().length > 0;
-  return hasCnum || hasGcc;
-}, {
-  message: "CNUM or GCC is required",
-  path: ["gcc"], // This will show the error on the gcc field
+  message: "Either CNUM or GCC is required",
+  path: [], // This will show the error at the form level, not on specific fields
 });
 
 // JTBD insert schema
