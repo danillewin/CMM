@@ -575,8 +575,8 @@ export default function Researches() {
             </Button>
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList>
-                <TabsTrigger value="table">Table</TabsTrigger>
-                <TabsTrigger value="cards">Cards</TabsTrigger>
+                <TabsTrigger value="table">Таблица</TabsTrigger>
+                <TabsTrigger value="cards">Карточки</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -594,7 +594,7 @@ export default function Researches() {
               htmlFor="show-starts-in-weeks" 
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Show Researches that start in {weeksNumber} {weeksNumber === "1" ? "week" : "weeks"}
+              Показать исследования, которые начинаются через {weeksNumber} {weeksNumber === "1" ? "неделю" : "недель"}
             </label>
           </div>
           

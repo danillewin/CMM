@@ -233,7 +233,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Start Date
+                      Начальная дата
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
@@ -259,7 +259,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      End Date
+                      Конечная дата
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
@@ -300,7 +300,7 @@ export default function ResearchForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Выберите статус" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -321,7 +321,7 @@ export default function ResearchForm({
                 name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base">Color</FormLabel>
+                    <FormLabel className="text-base">Цвет</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -335,7 +335,7 @@ export default function ResearchForm({
                                 className="w-5 h-5 rounded-full"
                                 style={{ backgroundColor: field.value }}
                               />
-                              <span>Selected Color</span>
+                              <span>Выбранный цвет</span>
                             </div>
                             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -383,7 +383,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Research Name
+                    Название исследования
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -407,7 +407,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Team
+                    Команда
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -432,7 +432,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Researcher
+                    Исследователь
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -458,7 +458,7 @@ export default function ResearchForm({
               name="products"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Products</FormLabel>
+                  <FormLabel className="text-base">Продукты</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -479,7 +479,7 @@ export default function ResearchForm({
                               ))
                             ) : (
                               <span className="text-muted-foreground">
-                                Select products...
+                                Выберите продукты...
                               </span>
                             )}
                           </div>
@@ -534,7 +534,7 @@ export default function ResearchForm({
 
           <div className="mb-8">
             <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-              Description
+              Описание
             </div>
 
             <FormField
@@ -555,7 +555,7 @@ export default function ResearchForm({
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
                         textareaProps={{
-                          placeholder: "Enter research description...",
+                          placeholder: "Введите описание исследования...",
                           style: { resize: 'none' }
                         }}
                         components={{
@@ -586,7 +586,7 @@ export default function ResearchForm({
               disabled={isLoading}
               size="sm"
             >
-              {isLoading ? "Saving..." : "Save Research"}
+              {isLoading ? "Сохранение..." : "Сохранить исследование"}
             </Button>
             {onCancel && (
               <Button
@@ -596,7 +596,7 @@ export default function ResearchForm({
                 onClick={onCancel}
                 size="sm"
               >
-                Cancel
+                Отмена
               </Button>
             )}
             {onDelete && (
@@ -608,7 +608,7 @@ export default function ResearchForm({
                 disabled={isLoading}
                 size="sm"
               >
-                Delete Research
+                Удалить исследование
               </Button>
             )}
           </div>

@@ -160,7 +160,7 @@ export default function MeetingForm({
               render={({ field: { onChange, value, ...rest } }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Date
+                    Дата
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>

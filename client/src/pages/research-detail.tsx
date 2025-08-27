@@ -2918,7 +2918,7 @@ function ResearchDetail() {
                 <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
                   <CardHeader className="pb-2 flex flex-row items-center justify-between">
                     <CardTitle className="text-xl">
-                      Connected Meetings
+                      Связанные встречи
                     </CardTitle>
                     <Button
                       size="sm"
@@ -2928,7 +2928,7 @@ function ResearchDetail() {
                       }
                       className="flex items-center gap-1"
                     >
-                      <PlusIcon className="h-4 w-4" /> Create Meeting
+                      <PlusIcon className="h-4 w-4" /> Создать встречу
                     </Button>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -2941,19 +2941,19 @@ function ResearchDetail() {
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
-                              <TableHead className="w-[15%]">Status</TableHead>
+                              <TableHead className="w-[15%]">Статус</TableHead>
                               <TableHead className="w-[15%]">
-                                Company Name
+                                Название компании
                               </TableHead>
                               <TableHead className="w-[15%]">
-                                Respondent Name
+                                Имя респондента
                               </TableHead>
                               <TableHead className="w-[15%]">
-                                Position
+                                Должность
                               </TableHead>
-                              <TableHead className="w-[15%]">Date</TableHead>
+                              <TableHead className="w-[15%]">Дата</TableHead>
                               <TableHead className="w-[15%]">
-                                Recruiter
+                                Рекрутер
                               </TableHead>
                             </TableRow>
                           </TableHeader>

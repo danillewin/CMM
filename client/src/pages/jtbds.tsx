@@ -179,7 +179,7 @@ function JtbdForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select content type" />
+                      <SelectValue placeholder="Выберите тип контента" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -252,7 +252,7 @@ function JtbdForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="Выберите категорию" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
