@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import "./lib/i18n"; // Initialize i18n
 
 function Navigation() {
@@ -59,7 +58,6 @@ function Navigation() {
               </Button>
             </Link>
           </div>
-          <LanguageSwitcher />
         </div>
       </div>
     </nav>
