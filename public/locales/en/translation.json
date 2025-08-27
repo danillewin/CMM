@@ -57,7 +57,7 @@
     "additionalMaterials": "Additional Materials"
   },
   "meetings": {
-    "title": "Meetings",
+    "title": "Client Meetings",
     "newMeeting": "New Meeting",
     "editMeeting": "Edit Meeting",
     "deleteMeeting": "Delete Meeting",
