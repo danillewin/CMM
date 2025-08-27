@@ -2340,7 +2340,7 @@ function QuestionSection({
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-5 w-5 mr-2" />
-              Add Question Block
+              Добавить блок вопросов
             </Button>
           )}
 
@@ -2402,7 +2402,7 @@ function QuestionSection({
               <div className="space-y-3">
                 <div className="text-4xl">📝</div>
                 <p className="text-lg font-medium">No question blocks yet</p>
-                <p className="text-sm">Click "Add Question Block" to create your first set of questions</p>
+                <p className="text-sm">Нажмите "Добавить блок вопросов" чтобы создать первый набор вопросов</p>
               </div>
             </div>
           )}

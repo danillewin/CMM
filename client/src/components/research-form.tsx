@@ -233,7 +233,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Начальная дата
+                      Старт исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
@@ -259,7 +259,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Конечная дата
+                      Конец исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
@@ -288,7 +288,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Status
+                      Статус
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <Select

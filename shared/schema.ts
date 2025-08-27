@@ -3,10 +3,11 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
 export const MeetingStatus = {
-  IN_PROGRESS: "In Progress",
-  SET: "Meeting Set",
-  DONE: "Done",
-  DECLINED: "Declined",
+  IN_PROGRESS: "В процессе",
+  SET: "Встреча назначена",
+  DONE: "Завершено",
+  DECLINED: "Отклонено",
+  PLANNED: "Запланировано",
 } as const;
 
 export const ResearchStatus = {
