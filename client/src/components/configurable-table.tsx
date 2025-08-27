@@ -506,7 +506,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
             ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={visibleColumns.length} className="text-center py-8 text-gray-500">
-                  {emptyStateMessage || "No data available"}
+                  {emptyStateMessage || "Нет доступных данных"}
                 </TableCell>
               </TableRow>
             ) : (

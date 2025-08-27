@@ -393,7 +393,7 @@ export default function Researches() {
                 className="w-full justify-between bg-white"
               >
                 {researchTypeFilters.length === 0
-                  ? "All Research Types"
+                  ? "Все типы исследований"
                   : `${researchTypeFilters.length} selected`}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -464,7 +464,7 @@ export default function Researches() {
                 className="w-full justify-between bg-white"
               >
                 {productFilters.length === 0
-                  ? "All Products"
+                  ? "Все продукты"
                   : `${productFilters.length} selected`}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -602,7 +602,7 @@ export default function Researches() {
             <div className="flex items-center space-x-2">
               <Select value={weeksNumber} onValueChange={setWeeksNumber}>
                 <SelectTrigger className="w-[70px]">
-                  <SelectValue placeholder="Weeks" />
+                  <SelectValue placeholder="Недели" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">1</SelectItem>

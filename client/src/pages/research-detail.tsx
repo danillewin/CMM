@@ -299,7 +299,7 @@ function ResearchBriefForm({
               }} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select research type" />
+                    <SelectValue placeholder="Выберите тип исследования" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -310,16 +310,16 @@ function ResearchBriefForm({
                     CAWI (Online Survey)
                   </SelectItem>
                   <SelectItem value="Moderated usability testing">
-                    Moderated usability testing
+                    Модерируемое юзабилити-тестирование
                   </SelectItem>
                   <SelectItem value="Unmoderated usability testing">
-                    Unmoderated usability testing
+                    Немодерируемое юзабилити-тестирование
                   </SelectItem>
                   <SelectItem value="Co-creation session">
-                    Co-creation session
+                    Сессия совместного создания
                   </SelectItem>
-                  <SelectItem value="Interviews">Interviews</SelectItem>
-                  <SelectItem value="Desk research">Desk research</SelectItem>
+                  <SelectItem value="Interviews">Интервью</SelectItem>
+                  <SelectItem value="Desk research">Кабинетное исследование</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -337,7 +337,7 @@ function ResearchBriefForm({
               </FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="Ivanov Ivan Ivanovich" 
+                  placeholder="Иванов Иван Иванович" 
                   {...field} 
                   onChange={(e) => {
                     field.onChange(e);
@@ -377,7 +377,7 @@ function ResearchBriefForm({
                   <FormItem className="flex-1">
                     <FormControl>
                       <Input
-                        placeholder="Petrov Petr Petrovich - Manager"
+                        placeholder="Петров Петр Петрович - Менеджер"
                         {...field}
                       />
                     </FormControl>
@@ -1530,7 +1530,7 @@ function ResearchGuideForm({
 
         {/* Questions */}
         <QuestionSection
-          title="Questions"
+          title="Вопросы"
           sectionName="guideMainQuestions"
           form={form}
           addQuestionBlock={addQuestionBlock}
@@ -1630,7 +1630,7 @@ function QuestionItem({
           {showComment && (
             <div className="relative">
               <Input
-                placeholder="Comment (optional)"
+                placeholder="Комментарий (необязательно)"
                 value={question.comment}
                 onChange={(e) =>
                   updateQuestion(
@@ -2024,7 +2024,7 @@ function QuestionSection({
               )}
             </Button>
             <Input
-              placeholder="Block name (e.g., Opening Questions)"
+              placeholder="Название блока (например, Вводные вопросы)"
               value={block.name}
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value)
@@ -2142,7 +2142,7 @@ function QuestionSection({
               )}
             </Button>
             <Input
-              placeholder="Subblock name (e.g., Follow-up Questions)"
+              placeholder="Название подблока (например, Дополнительные вопросы)"
               value={subblock.name}
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value, subblockIndex)
@@ -2256,7 +2256,7 @@ function QuestionSection({
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1 mr-4">
             <Input
-              placeholder="Sub-subblock name (e.g., Deep-dive Questions)"
+              placeholder="Название под-подблока (например, Углубленные вопросы)"
               value={subSubblock.name}
               onChange={(e) =>
                 updateQuestionBlockName(blockIndex, e.target.value, subblockIndex, subSubblockIndex)

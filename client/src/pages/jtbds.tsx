@@ -46,19 +46,19 @@ import { useTranslation } from "react-i18next";
 
 // JTBD Categories
 const JTBD_CATEGORIES = [
-  "Functional",
-  "Emotional",
-  "Social",
-  "Financial",
-  "Time-saving",
-  "Other"
+  "Функциональная",
+  "Эмоциональная",
+  "Социальная",
+  "Финансовая",
+  "Экономящая время",
+  "Другая"
 ];
 
 // JTBD Priorities
 const JTBD_PRIORITIES = [
-  "High",
-  "Medium",
-  "Low"
+  "Высокий",
+  "Средний",
+  "Низкий"
 ];
 
 interface JtbdFormProps {
@@ -873,7 +873,7 @@ export default function JtbdsPage() {
           <h2 className="text-xl font-medium text-gray-600">{t("jtbds.noJtbds")}</h2>
           <p className="text-gray-500 mt-1">
             {search || categoryFilter !== "ALL" || priorityFilter !== "ALL"
-              ? "No results match your search criteria"
+              ? "Нет результатов, соответствующих вашим критериям поиска"
               : "Create your first JTBD to get started"}
           </p>
           {(search || categoryFilter !== "ALL" || priorityFilter !== "ALL") && (
@@ -978,7 +978,7 @@ export default function JtbdsPage() {
               onClick={handleDeleteConfirm}
               disabled={deleteJtbdMutation.isPending}
             >
-              {deleteJtbdMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteJtbdMutation.isPending ? "Удаление..." : "Удалить"}
             </Button>
           </DialogFooter>
         </DialogContent>

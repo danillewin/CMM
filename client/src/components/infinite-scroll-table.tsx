@@ -39,7 +39,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
   filters,
   searchValue,
   onSearchChange,
-  emptyStateMessage = "No data available",
+  emptyStateMessage = "Нет доступных данных",
   onApplyFilters,
   hasUnappliedFilters,
 }: InfiniteScrollTableProps<T>) {

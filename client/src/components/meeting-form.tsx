@@ -185,7 +185,7 @@ export default function MeetingForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Status
+                    Статус
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <Select 
@@ -194,7 +194,7 @@ export default function MeetingForm({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder="Выберите статус" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -215,7 +215,7 @@ export default function MeetingForm({
         {/* Client Information Section */}
         <div className="mb-8">
           <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-            Client Information
+            Информация о клиенте
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,7 +225,7 @@ export default function MeetingForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Respondent Name
+                    Имя респондента
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -236,7 +236,7 @@ export default function MeetingForm({
                         handleFieldChange("respondentName", e.target.value);
                       }}
                       className="w-full" 
-                      placeholder="Enter name..."
+                      placeholder="Введите имя..."
                     />
                   </FormControl>
                   <FormMessage />
@@ -250,7 +250,7 @@ export default function MeetingForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Position
+                    Должность
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -274,7 +274,7 @@ export default function MeetingForm({
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Company</FormLabel>
+                  <FormLabel className="text-base">Компания</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
@@ -283,7 +283,7 @@ export default function MeetingForm({
                         handleFieldChange("companyName", e.target.value);
                       }}
                       className="w-full" 
-                      placeholder="Company name..."
+                      placeholder="Название компании..."
                     />
                   </FormControl>
                   <FormMessage />
@@ -296,13 +296,13 @@ export default function MeetingForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Client Email</FormLabel>
+                  <FormLabel className="text-base">Email клиента</FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
                       type="email"
                       className="w-full" 
-                      placeholder="Email address..."
+                      placeholder="Адрес электронной почты..."
                     />
                   </FormControl>
                   <FormMessage />
@@ -366,7 +366,7 @@ export default function MeetingForm({
         {/* Meeting Details Section */}
         <div className="mb-8">
           <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-            Meeting Details
+            Детали встречи
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -376,7 +376,7 @@ export default function MeetingForm({
                 name="researcher"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base">Researcher</FormLabel>
+                    <FormLabel className="text-base">Исследователь</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
@@ -386,7 +386,7 @@ export default function MeetingForm({
                       />
                     </FormControl>
                     <div className="text-xs text-gray-500 mt-1">
-                      Inherited from selected Research
+                      Наследуется от выбранного исследования
                     </div>
                   </FormItem>
                 )}
@@ -400,7 +400,7 @@ export default function MeetingForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Research
+                    Исследование
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -416,7 +416,7 @@ export default function MeetingForm({
                         form.setValue('researcher', research.researcher);
                         handleFieldChange("researcher", research.researcher);
                       }}
-                      placeholder="Select research..."
+                      placeholder="Выберите исследование..."
                       displayName={
                         !isCreating && initialData 
                           ? (initialData as any).researchName 
@@ -438,14 +438,14 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Relationship Manager
+                      Менеджер по отношениям
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         className="w-full" 
-                        placeholder="RM name..."
+                        placeholder="Имя RM..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -459,14 +459,14 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Recruiter
+                      Рекрутер
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         className="w-full" 
-                        placeholder="Recruiter name..."
+                        placeholder="Имя рекрутера..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -492,10 +492,10 @@ export default function MeetingForm({
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-base cursor-pointer">
-                    Gift provided
+                    Подарок предоставлен
                   </FormLabel>
                   <FormDescription>
-                    Check if a gift was provided during this meeting
+                    Отметьте, если подарок был предоставлен во время этой встречи
                   </FormDescription>
                 </div>
               </FormItem>
@@ -508,7 +508,7 @@ export default function MeetingForm({
             {/* Meeting Notes Section */}
             <div className="mb-8">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-                Meeting Notes
+                Заметки о встрече
               </div>
               
               <FormField
@@ -525,7 +525,7 @@ export default function MeetingForm({
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{
-                            placeholder: "Enter meeting notes...",
+                            placeholder: "Введите заметки о встрече...",
                             style: { resize: 'none' }
                           }}
                           components={{
@@ -566,7 +566,7 @@ export default function MeetingForm({
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{
-                            placeholder: "Enter full text content...",
+                            placeholder: "Введите полный текст содержания...",
                             style: { resize: 'none' }
                           }}
                           components={{
@@ -597,7 +597,7 @@ export default function MeetingForm({
             disabled={isLoading}
             size="sm"
           >
-            {isLoading ? "Saving..." : "Save Meeting"}
+            {isLoading ? "Сохранение..." : "Сохранить встречу"}
           </Button>
           {onCancel && (
             <Button
@@ -607,7 +607,7 @@ export default function MeetingForm({
               onClick={onCancel}
               size="sm"
             >
-              Cancel
+              Отмена
             </Button>
           )}
           {onDelete && (
@@ -618,7 +618,7 @@ export default function MeetingForm({
               onClick={onDelete}
               size="sm"
             >
-              Delete Meeting
+              Удалить встречу
             </Button>
           )}
         </div>

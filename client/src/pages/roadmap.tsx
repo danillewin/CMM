@@ -272,7 +272,7 @@ export default function RoadmapPage() {
                 className="w-full justify-between bg-white/80 backdrop-blur-sm shadow-sm border-gray-200"
               >
                 {researchTypeFilters.length === 0
-                  ? "All Research Types"
+                  ? "Все типы исследований"
                   : `${researchTypeFilters.length} selected`}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -289,7 +289,7 @@ export default function RoadmapPage() {
                     }}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium">All Research Types</span>
+                  <span className="text-sm font-medium">Все типы исследований</span>
                 </div>
                 {researchTypes.map((type) => (
                   <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
