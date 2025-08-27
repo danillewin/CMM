@@ -84,7 +84,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
     });
 
     if (invalidFiles.length > 0) {
-      setError(`Invalid file types: ${invalidFiles.join(', ')}. Please upload audio or video files only.`);
+      setError(`Неверные типы файлов: ${invalidFiles.join(', ')}. Загружайте только аудио или видео файлы.`);
       return;
     }
 
@@ -156,7 +156,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       const response = await apiRequest("POST", "/api/transcribe", formData);
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+        throw new Error(`Ошибка загрузки: ${response.statusText}`);
       }
 
       const result = await response.json();
@@ -168,8 +168,8 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       onTranscriptionComplete(result.text);
       
       toast({
-        title: "Transcription completed",
-        description: `Successfully processed ${uploadedFiles.length} file(s)`,
+        title: "Транскрипция завершена",
+        description: `Успешно обработано ${uploadedFiles.length} файл(ов)`,
       });
 
       // Clear uploaded files
@@ -177,10 +177,10 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       
     } catch (error) {
       console.error('Transcription error:', error);
-      setError(error instanceof Error ? error.message : 'An unknown error occurred');
+      setError(error instanceof Error ? error.message : 'Произошла неизвестная ошибка');
       toast({
-        title: "Transcription failed",
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        title: "Ошибка транскрипции",
+        description: error instanceof Error ? error.message : 'Произошла неизвестная ошибка',
         variant: "destructive"
       });
     } finally {
@@ -280,7 +280,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
         {isProcessing && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Processing files...</span>
+              <span className="text-sm font-medium">Обработка файлов...</span>
               <span className="text-sm text-gray-500">{progress}%</span>
             </div>
             <Progress value={progress} className="w-full" />
@@ -297,7 +297,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
             {isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
+                Обработка...
               </>
             ) : (
               <>

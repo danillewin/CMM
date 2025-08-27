@@ -140,7 +140,7 @@ export function ResearchSelector({
       <PopoverContent className="w-[400px] p-0">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Search researches..."
+            placeholder="Поиск исследований..."
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
@@ -152,23 +152,23 @@ export function ResearchSelector({
             {isLoading && (
               <div className="flex items-center justify-center p-4">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="ml-2">Loading researches...</span>
+                <span className="ml-2">Загрузка исследований...</span>
               </div>
             )}
             
             {searchQuery !== debouncedSearchQuery && searchQuery.trim() && (
               <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                Searching...
+                Поиск...
               </div>
             )}
             
             {isError && (
-              <CommandEmpty>Error loading researches. Please try again.</CommandEmpty>
+              <CommandEmpty>Ошибка загрузки исследований. Попробуйте снова.</CommandEmpty>
             )}
             
             {!isLoading && !isError && researches.length === 0 && (
-              <CommandEmpty>No researches found.</CommandEmpty>
+              <CommandEmpty>Исследования не найдены.</CommandEmpty>
             )}
             
             {researches.length > 0 && (

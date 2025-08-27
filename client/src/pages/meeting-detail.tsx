@@ -178,7 +178,7 @@ function MeetingResultsForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Meeting Notes</FormLabel>
+              <FormLabel className="text-lg font-medium">Заметки о встрече</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -216,7 +216,7 @@ function MeetingResultsForm({
           name="fullText"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
+              <FormLabel className="text-lg font-medium">Полный текст</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -593,13 +593,13 @@ export default function MeetingDetail() {
                     value="info" 
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
-                    Info
+                    Информация
                   </TabsTrigger>
                   <TabsTrigger 
                     value="results" 
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
-                    Results
+                    Результаты
                   </TabsTrigger>
                 </TabsList>
 
