@@ -422,7 +422,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                           }
                         }}
                       >
-                        Clear All Filters
+                        Очистить все фильтры
                       </Button>
                     )}
                   </div>
@@ -435,12 +435,12 @@ export function ConfigurableTable<T extends { id: number | string }>({
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="bg-white border-gray-200 hover:bg-gray-50">
                 <Settings className="h-4 w-4 mr-2" />
-                Configure
+                Настроить
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Table Columns</DialogTitle>
+                <DialogTitle>Колонки таблицы</DialogTitle>
               </DialogHeader>
               <div className="max-h-[400px] overflow-y-auto p-1">
                 <DndContext

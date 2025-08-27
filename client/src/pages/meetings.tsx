@@ -705,7 +705,7 @@ export default function Meetings() {
                 onClick={exportToCSV}
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
+                Экспорт CSV
               </Button>
               <Button
                 variant="outline"
@@ -713,7 +713,7 @@ export default function Meetings() {
                 onClick={exportToExcel}
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Export Excel
+                Экспорт Excel
               </Button>
             </div>
           </div>

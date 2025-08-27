@@ -485,10 +485,10 @@ export default function MeetingDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="mx-2 text-gray-300">/</span>
-          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Meetings</span>
+          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Встречи</span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
-            {isNew ? "New Meeting" : meeting?.respondentName || "Meeting Details"}
+            {isNew ? "Новая встреча" : meeting?.respondentName || "Детали встречи"}
           </span>
         </div>
 
@@ -497,7 +497,7 @@ export default function MeetingDetail() {
           {/* Document title - Notion style with Company Name (CNUM or GCC): Respondent Name format */}
           <div className="px-8 pt-8 pb-4 border-b border-gray-100">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
-              {isNew ? "Create New Meeting" : (
+              {isNew ? "Создать новую встречу" : (
                 `${meeting?.companyName || ''} (${meeting?.cnum || meeting?.gcc || ''}): ${meeting?.respondentName || ''}`
               )}
             </h1>

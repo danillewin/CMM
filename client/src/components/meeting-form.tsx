@@ -549,7 +549,7 @@ export default function MeetingForm({
             {/* Full Text Section */}
             <div className="mb-8">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-                Full Text
+                Полный текст
               </div>
               
               <FormField

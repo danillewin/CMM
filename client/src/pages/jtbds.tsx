@@ -86,8 +86,8 @@ function JtbdForm({
   const form = useForm<InsertJtbd & { parentId?: number }>({
     resolver: zodResolver(
       insertJtbdSchema.extend({
-        title: itemLevel < 3 ? z.string().min(1, "Title is required") : z.string().optional(),
-        description: itemLevel < 3 ? z.string().min(1, "Description is required") : z.string().optional(),
+        title: itemLevel < 3 ? z.string().min(1, "Название обязательно") : z.string().optional(),
+        description: itemLevel < 3 ? z.string().min(1, "Описание обязательно") : z.string().optional(),
         jobStatement: z.string().optional(),
         jobStory: z.string().optional(),
         parentId: z.number().optional(),
@@ -103,7 +103,7 @@ function JtbdForm({
         }
         return true;
       }, {
-        message: "Content is required for Job Stories and Job Statements",
+        message: "Контент обязателен для Job Stories и Job Statements",
         path: ["jobStatement"]
       })
     ),
@@ -790,17 +790,17 @@ export default function JtbdsPage() {
         <h1 className="text-2xl font-bold">{t("jtbds.title")}</h1>
         <div className="flex gap-2 w-full md:w-auto">
           <Input
-            placeholder="Search JTBDs..."
+            placeholder="Поиск Jobs To Be Done..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-[300px]"
           />
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="Категория" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Categories</SelectItem>
+              <SelectItem value="ALL">Все категории</SelectItem>
               {JTBD_CATEGORIES.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -810,10 +810,10 @@ export default function JtbdsPage() {
           </Select>
           <Select value={priorityFilter} onValueChange={setPriorityFilter}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Priority" />
+              <SelectValue placeholder="Приоритет" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Priorities</SelectItem>
+              <SelectItem value="ALL">Все приоритеты</SelectItem>
               {JTBD_PRIORITIES.map((priority) => (
                 <SelectItem key={priority} value={priority}>
                   {priority}
@@ -874,7 +874,7 @@ export default function JtbdsPage() {
           <p className="text-gray-500 mt-1">
             {search || categoryFilter !== "ALL" || priorityFilter !== "ALL"
               ? "Нет результатов, соответствующих вашим критериям поиска"
-              : "Create your first JTBD to get started"}
+              : "Создайте ваш первый JTBD, чтобы начать"}
           </p>
           {(search || categoryFilter !== "ALL" || priorityFilter !== "ALL") && (
             <Button 
@@ -886,7 +886,7 @@ export default function JtbdsPage() {
                 setPriorityFilter("ALL");
               }}
             >
-              Clear filters
+              Очистить фильтры
             </Button>
           )}
         </div>
@@ -896,9 +896,9 @@ export default function JtbdsPage() {
           <div className="text-sm text-gray-500 px-3 py-2 bg-gray-50 rounded-lg border">
             <div className="flex items-center gap-2">
               <Layers className="h-4 w-4" />
-              <span className="font-medium">Jobs to be Done Hierarchy</span>
+              <span className="font-medium">Иерархия Jobs to be Done</span>
               <Badge variant="outline" className="text-xs">
-                {filteredJtbds.length} main {filteredJtbds.length === 1 ? 'job' : 'jobs'}
+                {filteredJtbds.length} основных {filteredJtbds.length === 1 ? 'работа' : 'работ'}
               </Badge>
             </div>
           </div>

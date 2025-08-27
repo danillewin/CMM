@@ -82,14 +82,14 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
         <div className="container mx-auto max-w-[1400px] space-y-8">
-          <SectionLoader text="Loading dashboard data..." />
+          <SectionLoader text="Загрузка данных дашборда..." />
         </div>
       </div>
     );
   }
 
   if (!dashboardData) {
-    return <div>No data available</div>;
+    return <div>Нет доступных данных</div>;
   }
 
   const { filters, analytics } = dashboardData;
@@ -99,12 +99,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Дашборд</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Select year" />
+              <SelectValue placeholder="Выберите год" />
             </SelectTrigger>
             <SelectContent>
               {availableYears.map((year) => (
@@ -118,10 +118,10 @@ export default function Dashboard() {
             onValueChange={(value) => setResearchFilter(value === "ALL" ? null : Number(value))}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by research" />
+              <SelectValue placeholder="Фильтр по исследованию" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Researches</SelectItem>
+              <SelectItem value="ALL">Все исследования</SelectItem>
               {filters.researches.map((research) => (
                 <SelectItem key={research.id} value={research.id.toString()}>
                   {research.name}
@@ -135,7 +135,7 @@ export default function Dashboard() {
             onValueChange={setTeamFilter}
           >
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by team" />
+              <SelectValue placeholder="Фильтр по команде" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Teams</SelectItem>

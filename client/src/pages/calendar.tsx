@@ -189,15 +189,15 @@ export default function Calendar() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Filters</CardTitle>
+              <CardTitle>Фильтры</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select value={teamFilter} onValueChange={setTeamFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by team" />
+                  <SelectValue placeholder="Фильтр по команде" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Teams</SelectItem>
+                  <SelectItem value="ALL">Все команды</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team} value={team}>{team}</SelectItem>
                   ))}
@@ -206,10 +206,10 @@ export default function Calendar() {
 
               <Select value={researcherFilter} onValueChange={setResearcherFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by researcher" />
+                  <SelectValue placeholder="Фильтр по исследователю" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Researchers</SelectItem>
+                  <SelectItem value="ALL">Все исследователи</SelectItem>
                   {researchers.map((researcher) => (
                     <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
                   ))}
@@ -218,10 +218,10 @@ export default function Calendar() {
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Фильтр по статусу" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="ALL">Все статусы</SelectItem>
                   {Object.values(ResearchStatus).map((status) => (
                     <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
@@ -232,7 +232,7 @@ export default function Calendar() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Researches</CardTitle>
+              <CardTitle>Исследования</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[calc(100vh-400px)]">
@@ -291,7 +291,7 @@ export default function Calendar() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="grid grid-cols-7 gap-px bg-muted">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              {["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"].map((day) => (
                 <div key={day} className="p-3 text-center text-sm font-medium">
                   {day}
                 </div>
@@ -301,7 +301,7 @@ export default function Calendar() {
               <div className="flex items-center justify-center h-64 bg-card">
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">Loading calendar data...</span>
+                  <span className="text-sm text-muted-foreground">Загрузка данных календаря...</span>
                 </div>
               </div>
             ) : (

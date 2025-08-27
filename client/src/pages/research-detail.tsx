@@ -2519,7 +2519,7 @@ function ResearchResultsForm({
           name="fullText"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
+              <FormLabel className="text-lg font-medium">Полный текст</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -2532,7 +2532,7 @@ function ResearchResultsForm({
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
-                    placeholder: "Enter full text content...",
+                    placeholder: "Введите полный текст содержания...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -2793,11 +2793,11 @@ function ResearchDetail() {
             className="hover:text-gray-800 cursor-pointer"
             onClick={() => setLocation("/researches")}
           >
-            Researches
+            Исследования
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
-            {isNew ? "New Research" : research?.name || "Research Details"}
+            {isNew ? "Новое исследование" : research?.name || "Детали исследования"}
           </span>
         </div>
 
@@ -2806,7 +2806,7 @@ function ResearchDetail() {
           {/* Document title - Notion style */}
           <div className="px-8 pt-8 pb-4 border-b border-gray-100">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
-              {isNew ? "Create New Research" : research?.name}
+              {isNew ? "Создать новое исследование" : research?.name}
             </h1>
             <div className="flex items-center gap-3 text-sm text-gray-500 my-2">
               {!isNew && research && (
