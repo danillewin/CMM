@@ -51,7 +51,7 @@ if (!i18n.isInitialized) {
               companyName: "Название компании",
               email: "Email",
               researcher: "Исследователь",
-              relationshipManager: "Менеджер по отношениям",
+              relationshipManager: "Клиентский менеджер",
               recruiter: "Рекрутер",
               date: "Дата",
               research: "Исследование",

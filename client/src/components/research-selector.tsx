@@ -31,7 +31,7 @@ interface ResearchSelectorProps {
 export function ResearchSelector({
   value,
   onValueChange,
-  placeholder = "Select research...",
+  placeholder = "Выберите исследование...",
   disabled = false,
   onResearchSelect,
   displayName,

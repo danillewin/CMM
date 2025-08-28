@@ -280,7 +280,7 @@ function JtbdForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder="Выберите приоритет" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
