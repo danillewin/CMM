@@ -865,7 +865,7 @@ function ResearchBriefForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {t("researches.brief")}
+                Поле для свободного комментария
               </FormLabel>
               <FormControl>
                 <MDEditor
