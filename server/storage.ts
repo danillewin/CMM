@@ -1200,27 +1200,11 @@ export class DatabaseStorage implements IStorage {
     
     // SQL and operators are already imported at the top
     
-    // Base query for meetings with research joins
-    let meetingsQuery = db.select({
-      meeting_id: meetings.id,
-      respondentName: meetings.respondentName,
-      companyName: meetings.companyName,
-      date: meetings.date,
-      status: meetings.status,
-      relationshipManager: meetings.relationshipManager,
-      salesPerson: meetings.salesPerson,
-      researchId: meetings.researchId,
-      research_team: researches.team,
-      research_researcher: researches.researcher,
-      research_name: researches.name,
-    }).from(meetings)
-      .leftJoin(researches, eq(meetings.researchId, researches.id))
-      .where(
-        sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
-      );
+    // Build all conditions
+    const conditions = [
+      sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
+    ];
     
-    // Apply filters
-    const conditions = [];
     if (researchFilter) {
       conditions.push(eq(meetings.researchId, researchFilter));
     }
@@ -1238,10 +1222,23 @@ export class DatabaseStorage implements IStorage {
     if (researcherFilter && researcherFilter !== "ALL") {
       conditions.push(eq(researches.researcher, researcherFilter));
     }
-    
-    if (conditions.length > 0) {
-      meetingsQuery = meetingsQuery.where(and(...conditions));
-    }
+
+    // Base query for meetings with research joins
+    const meetingsQuery = db.select({
+      meeting_id: meetings.id,
+      respondentName: meetings.respondentName,
+      companyName: meetings.companyName,
+      date: meetings.date,
+      status: meetings.status,
+      relationshipManager: meetings.relationshipManager,
+      salesPerson: meetings.salesPerson,
+      researchId: meetings.researchId,
+      research_team: researches.team,
+      research_researcher: researches.researcher,
+      research_name: researches.name,
+    }).from(meetings)
+      .leftJoin(researches, eq(meetings.researchId, researches.id))
+      .where(and(...conditions));
     
     const meetingsData = await meetingsQuery;
     
@@ -1296,7 +1293,10 @@ export class DatabaseStorage implements IStorage {
           if (!managerMeetings[manager]) {
             managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
           }
-          managerMeetings[manager][meeting.status]++;
+          const status = meeting.status as keyof typeof managerMeetings[string];
+          if (status in managerMeetings[manager]) {
+            managerMeetings[manager][status]++;
+          }
         }
       });
     });
@@ -1315,8 +1315,8 @@ export class DatabaseStorage implements IStorage {
       .map(m => ({
         id: m.meeting_id,
         respondentName: m.respondentName,
-        companyName: m.companyName,
-        date: m.date,
+        companyName: m.companyName || '',
+        date: m.date.toISOString(),
         status: m.status
       }));
     

@@ -207,7 +207,7 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            name: jtbd.title || jtbd.jobStatement || jtbd.jobStory || '',
             description: jtbd.description,
             category: jtbd.category,
             parentId: jtbd.parentId
@@ -296,7 +296,7 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            name: jtbd.title || jtbd.jobStatement || jtbd.jobStory || '',
             description: jtbd.description,
             category: jtbd.category,
             parentId: jtbd.parentId
