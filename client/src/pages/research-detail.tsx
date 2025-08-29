@@ -1502,7 +1502,7 @@ function ResearchGuideForm({
 
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {t("research.saveGuide")}
+          Сохранить
         </Button>
       </form>
     </Form>
@@ -1568,7 +1568,7 @@ function QuestionItem({
       <div className="flex items-start gap-2">
         <div className="flex-1 space-y-2">
           <Input
-            placeholder={t("research.questionTextPlaceholder")}
+            placeholder="Место для ваших вопросов"
             value={question.text}
             onChange={(e) =>
               updateQuestion(
@@ -1626,7 +1626,7 @@ function QuestionItem({
               onClick={() => setShowComment(true)}
             >
               <Plus className="h-3 w-3 mr-1" />
-              {t("research.addComment")}
+              добавить комментарий
             </Button>
           )}
         </div>
@@ -2059,7 +2059,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {t("research.addQuestion")}
+                Добавить вопрос
               </Button>
               <Button
                 type="button"
@@ -2069,7 +2069,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {t("research.addSubblock")}
+                Добавить подблок
               </Button>
             </div>
           </>
@@ -2186,7 +2186,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
-                {t("research.addQuestion")}
+                Добавить вопрос
               </Button>
               <Button
                 type="button"
@@ -2357,7 +2357,7 @@ function QuestionSection({
             <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
               <div className="space-y-3">
                 <div className="text-4xl">📝</div>
-                <p className="text-lg font-medium">{t("research.questionTextPlaceholder")}</p>
+                <p className="text-lg font-medium">Место для ваших вопросов</p>
                 <p className="text-sm">Нажмите "Добавить блок вопросов" чтобы создать первый набор вопросов</p>
               </div>
             </div>
