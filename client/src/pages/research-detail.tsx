@@ -996,7 +996,7 @@ function ResearchRecruitmentForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                Clients we search for
+                Клиенты для поиска
               </FormLabel>
               <FormControl>
                 <MDEditor
@@ -1010,7 +1010,7 @@ function ResearchRecruitmentForm({
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
-                    placeholder: "Describe who we're searching for...",
+                    placeholder: "Опишите, кого мы ищем...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -1034,7 +1034,7 @@ function ResearchRecruitmentForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                Invite template
+                Шаблон приглашения
               </FormLabel>
               <FormControl>
                 <MDEditor
@@ -1048,7 +1048,7 @@ function ResearchRecruitmentForm({
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
-                    placeholder: "Enter invitation template...",
+                    placeholder: "Введите шаблон приглашения...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -2401,7 +2401,7 @@ function QuestionSection({
             <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
               <div className="space-y-3">
                 <div className="text-4xl">📝</div>
-                <p className="text-lg font-medium">No question blocks yet</p>
+                <p className="text-lg font-medium">Блоков вопросов пока нет</p>
                 <p className="text-sm">Нажмите "Добавить блок вопросов" чтобы создать первый набор вопросов</p>
               </div>
             </div>

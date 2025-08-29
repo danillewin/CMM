@@ -56,6 +56,15 @@
     "previousResources": "Предыдущие ресурсы",
     "additionalMaterials": "Дополнительные материалы"
   },
+  "researchTypes": {
+    "cati": "CATI (Телефонный опрос)",
+    "cawi": "CAWI (Онлайн-опрос)",
+    "moderatedUsability": "Модерируемое юзабилити-тестирование",
+    "unmoderatedUsability": "Немодерируемое юзабилити-тестирование",
+    "coCreation": "Сессия совместного создания",
+    "interviews": "Интервью",
+    "deskResearch": "Кабинетное исследование"
+  },
   "meetings": {
     "title": "Встречи с клиентами",
     "newMeeting": "Новая встреча",

@@ -233,17 +233,6 @@ export default function Researches() {
   // Prepare column definitions with useMemo to update on language change
   const tableColumns: ColumnConfig[] = useMemo(() => [
     {
-      id: "color",
-      name: "",
-      visible: true,
-      render: (research: ResearchTableItem) => (
-        <div
-          className="w-3 h-3 rounded-full mt-1"
-          style={{ backgroundColor: research.color }}
-        ></div>
-      )
-    },
-    {
       id: "name",
       name: t("researches.name"),
       visible: true,
@@ -264,9 +253,19 @@ export default function Researches() {
       name: t("researches.researchType"),
       visible: true,
       sortField: "researchType",
-      render: (research: ResearchTableItem) => (
-        <span className="text-sm text-gray-600">{research.researchType || "Interviews"}</span>
-      )
+      render: (research: ResearchTableItem) => {
+        const researchTypeMap: Record<string, string> = {
+          "CATI (Telephone Survey)": t("researchTypes.cati"),
+          "CAWI (Online Survey)": t("researchTypes.cawi"),
+          "Moderated usability testing": t("researchTypes.moderatedUsability"),
+          "Unmoderated usability testing": t("researchTypes.unmoderatedUsability"),
+          "Co-creation session": t("researchTypes.coCreation"),
+          "Interviews": t("researchTypes.interviews"),
+          "Desk research": t("researchTypes.deskResearch")
+        };
+        const translatedType = researchTypeMap[research.researchType || "Interviews"] || t("researchTypes.interviews");
+        return <span className="text-sm text-gray-600">{translatedType}</span>;
+      }
     },
     {
       id: "researcher",
@@ -281,7 +280,7 @@ export default function Researches() {
       visible: true,
       sortField: "status",
       render: (research: ResearchTableItem) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap min-w-max
           ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
             research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
             'bg-gray-100 text-gray-800'}`} title={research.status}>
