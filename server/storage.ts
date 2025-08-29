@@ -1216,7 +1216,7 @@ export class DatabaseStorage implements IStorage {
         or(
           eq(meetings.relationshipManager, managerFilter),
           eq(meetings.salesPerson, managerFilter)
-        )
+        )!
       );
     }
     if (researcherFilter && researcherFilter !== "ALL") {
