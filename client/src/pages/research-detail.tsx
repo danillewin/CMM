@@ -399,8 +399,7 @@ function ResearchBriefForm({
 
           {fields.length === 0 && (
             <p className="text-sm text-gray-500 italic">
-              {t("research.addStakeholder")}{" "}
-              {t("research.additionalStakeholders").toLowerCase()}
+              {t("research.addStakeholder")}
             </p>
           )}
         </div>
@@ -1116,7 +1115,7 @@ function ResearchGuideForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: { guide: string }) => void;
+  onTempDataUpdate?: (data: { guideIntroText: string }) => void;
 }) {
   const { t } = useTranslation();
 
@@ -1172,12 +1171,10 @@ function ResearchGuideForm({
   };
 
   const form = useForm<{
-    guide: string;
     guideIntroText: string;
     guideMainQuestions: QuestionBlock[];
   }>({
     defaultValues: {
-      guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
       guideMainQuestions: parseQuestionBlocks(
         (research?.guideMainQuestions as unknown as string) || null,
@@ -1187,7 +1184,6 @@ function ResearchGuideForm({
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      guide: research?.guide || "",
       guideIntroText: research?.guideIntroText || "",
       guideMainQuestions: parseQuestionBlocks(
         (research?.guideMainQuestions as unknown as string) || null,
@@ -1196,7 +1192,6 @@ function ResearchGuideForm({
   }, [research, form]);
 
   const handleSubmit = (data: {
-    guide: string;
     guideIntroText: string;
     guideMainQuestions: QuestionBlock[];
   }) => {
@@ -1232,7 +1227,7 @@ function ResearchGuideForm({
         figmaPrototypeLink: research.figmaPrototypeLink || undefined,
         artifactLink: research.artifactLink || undefined,
         brief: research.brief || undefined,
-        guide: data.guide,
+        guide: undefined,
         guideIntroText: data.guideIntroText,
 
         guideMainQuestions: (() => {
@@ -1465,44 +1460,6 @@ function ResearchGuideForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        {/* Original Guide Field */}
-        <FormField
-          control={form.control}
-          name="guide"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">Guide</FormLabel>
-              <FormControl>
-                <MDEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("guide", newValue);
-                  }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter research guide...",
-                    style: { resize: 'none' }
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
-                      });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* Вступительное слово */}
         <FormField
           control={form.control}
@@ -1545,7 +1502,7 @@ function ResearchGuideForm({
 
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Guide
+          {t("research.saveGuide")}
         </Button>
       </form>
     </Form>
@@ -1669,7 +1626,7 @@ function QuestionItem({
               onClick={() => setShowComment(true)}
             >
               <Plus className="h-3 w-3 mr-1" />
-              Add comment
+              {t("research.addComment")}
             </Button>
           )}
         </div>
@@ -1699,7 +1656,6 @@ interface QuestionSectionProps {
   title: string;
   sectionName: "guideMainQuestions";
   form: UseFormReturn<{
-    guide: string;
     guideIntroText: string;
     guideMainQuestions: QuestionBlock[];
   }>;
@@ -2103,7 +2059,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Question
+                {t("research.addQuestion")}
               </Button>
               <Button
                 type="button"
@@ -2113,7 +2069,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Subblock
+                {t("research.addSubblock")}
               </Button>
             </div>
           </>
@@ -2230,7 +2186,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
-                Add Question
+                {t("research.addQuestion")}
               </Button>
               <Button
                 type="button"
@@ -2315,7 +2271,7 @@ function QuestionSection({
             className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
-            Add Question
+            {t("research.addQuestion")}
           </Button>
         </div>
       </div>
@@ -2401,7 +2357,7 @@ function QuestionSection({
             <div className="text-center text-gray-500 py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
               <div className="space-y-3">
                 <div className="text-4xl">📝</div>
-                <p className="text-lg font-medium">Блоков вопросов пока нет</p>
+                <p className="text-lg font-medium">{t("research.questionTextPlaceholder")}</p>
                 <p className="text-sm">Нажмите "Добавить блок вопросов" чтобы создать первый набор вопросов</p>
               </div>
             </div>

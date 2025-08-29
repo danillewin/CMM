@@ -212,7 +212,7 @@ export default function ResearchForm({
                 <h3 className="text-base font-medium">Jobs to be Done</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Соедините соответствующие работы, которые решает это исследование
+                Добавьте джобу, которая относится к исследованию
               </p>
               <JtbdSelector
                 entityId={initialData.id}

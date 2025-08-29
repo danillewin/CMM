@@ -246,7 +246,14 @@
     "addRelatedResearch": "Добавить связанное исследование",
     "selectRelatedResearch": "Выберите исследование...",
     "previousResources": "Предыдущие ресурсы",
-    "additionalMaterials": "Дополнительные материалы"
+    "additionalMaterials": "Дополнительные материалы",
+    "additionalStakeholders": "Дополнительные интересанты",
+    "addStakeholder": "Добавить интересанта исследования",
+    "questionTextPlaceholder": "Место для ваших вопросов",
+    "addQuestion": "Добавить вопрос",
+    "addSubblock": "Добавить подблок",
+    "addComment": "добавить комментарий",
+    "saveGuide": "Сохранить"
   },
   "researchTypes": {
     "cati": "CATI (Телефонный опрос)",
