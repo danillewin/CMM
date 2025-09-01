@@ -46,17 +46,46 @@ export default function Researches() {
 
   // Function to translate research type from English to Russian
   const translateResearchType = (researchType: string): string => {
+    // Normalize the research type string to handle variations
+    const normalizedType = researchType.toLowerCase().trim();
+    
+    // Map all possible variations to translation keys
     const typeMap: { [key: string]: string } = {
-      "CATI": "cati",
-      "CAWI": "cawi", 
-      "Moderated Usability": "moderatedUsability",
-      "Unmoderated Usability": "unmoderatedUsability",
-      "Co-creation": "coCreation",
-      "Interviews": "interviews",
-      "Desk Research": "deskResearch"
+      // CATI variations
+      "cati": "cati",
+      "cati (телефонный опрос)": "cati",
+      
+      // CAWI variations
+      "cawi": "cawi", 
+      "cawi (онлайн опрос)": "cawi",
+      
+      // Moderated Usability variations
+      "moderated usability": "moderatedUsability",
+      "moderated usability testing": "moderatedUsability",
+      "модерируемое тестирование юзабилити": "moderatedUsability",
+      
+      // Unmoderated Usability variations
+      "unmoderated usability": "unmoderatedUsability",
+      "unmoderated usability testing": "unmoderatedUsability",
+      "немодерируемое тестирование юзабилити": "unmoderatedUsability",
+      
+      // Co-creation variations
+      "co-creation": "coCreation",
+      "cocreation": "coCreation",
+      "сессия совместного создания": "coCreation",
+      
+      // Interviews variations
+      "interviews": "interviews",
+      "interview": "interviews",
+      "интервью": "interviews",
+      
+      // Desk Research variations
+      "desk research": "deskResearch",
+      "deskresearch": "deskResearch",
+      "кабинетное исследование": "deskResearch"
     };
     
-    const translationKey = typeMap[researchType];
+    const translationKey = typeMap[normalizedType];
     return translationKey ? t(`researchTypes.${translationKey}`) : researchType;
   };
   const [search, setSearch] = useState("");
