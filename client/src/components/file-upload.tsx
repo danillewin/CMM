@@ -48,9 +48,9 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return '0 Байт';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Байт', 'КБ', 'МБ', 'ГБ'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
@@ -194,10 +194,10 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Upload className="h-5 w-5" />
-          Audio/Video File Upload
+          Загрузка аудио/видео файлов
         </CardTitle>
         <CardDescription>
-          Upload audio or video files to automatically transcribe them. Files are processed but not stored.
+          Загрузите аудио или видео файлы для автоматической транскрипции. Файлы обрабатываются, но не сохраняются.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -233,10 +233,10 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
             <Upload className="h-12 w-12 text-gray-400" />
             <div>
               <p className="text-lg font-medium">
-                {dragActive ? 'Drop files here' : 'Drop files here or click to browse'}
+                {dragActive ? 'Перетащите файлы сюда' : 'Перетащите файлы сюда или нажмите для выбора'}
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                Supports MP3, WAV, MP4, AVI, MOV and other audio/video formats
+                Поддерживаются MP3, WAV, MP4, AVI, MOV и другие аудио/видео форматы
               </p>
             </div>
             <label
@@ -244,7 +244,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
               className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Choose Files
+              Выбрать файлы
             </label>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
         {/* Uploaded Files List */}
         {uploadedFiles.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-medium">Selected Files:</h4>
+            <h4 className="font-medium">Выбранные файлы:</h4>
             {uploadedFiles.map((file, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
@@ -302,7 +302,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Process & Transcribe
+                Обработать и транскрибировать
               </>
             )}
           </Button>
@@ -312,7 +312,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
               variant="outline"
               onClick={() => setUploadedFiles([])}
             >
-              Clear All
+              Очистить все
             </Button>
           )}
         </div>

@@ -135,7 +135,7 @@ function MeetingResultsForm({
   const handleTranscriptionComplete = (transcriptionText: string) => {
     const currentText = form.getValues("fullText");
     const newText = currentText 
-      ? `${currentText}\n\n--- Transcription ---\n${transcriptionText}`
+      ? `${currentText}\n\n--- Транскрипция ---\n${transcriptionText}`
       : transcriptionText;
     
     form.setValue("fullText", newText);
@@ -193,7 +193,7 @@ function MeetingResultsForm({
                   data-color-mode="light"
                   height={300}
                   textareaProps={{
-                    placeholder: "Enter meeting notes...",
+                    placeholder: "Введите заметки о встрече...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -231,7 +231,7 @@ function MeetingResultsForm({
                   data-color-mode="light"
                   height={300}
                   textareaProps={{
-                    placeholder: "Enter full text content...",
+                    placeholder: "Введите полный текст...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -252,7 +252,7 @@ function MeetingResultsForm({
         
         <Button type="submit" disabled={isLoading || isProcessing}>
           {isLoading || isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Results
+          Сохранить результаты
         </Button>
         </form>
       </div>
@@ -700,14 +700,14 @@ export default function MeetingDetail() {
                 onClick={() => setShowDuplicateDialog(false)}
                 className="bg-white border border-gray-200 hover:bg-gray-50"
               >
-                Cancel
+                Отмена
               </Button>
               {pendingFormData && (
                 <Button
                   onClick={handleConfirmCreate}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  Create Anyway
+                  Создать в любом случае
                 </Button>
               )}
               {!pendingFormData && (
