@@ -443,7 +443,7 @@ export default function Meetings() {
       visible: true,
       sortField: "date",
       render: (meeting: Meeting) => (
-        <span>{new Date(meeting.date).toLocaleDateString()}</span>
+        <span>{formatDateShort(meeting.date)}</span>
       )
     },
     {

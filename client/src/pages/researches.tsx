@@ -331,14 +331,14 @@ export default function Researches() {
       name: t("researches.dateStart"),
       visible: true,
       sortField: "dateStart",
-      render: (research: ResearchTableItem) => new Date(research.dateStart).toLocaleDateString()
+      render: (research: ResearchTableItem) => formatDateShort(research.dateStart)
     },
     {
       id: "dateEnd",
       name: t("researches.dateEnd"),
       visible: true,
       sortField: "dateEnd",
-      render: (research: ResearchTableItem) => new Date(research.dateEnd).toLocaleDateString()
+      render: (research: ResearchTableItem) => formatDateShort(research.dateEnd)
     },
     {
       id: "products",
