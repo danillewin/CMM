@@ -109,11 +109,6 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
             Scroll down to load more
           </div>
         )}
-        {!hasNextPage && data.length > 0 && (
-          <div className="text-gray-400 text-sm">
-            No more items to load
-          </div>
-        )}
       </div>
     </div>
   );

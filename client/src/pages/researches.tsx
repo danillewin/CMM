@@ -353,7 +353,7 @@ export default function Researches() {
               </span>
             ))
           ) : (
-            <span className="text-gray-400 text-xs">No products</span>
+            <span className="text-gray-400 text-xs">Нет продуктов</span>
           )}
           {research.products && research.products.length > 3 && (
             <span className="text-xs text-gray-500">+{research.products.length - 3} more</span>
