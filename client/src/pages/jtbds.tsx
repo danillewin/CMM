@@ -115,7 +115,7 @@ function JtbdForm({
       priority: initialData?.priority || "",
       parentId: parentId !== undefined ? parentId : initialData?.parentId || undefined,
       level: initialData?.level || itemLevel,
-      contentType: initialData?.contentType || (itemLevel === 3 ? "job_statement" : undefined)
+      contentType: (initialData?.contentType as "job_statement" | "job_story" | null | undefined) || (itemLevel === 3 ? "job_statement" : undefined)
     }
   });
 
@@ -174,7 +174,7 @@ function JtbdForm({
                 <FormLabel>Content Type <RequiredFieldIndicator /></FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  defaultValue={field.value || undefined}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -593,7 +593,6 @@ function JobItem({
 }
 
 export default function JtbdsPage() {
-  const { t } = useTranslation();
   const [showNewJtbdForm, setShowNewJtbdForm] = useState(false);
   const [editingJtbd, setEditingJtbd] = useState<Jtbd | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
