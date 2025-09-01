@@ -38,6 +38,7 @@ import { JtbdSelector } from "./jtbd-selector";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
+import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
 import {
   Popover,
   PopoverContent,
@@ -177,29 +178,6 @@ export default function ResearchForm({
     }
   };
 
-  // Helper function to format dates consistently
-  const formatDateForInput = (date: Date | string) => {
-    try {
-      if (!date) return ""; // Return empty string if date is null/undefined
-
-      const dateObj = date instanceof Date ? date : new Date(date);
-
-      // Check if date is valid
-      if (isNaN(dateObj.getTime())) {
-        console.warn("Invalid date:", date);
-        return "";
-      }
-
-      // Format to YYYY-MM-DD
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "";
-    }
-  };
 
   return (
     <>
@@ -238,12 +216,15 @@ export default function ResearchForm({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="date"
+                        type="text"
+                        placeholder="дд/мм/гг"
                         value={formatDateForInput(field.value)}
                         onChange={(e) => {
-                          const newDate = new Date(e.target.value);
-                          field.onChange(newDate);
-                          handleFieldChange("dateStart", newDate);
+                          const parsedDate = parseDateFromInput(e.target.value);
+                          if (parsedDate) {
+                            field.onChange(parsedDate);
+                            handleFieldChange("dateStart", parsedDate);
+                          }
                         }}
                         className="w-full"
                       />
@@ -264,12 +245,15 @@ export default function ResearchForm({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        type="date"
+                        type="text"
+                        placeholder="дд/мм/гг"
                         value={formatDateForInput(field.value)}
                         onChange={(e) => {
-                          const newDate = new Date(e.target.value);
-                          field.onChange(newDate);
-                          handleFieldChange("dateEnd", newDate);
+                          const parsedDate = parseDateFromInput(e.target.value);
+                          if (parsedDate) {
+                            field.onChange(parsedDate);
+                            handleFieldChange("dateEnd", parsedDate);
+                          }
                         }}
                         className="w-full"
                       />

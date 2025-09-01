@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
+import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
@@ -165,10 +166,14 @@ export default function MeetingForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      type="date"
-                      value={value instanceof Date ? value.toISOString().slice(0, 10) : String(value)}
+                      type="text"
+                      placeholder="дд/мм/гг"
+                      value={value instanceof Date ? formatDateForInput(value) : String(value)}
                       onChange={(e) => {
-                        onChange(new Date(e.target.value));
+                        const parsedDate = parseDateFromInput(e.target.value);
+                        if (parsedDate) {
+                          onChange(parsedDate);
+                        }
                       }}
                       className="w-full"
                       {...rest}

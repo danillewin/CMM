@@ -40,7 +40,7 @@
     "customerFullName": "ФИО заказчика",
     "brief": "Бриф",
     "guide": "Руководство",
-    "fullText": "Полный текст",
+    "fullText": "Отчет в текстовом виде",
     "clientsWeSearchFor": "Клиенты для поиска",
     "inviteTemplate": "Шаблон приглашения",
     "actions": "Действия",
@@ -54,7 +54,8 @@
     "addRelatedResearch": "Добавить связанное исследование",
     "selectRelatedResearch": "Выберите исследование...",
     "previousResources": "Предыдущие ресурсы",
-    "additionalMaterials": "Дополнительные материалы"
+    "additionalMaterials": "Дополнительные материалы",
+    "addQuestion": "Добавить вопрос"
   },
   "researchTypes": {
     "cati": "CATI (Телефонный опрос)",
@@ -83,7 +84,7 @@
     "research": "Исследование",
     "status": "Статус",
     "notes": "Заметки",
-    "fullText": "Полный текст",
+    "fullText": "Отчет в текстовом виде",
     "hasGift": "Есть подарок",
     "actions": "Действия",
     "edit": "Редактировать",

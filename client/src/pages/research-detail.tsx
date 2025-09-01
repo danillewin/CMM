@@ -2196,7 +2196,7 @@ function QuestionSection({
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
-                Add Sub-subblock
+                Добавить подблок
               </Button>
             </div>
           </>
