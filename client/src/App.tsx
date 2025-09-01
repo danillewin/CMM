@@ -15,12 +15,9 @@ import Jtbds from "@/pages/jtbds";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
-import { useTranslation } from "react-i18next";
-import "./lib/i18n"; // Initialize i18n
 
 function Navigation() {
   const [location] = useLocation();
-  const { t } = useTranslation();
 
   return (
     <nav className="border-b mb-4">
@@ -29,32 +26,32 @@ function Navigation() {
           <div className="flex gap-4">
             <Link href="/">
               <Button variant={location === "/" ? "default" : "ghost"}>
-                {t('navigation.meetings')}
+                {'Встречи'}
               </Button>
             </Link>
             <Link href="/researches">
               <Button variant={location === "/researches" ? "default" : "ghost"}>
-                {t('navigation.researches')}
+                {'Исследования'}
               </Button>
             </Link>
             <Link href="/roadmap">
               <Button variant={location === "/roadmap" ? "default" : "ghost"}>
-                {t('navigation.roadmap')}
+                {'Roadmap'}
               </Button>
             </Link>
             <Link href="/calendar">
               <Button variant={location === "/calendar" ? "default" : "ghost"}>
-                {t('navigation.calendar')}
+                {'Календарь'}
               </Button>
             </Link>
             <Link href="/dashboard">
               <Button variant={location === "/dashboard" ? "default" : "ghost"}>
-                {t('navigation.dashboard')}
+                {'Dashboards'}
               </Button>
             </Link>
             <Link href="/jtbds">
               <Button variant={location === "/jtbds" ? "default" : "ghost"}>
-                {t('navigation.jtbds')}
+                {'Jobs to be Done'}
               </Button>
             </Link>
           </div>

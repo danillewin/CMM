@@ -52,7 +52,6 @@ import { GripVertical, Settings, Filter, Search, X, Save, Bookmark, Loader2 } fr
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
 // Column configuration type
 export type ColumnConfig = {

@@ -32,7 +32,6 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
-import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 
@@ -44,7 +43,6 @@ export default function Calendar() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { toast } = useToast();
-  const { t } = useTranslation();
 
 
   // Calculate date range for current month
@@ -82,11 +80,11 @@ export default function Calendar() {
       queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", selectedMeeting?.id] });
       setSelectedMeeting(null);
-      toast({ title: t("meeting_updated_successfully") });
+      toast({ title: PLACEHOLDER_REMOVED });
     },
     onError: (error: Error) => {
       toast({
-        title: t("failed_to_update_meeting"),
+        title: PLACEHOLDER_REMOVED,
         description: error.message,
         variant: "destructive"
       });
@@ -168,7 +166,7 @@ export default function Calendar() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">{t("calendar.title", "Calendar")}</h1>
+          <h1 className="text-3xl font-bold">{PLACEHOLDER_REMOVED}</h1>
           <ResearcherFilterManager
             pageType="calendar"
             currentFilters={{
@@ -355,7 +353,7 @@ export default function Calendar() {
             <div className="flex items-center justify-center p-8">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                <span className="text-sm text-muted-foreground">{t("loading_meeting_details")}...</span>
+                <span className="text-sm text-muted-foreground">{PLACEHOLDER_REMOVED}...</span>
               </div>
             </div>
           ) : fullMeetingData ? (
@@ -378,12 +376,12 @@ export default function Calendar() {
             />
           ) : (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground">{t("error_loading_meeting")}</p>
+              <p className="text-muted-foreground">{PLACEHOLDER_REMOVED}</p>
               <Button 
                 onClick={() => setSelectedMeeting(null)}
                 className="mt-4"
               >
-                {t("close")}
+                {PLACEHOLDER_REMOVED}
               </Button>
             </div>
           )}

@@ -42,7 +42,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { LinkifiedText } from "@/components/linkified-text";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
-import { useTranslation } from "react-i18next";
 
 // JTBD Categories
 const JTBD_CATEGORIES = [
@@ -787,7 +786,7 @@ export default function JtbdsPage() {
   return (
     <div className="container mx-auto p-4 md:p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <h1 className="text-2xl font-bold">{t("jtbds.title")}</h1>
+        <h1 className="text-2xl font-bold">{"Jobs to be Done"}</h1>
         <div className="flex gap-2 w-full md:w-auto">
           <Input
             placeholder="Поиск Jobs To Be Done..."
@@ -829,7 +828,7 @@ export default function JtbdsPage() {
           }}>
             <DialogTrigger asChild>
               <Button className="ml-auto">
-                <Plus className="mr-2 h-4 w-4" /> {t("jtbds.newJtbd")}
+                <Plus className="mr-2 h-4 w-4" /> {"Создать"}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]" aria-describedby="new-jtbd-description">
@@ -870,7 +869,7 @@ export default function JtbdsPage() {
       ) : filteredJtbds.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <Layers className="h-12 w-12 text-gray-400 mb-2" />
-          <h2 className="text-xl font-medium text-gray-600">{t("jtbds.noJtbds")}</h2>
+          <h2 className="text-xl font-medium text-gray-600">{PLACEHOLDER_REMOVED}</h2>
           <p className="text-gray-500 mt-1">
             {search || categoryFilter !== "ALL" || priorityFilter !== "ALL"
               ? "Нет результатов, соответствующих вашим критериям поиска"

@@ -31,7 +31,6 @@ import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { addWeeks } from "date-fns";
-import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -42,8 +41,6 @@ import { SearchMultiselect } from "@/components/search-multiselect";
 type ViewMode = "table" | "cards";
 
 export default function Researches() {
-  const { t } = useTranslation();
-
   // Function to translate research type from English to Russian
   const translateResearchType = (researchType: string): string => {
     if (!researchType) return "";
@@ -53,26 +50,26 @@ export default function Researches() {
     
     // Check if type contains specific keywords to map to correct translation
     if (normalizedType.includes("cati") || normalizedType.includes("телефонный")) {
-      return t("researchTypes.cati");
+      return "CATI (Телефонный опрос)";
     }
     if (normalizedType.includes("cawi") || normalizedType.includes("онлайн") || normalizedType.includes("online")) {
-      return t("researchTypes.cawi");
+      return "CAWI (Онлайн опрос)";
     }
     if (normalizedType.includes("moderated usability") || normalizedType.includes("модерируемое")) {
-      return t("researchTypes.moderatedUsability");
+      return "Модерируемое тестирование юзабилити";
     }
     if (normalizedType.includes("unmoderated usability") || normalizedType.includes("немодерируемое")) {
-      return t("researchTypes.unmoderatedUsability");
+      return "Немодерируемое тестирование юзабилити";
     }
     if (normalizedType.includes("co-creation") || normalizedType.includes("cocreation") || 
         normalizedType.includes("совместного создания")) {
-      return t("researchTypes.coCreation");
+      return "Сессия совместного создания";
     }
     if (normalizedType.includes("interview") || normalizedType.includes("интервью")) {
-      return t("researchTypes.interviews");
+      return "Интервью";
     }
     if (normalizedType.includes("desk research") || normalizedType.includes("кабинетное")) {
-      return t("researchTypes.deskResearch");
+      return "Кабинетное исследование";
     }
     
     // Fallback - return original if no match found
@@ -270,7 +267,7 @@ export default function Researches() {
   const tableColumns: ColumnConfig[] = useMemo(() => [
     {
       id: "name",
-      name: t("researches.name"),
+      name: "Название",
       visible: true,
       sortField: "name",
       render: (research: ResearchTableItem) => (
@@ -279,40 +276,40 @@ export default function Researches() {
     },
     {
       id: "team",
-      name: t("researches.team"),
+      name: "Команда",
       visible: true,
       sortField: "team",
       render: (research: ResearchTableItem) => research.team
     },
     {
       id: "researchType",
-      name: t("researches.researchType"),
+      name: "Тип исследования",
       visible: true,
       sortField: "researchType",
       render: (research: ResearchTableItem) => {
         const researchTypeMap: Record<string, string> = {
-          "CATI (Telephone Survey)": t("researchTypes.cati"),
-          "CAWI (Online Survey)": t("researchTypes.cawi"),
-          "Moderated usability testing": t("researchTypes.moderatedUsability"),
-          "Unmoderated usability testing": t("researchTypes.unmoderatedUsability"),
-          "Co-creation session": t("researchTypes.coCreation"),
-          "Interviews": t("researchTypes.interviews"),
-          "Desk research": t("researchTypes.deskResearch")
+          "CATI (Telephone Survey)": "CATI (Телефонный опрос)",
+          "CAWI (Online Survey)": "CAWI (Онлайн опрос)",
+          "Moderated usability testing": "Модерируемое тестирование юзабилити",
+          "Unmoderated usability testing": "Немодерируемое тестирование юзабилити",
+          "Co-creation session": "Сессия совместного создания",
+          "Interviews": "Интервью",
+          "Desk research": "Кабинетное исследование"
         };
-        const translatedType = researchTypeMap[research.researchType || "Interviews"] || t("researchTypes.interviews");
+        const translatedType = researchTypeMap[research.researchType || "Interviews"] || "Интервью";
         return <span className="text-sm text-gray-600">{translatedType}</span>;
       }
     },
     {
       id: "researcher",
-      name: t("researches.researcher"),
+      name: "Исследователь",
       visible: true,
       sortField: "researcher",
       render: (research: ResearchTableItem) => research.researcher
     },
     {
       id: "status",
-      name: t("researches.status"),
+      name: "Статус",
       visible: true,
       sortField: "status",
       render: (research: ResearchTableItem) => (
@@ -320,29 +317,29 @@ export default function Researches() {
           ${research.status === ResearchStatus.DONE ? 'bg-green-100 text-green-800' :
             research.status === ResearchStatus.IN_PROGRESS ? 'bg-blue-100 text-blue-800' :
             'bg-gray-100 text-gray-800'}`} title={research.status}>
-          {research.status === ResearchStatus.DONE ? t("researches.statusDone") :
-           research.status === ResearchStatus.IN_PROGRESS ? t("researches.statusInProgress") :
-           t("researches.statusPlanned")}
+          {research.status === ResearchStatus.DONE ? "Завершено" :
+           research.status === ResearchStatus.IN_PROGRESS ? "В процессе" :
+           "Запланировано"}
         </span>
       )
     },
     {
       id: "dateStart",
-      name: t("researches.dateStart"),
+      name: "Дата начала",
       visible: true,
       sortField: "dateStart",
       render: (research: ResearchTableItem) => formatDateShort(research.dateStart)
     },
     {
       id: "dateEnd",
-      name: t("researches.dateEnd"),
+      name: "Дата окончания",
       visible: true,
       sortField: "dateEnd",
       render: (research: ResearchTableItem) => formatDateShort(research.dateEnd)
     },
     {
       id: "products",
-      name: t("researches.products"),
+      name: "Продукты",
       visible: true,
       render: (research: ResearchTableItem) => (
         <div className="flex flex-wrap gap-1">
@@ -363,7 +360,7 @@ export default function Researches() {
     },
     {
       id: "description",
-      name: t("researches.description"),
+      name: "Описание",
       visible: false,
       render: (research: ResearchTableItem) => (
         <div className="line-clamp-2 prose prose-sm max-w-none">
@@ -377,19 +374,19 @@ export default function Researches() {
         </div>
       )
     }
-  ], [t]);
+  ], []);
 
   // Prepare filter configurations
   const filterConfigs = useMemo(() => [
     {
       id: "status",
-      name: t("researches.status"),
+      name: "Статус",
       options: [
-        { label: t("filters.all"), value: "ALL" },
+        { label: "Все", value: "ALL" },
         ...Object.values(ResearchStatus).map(status => ({ 
-          label: status === ResearchStatus.DONE ? t("researches.statusDone") :
-                 status === ResearchStatus.IN_PROGRESS ? t("researches.statusInProgress") :
-                 t("researches.statusPlanned"), 
+          label: status === ResearchStatus.DONE ? "Завершено" :
+                 status === ResearchStatus.IN_PROGRESS ? "В процессе" :
+                 "Запланировано", 
           value: status 
         }))
       ],
@@ -398,7 +395,7 @@ export default function Researches() {
     },
     {
       id: "researcher",
-      name: t("researches.researcher"),
+      name: "Исследователь",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/researchers",
       selectedValues: researcherFilter,
@@ -407,7 +404,7 @@ export default function Researches() {
     },
     {
       id: "team",
-      name: t("researches.team"),
+      name: "Команда",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/teams",
       selectedValues: teamFilter,
@@ -556,7 +553,7 @@ export default function Researches() {
       onChange: () => {},
       isActive: () => productFilters.length > 0
     }
-  ], [t, statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, researchers, teams, researchTypes, products, setStatusFilter, setResearcherFilter, setTeamFilter, setResearchTypeFilters, setProductFilters]);
+  ], [statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, researchers, teams, researchTypes, products, setStatusFilter, setResearcherFilter, setTeamFilter, setResearchTypeFilters, setProductFilters]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -574,7 +571,7 @@ export default function Researches() {
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("researches.title")}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Исследования</h1>
             <ResearcherFilterManager
               pageType="researches"
               currentFilters={{
@@ -606,7 +603,7 @@ export default function Researches() {
               onClick={() => setLocation("/researches/new")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              {t("researches.newResearch")}
+              Новое исследование
             </Button>
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList>
@@ -667,7 +664,7 @@ export default function Researches() {
             searchValue={search}
             onSearchChange={setSearch}
             storeConfigKey="researches-table-columns"
-            emptyStateMessage={t("researches.noResearches", "No researches found")}
+            emptyStateMessage={"Исследования не найдены"}
             onApplyFilters={applyFilters}
             hasUnappliedFilters={
               statusFilter !== appliedStatusFilter ||

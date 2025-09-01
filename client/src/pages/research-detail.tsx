@@ -53,7 +53,6 @@ import {
 import { Input } from "@/components/ui/input";
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
-import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { Plus, X, ChevronDown, ChevronUp, ChevronRight, Trash2, Edit, Eye } from "lucide-react";
 import {
@@ -87,7 +86,7 @@ function ResearchBriefForm({
   isLoading: boolean;
   onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[] }) => void;
 }) {
-  const { t } = useTranslation();
+  
 
   // Query to fetch research details for related researches to display their names
   const { data: relatedResearchesData = [] } = useQuery<Research[]>({
@@ -291,7 +290,7 @@ function ResearchBriefForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {t("research.researchType")}
+                {"Тип исследования"}
               </FormLabel>
               <Select onValueChange={(value) => {
                 field.onChange(value);
@@ -333,7 +332,7 @@ function ResearchBriefForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {t("research.customerFullName")}
+                {"ФИО заказчика"}
               </FormLabel>
               <FormControl>
                 <Input 
@@ -354,7 +353,7 @@ function ResearchBriefForm({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <FormLabel className="text-lg font-medium">
-              {t("research.additionalStakeholders")}
+              {"Дополнительные интересанты"}
             </FormLabel>
             <Button
               type="button"
@@ -364,7 +363,7 @@ function ResearchBriefForm({
               className="text-sm"
             >
               <Plus className="h-4 w-4 mr-2" />
-              {t("research.addStakeholder")}
+              {"Добавить интересанта исследования"}
             </Button>
           </div>
 
@@ -399,7 +398,7 @@ function ResearchBriefForm({
 
           {fields.length === 0 && (
             <p className="text-sm text-gray-500 italic">
-              {t("research.addStakeholder")}
+              {"Добавить интересанта исследования"}
             </p>
           )}
         </div>
@@ -410,22 +409,22 @@ function ResearchBriefForm({
           name="resultFormat"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("research.resultFormat")}</FormLabel>
+              <FormLabel>{"Формат результата"}</FormLabel>
               <Select onValueChange={(value) => {
                 field.onChange(value);
                 handleFieldChange("resultFormat", value);
               }} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("research.resultFormat")} />
+                    <SelectValue placeholder={"Формат результата"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Презентация">
-                    {t("research.resultFormatOptions.presentation")}
+                    {"Презентация"}
                   </SelectItem>
                   <SelectItem value="Figma">
-                    {t("research.resultFormatOptions.figma")}
+                    {"Figma"}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -440,7 +439,7 @@ function ResearchBriefForm({
           name="customerSegmentDescription"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("research.customerSegmentDescription")}</FormLabel>
+              <FormLabel>{"Описание сегмента клиентов"}</FormLabel>
               <FormControl>
                 <Textarea
                   rows={3}
@@ -467,7 +466,7 @@ function ResearchBriefForm({
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {t("research.projectBackground")}
+                {"Фон проекта"}
               </h3>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -486,7 +485,7 @@ function ResearchBriefForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t("research.projectBackgroundDescription")}
+                      {PLACEHOLDER_REMOVED}
                     </FormLabel>
                     <FormControl>
                       <Textarea 
@@ -509,7 +508,7 @@ function ResearchBriefForm({
                 name="problemToSolve"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.problemToSolve")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -531,7 +530,7 @@ function ResearchBriefForm({
                 name="resultsUsage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.resultsUsage")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -553,7 +552,7 @@ function ResearchBriefForm({
                 name="productMetrics"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.productMetrics")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -575,7 +574,7 @@ function ResearchBriefForm({
                 name="limitations"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.limitations")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -603,7 +602,7 @@ function ResearchBriefForm({
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {t("research.goalsHypothesesQuestions")}
+                {PLACEHOLDER_REMOVED}
               </h3>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -621,7 +620,7 @@ function ResearchBriefForm({
                 name="researchGoals"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.researchGoals")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -643,7 +642,7 @@ function ResearchBriefForm({
                 name="researchHypotheses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.researchHypotheses")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={3}
@@ -667,11 +666,11 @@ function ResearchBriefForm({
                 name="keyQuestions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.keyQuestions")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={5}
-                        placeholder={t("research.keyQuestionsPlaceholder")}
+                        placeholder={PLACEHOLDER_REMOVED}
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -695,7 +694,7 @@ function ResearchBriefForm({
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {t("research.additionalInformation")}
+                {PLACEHOLDER_REMOVED}
               </h3>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -712,7 +711,7 @@ function ResearchBriefForm({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <FormLabel className="text-base font-medium">
-                    {t("research.relatedResearches")}
+                    {PLACEHOLDER_REMOVED}
                   </FormLabel>
                   <Button
                     type="button"
@@ -722,7 +721,7 @@ function ResearchBriefForm({
                     className="text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {t("research.addRelatedResearch")}
+                    {PLACEHOLDER_REMOVED}
                   </Button>
                 </div>
                 {relatedResearchFields.map((field, index) => {
@@ -746,7 +745,7 @@ function ResearchBriefForm({
                           });
                         }}
                         onResearchSelect={() => {}} // Not needed for related researches
-                        placeholder={t("research.selectRelatedResearch")}
+                        placeholder={PLACEHOLDER_REMOVED}
                         excludeResearchId={research?.id} // Exclude current research from results
                         displayName={relatedResearch ? `${relatedResearch.name} (${relatedResearch.team})` : undefined}
                       />
@@ -780,11 +779,11 @@ function ResearchBriefForm({
                 name="previousResources"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.previousResources")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={4}
-                        placeholder={t("research.previousResourcesPlaceholder")}
+                        placeholder={PLACEHOLDER_REMOVED}
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -802,7 +801,7 @@ function ResearchBriefForm({
                 name="additionalMaterials"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("research.additionalMaterials")}</FormLabel>
+                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={4}
@@ -834,11 +833,11 @@ function ResearchBriefForm({
               form.watch("researchType") === "Unmoderated usability testing";
             return (
               <FormItem>
-                <FormLabel>{t("research.figmaPrototypeLink")}</FormLabel>
+                <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
                 <FormControl>
                   <Input
                     type="url"
-                    placeholder={t("research.figmaPrototypeLinkPlaceholder")}
+                    placeholder={PLACEHOLDER_REMOVED}
                     disabled={!isUsabilityTesting}
                     {...field}
                     onChange={(e) => {
@@ -898,7 +897,7 @@ function ResearchBriefForm({
         />
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {t("research.saveBrief")}
+          {PLACEHOLDER_REMOVED}
         </Button>
       </form>
     </Form>
@@ -1117,7 +1116,7 @@ function ResearchGuideForm({
   isLoading: boolean;
   onTempDataUpdate?: (data: { guideIntroText: string }) => void;
 }) {
-  const { t } = useTranslation();
+  
 
   const parseQuestionBlocks = (data: string | null): QuestionBlock[] => {
     if (!data || typeof data !== 'string') return [];
@@ -1467,11 +1466,11 @@ function ResearchGuideForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {t("research.guideIntroText")}
+                {PLACEHOLDER_REMOVED}
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={t("research.guideIntroTextPlaceholder")}
+                  placeholder={PLACEHOLDER_REMOVED}
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
@@ -1709,7 +1708,7 @@ function QuestionSection({
   addSubSubblock,
   handleFieldChange,
 }: QuestionSectionProps) {
-  const { t } = useTranslation();
+  
   const questionBlocks = form.watch(sectionName) || [];
   
   // Determine if we have content (default to view mode if content exists)
@@ -2380,7 +2379,7 @@ function ResearchResultsForm({
   isLoading: boolean;
   onTempDataUpdate?: (data: { fullText: string }) => void;
 }) {
-  const { t } = useTranslation();
+  
   const form = useForm<{ artifactLink: string; fullText: string }>({
     defaultValues: {
       artifactLink: research?.artifactLink || "",
@@ -2452,12 +2451,12 @@ function ResearchResultsForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {t("research.artifactLink")}
+                {PLACEHOLDER_REMOVED}
               </FormLabel>
               <FormControl>
                 <Input
                   type="url"
-                  placeholder={t("research.artifactLinkPlaceholder")}
+                  placeholder={PLACEHOLDER_REMOVED}
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
@@ -2516,7 +2515,7 @@ function ResearchResultsForm({
 }
 
 function ResearchDetail() {
-  const { t } = useTranslation();
+  
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
@@ -2804,19 +2803,19 @@ function ResearchDetail() {
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="info">
-                  {t("research.tabs.overview")}
+                  {"Обзор"}
                 </TabsTrigger>
                 <TabsTrigger value="brief">
-                  {t("research.tabs.brief")}
+                  {"Бриф"}
                 </TabsTrigger>
                 <TabsTrigger value="guide">
-                  {t("research.tabs.guide")}
+                  {"Руководство"}
                 </TabsTrigger>
                 <TabsTrigger value="recruitment">
-                  {t("research.tabs.recruitment")}
+                  {"Рекрутинг"}
                 </TabsTrigger>
                 <TabsTrigger value="results">
-                  {t("research.tabs.results")}
+                  {"Результаты"}
                 </TabsTrigger>
               </TabsList>
 
