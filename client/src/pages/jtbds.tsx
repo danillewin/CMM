@@ -869,7 +869,7 @@ export default function JtbdsPage() {
       ) : filteredJtbds.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center">
           <Layers className="h-12 w-12 text-gray-400 mb-2" />
-          <h2 className="text-xl font-medium text-gray-600">{PLACEHOLDER_REMOVED}</h2>
+          <h2 className="text-xl font-medium text-gray-600">{"Сохранить"}</h2>
           <p className="text-gray-500 mt-1">
             {search || categoryFilter !== "ALL" || priorityFilter !== "ALL"
               ? "Нет результатов, соответствующих вашим критериям поиска"

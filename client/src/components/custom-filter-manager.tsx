@@ -270,16 +270,16 @@ export default function CustomFilterManager({
                 id="filter-name"
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
-                placeholder={PLACEHOLDER_REMOVED}
+                placeholder={"Сохранить"}
               />
             </div>
             <div>
-              <Label htmlFor="filter-description">{PLACEHOLDER_REMOVED}</Label>
+              <Label htmlFor="filter-description">{"Сохранить"}</Label>
               <Textarea
                 id="filter-description"
                 value={filterDescription}
                 onChange={(e) => setFilterDescription(e.target.value)}
-                placeholder={PLACEHOLDER_REMOVED}
+                placeholder={"Сохранить"}
                 rows={3}
               />
             </div>
@@ -291,7 +291,7 @@ export default function CustomFilterManager({
               />
               <Label htmlFor="filter-public" className="flex items-center gap-2">
                 {isPublic ? <Users className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {PLACEHOLDER_REMOVED}
+                {"Сохранить"}
               </Label>
             </div>
             <div className="flex justify-end gap-2">
@@ -305,7 +305,7 @@ export default function CustomFilterManager({
                 onClick={handleSaveCurrentFilters}
                 disabled={createFilterMutation.isPending || updateFilterMutation.isPending}
               >
-                {editingFilter ? PLACEHOLDER_REMOVED : "Сохранить"}
+                {editingFilter ? "Сохранить" : "Сохранить"}
               </Button>
             </div>
           </div>
@@ -317,19 +317,19 @@ export default function CustomFilterManager({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-1" />
-            {PLACEHOLDER_REMOVED} ({savedFilters.length})
+            {"Сохранить"} ({savedFilters.length})
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{PLACEHOLDER_REMOVED}</DialogTitle>
+            <DialogTitle>{"Сохранить"}</DialogTitle>
           </DialogHeader>
           
           {savedFilters.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{PLACEHOLDER_REMOVED}</p>
-              <p className="text-sm mt-2">{PLACEHOLDER_REMOVED}</p>
+              <p>{"Сохранить"}</p>
+              <p className="text-sm mt-2">{"Сохранить"}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -351,17 +351,17 @@ export default function CustomFilterManager({
                             {filter.isPublic === "true" ? (
                               <>
                                 <Users className="h-3 w-3 mr-1" />
-                                {PLACEHOLDER_REMOVED}
+                                {"Сохранить"}
                               </>
                             ) : (
                               <>
                                 <Lock className="h-3 w-3 mr-1" />
-                                {PLACEHOLDER_REMOVED}
+                                {"Сохранить"}
                               </>
                             )}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {PLACEHOLDER_REMOVED} {filter.createdBy}
+                            {"Сохранить"} {filter.createdBy}
                           </span>
                         </div>
                       </div>
@@ -395,10 +395,10 @@ export default function CustomFilterManager({
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
-                                    {PLACEHOLDER_REMOVED}
+                                    {"Сохранить"}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    {PLACEHOLDER_REMOVED}
+                                    {"Сохранить"}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

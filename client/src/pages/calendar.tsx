@@ -80,11 +80,11 @@ export default function Calendar() {
       queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", selectedMeeting?.id] });
       setSelectedMeeting(null);
-      toast({ title: PLACEHOLDER_REMOVED });
+      toast({ title: "Сохранить" });
     },
     onError: (error: Error) => {
       toast({
-        title: PLACEHOLDER_REMOVED,
+        title: "Сохранить",
         description: error.message,
         variant: "destructive"
       });
@@ -166,7 +166,7 @@ export default function Calendar() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">{PLACEHOLDER_REMOVED}</h1>
+          <h1 className="text-3xl font-bold">{"Сохранить"}</h1>
           <ResearcherFilterManager
             pageType="calendar"
             currentFilters={{
@@ -353,7 +353,7 @@ export default function Calendar() {
             <div className="flex items-center justify-center p-8">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                <span className="text-sm text-muted-foreground">{PLACEHOLDER_REMOVED}...</span>
+                <span className="text-sm text-muted-foreground">{"Сохранить"}...</span>
               </div>
             </div>
           ) : fullMeetingData ? (
@@ -376,12 +376,12 @@ export default function Calendar() {
             />
           ) : (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground">{PLACEHOLDER_REMOVED}</p>
+              <p className="text-muted-foreground">{"Сохранить"}</p>
               <Button 
                 onClick={() => setSelectedMeeting(null)}
                 className="mt-4"
               >
-                {PLACEHOLDER_REMOVED}
+                {"Сохранить"}
               </Button>
             </div>
           )}

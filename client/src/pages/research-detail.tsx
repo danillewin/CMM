@@ -485,7 +485,7 @@ function ResearchBriefForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {PLACEHOLDER_REMOVED}
+                      {"Полное имя заказчика"}
                     </FormLabel>
                     <FormControl>
                       <Textarea 
@@ -508,7 +508,7 @@ function ResearchBriefForm({
                 name="problemToSolve"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -530,7 +530,7 @@ function ResearchBriefForm({
                 name="resultsUsage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -552,7 +552,7 @@ function ResearchBriefForm({
                 name="productMetrics"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -574,7 +574,7 @@ function ResearchBriefForm({
                 name="limitations"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -602,7 +602,7 @@ function ResearchBriefForm({
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {PLACEHOLDER_REMOVED}
+                {"Полное имя заказчика"}
               </h3>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -620,7 +620,7 @@ function ResearchBriefForm({
                 name="researchGoals"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea 
                         rows={3} 
@@ -642,7 +642,7 @@ function ResearchBriefForm({
                 name="researchHypotheses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={3}
@@ -666,11 +666,11 @@ function ResearchBriefForm({
                 name="keyQuestions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={5}
-                        placeholder={PLACEHOLDER_REMOVED}
+                        placeholder={"Полное имя заказчика"}
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -694,7 +694,7 @@ function ResearchBriefForm({
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {PLACEHOLDER_REMOVED}
+                {"Полное имя заказчика"}
               </h3>
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -711,7 +711,7 @@ function ResearchBriefForm({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <FormLabel className="text-base font-medium">
-                    {PLACEHOLDER_REMOVED}
+                    {"Полное имя заказчика"}
                   </FormLabel>
                   <Button
                     type="button"
@@ -721,7 +721,7 @@ function ResearchBriefForm({
                     className="text-sm"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {PLACEHOLDER_REMOVED}
+                    {"Полное имя заказчика"}
                   </Button>
                 </div>
                 {relatedResearchFields.map((field, index) => {
@@ -745,7 +745,7 @@ function ResearchBriefForm({
                           });
                         }}
                         onResearchSelect={() => {}} // Not needed for related researches
-                        placeholder={PLACEHOLDER_REMOVED}
+                        placeholder={"Полное имя заказчика"}
                         excludeResearchId={research?.id} // Exclude current research from results
                         displayName={relatedResearch ? `${relatedResearch.name} (${relatedResearch.team})` : undefined}
                       />
@@ -779,11 +779,11 @@ function ResearchBriefForm({
                 name="previousResources"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={4}
-                        placeholder={PLACEHOLDER_REMOVED}
+                        placeholder={"Полное имя заказчика"}
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -801,7 +801,7 @@ function ResearchBriefForm({
                 name="additionalMaterials"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={4}
@@ -833,11 +833,11 @@ function ResearchBriefForm({
               form.watch("researchType") === "Unmoderated usability testing";
             return (
               <FormItem>
-                <FormLabel>{PLACEHOLDER_REMOVED}</FormLabel>
+                <FormLabel>{"Полное имя заказчика"}</FormLabel>
                 <FormControl>
                   <Input
                     type="url"
-                    placeholder={PLACEHOLDER_REMOVED}
+                    placeholder={"Полное имя заказчика"}
                     disabled={!isUsabilityTesting}
                     {...field}
                     onChange={(e) => {
@@ -897,7 +897,7 @@ function ResearchBriefForm({
         />
         <Button type="submit" disabled={isLoading}>
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {PLACEHOLDER_REMOVED}
+          {"Полное имя заказчика"}
         </Button>
       </form>
     </Form>
@@ -1466,11 +1466,11 @@ function ResearchGuideForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {PLACEHOLDER_REMOVED}
+                {"Полное имя заказчика"}
               </FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={PLACEHOLDER_REMOVED}
+                  placeholder={"Полное имя заказчика"}
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
@@ -2451,12 +2451,12 @@ function ResearchResultsForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                {PLACEHOLDER_REMOVED}
+                {"Полное имя заказчика"}
               </FormLabel>
               <FormControl>
                 <Input
                   type="url"
-                  placeholder={PLACEHOLDER_REMOVED}
+                  placeholder={"Полное имя заказчика"}
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
