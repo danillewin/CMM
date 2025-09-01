@@ -2800,7 +2800,7 @@ function ResearchDetail() {
                   {"Бриф"}
                 </TabsTrigger>
                 <TabsTrigger value="guide">
-                  {"Руководство"}
+                  {"Гайд"}
                 </TabsTrigger>
                 <TabsTrigger value="recruitment">
                   {"Рекрутинг"}

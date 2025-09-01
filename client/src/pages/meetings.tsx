@@ -195,7 +195,7 @@ export default function Meetings() {
       ["Должность респондента"]: meeting.respondentPosition,
       ["CNUM"]: meeting.cnum,
       ["Название компании"]: meeting.companyName,
-      ["Менеджер по отношениям"]: meeting.relationshipManager,
+      ["Клиентский менеджер"]: meeting.relationshipManager,
       ["Рекрутер"]: meeting.salesPerson,
       ["Исследователь"]: meeting.researcher || '—',
       ["Дата"]: formatDateShort(meeting.date),
@@ -221,7 +221,7 @@ export default function Meetings() {
       ["Должность респондента"]: meeting.respondentPosition,
       ["CNUM"]: meeting.cnum,
       ["Название компании"]: meeting.companyName,
-      ["Менеджер по отношениям"]: meeting.relationshipManager,
+      ["Клиентский менеджер"]: meeting.relationshipManager,
       ["Рекрутер"]: meeting.salesPerson,
       ["Исследователь"]: meeting.researcher || '—',
       ["Дата"]: formatDateShort(meeting.date),
@@ -383,7 +383,7 @@ export default function Meetings() {
     },
     {
       id: "relationshipManager",
-      name: "Менеджер по отношениям",
+      name: "Клиентский менеджер",
       visible: true,
       sortField: "relationshipManager",
       render: (meeting: Meeting) => (
@@ -501,7 +501,7 @@ export default function Meetings() {
         },
         {
           id: "manager",
-          name: "Менеджер по отношениям",
+          name: "Клиентский менеджер",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/managers",
           selectedValues: managerFilter,
@@ -577,7 +577,7 @@ export default function Meetings() {
     },
     {
       id: "manager",
-      name: "Менеджер по отношениям",
+      name: "Клиентский менеджер",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/managers",
       selectedValues: managerFilter,
