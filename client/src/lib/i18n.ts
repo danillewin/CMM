@@ -57,7 +57,7 @@ if (!i18n.isInitialized) {
               research: "Исследование",
               status: "Статус",
               notes: "Заметки",
-              fullText: "Полный текст",
+              fullText: "Отчет в текстовом виде",
               hasGift: "Есть подарок",
               actions: "Действия",
               edit: "Редактировать",

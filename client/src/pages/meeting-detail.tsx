@@ -217,7 +217,7 @@ function MeetingResultsForm({
           name="fullText"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Полный текст</FormLabel>
+              <FormLabel className="text-lg font-medium">Отчет в текстовом виде</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}

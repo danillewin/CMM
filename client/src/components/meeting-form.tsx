@@ -24,6 +24,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
+import { DatePicker } from "@/components/ui/date-picker";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
@@ -165,16 +166,14 @@ export default function MeetingForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      type="text"
-                      placeholder="дд/мм/гг"
-                      value={value instanceof Date ? formatDateForInput(value) : String(value)}
-                      onChange={(e) => {
-                        const parsedDate = parseDateFromInput(e.target.value);
-                        if (parsedDate) {
-                          onChange(parsedDate);
+                    <DatePicker
+                      value={value instanceof Date ? value : undefined}
+                      onChange={(date) => {
+                        if (date) {
+                          onChange(date);
                         }
                       }}
+                      placeholder="дд/мм/гг"
                       className="w-full"
                       {...rest}
                     />
@@ -554,7 +553,7 @@ export default function MeetingForm({
             {/* Full Text Section */}
             <div className="mb-8">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-                Полный текст
+                Отчет в текстовом виде
               </div>
               
               <FormField

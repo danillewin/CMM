@@ -39,6 +39,7 @@ import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
 import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Popover,
   PopoverContent,
@@ -215,17 +216,15 @@ export default function ResearchForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="дд/мм/гг"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => {
-                          const parsedDate = parseDateFromInput(e.target.value);
-                          if (parsedDate) {
-                            field.onChange(parsedDate);
-                            handleFieldChange("dateStart", parsedDate);
+                      <DatePicker
+                        value={field.value}
+                        onChange={(date) => {
+                          if (date) {
+                            field.onChange(date);
+                            handleFieldChange("dateStart", date);
                           }
                         }}
+                        placeholder="дд/мм/гг"
                         className="w-full"
                       />
                     </FormControl>
@@ -244,17 +243,15 @@ export default function ResearchForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="дд/мм/гг"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => {
-                          const parsedDate = parseDateFromInput(e.target.value);
-                          if (parsedDate) {
-                            field.onChange(parsedDate);
-                            handleFieldChange("dateEnd", parsedDate);
+                      <DatePicker
+                        value={field.value}
+                        onChange={(date) => {
+                          if (date) {
+                            field.onChange(date);
+                            handleFieldChange("dateEnd", date);
                           }
                         }}
+                        placeholder="дд/мм/гг"
                         className="w-full"
                       />
                     </FormControl>
