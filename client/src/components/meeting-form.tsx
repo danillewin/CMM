@@ -438,7 +438,7 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Менеджер по отношениям
+                      Клиентский менеджер
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>

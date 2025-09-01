@@ -33,6 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { addWeeks } from "date-fns";
 import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
+import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -669,19 +670,19 @@ export default function Researches() {
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Team</p>
+                    <p className="text-sm font-medium text-gray-500">Команда</p>
                     <p className="text-sm text-gray-900">{research.team}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Researcher</p>
+                    <p className="text-sm font-medium text-gray-500">Исследователь</p>
                     <p className="text-sm text-gray-900">{research.researcher}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Research Type</p>
+                    <p className="text-sm font-medium text-gray-500">Тип исследования</p>
                     <p className="text-sm text-gray-900">{research.researchType || "Interviews"}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Description</p>
+                    <p className="text-sm font-medium text-gray-500">Описание</p>
                     <div className="text-sm text-gray-900 line-clamp-3 prose prose-sm max-w-none">
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
@@ -694,15 +695,15 @@ export default function Researches() {
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-2">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Start Date</p>
+                      <p className="text-sm font-medium text-gray-500">Дата начала</p>
                       <p className="text-sm text-gray-900">
-                        {new Date(research.dateStart).toLocaleDateString()}
+                        {formatDateShort(research.dateStart)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-500">End Date</p>
+                      <p className="text-sm font-medium text-gray-500">Дата окончания</p>
                       <p className="text-sm text-gray-900">
-                        {new Date(research.dateEnd).toLocaleDateString()}
+                        {formatDateShort(research.dateEnd)}
                       </p>
                     </div>
                   </div>

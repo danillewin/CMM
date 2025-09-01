@@ -2986,23 +2986,23 @@ function ResearchDetail() {
           <AlertDialogContent className="bg-white rounded-lg border-0 shadow-lg">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-xl font-semibold">
-                Delete Research
+                Удалить исследование
               </AlertDialogTitle>
               <AlertDialogDescription className="text-gray-600">
-                Are you sure you want to delete this research? This action
-                cannot be undone. If this research has associated meetings, they
+                Вы уверены, что хотите удалить это исследование? Это действие
+                нельзя отменить. If this research has associated meetings, they
                 must be deleted first.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter className="flex-col sm:flex-row gap-2">
               <AlertDialogCancel className="bg-white border border-gray-200 hover:bg-gray-50">
-                Cancel
+                Отмена
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmDelete}
                 className="bg-red-500 hover:bg-red-600 text-white border-0"
               >
-                Delete
+                Удалить
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

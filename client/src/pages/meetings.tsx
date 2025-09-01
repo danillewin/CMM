@@ -23,6 +23,7 @@ import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-
 import { SearchMultiselect } from "@/components/search-multiselect";
 import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
+import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -199,7 +200,7 @@ export default function Meetings() {
       [t("meetings.relationshipManager")]: meeting.relationshipManager,
       [t("meetings.recruiter")]: meeting.salesPerson,
       [t("meetings.researcher")]: meeting.researcher || '—',
-      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.date")]: formatDateShort(meeting.date),
       [t("meetings.status")]: meeting.status,
       [t("meetings.research")]: meeting.researchName || '—'
     }));
@@ -225,7 +226,7 @@ export default function Meetings() {
       [t("meetings.relationshipManager")]: meeting.relationshipManager,
       [t("meetings.recruiter")]: meeting.salesPerson,
       [t("meetings.researcher")]: meeting.researcher || '—',
-      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
+      [t("meetings.date")]: formatDateShort(meeting.date),
       [t("meetings.status")]: meeting.status,
       [t("meetings.research")]: meeting.researchName || '—'
     }));

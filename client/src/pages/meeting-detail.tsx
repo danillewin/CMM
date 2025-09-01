@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+import { formatDateShort } from "@/lib/date-utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MDEditor from '@uiw/react-md-editor';
@@ -511,12 +512,8 @@ export default function MeetingDetail() {
               
               {/* Meeting date with Notion-like tag styling */}
               {!isNew && meeting?.date && (
-                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium whitespace-nowrap" title={new Date(meeting.date).toLocaleDateString()}>
-                  {new Date(meeting.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium whitespace-nowrap" title={formatDateShort(meeting.date)}>
+                  {formatDateShort(meeting.date)}
                 </div>
               )}
               
