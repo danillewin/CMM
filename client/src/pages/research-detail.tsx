@@ -2271,7 +2271,7 @@ function QuestionSection({
             className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
-            {t("research.addQuestion")}
+            Добавить вопрос
           </Button>
         </div>
       </div>
