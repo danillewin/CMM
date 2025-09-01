@@ -43,6 +43,22 @@ type ViewMode = "table" | "cards";
 
 export default function Researches() {
   const { t } = useTranslation();
+
+  // Function to translate research type from English to Russian
+  const translateResearchType = (researchType: string): string => {
+    const typeMap: { [key: string]: string } = {
+      "CATI": "cati",
+      "CAWI": "cawi", 
+      "Moderated Usability": "moderatedUsability",
+      "Unmoderated Usability": "unmoderatedUsability",
+      "Co-creation": "coCreation",
+      "Interviews": "interviews",
+      "Desk Research": "deskResearch"
+    };
+    
+    const translationKey = typeMap[researchType];
+    return translationKey ? t(`researchTypes.${translationKey}`) : researchType;
+  };
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
@@ -679,7 +695,7 @@ export default function Researches() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Тип исследования</p>
-                    <p className="text-sm text-gray-900">{research.researchType || "Interviews"}</p>
+                    <p className="text-sm text-gray-900">{translateResearchType(research.researchType || "Interviews")}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-500">Описание</p>
