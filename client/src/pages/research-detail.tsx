@@ -443,9 +443,7 @@ function ResearchBriefForm({
               <FormControl>
                 <Textarea
                   rows={3}
-                  placeholder={t(
-                    "research.customerSegmentDescriptionPlaceholder",
-                  )}
+                  placeholder="Опишите целевой сегмент клиентов"
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
@@ -646,9 +644,7 @@ function ResearchBriefForm({
                     <FormControl>
                       <Textarea
                         rows={3}
-                        placeholder={t(
-                          "research.researchHypothesesPlaceholder",
-                        )}
+                        placeholder="Введите гипотезы исследования"
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -805,9 +801,7 @@ function ResearchBriefForm({
                     <FormControl>
                       <Textarea
                         rows={4}
-                        placeholder={t(
-                          "research.additionalMaterialsPlaceholder",
-                        )}
+                        placeholder="Укажите дополнительные материалы"
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -1532,7 +1526,6 @@ interface QuestionItemProps {
     subSubblockIndex?: number,
   ) => void;
   level: number; // 1 for main block, 2 for subblock, 3 for sub-subblock
-  t: any;
 }
 
 function QuestionItem({
@@ -1545,7 +1538,6 @@ function QuestionItem({
   updateQuestion,
   removeQuestion,
   level,
-  t,
 }: QuestionItemProps) {
   const [showComment, setShowComment] = useState(!!question.comment);
   
@@ -2036,7 +2028,7 @@ function QuestionSection({
                         updateQuestion={updateQuestion}
                         removeQuestion={removeQuestion}
                         level={1}
-                        t={t}
+
                       />
                     );
                   } else {
@@ -2163,7 +2155,7 @@ function QuestionSection({
                         updateQuestion={updateQuestion}
                         removeQuestion={removeQuestion}
                         level={2}
-                        t={t}
+
                       />
                     );
                   } else {
