@@ -46,47 +46,37 @@ export default function Researches() {
 
   // Function to translate research type from English to Russian
   const translateResearchType = (researchType: string): string => {
+    if (!researchType) return "";
+    
     // Normalize the research type string to handle variations
     const normalizedType = researchType.toLowerCase().trim();
     
-    // Map all possible variations to translation keys
-    const typeMap: { [key: string]: string } = {
-      // CATI variations
-      "cati": "cati",
-      "cati (телефонный опрос)": "cati",
-      
-      // CAWI variations
-      "cawi": "cawi", 
-      "cawi (онлайн опрос)": "cawi",
-      
-      // Moderated Usability variations
-      "moderated usability": "moderatedUsability",
-      "moderated usability testing": "moderatedUsability",
-      "модерируемое тестирование юзабилити": "moderatedUsability",
-      
-      // Unmoderated Usability variations
-      "unmoderated usability": "unmoderatedUsability",
-      "unmoderated usability testing": "unmoderatedUsability",
-      "немодерируемое тестирование юзабилити": "unmoderatedUsability",
-      
-      // Co-creation variations
-      "co-creation": "coCreation",
-      "cocreation": "coCreation",
-      "сессия совместного создания": "coCreation",
-      
-      // Interviews variations
-      "interviews": "interviews",
-      "interview": "interviews",
-      "интервью": "interviews",
-      
-      // Desk Research variations
-      "desk research": "deskResearch",
-      "deskresearch": "deskResearch",
-      "кабинетное исследование": "deskResearch"
-    };
+    // Check if type contains specific keywords to map to correct translation
+    if (normalizedType.includes("cati") || normalizedType.includes("телефонный")) {
+      return t("researchTypes.cati");
+    }
+    if (normalizedType.includes("cawi") || normalizedType.includes("онлайн") || normalizedType.includes("online")) {
+      return t("researchTypes.cawi");
+    }
+    if (normalizedType.includes("moderated usability") || normalizedType.includes("модерируемое")) {
+      return t("researchTypes.moderatedUsability");
+    }
+    if (normalizedType.includes("unmoderated usability") || normalizedType.includes("немодерируемое")) {
+      return t("researchTypes.unmoderatedUsability");
+    }
+    if (normalizedType.includes("co-creation") || normalizedType.includes("cocreation") || 
+        normalizedType.includes("совместного создания")) {
+      return t("researchTypes.coCreation");
+    }
+    if (normalizedType.includes("interview") || normalizedType.includes("интервью")) {
+      return t("researchTypes.interviews");
+    }
+    if (normalizedType.includes("desk research") || normalizedType.includes("кабинетное")) {
+      return t("researchTypes.deskResearch");
+    }
     
-    const translationKey = typeMap[normalizedType];
-    return translationKey ? t(`researchTypes.${translationKey}`) : researchType;
+    // Fallback - return original if no match found
+    return researchType;
   };
   const [search, setSearch] = useState("");
   const [researcherFilter, setResearcherFilter] = useState<string[]>([]);
