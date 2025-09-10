@@ -27,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from "@/hooks/use-toast";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -331,14 +332,12 @@ export default function Researches() {
       name: t("researches.description"),
       visible: false,
       render: (research: ResearchTableItem) => (
-        <div className="line-clamp-2 prose prose-sm max-w-none">
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}
-            disallowedElements={['script', 'iframe', 'object', 'embed', 'form', 'input', 'button']}
-            unwrapDisallowed={true}
-          >
-            {research.description}
-          </ReactMarkdown>
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={research.description} 
+            className="line-clamp-2 text-sm"
+            maxLength={200}
+          />
         </div>
       )
     }
