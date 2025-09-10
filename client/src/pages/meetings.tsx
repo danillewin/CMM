@@ -26,6 +26,7 @@ import ResearcherFilterManager from "@/components/researcher-filter-manager";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 export default function Meetings() {
   const { t } = useTranslation();
@@ -459,13 +460,27 @@ export default function Meetings() {
       name: t("meetings.notes"),
       visible: false,
       render: (meeting: Meeting) => (
-        <span className="truncate max-w-[300px]">
-          {meeting.notes ? (
-            <span className="text-gray-500 italic">{t("meetings.notes")}</span>
-          ) : (
-            <span className="text-gray-400">{t("meetings.noMeetings")}</span>
-          )}
-        </span>
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.notes} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
+      )
+    },
+    {
+      id: "fullText",
+      name: "Full Text",
+      visible: false,
+      render: (meeting: Meeting) => (
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.fullText} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
       )
     }
   ], [t, meetings, updateStatusMutation]); // Dependencies for useMemo
