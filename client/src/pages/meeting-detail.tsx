@@ -248,6 +248,34 @@ export default function MeetingDetail() {
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
   const id = isNew ? null : parseInt(params.id);
+
+  // Completely prevent any /api/meetings queries (without ID) on this page
+  useEffect(() => {
+    // Cancel any queries to the general /api/meetings endpoint
+    queryClient.cancelQueries({ 
+      queryKey: ['/api/meetings'],
+      exact: false,
+      predicate: (query) => {
+        const queryKey = query.queryKey;
+        // Cancel if it's exactly ['/api/meetings'] or starts with ['/api/meetings'] but not ['/api/meetings', id]
+        return Array.isArray(queryKey) && 
+               queryKey[0] === '/api/meetings' && 
+               (queryKey.length === 1 || (queryKey.length > 1 && typeof queryKey[1] !== 'number'));
+      }
+    });
+    
+    // Also remove any observers for the general meetings endpoint
+    queryClient.removeQueries({ 
+      queryKey: ['/api/meetings'],
+      exact: false,
+      predicate: (query) => {
+        const queryKey = query.queryKey;
+        return Array.isArray(queryKey) && 
+               queryKey[0] === '/api/meetings' && 
+               (queryKey.length === 1 || (queryKey.length > 1 && typeof queryKey[1] !== 'number'));
+      }
+    });
+  }, [location]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMeetings, setDuplicateMeetings] = useState<Meeting[]>([]);
@@ -295,8 +323,7 @@ export default function MeetingDetail() {
   // No need to pre-load all researches
   const researches: Research[] = [];
   
-  // For duplicate checking - we'll fetch imperatively when needed
-  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
+  // Duplicate checking completely removed to avoid any /api/meetings requests
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
@@ -394,61 +421,15 @@ export default function MeetingDetail() {
     },
   });
   
-  const handleCnumChange = async (cnum: string) => {
-    if (!isNew) return; // Only check for duplicates when creating a new meeting
-    if (!cnum) return; // Don't check empty values
-    
-    setIsCheckingDuplicates(true);
-    try {
-      // Fetch meetings imperatively for duplicate checking
-      const response = await apiRequest("GET", "/api/meetings");
-      if (response.ok) {
-        const data = await response.json();
-        const meetings = data.data || data; // Handle both formats
-        const duplicates = meetings.filter((m: Meeting) => m.cnum === cnum);
-        if (duplicates.length > 0) {
-          // Store duplicates and show the dialog
-          setDuplicateMeetings(duplicates);
-          setShowDuplicateDialog(true);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking for duplicates:', error);
-    } finally {
-      setIsCheckingDuplicates(false);
-    }
-  };
   
-  const handleSubmit = async (formData: InsertMeeting) => {
+  const handleSubmit = (formData: InsertMeeting) => {
     if (!isNew && id) {
       // For update, we need to include the ID
       const updateData = { ...formData, id } as MeetingWithId;
       updateMutation.mutate(updateData);
     } else {
-      // Check for duplicates again when submitting
-      try {
-        const response = await apiRequest("GET", "/api/meetings");
-        if (response.ok) {
-          const data = await response.json();
-          const meetings = data.data || data; // Handle both formats
-          const duplicates = meetings.filter((m: Meeting) => m.cnum === formData.cnum);
-          if (duplicates.length > 0) {
-            // Store duplicates and pending form data, then show the dialog
-            setDuplicateMeetings(duplicates);
-            setPendingFormData(formData);
-            setShowDuplicateDialog(true);
-          } else {
-            createMutation.mutate(formData);
-          }
-        } else {
-          // If we can't check duplicates, proceed with creation
-          createMutation.mutate(formData);
-        }
-      } catch (error) {
-        console.error('Error checking for duplicates on submit:', error);
-        // If we can't check duplicates, proceed with creation
-        createMutation.mutate(formData);
-      }
+      // No duplicate checking - just create the meeting
+      createMutation.mutate(formData);
     }
   };
   
@@ -589,8 +570,8 @@ export default function MeetingDetail() {
                   isLoading={isPending}
                   isCreating={true}
                   onCancel={handleCancel}
-                  onCnumChange={handleCnumChange}
-                  meetings={[]} // No longer needed for duplicate checking
+                  onCnumChange={() => {}} // No duplicate checking
+                  meetings={[]} // No meetings data needed
                   onTempDataUpdate={handleTempDataUpdate}
                   selectedJtbds={selectedJtbdsForNewMeeting}
                   onJtbdsChange={setSelectedJtbdsForNewMeeting}
