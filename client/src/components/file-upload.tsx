@@ -159,7 +159,7 @@ export default function FileUpload({ meetingId, onUploadComplete, isProcessing, 
         });
       }, 300);
 
-      const response = await apiRequest("POST", `/api/meetings/${meetingId}/attachments`, formData);
+      const response = await apiRequest("POST", `/api/meetings/${meetingId}/files`, formData);
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
