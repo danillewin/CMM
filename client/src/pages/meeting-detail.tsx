@@ -243,6 +243,188 @@ function MeetingResultsForm({
   );
 }
 
+// Types for Guide structure (from research-detail.tsx)
+interface Question {
+  id: string;
+  text: string;
+  comment?: string;
+  order: number;
+}
+
+interface Subblock {
+  id: string;
+  name: string;
+  questions: Question[];
+  subblocks: Subblock[];
+  order: number;
+}
+
+interface QuestionBlock {
+  id: string;
+  name: string;
+  questions: Question[];
+  subblocks: Subblock[];
+  order: number;
+}
+
+// Helper function to parse question blocks (from research-detail.tsx)
+const parseQuestionBlocks = (questionsJson: string | null): QuestionBlock[] => {
+  if (!questionsJson || typeof questionsJson !== "string") return [];
+  
+  try {
+    const parsed = JSON.parse(questionsJson);
+    if (!Array.isArray(parsed)) return [];
+    
+    return parsed.map((item: any, blockIndex: number) => {
+      const questions = (item.questions || []).map((q: any, qIndex: number) => ({
+        id: q.id || Math.random().toString(),
+        text: q.text || '',
+        comment: q.comment || '',
+        order: q.order !== undefined ? q.order : qIndex,
+      }));
+      
+      const subblocks = (item.subblocks || []).map((s: any, sIndex: number) => ({
+        id: s.id || Math.random().toString(),
+        name: s.name || '',
+        questions: (s.questions || []).map((sq: any, sqIndex: number) => ({
+          id: sq.id || Math.random().toString(),
+          text: sq.text || '',
+          comment: sq.comment || '',
+          order: sq.order !== undefined ? sq.order : sqIndex,
+        })),
+        subblocks: (s.subblocks || []).map((ss: any, ssIndex: number) => ({
+          id: ss.id || Math.random().toString(),
+          name: ss.name || '',
+          questions: (ss.questions || []).map((ssq: any, ssqIndex: number) => ({
+            id: ssq.id || Math.random().toString(),
+            text: ssq.text || '',
+            comment: ssq.comment || '',
+            order: ssq.order !== undefined ? ssq.order : ssqIndex,
+          })),
+          order: ss.order !== undefined ? ss.order : (s.questions || []).length + ssIndex,
+        })),
+        order: s.order !== undefined ? s.order : questions.length + sIndex,
+      }));
+      
+      return {
+        id: item.id || Math.random().toString(),
+        name: item.name || '',
+        questions,
+        subblocks,
+        order: item.order !== undefined ? item.order : blockIndex,
+      };
+    });
+  } catch {
+    return [];
+  }
+};
+
+// Read-only component to display questions recursively
+function ReadOnlyQuestions({ questions }: { questions: Question[] }) {
+  if (!questions || questions.length === 0) return null;
+
+  return (
+    <div className="ml-4 space-y-2">
+      {questions
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((question, idx) => (
+          <div key={question.id || idx} className="space-y-1">
+            <p className="text-sm text-gray-700">{question.text}</p>
+            {question.comment && (
+              <p className="text-xs text-gray-500 italic ml-2">{question.comment}</p>
+            )}
+          </div>
+        ))}
+    </div>
+  );
+}
+
+// Read-only component to display subblocks recursively
+function ReadOnlySubblocks({ subblocks }: { subblocks: Subblock[] }) {
+  if (!subblocks || subblocks.length === 0) return null;
+
+  return (
+    <div className="ml-4 space-y-4">
+      {subblocks
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((subblock, idx) => (
+          <div key={subblock.id || idx} className="space-y-2">
+            <h5 className="font-medium text-gray-800 text-sm">{subblock.name}</h5>
+            <ReadOnlyQuestions questions={subblock.questions} />
+            <ReadOnlySubblocks subblocks={subblock.subblocks} />
+          </div>
+        ))}
+    </div>
+  );
+}
+
+// Read-only Guide tab component
+function MeetingGuideTab({ research }: { research?: Research }) {
+  if (!research) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        No research linked to this meeting or research guide not available.
+      </div>
+    );
+  }
+
+  const guideMainQuestions = parseQuestionBlocks(
+    (research.guideMainQuestions as unknown as string) || null
+  );
+
+  return (
+    <div className="space-y-8">
+      {/* Introductory Text */}
+      {research.guideIntroText && (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Introductory Text</h3>
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {research.guideIntroText}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+      {/* Main Guide Content */}
+      {research.guide && (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">Guide</h3>
+          <div className="prose prose-sm max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {research.guide}
+            </ReactMarkdown>
+          </div>
+        </div>
+      )}
+
+      {/* Question Blocks */}
+      {guideMainQuestions && guideMainQuestions.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Questions</h3>
+          <div className="space-y-6">
+            {guideMainQuestions
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((block, idx) => (
+                <div key={block.id || idx} className="space-y-3 border-l-4 border-blue-200 pl-4">
+                  <h4 className="font-medium text-gray-900">{block.name}</h4>
+                  <ReadOnlyQuestions questions={block.questions} />
+                  <ReadOnlySubblocks subblocks={block.subblocks} />
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {!research.guideIntroText && !research.guide && (!guideMainQuestions || guideMainQuestions.length === 0) && (
+        <div className="text-center py-8 text-gray-500">
+          No guide content available for this research.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MeetingDetail() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
@@ -593,12 +775,18 @@ export default function MeetingDetail() {
             ) : (
               // For existing meetings, show tabbed interface
               <Tabs defaultValue="info" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-50 p-1 rounded-lg">
+                <TabsList className="grid w-full grid-cols-3 mb-8 bg-gray-50 p-1 rounded-lg">
                   <TabsTrigger 
                     value="info" 
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
                     Info
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="guide" 
+                    className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
+                  >
+                    Guide
                   </TabsTrigger>
                   <TabsTrigger 
                     value="results" 
@@ -615,6 +803,17 @@ export default function MeetingDetail() {
                     isLoading={isPending}
                     onTempDataUpdate={handleTempDataUpdate}
                   />
+                </TabsContent>
+
+                <TabsContent value="guide" className="mt-0">
+                  {isResearchLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      <span>Loading guide content...</span>
+                    </div>
+                  ) : (
+                    <MeetingGuideTab research={research} />
+                  )}
                 </TabsContent>
 
                 <TabsContent value="results" className="mt-0">
