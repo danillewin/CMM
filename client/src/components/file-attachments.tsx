@@ -39,7 +39,13 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   // Query for file attachments with conditional real-time updates
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
     queryKey: ['/api/meetings', meetingId, 'attachments'],
-    queryFn: () => fetch(`/api/meetings/${meetingId}/attachments`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/meetings/${meetingId}/attachments`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch attachments: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: !!meetingId,
     // Poll for updates when there's active processing
     refetchInterval: (query) => {
@@ -58,7 +64,13 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   // Query for transcription summary - only poll when there's active processing
   const { data: summary, refetch: refetchSummary } = useQuery<TranscriptionSummary>({
     queryKey: ['/api/meetings', meetingId, 'transcription-summary'],
-    queryFn: () => fetch(`/api/meetings/${meetingId}/transcription-summary`).then(res => res.json()),
+    queryFn: async () => {
+      const response = await fetch(`/api/meetings/${meetingId}/transcription-summary`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch transcription summary: ${response.statusText}`);
+      }
+      return response.json();
+    },
     enabled: !!meetingId,
     // Only poll when there are active transcriptions, same as attachments
     refetchInterval: (query) => {
@@ -227,7 +239,8 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     );
   }
 
-  if (error) {
+  // Don't show error if we have data - this fixes stale error states
+  if (error && !attachments) {
     return (
       <Card className="w-full">
         <CardContent className="py-8">
@@ -235,6 +248,10 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               Failed to load file attachments. Please try again.
+              <br />
+              <small className="text-gray-500 mt-1 block">
+                Error: {error.message}
+              </small>
             </AlertDescription>
           </Alert>
         </CardContent>
