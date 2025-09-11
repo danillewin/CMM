@@ -228,6 +228,23 @@ export type ResearchJtbd = typeof researchJtbds.$inferSelect;
 export type MeetingJtbd = typeof meetingJtbds.$inferSelect;
 
 // Add custom filters table
+// Meeting file attachments table
+export const meetingAttachments = pgTable("meeting_attachments", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").references(() => meetings.id, { onDelete: 'cascade' }).notNull(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  objectPath: text("object_path").notNull(), // Path in object storage
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+  transcriptionStatus: text("transcription_status").notNull().default("pending"), // pending, in_progress, completed, failed
+  transcriptionText: text("transcription_text"), // New field for transcription separate from full_text
+  transcriptionRetryCount: integer("transcription_retry_count").notNull().default(0),
+  lastTranscriptionAttempt: timestamp("last_transcription_attempt"),
+  errorMessage: text("error_message"), // Store error message for failed transcriptions
+});
+
 export const customFilters = pgTable("custom_filters", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -238,6 +255,24 @@ export const customFilters = pgTable("custom_filters", {
   shared: boolean("shared").notNull().default(false), // Whether filter is shared with team
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Meeting attachment schema
+export const insertMeetingAttachmentSchema = createInsertSchema(meetingAttachments).omit({
+  id: true,
+  uploadedAt: true,
+  transcriptionRetryCount: true,
+  lastTranscriptionAttempt: true,
+}).extend({
+  meetingId: z.number({ required_error: "Meeting ID is required" }),
+  fileName: z.string().min(1, "File name is required"),
+  originalName: z.string().min(1, "Original name is required"),
+  fileSize: z.number().positive("File size must be positive"),
+  mimeType: z.string().min(1, "MIME type is required"),
+  objectPath: z.string().min(1, "Object path is required"),
+  transcriptionStatus: z.enum(["pending", "in_progress", "completed", "failed"]).default("pending"),
+  transcriptionText: z.string().optional(),
+  errorMessage: z.string().optional(),
 });
 
 // Custom filter schema
@@ -253,6 +288,9 @@ export const insertCustomFilterSchema = createInsertSchema(customFilters, {
   createdAt: true,
   updatedAt: true,
 });
+
+export type MeetingAttachment = typeof meetingAttachments.$inferSelect;
+export type InsertMeetingAttachment = z.infer<typeof insertMeetingAttachmentSchema>;
 
 export type CustomFilter = typeof customFilters.$inferSelect;
 export type InsertCustomFilter = z.infer<typeof insertCustomFilterSchema>;
