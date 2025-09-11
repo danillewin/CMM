@@ -16,6 +16,7 @@ import {
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
 import { ObjectStorageService } from "./objectStorage";
+import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 
 // Database initialization is handled by the storage layer
 
@@ -879,6 +880,12 @@ export function registerRoutes(app: Express): Server {
         files: uploadedAttachments
       });
 
+      // Start async transcription processing for uploaded files
+      if (uploadedAttachments.length > 0) {
+        asyncTranscriptionProcessor.startAsyncTranscriptionForMeeting(meetingId);
+        console.log(`Started async transcription processing for meeting ${meetingId}`);
+      }
+
     } catch (error) {
       console.error("File upload error:", error);
       res.status(500).json({ 
@@ -965,17 +972,13 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "File not found" });
       }
 
-      // Update status to in_progress
-      await storage.updateMeetingAttachment(fileId, {
-        transcriptionStatus: 'in_progress'
-      });
+      // Start async transcription processing
+      asyncTranscriptionProcessor.processFileTranscription(fileId);
 
-      // TODO: Implement async transcription processing
-      // For now, return a response indicating transcription has started
       res.json({
         message: "Transcription started",
         fileId,
-        status: "in_progress"
+        status: "processing"
       });
 
     } catch (error) {
@@ -1009,6 +1012,86 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching transcription status:", error);
       res.status(500).json({ message: "Failed to fetch transcription status" });
+    }
+  });
+
+  // Retry failed transcription for a specific file
+  app.post("/api/files/:fileId/transcription/retry", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const success = await asyncTranscriptionProcessor.retryFailedTranscription(fileId);
+      
+      if (success) {
+        res.json({
+          message: "Transcription retry started",
+          fileId,
+          status: "retrying"
+        });
+      } else {
+        res.status(400).json({
+          message: "Cannot retry transcription for this file",
+          reason: "File is not in failed or pending state"
+        });
+      }
+
+    } catch (error) {
+      console.error("Error retrying transcription:", error);
+      res.status(500).json({ message: "Failed to retry transcription" });
+    }
+  });
+
+  // Get transcription summary for all files in a meeting
+  app.get("/api/meetings/:meetingId/transcription-summary", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      const summary = await asyncTranscriptionProcessor.getTranscriptionSummary(meetingId);
+      res.json(summary);
+
+    } catch (error) {
+      console.error("Error fetching transcription summary:", error);
+      res.status(500).json({ message: "Failed to fetch transcription summary" });
+    }
+  });
+
+  // Start/restart transcription for all files in a meeting
+  app.post("/api/meetings/:meetingId/transcription/start", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      // Start async processing for all pending files
+      asyncTranscriptionProcessor.startAsyncTranscriptionForMeeting(meetingId);
+
+      res.json({
+        message: "Transcription processing started for all pending files",
+        meetingId
+      });
+
+    } catch (error) {
+      console.error("Error starting meeting transcription:", error);
+      res.status(500).json({ message: "Failed to start meeting transcription" });
     }
   });
 
