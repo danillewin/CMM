@@ -2,11 +2,30 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Meeting, MeetingStatus, Research, InsertMeeting } from "@shared/schema";
+
+// Types for summarization display
+interface SummarizationResponseBlock {
+  blockName: string;
+  blockElements: Array<SummarizationResponseBlock | SummarizationResponseQuestion>;
+  blockSummary: string;
+  question?: string;
+  answer?: string;
+}
+
+interface SummarizationResponseQuestion {
+  question: string;
+  answer: string;
+}
+
+interface SummarizationResponse {
+  items: SummarizationResponseBlock[];
+  summary: string;
+}
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Loader2, ExternalLink, ExternalLinkIcon } from "lucide-react";
+import { ArrowLeft, Loader2, ExternalLink, ExternalLinkIcon, ChevronDown, ChevronRight, MessageSquare, FileText, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +51,8 @@ import remarkGfm from 'remark-gfm';
 import MDEditor from '@uiw/react-md-editor';
 import DOMPurify from 'dompurify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema } from "@shared/schema";
@@ -48,6 +69,133 @@ import FileAttachments from "@/components/file-attachments";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
+
+// Component to render a single question with answer
+function SummarizationQuestion({ question, answer }: SummarizationResponseQuestion) {
+  return (
+    <div className="border-l-4 border-blue-200 pl-4 py-2 bg-gray-50 rounded-r-md" data-testid="summarization-question">
+      <div className="flex items-start gap-2 mb-2">
+        <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+        <p className="font-medium text-gray-800 text-sm" data-testid="question-text">{question}</p>
+      </div>
+      {answer && (
+        <div className="ml-6 text-sm text-gray-600 bg-white p-2 rounded border" data-testid="answer-text">
+          {answer}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Component to render a single block with nested structure
+function SummarizationBlock({ block, level = 0 }: { block: SummarizationResponseBlock; level?: number }) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const isRootLevel = level === 0;
+  const hasElements = block.blockElements && block.blockElements.length > 0;
+  
+  // Determine if this is a question block vs a nested block
+  const isQuestionBlock = 'question' in block && block.question;
+  
+  // Use static classes instead of dynamic ones for Tailwind JIT
+  const indentClass = level === 1 ? 'ml-4' : level === 2 ? 'ml-8' : level === 3 ? 'ml-12' : '';
+  const cardClass = isRootLevel 
+    ? "border border-gray-200 rounded-lg p-4 mb-4 bg-white shadow-sm" 
+    : "border-l-2 border-gray-300 pl-3 py-2 mb-2 bg-gray-50/50 rounded-r";
+
+  return (
+    <div className={`${cardClass} ${indentClass}`} data-testid={`summarization-block-${level}`}>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded transition-colors" data-testid="block-toggle">
+            {hasElements ? (
+              isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />
+            ) : (
+              <FileText className="h-4 w-4 text-gray-400" />
+            )}
+            <h4 className={`${isRootLevel ? 'text-lg font-semibold' : 'text-sm font-medium'} text-gray-800`} data-testid="block-name">
+              {block.blockName}
+            </h4>
+            {hasElements && (
+              <Badge variant="secondary" className="text-xs" data-testid="block-count">
+                {block.blockElements.length} {block.blockElements.length === 1 ? 'item' : 'items'}
+              </Badge>
+            )}
+          </CollapsibleTrigger>
+        </div>
+
+        {/* Block question (if this block has a direct question) */}
+        {isQuestionBlock && (
+          <div className="mt-3">
+            <SummarizationQuestion question={block.question!} answer={block.answer || ""} />
+          </div>
+        )}
+
+        {/* Block elements (nested content) */}
+        <CollapsibleContent className="space-y-2 mt-3" data-testid="block-elements">
+          {block.blockElements.map((element, index) => {
+            if ('question' in element && 'answer' in element && !('blockName' in element)) {
+              // It's a question element - ensure it matches SummarizationResponseQuestion type
+              const questionElement = element as SummarizationResponseQuestion;
+              return <SummarizationQuestion key={index} {...questionElement} />;
+            } else {
+              // It's a nested block
+              const blockElement = element as SummarizationResponseBlock;
+              return <SummarizationBlock key={index} block={blockElement} level={level + 1} />;
+            }
+          })}
+        </CollapsibleContent>
+
+        {/* Block summary */}
+        {block.blockSummary && (
+          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md" data-testid="block-summary">
+            <div className="flex items-start gap-2">
+              <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-xs font-medium text-blue-800 mb-1">Block Summary</p>
+                <p className="text-sm text-blue-700">{block.blockSummary}</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </Collapsible>
+    </div>
+  );
+}
+
+// Main component to display complete summarization result
+function SummarizationDisplay({ result }: { result: SummarizationResponse }) {
+  return (
+    <div className="space-y-6" data-testid="summarization-display">
+      {/* Overall Summary */}
+      {result.summary && (
+        <Card className="border-green-200 bg-green-50" data-testid="overall-summary">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold text-green-800 mb-2">Meeting Summary</h3>
+                <p className="text-sm text-green-700" data-testid="summary-text">{result.summary}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Detailed Blocks */}
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2" data-testid="detailed-analysis-title">
+          <FileText className="h-5 w-5" />
+          Detailed Interview Analysis
+        </h3>
+        <div className="space-y-2" data-testid="analysis-blocks">
+          {result.items.map((item, index) => (
+            <SummarizationBlock key={index} block={item} level={0} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Component for Meeting Info tab (all fields except notes and fullText)
 function MeetingInfoForm({ 
@@ -128,6 +276,7 @@ function MeetingResultsForm({
         notes: data.notes,
         fullText: data.fullText,
         hasGift: (meeting.hasGift as "yes" | "no") || "no",
+        summarizationStatus: meeting.summarizationStatus as any || "not_started",
       });
     }
   };
@@ -232,6 +381,52 @@ function MeetingResultsForm({
             </FormItem>
           )}
         />
+
+        {/* Summarization Results Section */}
+        {meeting?.id && (
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              AI Interview Analysis
+            </h3>
+            
+            {/* Summarization Status */}
+            <div className="mb-4">
+              {(!meeting.summarizationStatus || meeting.summarizationStatus === 'not_started') && (
+                <div className="flex items-center gap-2 text-gray-600 bg-gray-50 p-3 rounded-md" data-testid="summarization-not-started">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">Analysis will begin automatically after all files are transcribed</span>
+                </div>
+              )}
+              
+              {meeting.summarizationStatus === 'in_progress' && (
+                <div className="flex items-center gap-2 text-blue-600 bg-blue-50 p-3 rounded-md" data-testid="summarization-in-progress">
+                  <Clock className="h-4 w-4 animate-pulse" />
+                  <span className="text-sm">AI analysis in progress...</span>
+                </div>
+              )}
+              
+              {meeting.summarizationStatus === 'failed' && (
+                <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-md" data-testid="summarization-failed">
+                  <XCircle className="h-4 w-4" />
+                  <span className="text-sm">Analysis failed. Please contact support if this issue persists.</span>
+                </div>
+              )}
+              
+              {meeting.summarizationStatus === 'completed' && meeting.summarizationResult && (
+                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-md mb-4" data-testid="summarization-completed">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm">AI analysis completed successfully</span>
+                </div>
+              )}
+            </div>
+
+            {/* Display summarization results when completed */}
+            {(meeting as any).summarizationStatus === 'completed' && (meeting as any).summarizationResult && (
+              <SummarizationDisplay result={(meeting as any).summarizationResult as SummarizationResponse} />
+            )}
+          </div>
+        )}
         
         <Button type="submit" disabled={isLoading || isProcessing}>
           {isLoading || isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

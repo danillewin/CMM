@@ -27,6 +27,30 @@ interface SummarizationMessage {
   script: SummarizationScript[];
 }
 
+// Types for Kafka summarization response
+interface SummarizationResponseBlock {
+  blockName: string;
+  blockElements: Array<SummarizationResponseBlock | SummarizationResponseQuestion>;
+  blockSummary: string;
+  question?: string;
+  answer?: string;
+}
+
+interface SummarizationResponseQuestion {
+  question: string;
+  answer: string;
+}
+
+interface SummarizationResponse {
+  items: SummarizationResponseBlock[];
+  summary: string;
+}
+
+interface SummarizationResponseMessage {
+  meetingId: number;
+  result: SummarizationResponse;
+}
+
 // Parse broker list - node-rdkafka compatible
 const parseBrokers = (brokerString: string): string[] => {
   return brokerString.split(',').map(broker => broker.trim()).filter(broker => broker.length > 0);
@@ -53,11 +77,14 @@ const SSL_ENDPOINT_IDENTIFICATION_ALGORITHM = process.env.SSL_ENDPOINT_IDENTIFIC
 const MEETINGS_TOPIC = 'completed-meetings';
 const RESEARCHES_TOPIC = 'completed-researches';
 const SUMMARIZATION_TOPIC = 'meeting-summarization';
+const SUMMARIZATION_RESPONSE_TOPIC = 'meeting-summarization-response';
 
 class KafkaService {
   private kafka: Kafka | null = null;
   private producer: Producer | null = null;
+  private consumer: any = null;
   private isConnected = false;
+  private isConsumerRunning = false;
 
   constructor() {
     if (!KAFKA_ENABLED) {
@@ -169,17 +196,28 @@ class KafkaService {
       idempotent: true,
       transactionTimeout: 30000,
     });
+
+    // Configure consumer
+    this.consumer = this.kafka.consumer({
+      groupId: `${KAFKA_CLIENT_ID}-summarization-consumer`,
+      sessionTimeout: 30000,
+      heartbeatInterval: 3000,
+    });
     
     this.initialize();
   }
 
   private async initialize() {
-    if (!this.producer || !KAFKA_ENABLED) return;
+    if (!this.producer || !this.consumer || !KAFKA_ENABLED) return;
 
     try {
       await this.producer.connect();
+      await this.consumer.connect();
       this.isConnected = true;
-      console.log('Kafka producer connected successfully (node-rdkafka compatible configuration)');
+      console.log('Kafka producer and consumer connected successfully (node-rdkafka compatible configuration)');
+      
+      // Start consuming summarization responses
+      this.startSummarizationResponseConsumer();
     } catch (error) {
       console.error('Failed to connect to Kafka:', error);
       this.isConnected = false;
@@ -383,16 +421,6 @@ class KafkaService {
     }
   }
 
-  async disconnect() {
-    if (this.producer && this.isConnected) {
-      try {
-        await this.producer.disconnect();
-        console.log('Kafka producer disconnected');
-      } catch (error) {
-        console.error('Error disconnecting Kafka producer:', error);
-      }
-    }
-  }
 
   isEnabled(): boolean {
     return KAFKA_ENABLED;
@@ -614,6 +642,137 @@ class KafkaService {
       } catch (updateError) {
         console.error('Failed to update meeting summarization status to failed:', updateError);
       }
+    }
+  }
+
+  /**
+   * Start consuming summarization responses
+   */
+  private async startSummarizationResponseConsumer() {
+    if (!this.consumer || !KAFKA_ENABLED || this.isConsumerRunning) return;
+
+    try {
+      await this.consumer.subscribe({ topic: SUMMARIZATION_RESPONSE_TOPIC, fromBeginning: false });
+      
+      this.isConsumerRunning = true;
+      console.log(`Started consuming from topic: ${SUMMARIZATION_RESPONSE_TOPIC}`);
+
+      await this.consumer.run({
+        eachMessage: async ({ topic, partition, message }: { topic: string; partition: number; message: any }) => {
+          try {
+            if (topic === SUMMARIZATION_RESPONSE_TOPIC && message.value) {
+              const responseData = JSON.parse(message.value.toString()) as SummarizationResponseMessage;
+              await this.handleSummarizationResponse(responseData);
+            }
+          } catch (error) {
+            console.error('Error processing summarization response message:', error);
+          }
+        },
+      });
+    } catch (error) {
+      console.error('Error starting summarization response consumer:', error);
+      this.isConsumerRunning = false;
+    }
+  }
+
+  /**
+   * Handle incoming summarization response
+   */
+  private async handleSummarizationResponse(responseMessage: SummarizationResponseMessage) {
+    const { meetingId, result } = responseMessage;
+    
+    console.log(`Received summarization response for meeting ${meetingId}`);
+
+    try {
+      const { storage } = await import('./storage');
+      const meeting = await storage.getMeeting(meetingId);
+      
+      if (!meeting) {
+        console.error(`Meeting ${meetingId} not found when processing summarization response`);
+        return;
+      }
+
+      // Update meeting with summarization result
+      const updateData = {
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        gcc: meeting.gcc || undefined,
+        companyName: meeting.companyName || undefined,
+        email: meeting.email || undefined,
+        researcher: meeting.researcher || undefined,
+        relationshipManager: meeting.relationshipManager,
+        salesPerson: meeting.salesPerson,
+        date: meeting.date,
+        researchId: meeting.researchId,
+        status: meeting.status as any,
+        notes: meeting.notes || undefined,
+        fullText: meeting.fullText || undefined,
+        hasGift: meeting.hasGift as any,
+        summarizationStatus: 'completed' as any,
+        summarizationResult: result
+      };
+
+      await storage.updateMeeting(meetingId, updateData);
+      
+      console.log(`Successfully stored summarization result for meeting ${meetingId}`);
+      console.log(`Summary: ${result.summary}`);
+      console.log(`Blocks: ${result.items.length}`);
+
+    } catch (error) {
+      console.error(`Failed to store summarization result for meeting ${meetingId}:`, error);
+      
+      // Try to update status to failed
+      try {
+        const { storage } = await import('./storage');
+        const meeting = await storage.getMeeting(meetingId);
+        if (meeting) {
+          const failedUpdateData = {
+            respondentName: meeting.respondentName,
+            respondentPosition: meeting.respondentPosition,
+            cnum: meeting.cnum,
+            gcc: meeting.gcc || undefined,
+            companyName: meeting.companyName || undefined,
+            email: meeting.email || undefined,
+            researcher: meeting.researcher || undefined,
+            relationshipManager: meeting.relationshipManager,
+            salesPerson: meeting.salesPerson,
+            date: meeting.date,
+            researchId: meeting.researchId,
+            status: meeting.status as any,
+            notes: meeting.notes || undefined,
+            fullText: meeting.fullText || undefined,
+            hasGift: meeting.hasGift as any,
+            summarizationStatus: 'failed' as any
+          };
+          await storage.updateMeeting(meetingId, failedUpdateData);
+        }
+      } catch (updateError) {
+        console.error('Failed to update meeting summarization status to failed:', updateError);
+      }
+    }
+  }
+
+  /**
+   * Disconnect from Kafka
+   */
+  async disconnect() {
+    if (!KAFKA_ENABLED) return;
+
+    try {
+      if (this.consumer && this.isConsumerRunning) {
+        await this.consumer.disconnect();
+        this.isConsumerRunning = false;
+        console.log('Kafka consumer disconnected');
+      }
+      
+      if (this.producer && this.isConnected) {
+        await this.producer.disconnect();
+        this.isConnected = false;
+        console.log('Kafka producer disconnected');
+      }
+    } catch (error) {
+      console.error('Error during Kafka disconnect:', error);
     }
   }
 }

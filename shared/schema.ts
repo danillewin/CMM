@@ -114,6 +114,7 @@ export const meetings = pgTable("meetings", {
   fullText: text("full_text"),
   hasGift: text("has_gift").default("no"), // Gift indicator field (yes/no)
   summarizationStatus: text("summarization_status").default("not_started"), // not_started, in_progress, completed, failed
+  summarizationResult: jsonb("summarization_result"), // Stores the nested summarization result from Kafka service
 });
 
 // Meeting to JTBD many-to-many relation
@@ -174,6 +175,7 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
+  summarizationResult: true,
 }).extend({
   date: z.coerce.date(),
   cnum: z.string()
