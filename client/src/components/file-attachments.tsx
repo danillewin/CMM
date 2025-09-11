@@ -40,7 +40,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
     queryKey: ['/api/meetings', meetingId, 'attachments'],
     queryFn: async () => {
-      const response = await fetch(`/api/meetings/${meetingId}/attachments`);
+      const response = await fetch(`/api/meetings/${meetingId}/files`);
       if (!response.ok) {
         throw new Error(`Failed to fetch attachments: ${response.statusText}`);
       }
