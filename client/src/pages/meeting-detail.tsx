@@ -325,6 +325,23 @@ export default function MeetingDetail() {
   
   // Duplicate checking completely removed to avoid any /api/meetings requests
 
+  // When editing a meeting, store the combined data of the existing meeting and temporary form data
+  const effectiveMeeting = isNew 
+    ? (Object.keys(tempFormData).length > 0 ? { ...tempFormData } as unknown as Meeting : undefined)
+    : (Object.keys(tempFormData).length > 0 ? { ...meeting, ...tempFormData } as unknown as Meeting : meeting);
+
+  // Query for research data associated with this meeting for the Guide tab
+  const { data: research, isLoading: isResearchLoading } = useQuery<Research>({
+    queryKey: ["/api/researches", effectiveMeeting?.researchId],
+    queryFn: async () => {
+      if (!effectiveMeeting?.researchId) return undefined;
+      const res = await apiRequest("GET", `/api/researches/${effectiveMeeting.researchId}`);
+      if (!res.ok) throw new Error("Research not found");
+      return res.json();
+    },
+    enabled: !!effectiveMeeting?.researchId,
+  });
+
   // Effect to load specific research when preselected via query param
   useEffect(() => {
     if (isNew && preselectedResearchId) {
@@ -339,11 +356,6 @@ export default function MeetingDetail() {
         .catch(err => console.warn('Could not load preselected research:', err));
     }
   }, [isNew, preselectedResearchId]);
-
-  // When editing a meeting, store the combined data of the existing meeting and temporary form data
-  const effectiveMeeting = isNew 
-    ? (Object.keys(tempFormData).length > 0 ? { ...tempFormData } as unknown as Meeting : undefined)
-    : (Object.keys(tempFormData).length > 0 ? { ...meeting, ...tempFormData } as unknown as Meeting : meeting);
 
   const createMutation = useMutation({
     mutationFn: async (meetingData: InsertMeeting) => {
