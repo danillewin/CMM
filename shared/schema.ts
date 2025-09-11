@@ -292,6 +292,13 @@ export const insertCustomFilterSchema = createInsertSchema(customFilters, {
 export type MeetingAttachment = typeof meetingAttachments.$inferSelect;
 export type InsertMeetingAttachment = z.infer<typeof insertMeetingAttachmentSchema>;
 
+// Update type for meeting attachments that allows updating transcription fields
+export const updateMeetingAttachmentSchema = insertMeetingAttachmentSchema.partial().extend({
+  transcriptionRetryCount: z.number().optional(),
+  lastTranscriptionAttempt: z.date().optional(),
+});
+export type UpdateMeetingAttachment = z.infer<typeof updateMeetingAttachmentSchema>;
+
 export type CustomFilter = typeof customFilters.$inferSelect;
 export type InsertCustomFilter = z.infer<typeof insertCustomFilterSchema>;
 

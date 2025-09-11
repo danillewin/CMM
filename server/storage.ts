@@ -6,6 +6,7 @@ import {
   jtbds,
   researchJtbds,
   meetingJtbds,
+  meetingAttachments,
   customFilters,
   type Meeting, 
   type InsertMeeting, 
@@ -19,6 +20,9 @@ import {
   type InsertJtbd,
   type ResearchJtbd,
   type MeetingJtbd,
+  type MeetingAttachment,
+  type InsertMeetingAttachment,
+  type UpdateMeetingAttachment,
   type CustomFilter,
   type InsertCustomFilter,
   type PaginatedResponse,
@@ -70,6 +74,13 @@ export interface IStorage {
   addJtbdToMeeting(meetingId: number, jtbdId: number): Promise<void>;
   removeJtbdFromMeeting(meetingId: number, jtbdId: number): Promise<void>;
   
+  // Meeting attachments methods
+  getMeetingAttachments(meetingId: number): Promise<MeetingAttachment[]>;
+  getMeetingAttachment(id: number): Promise<MeetingAttachment | undefined>;
+  createMeetingAttachment(attachment: InsertMeetingAttachment): Promise<MeetingAttachment>;
+  updateMeetingAttachment(id: number, attachment: UpdateMeetingAttachment): Promise<MeetingAttachment | undefined>;
+  deleteMeetingAttachment(id: number): Promise<boolean>;
+
   // Custom filters methods
   getCustomFilters(pageType?: string, createdBy?: string): Promise<CustomFilter[]>;
   getCustomFilter(id: number): Promise<CustomFilter | undefined>;
@@ -1200,8 +1211,30 @@ export class DatabaseStorage implements IStorage {
     
     // SQL and operators are already imported at the top
     
+    // Apply filters
+    const conditions = [
+      sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
+    ];
+    if (researchFilter) {
+      conditions.push(eq(meetings.researchId, researchFilter));
+    }
+    if (teamFilter && teamFilter !== "ALL") {
+      conditions.push(eq(researches.team, teamFilter));
+    }
+    if (managerFilter && managerFilter !== "ALL") {
+      conditions.push(
+        or(
+          eq(meetings.relationshipManager, managerFilter),
+          eq(meetings.salesPerson, managerFilter)
+        )!
+      );
+    }
+    if (researcherFilter && researcherFilter !== "ALL") {
+      conditions.push(eq(researches.researcher, researcherFilter));
+    }
+    
     // Base query for meetings with research joins
-    let meetingsQuery = db.select({
+    const meetingsQuery = db.select({
       meeting_id: meetings.id,
       respondentName: meetings.respondentName,
       companyName: meetings.companyName,
@@ -1215,33 +1248,7 @@ export class DatabaseStorage implements IStorage {
       research_name: researches.name,
     }).from(meetings)
       .leftJoin(researches, eq(meetings.researchId, researches.id))
-      .where(
-        sql`${meetings.date} >= ${startOfYear.toISOString()} AND ${meetings.date} <= ${endOfYear.toISOString()}`
-      );
-    
-    // Apply filters
-    const conditions = [];
-    if (researchFilter) {
-      conditions.push(eq(meetings.researchId, researchFilter));
-    }
-    if (teamFilter && teamFilter !== "ALL") {
-      conditions.push(eq(researches.team, teamFilter));
-    }
-    if (managerFilter && managerFilter !== "ALL") {
-      conditions.push(
-        or(
-          eq(meetings.relationshipManager, managerFilter),
-          eq(meetings.salesPerson, managerFilter)
-        )
-      );
-    }
-    if (researcherFilter && researcherFilter !== "ALL") {
-      conditions.push(eq(researches.researcher, researcherFilter));
-    }
-    
-    if (conditions.length > 0) {
-      meetingsQuery = meetingsQuery.where(and(...conditions));
-    }
+      .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
     
     const meetingsData = await meetingsQuery;
     
@@ -1296,7 +1303,8 @@ export class DatabaseStorage implements IStorage {
           if (!managerMeetings[manager]) {
             managerMeetings[manager] = { SET: 0, IN_PROGRESS: 0, DONE: 0, DECLINED: 0 };
           }
-          managerMeetings[manager][meeting.status]++;
+          const status = meeting.status as 'SET' | 'IN_PROGRESS' | 'DONE' | 'DECLINED';
+          managerMeetings[manager][status]++;
         }
       });
     });
@@ -1315,8 +1323,8 @@ export class DatabaseStorage implements IStorage {
       .map(m => ({
         id: m.meeting_id,
         respondentName: m.respondentName,
-        companyName: m.companyName,
-        date: m.date,
+        companyName: m.companyName || 'N/A',
+        date: m.date.toISOString(),
         status: m.status
       }));
     
@@ -1385,6 +1393,41 @@ export class DatabaseStorage implements IStorage {
     }).from(researches).where(
       sql`(date_start <= ${endDate.toISOString()} AND date_end >= ${startDate.toISOString()})`
     );
+  }
+
+  // Meeting attachments methods
+  async getMeetingAttachments(meetingId: number): Promise<MeetingAttachment[]> {
+    return db.select().from(meetingAttachments).where(eq(meetingAttachments.meetingId, meetingId));
+  }
+
+  async getMeetingAttachment(id: number): Promise<MeetingAttachment | undefined> {
+    const [attachment] = await db.select().from(meetingAttachments).where(eq(meetingAttachments.id, id));
+    return attachment;
+  }
+
+  async createMeetingAttachment(attachment: InsertMeetingAttachment): Promise<MeetingAttachment> {
+    const [newAttachment] = await db
+      .insert(meetingAttachments)
+      .values(attachment)
+      .returning();
+    return newAttachment;
+  }
+
+  async updateMeetingAttachment(id: number, attachment: UpdateMeetingAttachment): Promise<MeetingAttachment | undefined> {
+    const [updatedAttachment] = await db
+      .update(meetingAttachments)
+      .set(attachment)
+      .where(eq(meetingAttachments.id, id))
+      .returning();
+    return updatedAttachment;
+  }
+
+  async deleteMeetingAttachment(id: number): Promise<boolean> {
+    const [deletedAttachment] = await db
+      .delete(meetingAttachments)
+      .where(eq(meetingAttachments.id, id))
+      .returning();
+    return !!deletedAttachment;
   }
 }
 
