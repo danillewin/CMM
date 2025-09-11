@@ -43,7 +43,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     // Poll for updates when there's active processing
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (!data) return false;
+      if (!data || !Array.isArray(data)) return false;
       
       // Check if any files are currently being processed
       const hasActiveProcessing = data.some(att => 
