@@ -306,7 +306,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
       </CardHeader>
       
       <CardContent>
-        {!attachments || attachments.length === 0 ? (
+        {!attachments || !Array.isArray(attachments) || attachments.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <FileAudio className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p>No files uploaded yet</p>
