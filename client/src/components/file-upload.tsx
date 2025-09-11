@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileAudio, FileVideo, X, Loader2, CheckCircle } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
@@ -177,6 +177,12 @@ export default function FileUpload({ meetingId, onUploadComplete, isProcessing, 
 
       // Clear uploaded files
       setUploadedFiles([]);
+      
+      // Invalidate queries to refresh file attachments and transcription summary
+      if (meetingId) {
+        queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'attachments'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'transcription-summary'] });
+      }
       
       // Notify parent component
       if (onUploadComplete) {

@@ -44,6 +44,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import FileUpload from "@/components/file-upload";
+import FileAttachments from "@/components/file-attachments";
 
 // Helper type for handling Meeting with ID
 type MeetingWithId = Meeting;
@@ -131,45 +132,28 @@ function MeetingResultsForm({
     }
   };
 
-  const handleTranscriptionComplete = (transcriptionText: string) => {
-    const currentText = form.getValues("fullText");
-    const newText = currentText 
-      ? `${currentText}\n\n--- Transcription ---\n${transcriptionText}`
-      : transcriptionText;
-    
-    form.setValue("fullText", newText);
-    
-    // Auto-save after transcription
-    if (meeting) {
-      onUpdate({
-        respondentName: meeting.respondentName,
-        respondentPosition: meeting.respondentPosition,
-        cnum: meeting.cnum,
-        gcc: meeting.gcc || "",
-        companyName: meeting.companyName || "",
-        email: meeting.email || "",
-        researcher: meeting.researcher || "",
-        relationshipManager: meeting.relationshipManager,
-        salesPerson: meeting.salesPerson,
-        date: meeting.date,
-        researchId: meeting.researchId,
-        status: meeting.status as any,
-        notes: meeting.notes || "",
-        fullText: newText,
-        hasGift: (meeting.hasGift as "yes" | "no") || "no",
-      });
-    }
+  // Handle when files are uploaded successfully
+  const handleUploadComplete = () => {
+    // Files are uploaded and transcription is processing in the background
+    // The FileAttachments component will show the status
   };
 
   return (
     <Form {...form}>
       <div className="space-y-6">
-        {/* File Upload Section */}
-        <FileUpload
-          onTranscriptionComplete={handleTranscriptionComplete}
-          isProcessing={isProcessing}
-          setIsProcessing={setIsProcessing}
-        />
+        {/* File Upload and Attachments Section */}
+        <div className="space-y-6">
+          <FileUpload
+            meetingId={meeting?.id || null}
+            onUploadComplete={handleUploadComplete}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
+          />
+          
+          {meeting?.id && (
+            <FileAttachments meetingId={meeting.id} />
+          )}
+        </div>
 
         {/* Meeting Results Form */}
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
