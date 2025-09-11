@@ -289,15 +289,14 @@ export default function MeetingDetail() {
     enabled: !isNew && !!id,
   });
 
-  // Meetings will be loaded on-demand when checking for duplicates via CNUM
-  const { data: meetings = [] } = useQuery<Meeting[]>({
-    queryKey: ["/api/meetings"],
-    enabled: false, // Never auto-load, only load when specifically needed for duplicate detection
-  });
+  // Remove the meetings query entirely - we'll fetch duplicates imperatively when needed
 
   // Research data is now loaded on-demand via ResearchSelector component
   // No need to pre-load all researches
   const researches: Research[] = [];
+  
+  // For duplicate checking - we'll fetch imperatively when needed
+  const [isCheckingDuplicates, setIsCheckingDuplicates] = useState(false);
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
@@ -325,7 +324,8 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: async (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Only invalidate the specific meeting and avoid broad invalidation
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings", data.id] });
       
       // If there are selected JTBDs, link them to the newly created meeting
       if (selectedJtbdsForNewMeeting.length > 0) {
@@ -361,7 +361,7 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Only invalidate the specific meeting, not the entire list
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", id] });
       toast({ title: "Meeting updated successfully" });
     },
@@ -380,7 +380,8 @@ export default function MeetingDetail() {
       await apiRequest("DELETE", `/api/meetings/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Only invalidate when actually navigating back to the list
+      // No need to invalidate here as we're redirecting away from the detail page
       toast({ title: "Meeting deleted successfully" });
       setLocation("/");  // Return to meetings list
     },
@@ -393,32 +394,59 @@ export default function MeetingDetail() {
     },
   });
   
-  const handleCnumChange = (cnum: string) => {
+  const handleCnumChange = async (cnum: string) => {
     if (!isNew) return; // Only check for duplicates when creating a new meeting
     if (!cnum) return; // Don't check empty values
     
-    const duplicates = meetings.filter(m => m.cnum === cnum);
-    if (duplicates.length > 0) {
-      // Store duplicates and show the dialog
-      setDuplicateMeetings(duplicates);
-      setShowDuplicateDialog(true);
+    setIsCheckingDuplicates(true);
+    try {
+      // Fetch meetings imperatively for duplicate checking
+      const response = await apiRequest("GET", "/api/meetings");
+      if (response.ok) {
+        const data = await response.json();
+        const meetings = data.data || data; // Handle both formats
+        const duplicates = meetings.filter((m: Meeting) => m.cnum === cnum);
+        if (duplicates.length > 0) {
+          // Store duplicates and show the dialog
+          setDuplicateMeetings(duplicates);
+          setShowDuplicateDialog(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for duplicates:', error);
+    } finally {
+      setIsCheckingDuplicates(false);
     }
   };
   
-  const handleSubmit = (formData: InsertMeeting) => {
+  const handleSubmit = async (formData: InsertMeeting) => {
     if (!isNew && id) {
       // For update, we need to include the ID
       const updateData = { ...formData, id } as MeetingWithId;
       updateMutation.mutate(updateData);
     } else {
       // Check for duplicates again when submitting
-      const duplicates = meetings.filter(m => m.cnum === formData.cnum);
-      if (duplicates.length > 0) {
-        // Store duplicates and pending form data, then show the dialog
-        setDuplicateMeetings(duplicates);
-        setPendingFormData(formData);
-        setShowDuplicateDialog(true);
-      } else {
+      try {
+        const response = await apiRequest("GET", "/api/meetings");
+        if (response.ok) {
+          const data = await response.json();
+          const meetings = data.data || data; // Handle both formats
+          const duplicates = meetings.filter((m: Meeting) => m.cnum === formData.cnum);
+          if (duplicates.length > 0) {
+            // Store duplicates and pending form data, then show the dialog
+            setDuplicateMeetings(duplicates);
+            setPendingFormData(formData);
+            setShowDuplicateDialog(true);
+          } else {
+            createMutation.mutate(formData);
+          }
+        } else {
+          // If we can't check duplicates, proceed with creation
+          createMutation.mutate(formData);
+        }
+      } catch (error) {
+        console.error('Error checking for duplicates on submit:', error);
+        // If we can't check duplicates, proceed with creation
         createMutation.mutate(formData);
       }
     }
@@ -562,7 +590,7 @@ export default function MeetingDetail() {
                   isCreating={true}
                   onCancel={handleCancel}
                   onCnumChange={handleCnumChange}
-                  meetings={meetings}
+                  meetings={[]} // No longer needed for duplicate checking
                   onTempDataUpdate={handleTempDataUpdate}
                   selectedJtbds={selectedJtbdsForNewMeeting}
                   onJtbdsChange={setSelectedJtbdsForNewMeeting}
