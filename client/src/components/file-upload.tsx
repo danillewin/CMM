@@ -8,7 +8,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface FileUploadProps {
-  onTranscriptionComplete: (text: string) => void;
+  meetingId: number | null;
+  onUploadComplete?: () => void;
   isProcessing: boolean;
   setIsProcessing: (processing: boolean) => void;
 }
@@ -20,7 +21,7 @@ interface UploadedFile {
   file: File;
 }
 
-export default function FileUpload({ onTranscriptionComplete, isProcessing, setIsProcessing }: FileUploadProps) {
+export default function FileUpload({ meetingId, onUploadComplete, isProcessing, setIsProcessing }: FileUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [progress, setProgress] = useState(0);
@@ -127,6 +128,11 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       return;
     }
 
+    if (!meetingId) {
+      setError('Meeting ID is required. Please save the meeting first.');
+      return;
+    }
+
     setIsProcessing(true);
     setProgress(0);
     setError(null);
@@ -153,7 +159,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
         });
       }, 300);
 
-      const response = await apiRequest("POST", "/api/transcribe", formData);
+      const response = await apiRequest("POST", `/api/meetings/${meetingId}/attachments`, formData);
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
@@ -163,23 +169,25 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
       
       clearInterval(progressInterval);
       setProgress(100);
-
-      // Complete the transcription
-      onTranscriptionComplete(result.text);
       
       toast({
-        title: "Transcription completed",
-        description: `Successfully processed ${uploadedFiles.length} file(s)`,
+        title: "Files uploaded successfully",
+        description: `${uploadedFiles.length} file(s) uploaded. Transcription processing has started automatically.`,
       });
 
       // Clear uploaded files
       setUploadedFiles([]);
       
+      // Notify parent component
+      if (onUploadComplete) {
+        onUploadComplete();
+      }
+      
     } catch (error) {
-      console.error('Transcription error:', error);
+      console.error('Upload error:', error);
       setError(error instanceof Error ? error.message : 'An unknown error occurred');
       toast({
-        title: "Transcription failed",
+        title: "Upload failed",
         description: error instanceof Error ? error.message : 'An unknown error occurred',
         variant: "destructive"
       });
@@ -197,7 +205,8 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
           Audio/Video File Upload
         </CardTitle>
         <CardDescription>
-          Upload audio or video files to automatically transcribe them. Files are processed but not stored.
+          Upload audio or video files to store in cloud storage and automatically transcribe them.
+          {!meetingId && " Please save the meeting first to enable file uploads."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -213,7 +222,7 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
             dragActive 
               ? 'border-primary bg-primary/5' 
               : 'border-gray-300 hover:border-gray-400'
-          } ${isProcessing ? 'pointer-events-none opacity-50' : ''}`}
+          } ${isProcessing || !meetingId ? 'pointer-events-none opacity-50' : ''}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
@@ -291,18 +300,19 @@ export default function FileUpload({ onTranscriptionComplete, isProcessing, setI
         <div className="flex gap-2">
           <Button
             onClick={processFiles}
-            disabled={uploadedFiles.length === 0 || isProcessing}
+            disabled={uploadedFiles.length === 0 || isProcessing || !meetingId}
             className="flex-1"
+            data-testid="button-upload-files"
           >
             {isProcessing ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Processing...
+                Uploading...
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Process & Transcribe
+                Upload Files
               </>
             )}
           </Button>
