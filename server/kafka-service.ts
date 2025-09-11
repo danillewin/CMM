@@ -8,6 +8,25 @@ const KAFKA_ENABLED = process.env.KAFKA_ENABLED === 'true';
 const KAFKA_METADATA_BROKER_LIST = process.env.KAFKA_METADATA_BROKER_LIST || process.env.KAFKA_BROKERS || 'localhost:9092';
 const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || 'research-management-system';
 
+// Types for Kafka summarization message
+interface SummarizationScript {
+  blockName: string;
+  blockElements: Array<SummarizationScript | SummarizationQuestion>;
+  question?: string;
+  payAttentionFor?: string | null;
+}
+
+interface SummarizationQuestion {
+  question: string;
+  payAttentionFor: string | null;
+}
+
+interface SummarizationMessage {
+  text: string;
+  systemPromptAddition: string;
+  script: SummarizationScript[];
+}
+
 // Parse broker list - node-rdkafka compatible
 const parseBrokers = (brokerString: string): string[] => {
   return brokerString.split(',').map(broker => broker.trim()).filter(broker => broker.length > 0);
@@ -33,6 +52,7 @@ const SSL_ENDPOINT_IDENTIFICATION_ALGORITHM = process.env.SSL_ENDPOINT_IDENTIFIC
 // Topic names
 const MEETINGS_TOPIC = 'completed-meetings';
 const RESEARCHES_TOPIC = 'completed-researches';
+const SUMMARIZATION_TOPIC = 'meeting-summarization';
 
 class KafkaService {
   private kafka: Kafka | null = null;
@@ -207,7 +227,7 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            title: jtbd.title,
             description: jtbd.description,
             category: jtbd.category,
             parentId: jtbd.parentId
@@ -296,7 +316,7 @@ class KafkaService {
           // Linked entities
           linkedJtbds: linkedJtbds.map(jtbd => ({
             id: jtbd.id,
-            name: jtbd.name,
+            title: jtbd.title,
             description: jtbd.description,
             category: jtbd.category,
             parentId: jtbd.parentId
@@ -383,6 +403,218 @@ class KafkaService {
       enabled: KAFKA_ENABLED,
       connected: this.isConnected
     };
+  }
+
+  // Helper function to parse research guide questions from JSON string
+  private parseGuideQuestions(guideQuestionsJson: string | null): any[] {
+    if (!guideQuestionsJson || typeof guideQuestionsJson !== "string") return [];
+    
+    try {
+      const parsed = JSON.parse(guideQuestionsJson);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  // Map research guide questions to summarization script format
+  private mapGuideToScript(research: Research | null): SummarizationScript[] {
+    if (!research) return [];
+
+    const guideMainQuestions = this.parseGuideQuestions(research.guideMainQuestions);
+    
+    return guideMainQuestions.map((block: any, blockIndex: number) => {
+      const blockElements: Array<SummarizationScript | SummarizationQuestion> = [];
+      
+      // Add direct questions from this block
+      if (block.questions && Array.isArray(block.questions)) {
+        block.questions.forEach((question: any) => {
+          if (question.text) {
+            blockElements.push({
+              question: question.text,
+              payAttentionFor: question.comment || null
+            });
+          }
+        });
+      }
+
+      // Add subblocks recursively
+      if (block.subblocks && Array.isArray(block.subblocks)) {
+        block.subblocks.forEach((subblock: any, subIndex: number) => {
+          const subElements: Array<SummarizationScript | SummarizationQuestion> = [];
+          
+          // Add questions from subblock
+          if (subblock.questions && Array.isArray(subblock.questions)) {
+            subblock.questions.forEach((question: any) => {
+              if (question.text) {
+                subElements.push({
+                  question: question.text,
+                  payAttentionFor: question.comment || null
+                });
+              }
+            });
+          }
+
+          // Add sub-subblocks recursively
+          if (subblock.subblocks && Array.isArray(subblock.subblocks)) {
+            subblock.subblocks.forEach((subSubblock: any) => {
+              const subSubElements: Array<SummarizationQuestion> = [];
+              
+              if (subSubblock.questions && Array.isArray(subSubblock.questions)) {
+                subSubblock.questions.forEach((question: any) => {
+                  if (question.text) {
+                    subSubElements.push({
+                      question: question.text,
+                      payAttentionFor: question.comment || null
+                    });
+                  }
+                });
+              }
+
+              if (subSubElements.length > 0) {
+                subElements.push({
+                  blockName: subSubblock.name || `Подраздел ${blockIndex + 1}.${subIndex + 1}`,
+                  blockElements: subSubElements
+                });
+              }
+            });
+          }
+
+          if (subElements.length > 0) {
+            blockElements.push({
+              blockName: subblock.name || `Раздел ${blockIndex + 1}.${subIndex + 1}`,
+              blockElements: subElements
+            });
+          }
+        });
+      }
+
+      return {
+        blockName: block.name || `Часть ${blockIndex + 1}`,
+        blockElements
+      };
+    }).filter(block => block.blockElements.length > 0);
+  }
+
+  // Send Kafka message for meeting summarization
+  async sendMeetingSummarization(meetingId: number): Promise<void> {
+    if (!KAFKA_ENABLED || !this.isConnected || !this.producer) {
+      console.log('Kafka is disabled or not connected, skipping meeting summarization');
+      return;
+    }
+
+    try {
+      // Import storage dynamically to avoid circular dependencies
+      const { storage } = await import('./storage');
+      
+      // Get meeting data
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        console.error(`Meeting ${meetingId} not found for summarization`);
+        return;
+      }
+
+      // Get all transcriptions for this meeting
+      const attachments = await storage.getMeetingAttachments(meetingId);
+      const completedTranscriptions = attachments.filter(att => 
+        att.transcriptionStatus === 'completed' && att.transcriptionText
+      );
+
+      if (completedTranscriptions.length === 0) {
+        console.warn(`No completed transcriptions found for meeting ${meetingId}`);
+        return;
+      }
+
+      // Combine all transcription texts
+      const combinedText = completedTranscriptions
+        .map(att => att.transcriptionText)
+        .filter(text => text)
+        .join('\n\n');
+
+      // Get research data for script mapping
+      const research = meeting.researchId ? await storage.getResearch(meeting.researchId) : null;
+      
+      // Map research guide to script format
+      const script = this.mapGuideToScript(research || null);
+
+      // Create summarization message
+      const summarizationMessage: SummarizationMessage = {
+        text: combinedText,
+        systemPromptAddition: "Саммари должно быть в стиле, как будто ты просоленный моряк.",
+        script: script
+      };
+
+      // Send to Kafka
+      await this.producer.send({
+        topic: SUMMARIZATION_TOPIC,
+        messages: [{
+          key: `meeting-summarization-${meetingId}`,
+          value: JSON.stringify(summarizationMessage),
+          headers: {
+            'event-type': 'meeting-summarization',
+            'source': 'research-management-system',
+            'meeting-id': meetingId.toString(),
+            'transcription-count': completedTranscriptions.length.toString(),
+            'research-id': research?.id?.toString() || 'none'
+          }
+        }]
+      });
+
+      // Update meeting summarization status to 'in_progress'
+      const updateData = {
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        gcc: meeting.gcc || undefined,
+        companyName: meeting.companyName || undefined,
+        email: meeting.email || undefined,
+        researcher: meeting.researcher || undefined,
+        relationshipManager: meeting.relationshipManager,
+        salesPerson: meeting.salesPerson,
+        date: meeting.date,
+        researchId: meeting.researchId,
+        status: meeting.status as any,
+        notes: meeting.notes || undefined,
+        fullText: meeting.fullText || undefined,
+        hasGift: meeting.hasGift as any,
+        summarizationStatus: 'in_progress' as any
+      };
+      await storage.updateMeeting(meetingId, updateData);
+
+      console.log(`Sent summarization request for meeting ${meetingId} to Kafka topic: ${SUMMARIZATION_TOPIC}`);
+      console.log(`Transcription count: ${completedTranscriptions.length}, Script blocks: ${script.length}`);
+    } catch (error) {
+      console.error('Failed to send meeting summarization to Kafka:', error);
+      
+      // Update meeting summarization status to 'failed' if there was an error
+      try {
+        const { storage } = await import('./storage');
+        const meeting = await storage.getMeeting(meetingId);
+        if (meeting) {
+          const updateData = {
+            respondentName: meeting.respondentName,
+            respondentPosition: meeting.respondentPosition,
+            cnum: meeting.cnum,
+            gcc: meeting.gcc || undefined,
+            companyName: meeting.companyName || undefined,
+            email: meeting.email || undefined,
+            researcher: meeting.researcher || undefined,
+            relationshipManager: meeting.relationshipManager,
+            salesPerson: meeting.salesPerson,
+            date: meeting.date,
+            researchId: meeting.researchId,
+            status: meeting.status as any,
+            notes: meeting.notes || undefined,
+            fullText: meeting.fullText || undefined,
+            hasGift: meeting.hasGift as any,
+            summarizationStatus: 'failed' as any
+          };
+          await storage.updateMeeting(meetingId, updateData);
+        }
+      } catch (updateError) {
+        console.error('Failed to update meeting summarization status to failed:', updateError);
+      }
+    }
   }
 }
 

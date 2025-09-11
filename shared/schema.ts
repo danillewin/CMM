@@ -113,6 +113,7 @@ export const meetings = pgTable("meetings", {
   notes: text("notes"),
   fullText: text("full_text"),
   hasGift: text("has_gift").default("no"), // Gift indicator field (yes/no)
+  summarizationStatus: text("summarization_status").default("not_started"), // not_started, in_progress, completed, failed
 });
 
 // Meeting to JTBD many-to-many relation
@@ -194,6 +195,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   notes: z.string().optional(),
   fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
+  summarizationStatus: z.enum(["not_started", "in_progress", "completed", "failed"]).default("not_started"),
 });
 
 // JTBD insert schema

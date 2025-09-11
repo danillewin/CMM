@@ -1,6 +1,7 @@
 import { storage } from "./storage";
 import { transcriptionService } from "./transcription-service";
 import { ObjectStorageService } from "./objectStorage";
+import { kafkaService } from "./kafka-service";
 
 const MAX_RETRY_COUNT = 3;
 const RETRY_DELAY_MS = 5000; // 5 seconds
@@ -72,6 +73,9 @@ export class AsyncTranscriptionProcessor {
       });
 
       console.log(`Successfully completed transcription for file: ${attachment.originalName}`);
+
+      // Check if all transcriptions are now complete for this meeting
+      await this.checkAndTriggerSummarization(attachment.meetingId);
       
     } catch (error) {
       console.error(`Transcription failed for file ${attachment.originalName}:`, error);
@@ -179,6 +183,53 @@ export class AsyncTranscriptionProcessor {
         console.error(`Background transcription processing failed for meeting ${meetingId}:`, error);
       });
     });
+  }
+
+  /**
+   * Check if all transcriptions are complete for a meeting and trigger summarization
+   */
+  private async checkAndTriggerSummarization(meetingId: number): Promise<void> {
+    try {
+      // Get all attachments for this meeting
+      const attachments = await storage.getMeetingAttachments(meetingId);
+      
+      if (attachments.length === 0) {
+        console.log(`No attachments found for meeting ${meetingId}, skipping summarization check`);
+        return;
+      }
+
+      // Check if all attachments have completed transcription (successfully or failed)
+      const allComplete = attachments.every(att => 
+        att.transcriptionStatus === 'completed' || att.transcriptionStatus === 'failed'
+      );
+
+      const successfulTranscriptions = attachments.filter(att => 
+        att.transcriptionStatus === 'completed' && att.transcriptionText
+      );
+
+      if (allComplete && successfulTranscriptions.length > 0) {
+        console.log(`All transcriptions complete for meeting ${meetingId}. Triggering Kafka summarization.`);
+        console.log(`Found ${successfulTranscriptions.length} successful transcriptions out of ${attachments.length} total files`);
+        
+        // Check if summarization has already been initiated
+        const meeting = await storage.getMeeting(meetingId);
+        if (meeting && (meeting.summarizationStatus === 'not_started' || !meeting.summarizationStatus)) {
+          // Trigger Kafka summarization
+          await kafkaService.sendMeetingSummarization(meetingId);
+        } else {
+          console.log(`Summarization already initiated for meeting ${meetingId}. Status: ${meeting?.summarizationStatus}`);
+        }
+      } else if (allComplete) {
+        console.log(`All transcriptions complete for meeting ${meetingId}, but no successful transcriptions found. Skipping summarization.`);
+      } else {
+        const pendingCount = attachments.filter(att => 
+          att.transcriptionStatus === 'pending' || att.transcriptionStatus === 'in_progress'
+        ).length;
+        console.log(`Meeting ${meetingId} still has ${pendingCount} transcriptions pending. Waiting for completion.`);
+      }
+    } catch (error) {
+      console.error(`Error checking summarization trigger for meeting ${meetingId}:`, error);
+    }
   }
 }
 
