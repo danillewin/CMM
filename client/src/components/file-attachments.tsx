@@ -39,6 +39,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   // Query for file attachments with conditional real-time updates
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
     queryKey: ['/api/meetings', meetingId, 'attachments'],
+    queryFn: () => fetch(`/api/meetings/${meetingId}/attachments`).then(res => res.json()),
     enabled: !!meetingId,
     // Poll for updates when there's active processing
     refetchInterval: (query) => {
@@ -54,11 +55,22 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     },
   });
 
-  // Query for transcription summary
+  // Query for transcription summary - only poll when there's active processing
   const { data: summary, refetch: refetchSummary } = useQuery<TranscriptionSummary>({
     queryKey: ['/api/meetings', meetingId, 'transcription-summary'],
+    queryFn: () => fetch(`/api/meetings/${meetingId}/transcription-summary`).then(res => res.json()),
     enabled: !!meetingId,
-    refetchInterval: 5000, // Refresh every 5 seconds to show progress
+    // Only poll when there are active transcriptions, same as attachments
+    refetchInterval: (query) => {
+      // Check if attachments data indicates active processing
+      if (!attachments || !Array.isArray(attachments)) return false;
+      
+      const hasActiveProcessing = attachments.some(att => 
+        att.transcriptionStatus === 'in_progress' || att.transcriptionStatus === 'pending'
+      );
+      
+      return hasActiveProcessing ? 5000 : false; // Poll every 5 seconds only when processing
+    },
   });
 
   // Manual refresh function for both queries
