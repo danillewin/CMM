@@ -182,8 +182,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   summarizationResult: true,
 }).extend({
   date: z.coerce.date(),
-  time: z.string().optional(), // Optional time field
-  meetingLink: z.string().optional(), // Optional meeting link field
+  time: z.string().nullable().optional(), // Optional time field
+  meetingLink: z.string().nullable().optional(), // Optional meeting link field
   cnum: z.string().optional().transform((val) => val ? val.toUpperCase() : val),
   gcc: z.string().optional(),
   status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
