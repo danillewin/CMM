@@ -496,11 +496,11 @@ export default function MeetingDetail() {
           </Button>
           <span className="mx-2 text-gray-300">/</span>
           <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
-            {sourceType === "research" ? "Исследования" : "Встречи"}
+            {sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи"}
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
-            {isNew ? "Новая встреча" : meeting?.respondentName || "Детали встречи"}
+            {isNew ? "Новая встреча" : meeting?.companyName || "Детали встречи"}
           </span>
         </div>
 
