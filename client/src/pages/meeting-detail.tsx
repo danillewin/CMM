@@ -873,8 +873,10 @@ export default function MeetingDetail() {
   // Parse navigation source context
   const sourceType = searchParams.get("source"); // "research" or null
   const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
-  const fromContext = searchParams.get('fromContext');
-  const fromResearchId = searchParams.get('fromResearchId');
+  const fromContext = searchParams.get('from'); // This is what research-detail.tsx uses
+  
+  // Debug logging - remove this after testing
+  console.log("Navigation params:", { fromContext, preselectedResearchId, sourceType, sourceId });
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -989,9 +991,9 @@ export default function MeetingDetail() {
       }
 
       // Redirect based on where the user came from
-      if (fromContext === "research" && fromResearchId) {
+      if (fromContext === "research" && preselectedResearchId) {
         // If creating from research page, go back to research with new meeting visible
-        setLocation(`/researches/${fromResearchId}`);
+        setLocation(`/researches/${preselectedResearchId}`);
       } else {
         // Default behavior - go to the newly created meeting detail page
         setLocation(`/meetings/${data.id}`);
@@ -1076,13 +1078,12 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if ((sourceType === "research" && sourceId) || (fromContext === "research" && fromResearchId)) {
-      // Use the appropriate ID - prioritize fromResearchId for new meetings
-      const researchId = fromResearchId || sourceId;
-      setLocation(`/researches/${researchId}`);
-    } else if (preselectedResearchId) {
-      // If we have a preselected research ID (creating new meeting in research context)
+    if (fromContext === "research" && preselectedResearchId) {
+      // If creating from research page, go back to research page
       setLocation(`/researches/${preselectedResearchId}`);
+    } else if (sourceType === "research" && sourceId) {
+      // If editing existing meeting from research context
+      setLocation(`/researches/${sourceId}`);
     } else {
       setLocation("/meetings");
     }
