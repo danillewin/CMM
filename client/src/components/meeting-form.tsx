@@ -257,9 +257,13 @@ export default function MeetingForm({
                     <Input
                       {...field}
                       type="time"
-                      className="w-full"
+                      className="w-full time-24h"
                       data-testid="input-meeting-time"
+                      min="00:00"
+                      max="23:59"
                       step="60"
+                      placeholder="HH:MM"
+                      title="Время в 24-часовом формате (например: 14:30)"
                     />
                   </FormControl>
                   <FormMessage />
