@@ -15,7 +15,6 @@ import { Loader2 } from "lucide-react";
 import MDEditor from "@uiw/react-md-editor";
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
-import { useMarkdownLive } from "@/components/markdown-live-context";
 
 interface ResearchBriefFormProps {
   research?: Research;
@@ -31,7 +30,6 @@ export function ResearchBriefForm({
   onTempDataUpdate,
 }: ResearchBriefFormProps) {
   const { t } = useTranslation();
-  const { setActive } = useMarkdownLive();
   
   const form = useForm<{ brief: string }>({
     resolver: zodResolver(insertResearchSchema.pick({ brief: true })),
@@ -79,10 +77,8 @@ export function ResearchBriefForm({
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("brief", newValue);
-                    setActive("Brief", newValue);
                   }}
-                  onFocus={() => setActive("Brief", field.value || "")}
-                  preview="edit"
+                  preview="live"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{

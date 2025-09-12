@@ -48,7 +48,6 @@ import DOMPurify from 'dompurify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Checkbox } from "@/components/ui/checkbox";
-import { useMarkdownLive } from "@/components/markdown-live-context";
 
 const PRODUCT_OPTIONS = [
   "CDC Integrations",
@@ -95,7 +94,6 @@ export default function ResearchForm({
   onDelete,
   onTempDataUpdate,
 }: ResearchFormProps) {
-  const { setActive } = useMarkdownLive();
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedJtbds, setSelectedJtbds] = useState<Jtbd[]>([]);
@@ -554,10 +552,8 @@ export default function ResearchForm({
                           const newValue = value || "";
                           field.onChange(newValue);
                           handleFieldChange("description", newValue);
-                          setActive("Description", newValue);
                         }}
-                        onFocus={() => setActive("Description", field.value || "")}
-                        preview="edit"
+                        preview="live"
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
                         textareaProps={{

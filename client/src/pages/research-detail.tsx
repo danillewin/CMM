@@ -39,8 +39,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import ReactMarkdown from "react-markdown";
-import { MarkdownLiveProvider, useMarkdownLive } from "@/components/markdown-live-context";
-import { LiveMarkdownPane } from "@/components/live-markdown-pane";
 import { ResearchBriefForm } from "@/components/research-brief-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -213,7 +211,7 @@ function ResearchRecruitmentForm({
                     field.onChange(newValue);
                     handleFieldChange("clientsWeSearchFor", newValue);
                   }}
-                  preview="edit"
+                  preview="live"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -248,7 +246,7 @@ function ResearchRecruitmentForm({
                     field.onChange(newValue);
                     handleFieldChange("inviteTemplate", newValue);
                   }}
-                  preview="edit"
+                  preview="live"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -467,7 +465,7 @@ function ResearchGuideForm({
                     field.onChange(newValue);
                     handleFieldChange("guide", newValue);
                   }}
-                  preview="edit"
+                  preview="live"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -673,7 +671,7 @@ function ResearchResultsForm({
                     field.onChange(newValue);
                     handleFieldChange("fullText", newValue);
                   }}
-                  preview="edit"
+                  preview="live"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -983,13 +981,9 @@ function ResearchDetail() {
             </div>
           </div>
 
-          {/* Main content area with tabs and live preview */}
+          {/* Main content area with tabs */}
           <div className="px-8 py-6">
-            <MarkdownLiveProvider>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left column - Tabs */}
-                <div className="min-w-0">
-                  <Tabs defaultValue="info" className="w-full">
+            <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="info">
                   {t("research.tabs.overview")}
@@ -1055,14 +1049,6 @@ function ResearchDetail() {
                 />
               </TabsContent>
             </Tabs>
-                  </div>
-
-                  {/* Right column - Live Markdown Preview */}
-                  <div className="hidden lg:block">
-                    <LiveMarkdownPane />
-                  </div>
-                </div>
-              </MarkdownLiveProvider>
 
             {/* Connected Meetings Section */}
             {!isNew && id && (
