@@ -80,6 +80,11 @@ export default function MeetingForm({
   const defaultDate = initialData 
     ? new Date(initialData.date).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
+    
+  // Extract time from date for separate time field
+  const defaultTime = initialData 
+    ? new Date(initialData.date).toTimeString().slice(0, 5)
+    : "10:00";
 
   type FormValues = {
     respondentName: string;
@@ -92,6 +97,7 @@ export default function MeetingForm({
     relationshipManager: string;
     salesPerson: string;
     date: Date;
+    time: string;
     researchId: number | undefined;
     status: MeetingStatusType;
     notes: string;
@@ -112,6 +118,7 @@ export default function MeetingForm({
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
+      time: defaultTime,
       researchId: initialData?.researchId ?? undefined,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
@@ -159,8 +166,20 @@ export default function MeetingForm({
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
-    // Convert form data to InsertMeeting type
-    onSubmit(data as unknown as InsertMeeting);
+    
+    // Combine date and time into a single Date object
+    const [hours, minutes] = data.time.split(':').map(Number);
+    const combinedDateTime = new Date(data.date);
+    combinedDateTime.setHours(hours, minutes, 0, 0);
+    
+    // Convert form data to InsertMeeting type with combined date/time
+    const submitData = {
+      ...data,
+      date: combinedDateTime,
+    };
+    delete (submitData as any).time; // Remove the separate time field
+    
+    onSubmit(submitData as unknown as InsertMeeting);
   };
 
   // Clear validation error when user starts typing in either field
@@ -195,9 +214,9 @@ export default function MeetingForm({
           />
         </div>
         
-        {/* Date and Status Fields - Moved to top of form per user request */}
+        {/* Date, Time and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="date"
@@ -227,6 +246,28 @@ export default function MeetingForm({
             
             <FormField
               control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Время
+                    <RequiredFieldIndicator />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="time"
+                      className="w-full"
+                      data-testid="input-meeting-time"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
@@ -239,7 +280,7 @@ export default function MeetingForm({
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="select-meeting-status">
                         <SelectValue placeholder="Выберите статус" />
                       </SelectTrigger>
                     </FormControl>
