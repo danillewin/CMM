@@ -212,6 +212,7 @@ function ResearchRecruitmentForm({
                     handleFieldChange("clientsWeSearchFor", newValue);
                   }}
                   preview="live"
+                  visibleDragbar={false}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -247,6 +248,7 @@ function ResearchRecruitmentForm({
                     handleFieldChange("inviteTemplate", newValue);
                   }}
                   preview="live"
+                  visibleDragbar={false}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -466,6 +468,7 @@ function ResearchGuideForm({
                     handleFieldChange("guide", newValue);
                   }}
                   preview="live"
+                  visibleDragbar={false}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -672,6 +675,7 @@ function ResearchResultsForm({
                     handleFieldChange("fullText", newValue);
                   }}
                   preview="live"
+                  visibleDragbar={false}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{

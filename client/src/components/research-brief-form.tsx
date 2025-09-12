@@ -79,6 +79,7 @@ export function ResearchBriefForm({
                     handleFieldChange("brief", newValue);
                   }}
                   preview="live"
+                  visibleDragbar={false}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{

@@ -554,6 +554,7 @@ export default function ResearchForm({
                           handleFieldChange("description", newValue);
                         }}
                         preview="live"
+                        visibleDragbar={false}
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
                         textareaProps={{
