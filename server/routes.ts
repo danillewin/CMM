@@ -425,8 +425,10 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/meetings", async (req, res) => {
     try {
+      console.log("Received meeting data:", JSON.stringify(req.body, null, 2));
       const result = insertMeetingSchema.safeParse(req.body);
       if (!result.success) {
+        console.log("Validation errors:", JSON.stringify(result.error.errors, null, 2));
         res.status(400).json({ message: "Invalid meeting data", errors: result.error.errors });
         return;
       }
