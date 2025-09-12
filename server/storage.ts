@@ -504,6 +504,8 @@ export class DatabaseStorage implements IStorage {
       notes: row.notes,
       fullText: row.full_text,
       hasGift: row.has_gift,
+      summarizationStatus: row.summarization_status,
+      summarizationResult: row.summarization_result,
       // Include research name from JOIN
       researchName: row.research_name,
     };
@@ -548,7 +550,29 @@ export class DatabaseStorage implements IStorage {
       ];
 
       const result = await pool.query(query, values);
-      return result.rows[0];
+      const row = result.rows[0];
+      
+      // Map database fields to Meeting type
+      return {
+        id: row.id,
+        respondentName: row.respondent_name,
+        respondentPosition: row.respondent_position,
+        cnum: row.cnum,
+        gcc: row.gcc,
+        companyName: row.company_name,
+        email: row.email,
+        researcher: row.researcher,
+        relationshipManager: row.relationship_manager,
+        salesPerson: row.recruiter,
+        date: row.date,
+        researchId: row.research_id,
+        status: row.status,
+        notes: row.notes,
+        fullText: row.full_text,
+        hasGift: row.has_gift,
+        summarizationStatus: row.summarization_status,
+        summarizationResult: row.summarization_result,
+      };
     } catch (error) {
       console.error("Error in createMeeting:", error);
       throw error;
@@ -583,8 +607,10 @@ export class DatabaseStorage implements IStorage {
           status = $12,
           notes = $13,
           full_text = $14,
-          has_gift = $15
-        WHERE id = $16
+          has_gift = $15,
+          summarization_status = $16,
+          summarization_result = $17
+        WHERE id = $18
         RETURNING *
       `;
 
@@ -604,6 +630,8 @@ export class DatabaseStorage implements IStorage {
         meeting.notes || null,
         meeting.fullText || null,
         meeting.hasGift || "no", // Gift indicator field
+        (meeting as any).summarizationStatus || null,
+        (meeting as any).summarizationResult || null,
         id,
       ];
 
@@ -613,7 +641,29 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      const updatedMeeting = result.rows[0];
+      const row = result.rows[0];
+      
+      // Map database fields to Meeting type
+      const updatedMeeting = {
+        id: row.id,
+        respondentName: row.respondent_name,
+        respondentPosition: row.respondent_position,
+        cnum: row.cnum,
+        gcc: row.gcc,
+        companyName: row.company_name,
+        email: row.email,
+        researcher: row.researcher,
+        relationshipManager: row.relationship_manager,
+        salesPerson: row.recruiter,
+        date: row.date,
+        researchId: row.research_id,
+        status: row.status,
+        notes: row.notes,
+        fullText: row.full_text,
+        hasGift: row.has_gift,
+        summarizationStatus: row.summarization_status,
+        summarizationResult: row.summarization_result,
+      };
 
       // Check if meeting reached "Done" status and send to Kafka
       const isNowDone = updatedMeeting.status === "Done";
