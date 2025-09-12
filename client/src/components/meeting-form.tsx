@@ -256,14 +256,47 @@ export default function MeetingForm({
                   <FormControl>
                     <Input
                       {...field}
-                      type="time"
-                      className="w-full time-24h"
+                      type="text"
+                      className="w-full font-mono"
                       data-testid="input-meeting-time"
-                      min="00:00"
-                      max="23:59"
-                      step="60"
-                      placeholder="HH:MM"
+                      placeholder="ЧЧ:ММ (например: 14:30)"
+                      pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
                       title="Время в 24-часовом формате (например: 14:30)"
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        // Remove any non-digit or colon characters
+                        value = value.replace(/[^\d:]/g, '');
+                        
+                        // Auto-format as user types
+                        if (value.length === 2 && !value.includes(':')) {
+                          value = value + ':';
+                        }
+                        
+                        // Limit to 5 characters (HH:MM)
+                        if (value.length > 5) {
+                          value = value.substring(0, 5);
+                        }
+                        
+                        e.target.value = value;
+                        field.onChange(e);
+                      }}
+                      onBlur={(e) => {
+                        const value = e.target.value;
+                        const match = value.match(/^(\d{1,2}):?(\d{0,2})$/);
+                        
+                        if (match) {
+                          const hours = parseInt(match[1] || '0');
+                          const minutes = parseInt(match[2] || '0');
+                          
+                          if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                            const formattedTime = 
+                              (hours < 10 ? '0' : '') + hours + ':' + 
+                              (minutes < 10 ? '0' : '') + minutes;
+                            e.target.value = formattedTime;
+                            field.onChange(e);
+                          }
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
