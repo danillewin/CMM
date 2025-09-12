@@ -44,6 +44,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import MDEditor, { commands } from "@uiw/react-md-editor";
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -546,27 +547,16 @@ export default function ResearchForm({
                 <FormItem className="w-full">
                   <FormControl>
                     <div data-color-mode="light">
-                      <MDEditor
+                      <WysiwygMarkdownEditor
                         value={field.value}
                         onChange={(value) => {
                           const newValue = value || "";
                           field.onChange(newValue);
                           handleFieldChange("description", newValue);
                         }}
-                        preview="edit"
-                        extraCommands={[]}
+                        placeholder="Enter research description..."
                         height={300}
-                        className="border border-gray-200 rounded-md overflow-hidden"
-                        textareaProps={{
-                          placeholder: "Enter research description...",
-                          style: { resize: 'none' }
-                        }}
-                        previewOptions={{
-                          remarkPlugins: [remarkGfm],
-                          disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                          unwrapDisallowed: true,
-                          className: "prose prose-sm max-w-none p-4"
-                        }}
+                        className=""
                       />
                     </div>
                   </FormControl>
