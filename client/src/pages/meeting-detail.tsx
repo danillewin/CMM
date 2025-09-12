@@ -273,9 +273,13 @@ export default function MeetingDetail() {
   const [tempFormData, setTempFormData] = useState<Partial<InsertMeeting>>({});
   const { toast } = useToast();
   
-  // Parse query parameters if we're creating a new meeting
-  const searchParams = isNew ? new URLSearchParams(window.location.search) : null;
-  const preselectedResearchId = searchParams ? (searchParams.get("researchId") ? parseInt(searchParams.get("researchId")!) : undefined) : undefined;
+  // Parse query parameters for navigation context and new meeting creation
+  const searchParams = new URLSearchParams(window.location.search);
+  const preselectedResearchId = isNew ? (searchParams.get("researchId") ? parseInt(searchParams.get("researchId")!) : undefined) : undefined;
+  
+  // Parse navigation source context
+  const sourceType = searchParams.get("source"); // "research" or null
+  const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] = useState<Research | null>(null);
@@ -459,7 +463,12 @@ export default function MeetingDetail() {
   };
 
   const handleCancel = () => {
-    setLocation("/");
+    // Navigate back to source if available, otherwise go to meetings
+    if (sourceType === "research" && sourceId) {
+      setLocation(`/researches/${sourceId}`);
+    } else {
+      setLocation("/");
+    }
   };
 
   const isLoading = isMeetingLoading;
@@ -481,12 +490,14 @@ export default function MeetingDetail() {
           <Button 
             variant="ghost" 
             className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
-            onClick={() => setLocation("/")}
+            onClick={handleCancel}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="mx-2 text-gray-300">/</span>
-          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Встречи</span>
+          <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
+            {sourceType === "research" ? "Исследования" : "Встречи"}
+          </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
             {isNew ? "Новая встреча" : meeting?.respondentName || "Детали встречи"}
