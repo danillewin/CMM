@@ -1076,10 +1076,15 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (sourceType === "research" && sourceId) {
-      setLocation(`/researches/${sourceId}`);
+    if ((sourceType === "research" && sourceId) || (fromContext === "research" && fromResearchId)) {
+      // Use the appropriate ID - prioritize fromResearchId for new meetings
+      const researchId = fromResearchId || sourceId;
+      setLocation(`/researches/${researchId}`);
+    } else if (preselectedResearchId) {
+      // If we have a preselected research ID (creating new meeting in research context)
+      setLocation(`/researches/${preselectedResearchId}`);
     } else {
-      setLocation("/");
+      setLocation("/meetings");
     }
   };
 
