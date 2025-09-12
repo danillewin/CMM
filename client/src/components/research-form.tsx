@@ -43,7 +43,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor, { commands } from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -554,6 +554,7 @@ export default function ResearchForm({
                           handleFieldChange("description", newValue);
                         }}
                         preview="edit"
+                        extraCommands={[]}
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
                         textareaProps={{

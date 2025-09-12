@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor, { commands } from "@uiw/react-md-editor";
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
 
@@ -80,6 +80,7 @@ export function ResearchBriefForm({
                   }}
                   preview="edit"
                   hideToolbar={false}
+                  extraCommands={[]}
                   data-color-mode="light"
                   textareaProps={{
                     placeholder: "Enter research brief...",

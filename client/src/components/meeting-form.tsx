@@ -25,7 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
@@ -523,6 +523,7 @@ export default function MeetingForm({
                           value={field.value}
                           onChange={(value) => field.onChange(value || '')}
                           preview="edit"
+                          extraCommands={[]}
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{
@@ -561,6 +562,7 @@ export default function MeetingForm({
                           value={field.value}
                           onChange={(value) => field.onChange(value || '')}
                           preview="edit"
+                          extraCommands={[]}
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{

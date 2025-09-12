@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import DOMPurify from 'dompurify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
@@ -188,6 +188,7 @@ function MeetingResultsForm({
                     handleFieldChange("notes", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}
@@ -226,6 +227,7 @@ function MeetingResultsForm({
                     handleFieldChange("fullText", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}

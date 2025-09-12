@@ -52,7 +52,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import MDEditor from "@uiw/react-md-editor";
+import MDEditor, { commands } from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
@@ -212,6 +212,7 @@ function ResearchRecruitmentForm({
                     handleFieldChange("clientsWeSearchFor", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -247,6 +248,7 @@ function ResearchRecruitmentForm({
                     handleFieldChange("inviteTemplate", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -466,6 +468,7 @@ function ResearchGuideForm({
                     handleFieldChange("guide", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
@@ -672,6 +675,7 @@ function ResearchResultsForm({
                     handleFieldChange("fullText", newValue);
                   }}
                   preview="edit"
+                  extraCommands={[]}
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{
