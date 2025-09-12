@@ -27,6 +27,7 @@ import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
 import MDEditor from '@uiw/react-md-editor';
 import DOMPurify from 'dompurify';
+import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
 import { ResearchSelector } from "./research-selector";
 
@@ -528,14 +529,11 @@ export default function MeetingForm({
                             placeholder: "Enter meeting notes...",
                             style: { resize: 'none' }
                           }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
+                          previewOptions={{
+                            remarkPlugins: [remarkGfm],
+                            disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+                            unwrapDisallowed: true,
+                            className: "prose prose-sm max-w-none p-4"
                           }}
                         />
                       </div>
@@ -569,14 +567,11 @@ export default function MeetingForm({
                             placeholder: "Enter full text content...",
                             style: { resize: 'none' }
                           }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
+                          previewOptions={{
+                            remarkPlugins: [remarkGfm],
+                            disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+                            unwrapDisallowed: true,
+                            className: "prose prose-sm max-w-none p-4"
                           }}
                         />
                       </div>
