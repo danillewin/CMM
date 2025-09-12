@@ -187,8 +187,7 @@ function MeetingResultsForm({
                     field.onChange(newValue);
                     handleFieldChange("notes", newValue);
                   }}
-                  preview="live"
-                  visibleDragbar={false}
+                  preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}
@@ -226,8 +225,7 @@ function MeetingResultsForm({
                     field.onChange(newValue);
                     handleFieldChange("fullText", newValue);
                   }}
-                  preview="live"
-                  visibleDragbar={false}
+                  preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
                   height={300}

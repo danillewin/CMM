@@ -78,8 +78,7 @@ export function ResearchBriefForm({
                     field.onChange(newValue);
                     handleFieldChange("brief", newValue);
                   }}
-                  preview="live"
-                  visibleDragbar={false}
+                  preview="edit"
                   hideToolbar={false}
                   data-color-mode="light"
                   textareaProps={{

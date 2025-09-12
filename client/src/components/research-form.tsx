@@ -553,8 +553,7 @@ export default function ResearchForm({
                           field.onChange(newValue);
                           handleFieldChange("description", newValue);
                         }}
-                        preview="live"
-                        visibleDragbar={false}
+                        preview="edit"
                         height={300}
                         className="border border-gray-200 rounded-md overflow-hidden"
                         textareaProps={{
