@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType, type Jtbd } from "@shared/schema";
@@ -64,6 +64,8 @@ export default function MeetingForm({
   preselectedResearch
 }: MeetingFormProps) {
   const [localSelectedJtbds, setLocalSelectedJtbds] = useState<Jtbd[]>([]);
+  const [validationError, setValidationError] = useState<boolean>(false);
+  const cnumFieldRef = useRef<HTMLDivElement>(null);
   
   // Use parent-provided JTBDs if available, otherwise use local state
   const selectedJtbds = parentSelectedJtbds || localSelectedJtbds;
@@ -127,11 +129,51 @@ export default function MeetingForm({
 
   // Handle form submission
   const onSubmitWrapper = (data: FormValues) => {
+    // Check if at least one of CNUM or GCC is provided
+    const hasCnum = data.cnum && data.cnum.trim().length > 0;
+    const hasGcc = data.gcc && data.gcc.trim().length > 0;
+    
+    if (!hasCnum && !hasGcc) {
+      // Highlight the disclaimer text in red
+      setValidationError(true);
+      
+      // Scroll to the CNUM field
+      if (cnumFieldRef.current) {
+        cnumFieldRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        // Focus the CNUM input field
+        const input = cnumFieldRef.current.querySelector('input');
+        if (input) {
+          setTimeout(() => input.focus(), 300);
+        }
+      }
+      
+      return; // Prevent form submission
+    }
+    
+    // Clear validation error if submission is valid
+    setValidationError(false);
+    
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
     // Convert form data to InsertMeeting type
     onSubmit(data as unknown as InsertMeeting);
+  };
+
+  // Clear validation error when user starts typing in either field
+  const handleCnumChange = (value: string) => {
+    if (validationError && value.trim().length > 0) {
+      setValidationError(false);
+    }
+  };
+
+  const handleGccChange = (value: string) => {
+    if (validationError && value.trim().length > 0) {
+      setValidationError(false);
+    }
   };
 
   return (
@@ -320,16 +362,21 @@ export default function MeetingForm({
               control={form.control}
               name="cnum"
               render={({ field }) => (
-                <FormItem>
+                <FormItem ref={cnumFieldRef}>
                   <FormLabel className="text-base">
                     CNUM
                     <RequiredFieldIndicator />
+                    <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
                     <Input
                       {...field}
                       className="w-full uppercase"
-                      onChange={e => field.onChange(e.target.value.toUpperCase())}
+                      onChange={e => {
+                        const value = e.target.value.toUpperCase();
+                        field.onChange(value);
+                        handleCnumChange(value);
+                      }}
                       onBlur={(e) => {
                         field.onBlur(); // Call the original onBlur
                         
@@ -342,7 +389,6 @@ export default function MeetingForm({
                       placeholder="CNUM..."
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -352,15 +398,22 @@ export default function MeetingForm({
               name="gcc"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">GCC</FormLabel>
+                  <FormLabel className="text-base">
+                    GCC
+                    <RequiredFieldIndicator />
+                    <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
+                  </FormLabel>
                   <FormControl>
                     <Input 
                       {...field} 
                       className="w-full" 
+                      onChange={e => {
+                        field.onChange(e.target.value);
+                        handleGccChange(e.target.value);
+                      }}
                       placeholder="GCC..."
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />

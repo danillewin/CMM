@@ -8,11 +8,15 @@ import {
   insertPositionSchema, 
   insertTeamSchema,
   insertJtbdSchema,
-  insertCustomFilterSchema
+  insertCustomFilterSchema,
+  insertMeetingAttachmentSchema,
+  updateMeetingAttachmentSchema
 } from "@shared/schema";
 
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
+import { ObjectStorageService } from "./objectStorage";
+import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 
 // Database initialization is handled by the storage layer
 
@@ -679,15 +683,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for file uploads (memory storage - files won't be saved to disk)
-  const upload = multer({ 
+  // Configure multer for transcription uploads (memory storage - audio/video only)
+  const transcriptionUpload = multer({ 
     storage: multer.memoryStorage(),
     limits: {
       fileSize: 100 * 1024 * 1024, // 100MB limit
       files: 5, // Maximum 5 files
+      fieldSize: 1024, // 1KB field value limit
+      fieldNameSize: 100, // 100 bytes field name limit
     },
     fileFilter: (req, file, cb) => {
-      // Accept audio and video files
+      // Accept audio and video files only for transcription
       const allowedTypes = [
         'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac',
         'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
@@ -699,13 +705,61 @@ export function registerRoutes(app: Express): Server {
       if (isValidType) {
         cb(null, true);
       } else {
-        cb(new Error('Invalid file type. Only audio and video files are allowed.'));
+        cb(new Error('Invalid file type. Only audio and video files are allowed for transcription.'));
+      }
+    }
+  });
+
+  // Configure multer for meeting file attachments (broader file type support with security)
+  const meetingFileUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit per file
+      files: 10, // Maximum 10 files per request
+      fieldSize: 1024, // 1KB field value limit
+      fieldNameSize: 100, // 100 bytes field name limit
+      parts: 20, // Maximum 20 parts (fields + files)
+    },
+    fileFilter: (req, file, cb) => {
+      // Sanitize filename
+      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      
+      // Block dangerous file extensions
+      const dangerousExtensions = /\.(exe|bat|cmd|scr|pif|vbs|js|jar|com|app|dmg|pkg|deb|rpm)$/i;
+      if (dangerousExtensions.test(file.originalname)) {
+        cb(new Error('File type not allowed for security reasons.'));
+        return;
+      }
+      
+      // Allow common document, image, audio, and video files
+      const allowedTypes = [
+        // Documents
+        'application/pdf', 'text/plain', 'text/csv',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        // Images
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+        // Audio
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac',
+        // Video
+        'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
+      ];
+      
+      const allowedExtensions = /\.(pdf|txt|csv|doc|docx|xls|xlsx|ppt|pptx|jpg|jpeg|png|gif|webp|svg|mp3|wav|ogg|m4a|aac|flac|mp4|avi|mov|wmv|webm|mkv)$/i;
+      
+      const isValidType = allowedTypes.includes(file.mimetype) && allowedExtensions.test(file.originalname);
+      
+      if (isValidType) {
+        cb(null, true);
+      } else {
+        cb(new Error(`File type '${file.mimetype}' or extension not supported. Allowed: documents, images, audio, and video files.`));
       }
     }
   });
 
   // Transcription endpoint
-  app.post("/api/transcribe", upload.array('files'), async (req, res) => {
+  app.post("/api/transcribe", transcriptionUpload.array('files'), async (req, res) => {
     try {
       console.log("Request received:", {
         files: req.files ? req.files.length : 0,
@@ -743,6 +797,301 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Health check error:", error);
       res.status(500).json({ message: "Health check failed" });
+    }
+  });
+
+  // Initialize object storage service
+  const objectStorageService = new ObjectStorageService();
+
+  // Meeting file attachment API routes
+  
+  // Upload files for a meeting
+  app.post("/api/meetings/:meetingId/files", meetingFileUpload.array('files'), async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files provided" });
+      }
+
+      console.log(`File upload request for meeting ${meetingId}: ${files.length} files, total size: ${files.reduce((sum, f) => sum + f.size, 0)} bytes`);
+
+      const uploadedAttachments = [];
+
+      // Process each file
+      for (const file of files) {
+        try {
+          // Get upload URL from object storage
+          const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+          
+          // Upload file to storage
+          const response = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file.buffer,
+            headers: {
+              'Content-Type': file.mimetype,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Upload failed with status: ${response.status}`);
+          }
+
+          // Get the object path from the upload URL
+          const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
+
+          // Save metadata to database
+          const attachmentData = {
+            meetingId,
+            fileName: file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'), // Sanitize filename
+            originalName: file.originalname,
+            fileSize: file.size,
+            mimeType: file.mimetype,
+            objectPath,
+            transcriptionStatus: 'pending' as const,
+          };
+
+          const attachment = await storage.createMeetingAttachment(attachmentData);
+          uploadedAttachments.push(attachment);
+
+          console.log(`Successfully uploaded file: ${file.originalname} for meeting ${meetingId}`);
+        } catch (fileError) {
+          console.error(`Error uploading file ${file.originalname}:`, fileError);
+          // Continue with other files, but log the error
+        }
+      }
+
+      if (uploadedAttachments.length === 0) {
+        return res.status(500).json({ message: "Failed to upload any files" });
+      }
+
+      res.status(201).json({
+        message: `Successfully uploaded ${uploadedAttachments.length} file(s)`,
+        files: uploadedAttachments
+      });
+
+      // Start async transcription processing for uploaded files
+      if (uploadedAttachments.length > 0) {
+        asyncTranscriptionProcessor.startAsyncTranscriptionForMeeting(meetingId);
+        console.log(`Started async transcription processing for meeting ${meetingId}`);
+      }
+
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ 
+        message: "File upload failed", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Get files for a meeting
+  app.get("/api/meetings/:meetingId/files", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      const attachments = await storage.getMeetingAttachments(meetingId);
+      res.json(attachments);
+    } catch (error) {
+      console.error("Error fetching meeting files:", error);
+      res.status(500).json({ message: "Failed to fetch meeting files" });
+    }
+  });
+
+  // Download a specific file
+  app.get("/api/files/:fileId/download", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const attachment = await storage.getMeetingAttachment(fileId);
+      if (!attachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Get the file from object storage
+      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath);
+      
+      // Set filename header
+      res.set('Content-Disposition', `attachment; filename="${attachment.originalName}"`);
+      
+      // Stream the file
+      await objectStorageService.downloadObject(objectFile, res);
+      
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      res.status(500).json({ message: "Failed to download file" });
+    }
+  });
+
+  // Delete a specific file
+  app.delete("/api/files/:fileId", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const success = await storage.deleteMeetingAttachment(fileId);
+      if (!success) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
+  // Start transcription for a specific file
+  app.post("/api/files/:fileId/transcribe", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const attachment = await storage.getMeetingAttachment(fileId);
+      if (!attachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Start async transcription processing
+      asyncTranscriptionProcessor.processFileTranscription(fileId);
+
+      res.json({
+        message: "Transcription started",
+        fileId,
+        status: "processing"
+      });
+
+    } catch (error) {
+      console.error("Error starting transcription:", error);
+      res.status(500).json({ message: "Failed to start transcription" });
+    }
+  });
+
+  // Get transcription status for a specific file
+  app.get("/api/files/:fileId/transcription", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const attachment = await storage.getMeetingAttachment(fileId);
+      if (!attachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      res.json({
+        fileId,
+        status: attachment.transcriptionStatus,
+        text: attachment.transcriptionText,
+        retryCount: attachment.transcriptionRetryCount,
+        lastAttempt: attachment.lastTranscriptionAttempt,
+        error: attachment.errorMessage
+      });
+
+    } catch (error) {
+      console.error("Error fetching transcription status:", error);
+      res.status(500).json({ message: "Failed to fetch transcription status" });
+    }
+  });
+
+  // Retry failed transcription for a specific file
+  app.post("/api/files/:fileId/transcription/retry", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      const success = await asyncTranscriptionProcessor.retryFailedTranscription(fileId);
+      
+      if (success) {
+        res.json({
+          message: "Transcription retry started",
+          fileId,
+          status: "retrying"
+        });
+      } else {
+        res.status(400).json({
+          message: "Cannot retry transcription for this file",
+          reason: "File is not in failed or pending state"
+        });
+      }
+
+    } catch (error) {
+      console.error("Error retrying transcription:", error);
+      res.status(500).json({ message: "Failed to retry transcription" });
+    }
+  });
+
+  // Get transcription summary for all files in a meeting
+  app.get("/api/meetings/:meetingId/transcription-summary", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      const summary = await asyncTranscriptionProcessor.getTranscriptionSummary(meetingId);
+      res.json(summary);
+
+    } catch (error) {
+      console.error("Error fetching transcription summary:", error);
+      res.status(500).json({ message: "Failed to fetch transcription summary" });
+    }
+  });
+
+  // Start/restart transcription for all files in a meeting
+  app.post("/api/meetings/:meetingId/transcription/start", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      // Start async processing for all pending files
+      asyncTranscriptionProcessor.startAsyncTranscriptionForMeeting(meetingId);
+
+      res.json({
+        message: "Transcription processing started for all pending files",
+        meetingId
+      });
+
+    } catch (error) {
+      console.error("Error starting meeting transcription:", error);
+      res.status(500).json({ message: "Failed to start meeting transcription" });
     }
   });
 
