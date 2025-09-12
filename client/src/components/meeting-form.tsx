@@ -259,6 +259,7 @@ export default function MeetingForm({
                       type="time"
                       className="w-full"
                       data-testid="input-meeting-time"
+                      step="60"
                     />
                   </FormControl>
                   <FormMessage />
