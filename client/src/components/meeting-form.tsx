@@ -98,6 +98,7 @@ export default function MeetingForm({
     salesPerson: string;
     date: Date;
     time: string;
+    meetingLink: string;
     researchId: number | undefined;
     status: MeetingStatusType;
     notes: string;
@@ -118,7 +119,8 @@ export default function MeetingForm({
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
-      time: defaultTime,
+      time: initialData?.time ?? "",
+      meetingLink: initialData?.meetingLink ?? "",
       researchId: initialData?.researchId ?? undefined,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
@@ -167,17 +169,20 @@ export default function MeetingForm({
       addManager(data.relationshipManager);
     }
     
-    // Combine date and time into a single Date object
-    const [hours, minutes] = data.time.split(':').map(Number);
-    const combinedDateTime = new Date(data.date);
-    combinedDateTime.setHours(hours, minutes, 0, 0);
+    // Combine date and time into a single Date object if time is provided
+    let combinedDateTime = new Date(data.date);
+    if (data.time && data.time.trim()) {
+      const [hours, minutes] = data.time.split(':').map(Number);
+      combinedDateTime.setHours(hours, minutes, 0, 0);
+    }
     
     // Convert form data to InsertMeeting type with combined date/time
     const submitData = {
       ...data,
       date: combinedDateTime,
+      time: data.time || null, // Store time separately as well
+      meetingLink: data.meetingLink || null, // Store meeting link
     };
-    delete (submitData as any).time; // Remove the separate time field
     
     onSubmit(submitData as unknown as InsertMeeting);
   };
@@ -216,7 +221,7 @@ export default function MeetingForm({
         
         {/* Date, Time and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="date"
@@ -251,7 +256,6 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">
                     Время
-                    <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -297,6 +301,30 @@ export default function MeetingForm({
                           }
                         }
                       }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <FormField
+              control={form.control}
+              name="meetingLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Ссылка на встречу
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="url"
+                      className="w-full"
+                      data-testid="input-meeting-link"
+                      placeholder="https://..."
                     />
                   </FormControl>
                   <FormMessage />
