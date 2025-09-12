@@ -39,6 +39,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import ReactMarkdown from "react-markdown";
+import { MarkdownLiveProvider } from "@/components/markdown-live-context";
+import { LiveMarkdownPane } from "@/components/live-markdown-pane";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema } from "@shared/schema";
@@ -2829,9 +2831,13 @@ function ResearchDetail() {
             </div>
           </div>
 
-          {/* Main content area with tabs */}
+          {/* Main content area with tabs and live preview */}
           <div className="px-8 py-6">
-            <Tabs defaultValue="info" className="w-full">
+            <MarkdownLiveProvider>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left column - Tabs */}
+                <div className="min-w-0">
+                  <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="info">
                   {t("research.tabs.overview")}
@@ -2897,6 +2903,14 @@ function ResearchDetail() {
                 />
               </TabsContent>
             </Tabs>
+                  </div>
+
+                  {/* Right column - Live Markdown Preview */}
+                  <div className="hidden lg:block">
+                    <LiveMarkdownPane />
+                  </div>
+                </div>
+              </MarkdownLiveProvider>
 
             {/* Connected Meetings Section */}
             {!isNew && id && (
