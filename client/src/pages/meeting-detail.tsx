@@ -29,7 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import MDEditor, { commands } from '@uiw/react-md-editor';
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
@@ -180,31 +180,16 @@ function MeetingResultsForm({
             <FormItem>
               <FormLabel className="text-lg font-medium">Meeting Notes</FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("notes", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
+                  placeholder="Enter meeting notes..."
                   height={300}
-                  textareaProps={{
-                    placeholder: "Enter meeting notes...",
-                    style: { resize: 'none' }
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
-                      });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
-                  }}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -219,31 +204,16 @@ function MeetingResultsForm({
             <FormItem>
               <FormLabel className="text-lg font-medium">Full Text</FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("fullText", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
+                  placeholder="Enter full text content..."
                   height={300}
-                  textareaProps={{
-                    placeholder: "Enter full text content...",
-                    style: { resize: 'none' }
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
-                      });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
-                  }}
+                  className=""
                 />
               </FormControl>
               <FormMessage />

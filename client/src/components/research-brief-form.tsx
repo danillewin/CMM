@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import MDEditor, { commands } from "@uiw/react-md-editor";
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
 
@@ -70,28 +70,16 @@ export function ResearchBriefForm({
                 {t("researches.brief")}
               </FormLabel>
               <FormControl>
-                <MDEditor
-                  data-testid="input-brief"
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("brief", newValue);
                   }}
-                  preview="edit"
-                  hideToolbar={false}
-                  extraCommands={[]}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter research brief...",
-                    style: { resize: 'none' }
-                  }}
-                  previewOptions={{
-                    remarkPlugins: [remarkGfm],
-                    disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                    unwrapDisallowed: true,
-                    className: "prose prose-sm max-w-none p-4"
-                  }}
+                  placeholder="Enter research brief..."
+                  height={300}
+                  className=""
                 />
               </FormControl>
               <FormMessage />

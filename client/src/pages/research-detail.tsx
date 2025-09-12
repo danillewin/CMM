@@ -52,7 +52,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import MDEditor, { commands } from "@uiw/react-md-editor";
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
@@ -204,27 +204,16 @@ function ResearchRecruitmentForm({
                 Clients we search for
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("clientsWeSearchFor", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Describe who we're searching for...",
-                    style: { resize: 'none' }
-                  }}
-                  previewOptions={{
-                    remarkPlugins: [remarkGfm],
-                    disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                    unwrapDisallowed: true,
-                    className: "prose prose-sm max-w-none p-4"
-                  }}
+                  placeholder="Describe who we're searching for..."
+                  height={300}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -240,27 +229,16 @@ function ResearchRecruitmentForm({
                 Invite template
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("inviteTemplate", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter invitation template...",
-                    style: { resize: 'none' }
-                  }}
-                  previewOptions={{
-                    remarkPlugins: [remarkGfm],
-                    disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                    unwrapDisallowed: true,
-                    className: "prose prose-sm max-w-none p-4"
-                  }}
+                  placeholder="Enter invitation template..."
+                  height={300}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -460,27 +438,16 @@ function ResearchGuideForm({
             <FormItem>
               <FormLabel className="text-lg font-medium">Guide</FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("guide", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter research guide...",
-                    style: { resize: 'none' }
-                  }}
-                  previewOptions={{
-                    remarkPlugins: [remarkGfm],
-                    disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                    unwrapDisallowed: true,
-                    className: "prose prose-sm max-w-none p-4"
-                  }}
+                  placeholder="Enter research guide..."
+                  height={400}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -667,27 +634,16 @@ function ResearchResultsForm({
                 Full Text Results
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("fullText", newValue);
                   }}
-                  preview="edit"
-                  extraCommands={[]}
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter full text content...",
-                    style: { resize: 'none' }
-                  }}
-                  previewOptions={{
-                    remarkPlugins: [remarkGfm],
-                    disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                    unwrapDisallowed: true,
-                    className: "prose prose-sm max-w-none p-4"
-                  }}
+                  placeholder="Enter full text content..."
+                  height={400}
+                  className=""
                 />
               </FormControl>
               <FormMessage />

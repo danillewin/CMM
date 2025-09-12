@@ -43,7 +43,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import MDEditor, { commands } from "@uiw/react-md-editor";
 import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import ReactMarkdown from 'react-markdown';

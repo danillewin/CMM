@@ -25,7 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useManagers } from "@/hooks/use-managers";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
-import MDEditor, { commands } from '@uiw/react-md-editor';
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
@@ -518,26 +518,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          extraCommands={[]}
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Enter meeting notes...",
-                            style: { resize: 'none' }
-                          }}
-                          previewOptions={{
-                            remarkPlugins: [remarkGfm],
-                            disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                            unwrapDisallowed: true,
-                            className: "prose prose-sm max-w-none p-4"
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Enter meeting notes..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -557,26 +544,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          extraCommands={[]}
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Enter full text content...",
-                            style: { resize: 'none' }
-                          }}
-                          previewOptions={{
-                            remarkPlugins: [remarkGfm],
-                            disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
-                            unwrapDisallowed: true,
-                            className: "prose prose-sm max-w-none p-4"
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Enter full text content..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
