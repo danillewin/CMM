@@ -873,6 +873,8 @@ export default function MeetingDetail() {
   // Parse navigation source context
   const sourceType = searchParams.get("source"); // "research" or null
   const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
+  const fromContext = searchParams.get('fromContext');
+  const fromResearchId = searchParams.get('fromResearchId');
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
