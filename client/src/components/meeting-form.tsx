@@ -522,7 +522,7 @@ export default function MeetingForm({
                         <MDEditor
                           value={field.value}
                           onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
+                          preview="live"
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{
@@ -560,7 +560,7 @@ export default function MeetingForm({
                         <MDEditor
                           value={field.value}
                           onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
+                          preview="live"
                           height={300}
                           className="border border-gray-200 rounded-md overflow-hidden"
                           textareaProps={{
