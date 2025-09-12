@@ -45,6 +45,8 @@ import {
 } from "@/components/ui/popover";
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from 'dompurify';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Checkbox } from "@/components/ui/checkbox";
 
 const PRODUCT_OPTIONS = [
@@ -558,14 +560,11 @@ export default function ResearchForm({
                           placeholder: "Enter research description...",
                           style: { resize: 'none' }
                         }}
-                        components={{
-                          preview: (source, state, dispatch) => {
-                            const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                              ALLOWED_ATTR: []
-                            });
-                            return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                          }
+                        previewOptions={{
+                          remarkPlugins: [remarkGfm],
+                          disallowedElements: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+                          unwrapDisallowed: true,
+                          className: "prose prose-sm max-w-none p-4"
                         }}
                       />
                     </div>
