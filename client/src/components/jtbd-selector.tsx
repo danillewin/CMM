@@ -189,7 +189,7 @@ export function JtbdSelector({
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="h-8">
                 <Plus className="h-3.5 w-3.5 mr-1" />
-                Add Job
+                Добавить джобу
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">

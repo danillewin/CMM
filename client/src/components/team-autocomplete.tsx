@@ -42,17 +42,17 @@ export function TeamAutocomplete({
       const res = await apiRequest("POST", "/api/teams", { name });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to create team');
+        throw new Error(data.message || 'Не удалось создать команду');
       }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
-      toast({ title: "Team created successfully" });
+      toast({ title: "Команда успешно создана" });
     },
     onError: (error: Error) => {
       toast({ 
-        title: "Failed to create team",
+        title: "Не удалось создать команду",
         description: error.message,
         variant: "destructive"
       });
@@ -64,17 +64,17 @@ export function TeamAutocomplete({
       const res = await apiRequest("DELETE", `/api/teams/${id}`);
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Failed to delete team');
+        throw new Error(data.message || 'Не удалось удалить команду');
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
-      toast({ title: "Team deleted successfully" });
+      toast({ title: "Команда успешно удалена" });
     },
     onError: (error: Error) => {
       toast({ 
-        title: "Failed to delete team",
+        title: "Не удалось удалить команду",
         description: error.message,
         variant: "destructive"
       });
@@ -106,7 +106,7 @@ export function TeamAutocomplete({
     e.preventDefault();
     e.stopPropagation();
     try {
-      if (confirm(`Are you sure you want to delete team "${team.name}"? This will affect all associated researches.`)) {
+      if (confirm(`Вы уверены, что хотите удалить команду "${team.name}"? Это повлияет на все связанные исследования.`)) {
         await deleteTeamMutation.mutateAsync(team.id);
         if (value === team.name) {
           onChange("");
@@ -126,14 +126,14 @@ export function TeamAutocomplete({
           aria-expanded={open}
           className="w-full justify-between"
         >
-          {value || "Select team..."}
+          {value || "Выберите команду..."}
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput
-            placeholder="Search team..."
+            placeholder="Поиск команды..."
             value={inputValue}
             onValueChange={setInputValue}
           />
@@ -146,7 +146,7 @@ export function TeamAutocomplete({
                 onClick={() => createTeam(inputValue)}
                 disabled={!inputValue.trim()}
               >
-                Create "{inputValue}"
+                Создать "{inputValue}"
               </Button>
             </div>
           </CommandEmpty>

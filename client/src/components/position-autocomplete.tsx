@@ -42,17 +42,17 @@ export function PositionAutocomplete({
       const res = await apiRequest("POST", "/api/positions", { name });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to create position');
+        throw new Error(data.message || 'Не удалось создать должность');
       }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/positions"] });
-      toast({ title: "Position created successfully" });
+      toast({ title: "Должность успешно создана" });
     },
     onError: (error: Error) => {
       toast({ 
-        title: "Failed to create position",
+        title: "Не удалось создать должность",
         description: error.message,
         variant: "destructive"
       });
@@ -64,17 +64,17 @@ export function PositionAutocomplete({
       const res = await apiRequest("DELETE", `/api/positions/${id}`);
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message || 'Failed to delete position');
+        throw new Error(data.message || 'Не удалось удалить должность');
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/positions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: "Position deleted successfully" });
+      toast({ title: "Должность успешно удалена" });
     },
     onError: (error: Error) => {
       toast({ 
-        title: "Failed to delete position",
+        title: "Не удалось удалить должность",
         description: error.message,
         variant: "destructive"
       });
@@ -106,7 +106,7 @@ export function PositionAutocomplete({
     e.preventDefault();
     e.stopPropagation();
     try {
-      if (confirm(`Are you sure you want to delete position "${position.name}"? Associated meetings will have their position set to "Unknown".`)) {
+      if (confirm(`Вы уверены, что хотите удалить должность "${position.name}"? Связанные встречи будут иметь должность "Неизвестно".`)) {
         await deletePositionMutation.mutateAsync(position.id);
         if (value === position.name) {
           onChange("");
@@ -126,14 +126,14 @@ export function PositionAutocomplete({
           aria-expanded={open}
           className="w-full justify-between text-left font-normal"
         >
-          <span className="truncate">{value || "Select position..."}</span>
+          <span className="truncate">{value || "Выберите должность..."}</span>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50 ml-2" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command className="rounded-lg">
           <CommandInput
-            placeholder="Search position..."
+            placeholder="Поиск должности..."
             value={inputValue}
             onValueChange={setInputValue}
             className="h-9"
@@ -147,7 +147,7 @@ export function PositionAutocomplete({
                 onClick={() => createPosition(inputValue)}
                 disabled={!inputValue.trim()}
               >
-                Create "{inputValue}"
+                Создать "{inputValue}"
               </Button>
             </div>
           </CommandEmpty>

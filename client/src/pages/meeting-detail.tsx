@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+import { formatDateShort } from "@/lib/date-utils";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MDEditor from '@uiw/react-md-editor';
@@ -280,7 +281,6 @@ function MeetingResultsForm({
       });
     }
   };
-
   // Handle when files are uploaded successfully
   const handleUploadComplete = () => {
     // Files are uploaded and transcription is processing in the background
@@ -311,7 +311,7 @@ function MeetingResultsForm({
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Meeting Notes</FormLabel>
+              <FormLabel className="text-lg font-medium">Заметки о встрече</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -325,7 +325,7 @@ function MeetingResultsForm({
                   data-color-mode="light"
                   height={300}
                   textareaProps={{
-                    placeholder: "Enter meeting notes...",
+                    placeholder: "Введите заметки о встрече...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -349,7 +349,7 @@ function MeetingResultsForm({
           name="fullText"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Full Text</FormLabel>
+              <FormLabel className="text-lg font-medium">Отчет в текстовом виде</FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -363,7 +363,7 @@ function MeetingResultsForm({
                   data-color-mode="light"
                   height={300}
                   textareaProps={{
-                    placeholder: "Enter full text content...",
+                    placeholder: "Введите полный текст...",
                     style: { resize: 'none' }
                   }}
                   components={{
@@ -430,7 +430,7 @@ function MeetingResultsForm({
         
         <Button type="submit" disabled={isLoading || isProcessing}>
           {isLoading || isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Save Results
+          Сохранить результаты
         </Button>
         </form>
       </div>
@@ -867,10 +867,10 @@ export default function MeetingDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="mx-2 text-gray-300">/</span>
-          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Meetings</span>
+          <span className="hover:text-gray-800 cursor-pointer" onClick={() => setLocation("/")}>Встречи</span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
-            {isNew ? "New Meeting" : meeting?.respondentName || "Meeting Details"}
+            {isNew ? "Новая встреча" : meeting?.respondentName || "Детали встречи"}
           </span>
         </div>
 
@@ -879,7 +879,7 @@ export default function MeetingDetail() {
           {/* Document title - Notion style with Company Name (CNUM or GCC): Respondent Name format */}
           <div className="px-8 pt-8 pb-4 border-b border-gray-100">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-2 outline-none focus:ring-0 empty:before:content-['Untitled'] empty:before:text-gray-400 w-full">
-              {isNew ? "Create New Meeting" : (
+              {isNew ? "Создать новую встречу" : (
                 `${meeting?.companyName || ''} (${meeting?.cnum || meeting?.gcc || ''}): ${meeting?.respondentName || ''}`
               )}
             </h1>
@@ -893,12 +893,8 @@ export default function MeetingDetail() {
               
               {/* Meeting date with Notion-like tag styling */}
               {!isNew && meeting?.date && (
-                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium whitespace-nowrap" title={new Date(meeting.date).toLocaleDateString()}>
-                  {new Date(meeting.date).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
+                <div className="px-2.5 py-0.5 rounded-md text-xs bg-gray-100 text-gray-800 font-medium whitespace-nowrap" title={formatDateShort(meeting.date)}>
+                  {formatDateShort(meeting.date)}
                 </div>
               )}
               
@@ -975,7 +971,7 @@ export default function MeetingDetail() {
                     value="info" 
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
-                    Info
+                    Информация
                   </TabsTrigger>
                   <TabsTrigger 
                     value="guide" 
@@ -987,7 +983,7 @@ export default function MeetingDetail() {
                     value="results" 
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
-                    Results
+                    Результаты
                   </TabsTrigger>
                 </TabsList>
 
@@ -1102,14 +1098,14 @@ export default function MeetingDetail() {
                 onClick={() => setShowDuplicateDialog(false)}
                 className="bg-white border border-gray-200 hover:bg-gray-50"
               >
-                Cancel
+                Отмена
               </Button>
               {pendingFormData && (
                 <Button
                   onClick={handleConfirmCreate}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  Create Anyway
+                  Создать в любом случае
                 </Button>
               )}
               {!pendingFormData && (

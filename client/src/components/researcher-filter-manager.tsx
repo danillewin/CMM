@@ -13,7 +13,6 @@ import { Bookmark, Save } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -49,8 +48,7 @@ export default function ResearcherFilterManager({
   const [newFilterName, setNewFilterName] = useState("");
   const [newFilterDescription, setNewFilterDescription] = useState("");
   const { toast } = useToast();
-  const { t } = useTranslation();
-
+  
   // Fetch saved filters for researchers
   const { data: savedFilters = [], refetch } = useQuery<CustomFilter[]>({
     queryKey: ["/api/custom-filters", { pageType }],
@@ -74,7 +72,7 @@ export default function ResearcherFilterManager({
       });
     },
     onSuccess: () => {
-      toast({ title: t("filters.saveSuccess", "Filter saved successfully") });
+      toast({ title: "Фильтр успешно сохранен" });
       refetch();
       setIsOpen(false);
       setNewFilterName("");
@@ -90,7 +88,7 @@ export default function ResearcherFilterManager({
       return apiRequest("DELETE", `/api/custom-filters/${id}`);
     },
     onSuccess: () => {
-      toast({ title: t("filters.deleteSuccess", "Filter deleted successfully") });
+      toast({ title: "Фильтр успешно удален" });
       refetch();
     },
     onError: () => {
@@ -100,7 +98,7 @@ export default function ResearcherFilterManager({
 
   const handleSaveFilter = () => {
     if (!newFilterName.trim()) {
-      toast({ title: t("filters.nameRequired", "Filter name is required"), variant: "destructive" });
+      toast({ title: "Название фильтра обязательно", variant: "destructive" });
       return;
     }
 
@@ -113,7 +111,7 @@ export default function ResearcherFilterManager({
 
   const handleApplyFilter = (filter: CustomFilter) => {
     onApplyFilter(filter.filters);
-    toast({ title: t("filters.applied", "Filter '{{name}}' applied", { name: filter.name }) });
+    toast({ title: `Фильтр '${filter.name}' применен` });
   };
 
   const hasActiveFilters = Object.values(currentFilters).some(value => {
@@ -130,36 +128,36 @@ export default function ResearcherFilterManager({
           variant="outline" 
           size="sm" 
           className="ml-2 h-8 w-8 p-0"
-          title={t("filters.saveFilter", "Save Current Filter")}
+          title="Сохранить текущий фильтр"
         >
           <Bookmark className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("filters.manage", "Manage Research Filters")}</DialogTitle>
+          <DialogTitle>Управление фильтрами исследований</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {/* Save Current Filter Section */}
           {hasActiveFilters && (
             <div className="space-y-3 border-b pb-4">
-              <h4 className="font-medium text-sm">{t("filters.saveFilter", "Save Current Filter")}</h4>
+              <h4 className="font-medium text-sm">Сохранить текущий фильтр</h4>
               <div className="space-y-2">
-                <Label htmlFor="filter-name">{t("filters.name", "Filter Name")}</Label>
+                <Label htmlFor="filter-name">Название фильтра</Label>
                 <Input
                   id="filter-name"
                   value={newFilterName}
                   onChange={(e) => setNewFilterName(e.target.value)}
-                  placeholder={t("filters.namePlaceholder", "Enter a name for this filter...")}
+                  placeholder="Введите название для этого фильтра..."
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="filter-description">{t("filters.description", "Description")}</Label>
+                <Label htmlFor="filter-description">Описание</Label>
                 <Input
                   id="filter-description"
                   value={newFilterDescription}
                   onChange={(e) => setNewFilterDescription(e.target.value)}
-                  placeholder={t("filters.descriptionPlaceholder", "Describe what this filter is for...")}
+                  placeholder="Опишите, для чего нужен этот фильтр..."
                 />
               </div>
               <Button 
@@ -168,17 +166,17 @@ export default function ResearcherFilterManager({
                 className="w-full"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {t("common.save", "Save")}
+                "Сохранить"
               </Button>
             </div>
           )}
 
           {/* Saved Filters Section */}
           <div className="space-y-3">
-            <h4 className="font-medium text-sm">{t("filters.savedFilters", "Saved Filters")}</h4>
+            <h4 className="font-medium text-sm">Сохраненные фильтры</h4>
             {savedFilters.length === 0 ? (
               <p className="text-sm text-gray-500">
-                {t("filters.noSavedFilters", "No saved filters yet")}
+                "Пока нет сохраненных фильтров"
               </p>
             ) : (
               <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -197,7 +195,7 @@ export default function ResearcherFilterManager({
                         onClick={() => handleApplyFilter(filter)}
                         className="h-8 px-2"
                       >
-                        {t("filters.apply", "Apply")}
+                        "Применить"
                       </Button>
                       <Button
                         variant="ghost"
@@ -206,7 +204,7 @@ export default function ResearcherFilterManager({
                         disabled={deleteFilterMutation.isPending}
                         className="h-8 px-2 text-red-600 hover:text-red-700"
                       >
-                        {t("common.delete", "Delete")}
+                        "Удалить"
                       </Button>
                     </div>
                   </div>

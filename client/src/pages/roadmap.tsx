@@ -156,7 +156,7 @@ export default function RoadmapPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
         <div className="container mx-auto max-w-[1400px] space-y-8">
-          <SectionLoader text="Loading roadmap data..." />
+          <SectionLoader text="Загрузка данных дорожной карты..." />
         </div>
       </div>
     );
@@ -169,7 +169,7 @@ export default function RoadmapPage() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Research Roadmap</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Дорожная карта исследований</h1>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             {/* Zoom Controls */}
             <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-lg border border-gray-200 p-1">
@@ -179,7 +179,7 @@ export default function RoadmapPage() {
                 onClick={zoomOut}
                 disabled={zoomLevel <= 0.3}
                 className="h-8 w-8 p-0"
-                title="Zoom out for helicopter view"
+                title="Уменьшить масштаб для общего обзора"
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -192,7 +192,7 @@ export default function RoadmapPage() {
                 onClick={zoomIn}
                 disabled={zoomLevel >= 3}
                 className="h-8 w-8 p-0"
-                title="Zoom in for detailed view"
+                title="Увеличить масштаб для детального обзора"
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
@@ -201,7 +201,7 @@ export default function RoadmapPage() {
                 size="sm"
                 onClick={resetZoom}
                 className="h-8 w-8 p-0"
-                title="Reset zoom to 100%"
+                title="Сбросить масштаб к 100%"
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
@@ -209,8 +209,8 @@ export default function RoadmapPage() {
             
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList>
-                <TabsTrigger value="teams">Group by Teams</TabsTrigger>
-                <TabsTrigger value="researchers">Group by Researchers</TabsTrigger>
+                <TabsTrigger value="teams">Группировать по командам</TabsTrigger>
+                <TabsTrigger value="researchers">Группировать по исследователям</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -219,7 +219,7 @@ export default function RoadmapPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Select year" />
+              <SelectValue placeholder="Выберите год" />
             </SelectTrigger>
             <SelectContent>
               {availableYears.map((year) => (
@@ -230,10 +230,10 @@ export default function RoadmapPage() {
 
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by team" />
+              <SelectValue placeholder="Фильтр по команде" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Teams</SelectItem>
+              <SelectItem value="ALL">Все команды</SelectItem>
               {teams.map((team) => (
                 <SelectItem key={team} value={team}>{team}</SelectItem>
               ))}
@@ -242,10 +242,10 @@ export default function RoadmapPage() {
 
           <Select value={researcherFilter} onValueChange={setResearcherFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by researcher" />
+              <SelectValue placeholder="Фильтр по исследователю" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Researchers</SelectItem>
+              <SelectItem value="ALL">Все исследователи</SelectItem>
               {researchers.map((researcher) => (
                 <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
               ))}
@@ -254,10 +254,10 @@ export default function RoadmapPage() {
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full bg-white/80 backdrop-blur-sm shadow-sm border-gray-200">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder="Фильтр по статусу" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">All Statuses</SelectItem>
+              <SelectItem value="ALL">Все статусы</SelectItem>
               {Object.values(ResearchStatus).map((status) => (
                 <SelectItem key={status} value={status}>{status}</SelectItem>
               ))}
@@ -272,7 +272,7 @@ export default function RoadmapPage() {
                 className="w-full justify-between bg-white/80 backdrop-blur-sm shadow-sm border-gray-200"
               >
                 {researchTypeFilters.length === 0
-                  ? "All Research Types"
+                  ? "Все типы исследований"
                   : `${researchTypeFilters.length} selected`}
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
@@ -289,7 +289,7 @@ export default function RoadmapPage() {
                     }}
                     className="mr-2"
                   />
-                  <span className="text-sm font-medium">All Research Types</span>
+                  <span className="text-sm font-medium">Все типы исследований</span>
                 </div>
                 {researchTypes.map((type) => (
                   <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
