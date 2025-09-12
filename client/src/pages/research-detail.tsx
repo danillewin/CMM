@@ -2909,7 +2909,7 @@ function ResearchDetail() {
                                 key={meeting.id}
                                 className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
                                 onClick={() =>
-                                  setLocation(`/meetings/${meeting.id}`)
+                                  setLocation(`/meetings/${meeting.id}?source=research&sourceId=${id}`)
                                 }
                               >
                                 <TableCell>
