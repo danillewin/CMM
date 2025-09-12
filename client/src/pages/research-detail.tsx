@@ -52,9 +52,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import MDEditor from "@uiw/react-md-editor";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
-import { Plus, X, ChevronDown, ChevronUp, ChevronRight, Trash2, Edit, Eye } from "lucide-react";
+import {
+  Plus,
+  X,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Trash2,
+  Edit,
+  Eye,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -84,18 +93,25 @@ function ResearchBriefForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: { brief?: string; relatedResearches?: string[] }) => void;
+  onTempDataUpdate?: (data: {
+    brief?: string;
+    relatedResearches?: string[];
+    customerFullName?: string;
+    additionalStakeholders?: string[];
+    resultFormat?: string;
+  }) => void;
 }) {
-  
-
   // Query to fetch research details for related researches to display their names
   const { data: relatedResearchesData = [] } = useQuery<Research[]>({
     queryKey: ["/api/researches", "byIds", research?.relatedResearches],
     queryFn: async () => {
-      if (!research?.relatedResearches || research.relatedResearches.length === 0) {
+      if (
+        !research?.relatedResearches ||
+        research.relatedResearches.length === 0
+      ) {
         return [];
       }
-      
+
       // Fetch each research by ID
       const researchPromises = research.relatedResearches.map(async (id) => {
         try {
@@ -109,14 +125,15 @@ function ResearchBriefForm({
           return null;
         }
       });
-      
+
       const results = await Promise.all(researchPromises);
       return results.filter(Boolean) as Research[];
     },
-    enabled: !!(research?.relatedResearches && research.relatedResearches.length > 0),
+    enabled: !!(
+      research?.relatedResearches && research.relatedResearches.length > 0
+    ),
   });
   const form = useForm<{
-    researchType: string;
     customerFullName: string;
     additionalStakeholders: { value: string }[];
     resultFormat: string;
@@ -136,12 +153,10 @@ function ResearchBriefForm({
     brief: string;
   }>({
     defaultValues: {
-      researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
-      additionalStakeholders:
-        Array.isArray(research?.additionalStakeholders) 
-          ? research.additionalStakeholders.map((s) => ({ value: s })) 
-          : [],
+      additionalStakeholders: Array.isArray(research?.additionalStakeholders)
+        ? research.additionalStakeholders.map((s) => ({ value: s }))
+        : [],
       resultFormat: research?.resultFormat || "Презентация",
       customerSegmentDescription: research?.customerSegmentDescription || "",
       projectBackground: research?.projectBackground || "",
@@ -154,10 +169,9 @@ function ResearchBriefForm({
       keyQuestions: research?.keyQuestions || "",
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
-      relatedResearches:
-        Array.isArray(research?.relatedResearches) 
-          ? research.relatedResearches.map((s) => ({ value: s })) 
-          : [],
+      relatedResearches: Array.isArray(research?.relatedResearches)
+        ? research.relatedResearches.map((s) => ({ value: s }))
+        : [],
       figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     },
@@ -165,12 +179,10 @@ function ResearchBriefForm({
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      researchType: research?.researchType || "Interviews",
       customerFullName: research?.customerFullName || "",
-      additionalStakeholders:
-        Array.isArray(research?.additionalStakeholders) 
-          ? research.additionalStakeholders.map((s) => ({ value: s })) 
-          : [],
+      additionalStakeholders: Array.isArray(research?.additionalStakeholders)
+        ? research.additionalStakeholders.map((s) => ({ value: s }))
+        : [],
       resultFormat: research?.resultFormat || "Презентация",
       customerSegmentDescription: research?.customerSegmentDescription || "",
       projectBackground: research?.projectBackground || "",
@@ -183,10 +195,9 @@ function ResearchBriefForm({
       keyQuestions: research?.keyQuestions || "",
       previousResources: research?.previousResources || "",
       additionalMaterials: research?.additionalMaterials || "",
-      relatedResearches:
-        Array.isArray(research?.relatedResearches) 
-          ? research.relatedResearches.map((s) => ({ value: s })) 
-          : [],
+      relatedResearches: Array.isArray(research?.relatedResearches)
+        ? research.relatedResearches.map((s) => ({ value: s }))
+        : [],
       figmaPrototypeLink: research?.figmaPrototypeLink || "",
       brief: research?.brief || "",
     });
@@ -212,7 +223,6 @@ function ResearchBriefForm({
     useState(true);
 
   const handleSubmit = (data: {
-    researchType: string;
     customerFullName: string;
     additionalStakeholders: { value: string }[];
     resultFormat: string;
@@ -242,7 +252,7 @@ function ResearchBriefForm({
         dateEnd: research.dateEnd,
         status: research.status as ResearchStatusType,
         color: research.color,
-        researchType: data.researchType as any,
+        researchType: research.researchType as any,
         products: research.products || [],
         customerFullName: data.customerFullName,
         additionalStakeholders: data.additionalStakeholders
@@ -292,10 +302,13 @@ function ResearchBriefForm({
               <FormLabel className="text-lg font-medium">
                 {"Тип исследования"}
               </FormLabel>
-              <Select onValueChange={(value) => {
-                field.onChange(value);
-                handleFieldChange("researchType", value);
-              }} value={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  handleFieldChange("researchType", value);
+                }}
+                value={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите тип исследования" />
@@ -318,7 +331,9 @@ function ResearchBriefForm({
                     Сессия совместного создания
                   </SelectItem>
                   <SelectItem value="Interviews">Интервью</SelectItem>
-                  <SelectItem value="Desk research">Кабинетное исследование</SelectItem>
+                  <SelectItem value="Desk research">
+                    Кабинетное исследование
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -335,9 +350,9 @@ function ResearchBriefForm({
                 {"ФИО заказчика"}
               </FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Иванов Иван Иванович" 
-                  {...field} 
+                <Input
+                  placeholder="Иванов Иван Иванович"
+                  {...field}
                   onChange={(e) => {
                     field.onChange(e);
                     handleFieldChange("customerFullName", e.target.value);
@@ -410,22 +425,21 @@ function ResearchBriefForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{"Формат результата"}</FormLabel>
-              <Select onValueChange={(value) => {
-                field.onChange(value);
-                handleFieldChange("resultFormat", value);
-              }} defaultValue={field.value}>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  handleFieldChange("resultFormat", value);
+                }}
+                defaultValue={field.value}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder={"Формат результата"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="Презентация">
-                    {"Презентация"}
-                  </SelectItem>
-                  <SelectItem value="Figma">
-                    {"Figma"}
-                  </SelectItem>
+                  <SelectItem value="Презентация">{"Презентация"}</SelectItem>
+                  <SelectItem value="Figma">{"Figma"}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -447,7 +461,10 @@ function ResearchBriefForm({
                   {...field}
                   onChange={(e) => {
                     field.onChange(e);
-                    handleFieldChange("customerSegmentDescription", e.target.value);
+                    handleFieldChange(
+                      "customerSegmentDescription",
+                      e.target.value,
+                    );
                   }}
                 />
               </FormControl>
@@ -482,17 +499,18 @@ function ResearchBriefForm({
                 name="projectBackground"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {"Полное имя заказчика"}
-                    </FormLabel>
+                    <FormLabel>{"Полное имя заказчика"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
-                          handleFieldChange("projectBackground", e.target.value);
+                          handleFieldChange(
+                            "projectBackground",
+                            e.target.value,
+                          );
                         }}
                       />
                     </FormControl>
@@ -508,10 +526,10 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{"Дополнительные стейкхолдеры"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
                           handleFieldChange("problemToSolve", e.target.value);
@@ -530,10 +548,10 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{"Формат результата"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
                           handleFieldChange("resultsUsage", e.target.value);
@@ -552,10 +570,10 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{"Описание сегмента клиентов"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
                           handleFieldChange("productMetrics", e.target.value);
@@ -574,10 +592,10 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{"Фон проекта"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
                           handleFieldChange("limitations", e.target.value);
@@ -620,10 +638,10 @@ function ResearchBriefForm({
                   <FormItem>
                     <FormLabel>{"Цели исследования"}</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        rows={3} 
-                        placeholder="" 
-                        {...field} 
+                      <Textarea
+                        rows={3}
+                        placeholder=""
+                        {...field}
                         onChange={(e) => {
                           field.onChange(e);
                           handleFieldChange("researchGoals", e.target.value);
@@ -648,7 +666,10 @@ function ResearchBriefForm({
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
-                          handleFieldChange("researchHypotheses", e.target.value);
+                          handleFieldChange(
+                            "researchHypotheses",
+                            e.target.value,
+                          );
                         }}
                       />
                     </FormControl>
@@ -721,29 +742,47 @@ function ResearchBriefForm({
                   </Button>
                 </div>
                 {relatedResearchFields.map((field, index) => {
-                  const currentValue = form.watch(`relatedResearches.${index}.value`);
-                  const relatedResearch = relatedResearchesData.find(r => r.id.toString() === currentValue);
-                  
+                  const currentValue = form.watch(
+                    `relatedResearches.${index}.value`,
+                  );
+                  const relatedResearch = relatedResearchesData.find(
+                    (r) => r.id.toString() === currentValue,
+                  );
+
                   return (
                     <div key={field.id} className="flex items-center space-x-2">
                       <ResearchSelector
-                        value={currentValue ? parseInt(currentValue) : undefined}
+                        value={
+                          currentValue ? parseInt(currentValue) : undefined
+                        }
                         onValueChange={(value) => {
-                          form.setValue(`relatedResearches.${index}.value`, value?.toString() || "");
-                          // Update temp data for related researches
-                          const currentValues = form.getValues("relatedResearches");
-                          const updatedValues = currentValues.map((item, i) => 
-                            i === index ? { ...item, value: value?.toString() || "" } : item
+                          form.setValue(
+                            `relatedResearches.${index}.value`,
+                            value?.toString() || "",
                           );
-                          const cleanValues = updatedValues.map(s => s.value).filter(v => v && v.trim() !== "");
+                          // Update temp data for related researches
+                          const currentValues =
+                            form.getValues("relatedResearches");
+                          const updatedValues = currentValues.map((item, i) =>
+                            i === index
+                              ? { ...item, value: value?.toString() || "" }
+                              : item,
+                          );
+                          const cleanValues = updatedValues
+                            .map((s) => s.value)
+                            .filter((v) => v && v.trim() !== "");
                           onTempDataUpdate?.({
-                            relatedResearches: cleanValues
+                            relatedResearches: cleanValues,
                           });
                         }}
                         onResearchSelect={() => {}} // Not needed for related researches
                         placeholder={"Выберите связанное исследование"}
                         excludeResearchId={research?.id} // Exclude current research from results
-                        displayName={relatedResearch ? `${relatedResearch.name} (${relatedResearch.team})` : undefined}
+                        displayName={
+                          relatedResearch
+                            ? `${relatedResearch.name} (${relatedResearch.team})`
+                            : undefined
+                        }
                       />
                       <Button
                         type="button"
@@ -752,13 +791,14 @@ function ResearchBriefForm({
                         onClick={() => {
                           removeRelatedResearch(index);
                           // Update temp data for related researches
-                          const currentValues = form.getValues("relatedResearches");
+                          const currentValues =
+                            form.getValues("relatedResearches");
                           const filteredValues = currentValues
                             .filter((_, i) => i !== index)
-                            .map(item => item.value)
-                            .filter(v => v && v.trim() !== "");
+                            .map((item) => item.value)
+                            .filter((v) => v && v.trim() !== "");
                           onTempDataUpdate?.({
-                            relatedResearches: filteredValues
+                            relatedResearches: filteredValues,
                           });
                         }}
                         className="p-2"
@@ -783,7 +823,10 @@ function ResearchBriefForm({
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
-                          handleFieldChange("previousResources", e.target.value);
+                          handleFieldChange(
+                            "previousResources",
+                            e.target.value,
+                          );
                         }}
                       />
                     </FormControl>
@@ -805,7 +848,10 @@ function ResearchBriefForm({
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
-                          handleFieldChange("additionalMaterials", e.target.value);
+                          handleFieldChange(
+                            "additionalMaterials",
+                            e.target.value,
+                          );
                         }}
                       />
                     </FormControl>
@@ -872,16 +918,37 @@ function ResearchBriefForm({
                   data-color-mode="light"
                   textareaProps={{
                     placeholder: "Enter research brief...",
-                    style: { resize: 'none' }
+                    style: { resize: "none" },
                   }}
                   components={{
                     preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
+                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
+                        ALLOWED_TAGS: [
+                          "p",
+                          "br",
+                          "strong",
+                          "em",
+                          "ul",
+                          "ol",
+                          "li",
+                          "h1",
+                          "h2",
+                          "h3",
+                          "h4",
+                          "h5",
+                          "h6",
+                          "blockquote",
+                          "code",
+                          "pre",
+                        ],
+                        ALLOWED_ATTR: [],
                       });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
+                      return (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+                        />
+                      );
+                    },
                   }}
                 />
               </FormControl>
@@ -1003,16 +1070,37 @@ function ResearchRecruitmentForm({
                   data-color-mode="light"
                   textareaProps={{
                     placeholder: "Опишите, кого мы ищем...",
-                    style: { resize: 'none' }
+                    style: { resize: "none" },
                   }}
                   components={{
                     preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
+                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
+                        ALLOWED_TAGS: [
+                          "p",
+                          "br",
+                          "strong",
+                          "em",
+                          "ul",
+                          "ol",
+                          "li",
+                          "h1",
+                          "h2",
+                          "h3",
+                          "h4",
+                          "h5",
+                          "h6",
+                          "blockquote",
+                          "code",
+                          "pre",
+                        ],
+                        ALLOWED_ATTR: [],
                       });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
+                      return (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+                        />
+                      );
+                    },
                   }}
                 />
               </FormControl>
@@ -1041,16 +1129,37 @@ function ResearchRecruitmentForm({
                   data-color-mode="light"
                   textareaProps={{
                     placeholder: "Введите шаблон приглашения...",
-                    style: { resize: 'none' }
+                    style: { resize: "none" },
                   }}
                   components={{
                     preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
+                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
+                        ALLOWED_TAGS: [
+                          "p",
+                          "br",
+                          "strong",
+                          "em",
+                          "ul",
+                          "ol",
+                          "li",
+                          "h1",
+                          "h2",
+                          "h3",
+                          "h4",
+                          "h5",
+                          "h6",
+                          "blockquote",
+                          "code",
+                          "pre",
+                        ],
+                        ALLOWED_ATTR: [],
                       });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
+                      return (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+                        />
+                      );
+                    },
                   }}
                 />
               </FormControl>
@@ -1110,49 +1219,58 @@ function ResearchGuideForm({
   isLoading: boolean;
   onTempDataUpdate?: (data: { guideIntroText: string }) => void;
 }) {
-  
-
   const parseQuestionBlocks = (data: string | null): QuestionBlock[] => {
-    if (!data || typeof data !== 'string') return [];
+    if (!data || typeof data !== "string") return [];
     try {
       const parsed = JSON.parse(data);
       if (!Array.isArray(parsed)) return [];
-      
+
       return parsed.map((item: any, blockIndex: number) => {
         // Ensure order fields exist for backward compatibility
-        const questions = (item.questions || []).map((q: any, qIndex: number) => ({
-          id: q.id || Math.random().toString(),
-          text: q.text || '',
-          comment: q.comment || '',
-          order: q.order !== undefined ? q.order : qIndex,
-        }));
-        
-        const subblocks = (item.subblocks || []).map((s: any, sIndex: number) => ({
-          id: s.id || Math.random().toString(),
-          name: s.name || '',
-          questions: (s.questions || []).map((sq: any, sqIndex: number) => ({
-            id: sq.id || Math.random().toString(),
-            text: sq.text || '',
-            comment: sq.comment || '',
-            order: sq.order !== undefined ? sq.order : sqIndex,
-          })),
-          subSubblocks: (s.subSubblocks || []).map((ss: any, ssIndex: number) => ({
-            id: ss.id || Math.random().toString(),
-            name: ss.name || '',
-            questions: (ss.questions || []).map((ssq: any, ssqIndex: number) => ({
-              id: ssq.id || Math.random().toString(),
-              text: ssq.text || '',
-              comment: ssq.comment || '',
-              order: ssq.order !== undefined ? ssq.order : ssqIndex,
+        const questions = (item.questions || []).map(
+          (q: any, qIndex: number) => ({
+            id: q.id || Math.random().toString(),
+            text: q.text || "",
+            comment: q.comment || "",
+            order: q.order !== undefined ? q.order : qIndex,
+          }),
+        );
+
+        const subblocks = (item.subblocks || []).map(
+          (s: any, sIndex: number) => ({
+            id: s.id || Math.random().toString(),
+            name: s.name || "",
+            questions: (s.questions || []).map((sq: any, sqIndex: number) => ({
+              id: sq.id || Math.random().toString(),
+              text: sq.text || "",
+              comment: sq.comment || "",
+              order: sq.order !== undefined ? sq.order : sqIndex,
             })),
-            order: ss.order !== undefined ? ss.order : (s.questions || []).length + ssIndex,
-          })),
-          order: s.order !== undefined ? s.order : questions.length + sIndex,
-        }));
-        
+            subSubblocks: (s.subSubblocks || []).map(
+              (ss: any, ssIndex: number) => ({
+                id: ss.id || Math.random().toString(),
+                name: ss.name || "",
+                questions: (ss.questions || []).map(
+                  (ssq: any, ssqIndex: number) => ({
+                    id: ssq.id || Math.random().toString(),
+                    text: ssq.text || "",
+                    comment: ssq.comment || "",
+                    order: ssq.order !== undefined ? ssq.order : ssqIndex,
+                  }),
+                ),
+                order:
+                  ss.order !== undefined
+                    ? ss.order
+                    : (s.questions || []).length + ssIndex,
+              }),
+            ),
+            order: s.order !== undefined ? s.order : questions.length + sIndex,
+          }),
+        );
+
         return {
           id: item.id || Math.random().toString(),
-          name: item.name || '',
+          name: item.name || "",
           questions,
           subblocks,
           order: item.order !== undefined ? item.order : blockIndex,
@@ -1225,31 +1343,37 @@ function ResearchGuideForm({
 
         guideMainQuestions: (() => {
           try {
-            const cleanBlocks = (data.guideMainQuestions || []).map((block) => ({
-              id: block.id || Math.random().toString(),
-              name: block.name || "",
-              questions: (block.questions || []).map(q => ({
-                id: q.id || Math.random().toString(),
-                text: q.text || "",
-                comment: q.comment || "",
-                order: q.order || 0,
-              })),
-              subblocks: (block.subblocks || []).map(s => ({
-                id: s.id || Math.random().toString(),
-                name: s.name || "",
-                questions: (s.questions || []).map(q => ({
+            const cleanBlocks = (data.guideMainQuestions || []).map(
+              (block) => ({
+                id: block.id || Math.random().toString(),
+                name: block.name || "",
+                questions: (block.questions || []).map((q) => ({
                   id: q.id || Math.random().toString(),
                   text: q.text || "",
                   comment: q.comment || "",
                   order: q.order || 0,
                 })),
-                order: s.order || 0,
-              })),
-              order: block.order || 0,
-            }));
+                subblocks: (block.subblocks || []).map((s) => ({
+                  id: s.id || Math.random().toString(),
+                  name: s.name || "",
+                  questions: (s.questions || []).map((q) => ({
+                    id: q.id || Math.random().toString(),
+                    text: q.text || "",
+                    comment: q.comment || "",
+                    order: q.order || 0,
+                  })),
+                  order: s.order || 0,
+                })),
+                order: block.order || 0,
+              }),
+            );
             return JSON.stringify(cleanBlocks);
           } catch (error) {
-            console.error("Error stringifying guide main questions:", error, data.guideMainQuestions);
+            console.error(
+              "Error stringifying guide main questions:",
+              error,
+              data.guideMainQuestions,
+            );
             return JSON.stringify([]);
           }
         })(),
@@ -1269,9 +1393,7 @@ function ResearchGuideForm({
   };
 
   // Helper functions for managing question blocks
-  const addQuestionBlock = (
-    sectionName: "guideMainQuestions",
-  ) => {
+  const addQuestionBlock = (sectionName: "guideMainQuestions") => {
     const currentBlocks = form.getValues(sectionName) || [];
     const newBlock: QuestionBlock = {
       id: Math.random().toString(),
@@ -1283,7 +1405,10 @@ function ResearchGuideForm({
     form.setValue(sectionName, [...currentBlocks, newBlock]);
     // Update temp data
     const currentFormData = form.getValues();
-    handleFieldChange(sectionName, JSON.stringify(currentFormData[sectionName]));
+    handleFieldChange(
+      sectionName,
+      JSON.stringify(currentFormData[sectionName]),
+    );
   };
 
   const removeQuestionBlock = (
@@ -1318,10 +1443,13 @@ function ResearchGuideForm({
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    
+
     if (subSubblockIndex !== undefined && subblockIndex !== undefined) {
       // Adding question to sub-subblock (Level 4)
-      const targetSubSubblock = updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex];
+      const targetSubSubblock =
+        updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[
+          subSubblockIndex
+        ];
       const nextOrder = targetSubSubblock.questions.length;
       const newQuestion: Question = {
         id: Math.random().toString(),
@@ -1333,10 +1461,16 @@ function ResearchGuideForm({
     } else if (subblockIndex !== undefined) {
       // Adding question to subblock (Level 2)
       const targetSubblock = updatedBlocks[blockIndex].subblocks[subblockIndex];
-      const maxQuestionOrder = Math.max(-1, ...targetSubblock.questions.map(q => q.order));
-      const maxSubSubblockOrder = Math.max(-1, ...targetSubblock.subSubblocks.map(s => s.order));
+      const maxQuestionOrder = Math.max(
+        -1,
+        ...targetSubblock.questions.map((q) => q.order),
+      );
+      const maxSubSubblockOrder = Math.max(
+        -1,
+        ...targetSubblock.subSubblocks.map((s) => s.order),
+      );
       const nextOrder = Math.max(maxQuestionOrder, maxSubSubblockOrder) + 1;
-      
+
       const newQuestion: Question = {
         id: Math.random().toString(),
         text: "",
@@ -1347,10 +1481,16 @@ function ResearchGuideForm({
     } else {
       // Adding question to main block (Level 1)
       const targetBlock = updatedBlocks[blockIndex];
-      const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order));
-      const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order));
+      const maxQuestionOrder = Math.max(
+        -1,
+        ...targetBlock.questions.map((q) => q.order),
+      );
+      const maxSubblockOrder = Math.max(
+        -1,
+        ...targetBlock.subblocks.map((s) => s.order),
+      );
       const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
-      
+
       const newQuestion: Question = {
         id: Math.random().toString(),
         text: "",
@@ -1373,25 +1513,27 @@ function ResearchGuideForm({
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    
+
     if (subSubblockIndex !== undefined && subblockIndex !== undefined) {
       // Remove question from sub-subblock (Level 4)
-      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex].questions = 
-        updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex].questions.filter(
-          (_, i) => i !== questionIndex,
-        );
+      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[
+        subSubblockIndex
+      ].questions = updatedBlocks[blockIndex].subblocks[
+        subblockIndex
+      ].subSubblocks[subSubblockIndex].questions.filter(
+        (_, i) => i !== questionIndex,
+      );
     } else if (subblockIndex !== undefined) {
       // Remove question from subblock (Level 2)
-      updatedBlocks[blockIndex].subblocks[subblockIndex].questions = 
+      updatedBlocks[blockIndex].subblocks[subblockIndex].questions =
         updatedBlocks[blockIndex].subblocks[subblockIndex].questions.filter(
           (_, i) => i !== questionIndex,
         );
     } else {
       // Remove question from main block (Level 1)
-      updatedBlocks[blockIndex].questions = 
-        updatedBlocks[blockIndex].questions.filter(
-          (_, i) => i !== questionIndex,
-        );
+      updatedBlocks[blockIndex].questions = updatedBlocks[
+        blockIndex
+      ].questions.filter((_, i) => i !== questionIndex);
     }
 
     form.setValue(sectionName, updatedBlocks);
@@ -1407,8 +1549,14 @@ function ResearchGuideForm({
     const targetBlock = updatedBlocks[blockIndex];
 
     // Calculate next order based on existing items
-    const maxQuestionOrder = Math.max(-1, ...targetBlock.questions.map(q => q.order));
-    const maxSubblockOrder = Math.max(-1, ...targetBlock.subblocks.map(s => s.order));
+    const maxQuestionOrder = Math.max(
+      -1,
+      ...targetBlock.questions.map((q) => q.order),
+    );
+    const maxSubblockOrder = Math.max(
+      -1,
+      ...targetBlock.subblocks.map((s) => s.order),
+    );
     const nextOrder = Math.max(maxQuestionOrder, maxSubblockOrder) + 1;
 
     const newSubblock: SubBlock = {
@@ -1434,8 +1582,14 @@ function ResearchGuideForm({
     const targetSubblock = updatedBlocks[blockIndex].subblocks[subblockIndex];
 
     // Calculate next order based on existing items in subblock
-    const maxQuestionOrder = Math.max(-1, ...targetSubblock.questions.map(q => q.order));
-    const maxSubSubblockOrder = Math.max(-1, ...targetSubblock.subSubblocks.map(s => s.order));
+    const maxQuestionOrder = Math.max(
+      -1,
+      ...targetSubblock.questions.map((q) => q.order),
+    );
+    const maxSubSubblockOrder = Math.max(
+      -1,
+      ...targetSubblock.subSubblocks.map((s) => s.order),
+    );
     const nextOrder = Math.max(maxQuestionOrder, maxSubSubblockOrder) + 1;
 
     const newSubSubblock: SubSubBlock = {
@@ -1540,14 +1694,14 @@ function QuestionItem({
   level,
 }: QuestionItemProps) {
   const [showComment, setShowComment] = useState(!!question.comment);
-  
+
   // Clean, minimal styling based on level with proper indentation
   const marginLeft = {
-    1: "ml-2",      // Questions in blocks get slight indentation
-    2: "ml-6",      // Questions in subblocks get more indentation  
-    3: "ml-10",     // Questions in sub-subblocks get maximum indentation
+    1: "ml-2", // Questions in blocks get slight indentation
+    2: "ml-6", // Questions in subblocks get more indentation
+    3: "ml-10", // Questions in sub-subblocks get maximum indentation
   };
-  
+
   const textSizes = {
     1: "text-sm",
     2: "text-sm",
@@ -1555,7 +1709,9 @@ function QuestionItem({
   };
 
   return (
-    <div className={`pl-4 py-2 bg-gray-50 rounded border border-gray-200 space-y-2 ${marginLeft[level as keyof typeof marginLeft]}`}>
+    <div
+      className={`pl-4 py-2 bg-gray-50 rounded border border-gray-200 space-y-2 ${marginLeft[level as keyof typeof marginLeft]}`}
+    >
       <div className="flex items-start gap-2">
         <div className="flex-1 space-y-2">
           <Input
@@ -1573,7 +1729,7 @@ function QuestionItem({
             }
             className={textSizes[level as keyof typeof textSizes]}
           />
-          
+
           {/* Optional comment field */}
           {showComment && (
             <div className="relative">
@@ -1590,7 +1746,7 @@ function QuestionItem({
                     subSubblockIndex,
                   )
                 }
-                className={`text-gray-600 pr-8 ${level === 3 ? 'text-xs' : level === 2 ? 'text-xs' : 'text-sm'}`}
+                className={`text-gray-600 pr-8 ${level === 3 ? "text-xs" : level === 2 ? "text-xs" : "text-sm"}`}
               />
               <Button
                 type="button"
@@ -1599,14 +1755,21 @@ function QuestionItem({
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
                 onClick={() => {
                   setShowComment(false);
-                  updateQuestion(blockIndex, questionIndex, "comment", "", subblockIndex, subSubblockIndex);
+                  updateQuestion(
+                    blockIndex,
+                    questionIndex,
+                    "comment",
+                    "",
+                    subblockIndex,
+                    subSubblockIndex,
+                  );
                 }}
               >
                 <X className="h-3 w-3" />
               </Button>
             </div>
           )}
-          
+
           {/* Add comment button */}
           {!showComment && (
             <Button
@@ -1650,9 +1813,7 @@ interface QuestionSectionProps {
     guideIntroText: string;
     guideMainQuestions: QuestionBlock[];
   }>;
-  addQuestionBlock: (
-    sectionName: "guideMainQuestions",
-  ) => void;
+  addQuestionBlock: (sectionName: "guideMainQuestions") => void;
   removeQuestionBlock: (
     sectionName: "guideMainQuestions",
     index: number,
@@ -1675,10 +1836,7 @@ interface QuestionSectionProps {
     subblockIndex?: number,
     subSubblockIndex?: number,
   ) => void;
-  addSubblock: (
-    sectionName: "guideMainQuestions",
-    blockIndex: number,
-  ) => void;
+  addSubblock: (sectionName: "guideMainQuestions", blockIndex: number) => void;
   addSubSubblock: (
     sectionName: "guideMainQuestions",
     blockIndex: number,
@@ -1700,39 +1858,43 @@ function QuestionSection({
   addSubSubblock,
   handleFieldChange,
 }: QuestionSectionProps) {
-  
   const questionBlocks = form.watch(sectionName) || [];
-  
+
   // Determine if we have content (default to view mode if content exists)
-  const hasContent = questionBlocks.length > 0 && (
-    questionBlocks.some(block => 
-      block.name || 
-      block.questions.length > 0 || 
-      block.subblocks.some(sub => 
-        sub.name || 
-        sub.questions.length > 0 || 
-        sub.subSubblocks.some(subSub => 
-          subSub.name || 
-          subSub.questions.length > 0
-        )
-      )
-    )
-  );
-  
+  const hasContent =
+    questionBlocks.length > 0 &&
+    questionBlocks.some(
+      (block) =>
+        block.name ||
+        block.questions.length > 0 ||
+        block.subblocks.some(
+          (sub) =>
+            sub.name ||
+            sub.questions.length > 0 ||
+            sub.subSubblocks.some(
+              (subSub) => subSub.name || subSub.questions.length > 0,
+            ),
+        ),
+    );
+
   // View mode state - default to view if has content, edit if empty
   const [isViewMode, setIsViewMode] = useState(() => hasContent);
-  
+
   // Update view mode when content changes
   useEffect(() => {
     if (!hasContent && isViewMode) {
       setIsViewMode(false); // Switch to edit mode if content becomes empty
     }
   }, [hasContent, isViewMode]);
-  
+
   // State for managing collapsed blocks and subblocks
-  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(new Set());
-  const [collapsedSubblocks, setCollapsedSubblocks] = useState<Set<string>>(new Set());
-  
+  const [collapsedBlocks, setCollapsedBlocks] = useState<Set<string>>(
+    new Set(),
+  );
+  const [collapsedSubblocks, setCollapsedSubblocks] = useState<Set<string>>(
+    new Set(),
+  );
+
   const toggleBlock = (blockId: string) => {
     const newCollapsed = new Set(collapsedBlocks);
     if (newCollapsed.has(blockId)) {
@@ -1742,7 +1904,7 @@ function QuestionSection({
     }
     setCollapsedBlocks(newCollapsed);
   };
-  
+
   const toggleSubblock = (blockId: string, subblockId: string) => {
     const key = `${blockId}-${subblockId}`;
     const newCollapsed = new Set(collapsedSubblocks);
@@ -1756,19 +1918,29 @@ function QuestionSection({
 
   // View mode rendering functions
   const renderViewModeBlock = (block: QuestionBlock, blockIndex: number) => {
-    if (!block.name && block.questions.length === 0 && block.subblocks.length === 0) {
+    if (
+      !block.name &&
+      block.questions.length === 0 &&
+      block.subblocks.length === 0
+    ) {
       return null; // Don't render empty blocks in view mode
     }
 
-    const hasContent = block.name || block.questions.length > 0 || block.subblocks.length > 0;
+    const hasContent =
+      block.name || block.questions.length > 0 || block.subblocks.length > 0;
     if (!hasContent) return null;
 
     return (
-      <div key={block.id} className="mb-6 p-4 border border-gray-200 rounded-lg bg-white">
+      <div
+        key={block.id}
+        className="mb-6 p-4 border border-gray-200 rounded-lg bg-white"
+      >
         {block.name && (
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">{block.name}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">
+            {block.name}
+          </h3>
         )}
-        
+
         {/* Render content in order */}
         <div className="space-y-3">
           {(() => {
@@ -1805,15 +1977,23 @@ function QuestionSection({
   };
 
   const renderViewModeSubblock = (subblock: SubBlock, blockIndex: number) => {
-    const hasContent = subblock.name || subblock.questions.length > 0 || subblock.subSubblocks.length > 0;
+    const hasContent =
+      subblock.name ||
+      subblock.questions.length > 0 ||
+      subblock.subSubblocks.length > 0;
     if (!hasContent) return null;
 
     return (
-      <div key={subblock.id} className="ml-4 mt-3 pl-4 border-l-2 border-gray-200">
+      <div
+        key={subblock.id}
+        className="ml-4 mt-3 pl-4 border-l-2 border-gray-200"
+      >
         {subblock.name && (
-          <h4 className="text-base font-medium text-gray-800 mb-3">{subblock.name}</h4>
+          <h4 className="text-base font-medium text-gray-800 mb-3">
+            {subblock.name}
+          </h4>
         )}
-        
+
         <div className="space-y-2">
           {(() => {
             const items = [
@@ -1853,11 +2033,16 @@ function QuestionSection({
     if (!hasContent) return null;
 
     return (
-      <div key={subSubblock.id} className="ml-4 mt-2 pl-3 border-l border-gray-300">
+      <div
+        key={subSubblock.id}
+        className="ml-4 mt-2 pl-3 border-l border-gray-300"
+      >
         {subSubblock.name && (
-          <h5 className="text-sm font-medium text-gray-700 mb-2">{subSubblock.name}</h5>
+          <h5 className="text-sm font-medium text-gray-700 mb-2">
+            {subSubblock.name}
+          </h5>
         )}
-        
+
         <div className="space-y-1">
           {subSubblock.questions
             .sort((a, b) => a.order - b.order)
@@ -1873,13 +2058,15 @@ function QuestionSection({
     const levelStyles = {
       1: "text-sm text-gray-800",
       2: "text-sm text-gray-700",
-      3: "text-sm text-gray-600"
+      3: "text-sm text-gray-600",
     };
 
     return (
       <div key={question.id} className="mb-2">
         {question.text && (
-          <div className={`${levelStyles[level as keyof typeof levelStyles]} mb-1`}>
+          <div
+            className={`${levelStyles[level as keyof typeof levelStyles]} mb-1`}
+          >
             • {question.text}
           </div>
         )}
@@ -1900,10 +2087,12 @@ function QuestionSection({
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    
+
     if (subSubblockIndex !== undefined && subblockIndex !== undefined) {
       // Update sub-subblock name
-      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex].name = name;
+      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[
+        subSubblockIndex
+      ].name = name;
     } else if (subblockIndex !== undefined) {
       // Update subblock name
       updatedBlocks[blockIndex].subblocks[subblockIndex].name = name;
@@ -1926,17 +2115,25 @@ function QuestionSection({
   ) => {
     const currentBlocks = form.getValues(sectionName) || [];
     const updatedBlocks = [...currentBlocks];
-    
+
     if (subSubblockIndex !== undefined && subblockIndex !== undefined) {
       // Update question in sub-subblock (Level 4)
-      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex].questions[questionIndex] = {
-        ...updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[subSubblockIndex].questions[questionIndex],
+      updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[
+        subSubblockIndex
+      ].questions[questionIndex] = {
+        ...updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks[
+          subSubblockIndex
+        ].questions[questionIndex],
         [field]: value,
       };
     } else if (subblockIndex !== undefined) {
       // Update question in subblock (Level 2)
-      updatedBlocks[blockIndex].subblocks[subblockIndex].questions[questionIndex] = {
-        ...updatedBlocks[blockIndex].subblocks[subblockIndex].questions[questionIndex],
+      updatedBlocks[blockIndex].subblocks[subblockIndex].questions[
+        questionIndex
+      ] = {
+        ...updatedBlocks[blockIndex].subblocks[subblockIndex].questions[
+          questionIndex
+        ],
         [field]: value,
       };
     } else {
@@ -1946,14 +2143,17 @@ function QuestionSection({
         [field]: value,
       };
     }
-    
+
     form.setValue(sectionName, updatedBlocks);
     handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
   };
 
   const renderQuestionBlock = (block: QuestionBlock, blockIndex: number) => {
     return (
-      <div key={block.id} className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white">
+      <div
+        key={block.id}
+        className="border border-gray-200 rounded-lg p-4 space-y-4 bg-white"
+      >
         {/* Level 1: Main Block Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1 mr-4">
@@ -2028,7 +2228,6 @@ function QuestionSection({
                         updateQuestion={updateQuestion}
                         removeQuestion={removeQuestion}
                         level={1}
-
                       />
                     );
                   } else {
@@ -2069,9 +2268,16 @@ function QuestionSection({
     );
   };
 
-  const renderSubblock = (subblock: SubBlock, blockIndex: number, subblockIndex: number) => {
+  const renderSubblock = (
+    subblock: SubBlock,
+    blockIndex: number,
+    subblockIndex: number,
+  ) => {
     return (
-      <div key={subblock.id} className="ml-4 border-l-2 border-gray-300 pl-4 py-3">
+      <div
+        key={subblock.id}
+        className="ml-4 border-l-2 border-gray-300 pl-4 py-3"
+      >
         {/* Level 2: Subblock Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2 flex-1 mr-4">
@@ -2079,10 +2285,14 @@ function QuestionSection({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => toggleSubblock(questionBlocks[blockIndex].id, subblock.id)}
+              onClick={() =>
+                toggleSubblock(questionBlocks[blockIndex].id, subblock.id)
+              }
               className="p-1 h-6 w-6 hover:bg-gray-100"
             >
-              {collapsedSubblocks.has(`${questionBlocks[blockIndex].id}-${subblock.id}`) ? (
+              {collapsedSubblocks.has(
+                `${questionBlocks[blockIndex].id}-${subblock.id}`,
+              ) ? (
                 <ChevronRight className="h-3 w-3" />
               ) : (
                 <ChevronDown className="h-3 w-3" />
@@ -2092,7 +2302,11 @@ function QuestionSection({
               placeholder="Название подблока (например, Дополнительные вопросы)"
               value={subblock.name}
               onChange={(e) =>
-                updateQuestionBlockName(blockIndex, e.target.value, subblockIndex)
+                updateQuestionBlockName(
+                  blockIndex,
+                  e.target.value,
+                  subblockIndex,
+                )
               }
               className="text-sm font-medium border border-gray-300 focus:border-gray-400"
             />
@@ -2104,9 +2318,9 @@ function QuestionSection({
             onClick={() => {
               const currentBlocks = form.getValues(sectionName) || [];
               const updatedBlocks = [...currentBlocks];
-              updatedBlocks[blockIndex].subblocks = updatedBlocks[blockIndex].subblocks.filter(
-                (_, i) => i !== subblockIndex,
-              );
+              updatedBlocks[blockIndex].subblocks = updatedBlocks[
+                blockIndex
+              ].subblocks.filter((_, i) => i !== subblockIndex);
               form.setValue(sectionName, updatedBlocks);
               handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
             }}
@@ -2117,7 +2331,9 @@ function QuestionSection({
         </div>
 
         {/* Collapsible Content */}
-        {!collapsedSubblocks.has(`${questionBlocks[blockIndex].id}-${subblock.id}`) && (
+        {!collapsedSubblocks.has(
+          `${questionBlocks[blockIndex].id}-${subblock.id}`,
+        ) && (
           <>
             {/* Level 2: Content with Questions and Sub-subblocks */}
             <div className="space-y-3">
@@ -2129,12 +2345,14 @@ function QuestionSection({
                     index: questionIndex,
                     order: question.order,
                   })),
-                  ...subblock.subSubblocks.map((subSubblock, subSubblockIndex) => ({
-                    type: "subSubblock" as const,
-                    item: subSubblock,
-                    index: subSubblockIndex,
-                    order: subSubblock.order,
-                  })),
+                  ...subblock.subSubblocks.map(
+                    (subSubblock, subSubblockIndex) => ({
+                      type: "subSubblock" as const,
+                      item: subSubblock,
+                      index: subSubblockIndex,
+                      order: subSubblock.order,
+                    }),
+                  ),
                 ];
 
                 // Sort by order
@@ -2155,13 +2373,17 @@ function QuestionSection({
                         updateQuestion={updateQuestion}
                         removeQuestion={removeQuestion}
                         level={2}
-
                       />
                     );
                   } else {
                     const subSubblock = item.item as SubSubBlock;
                     const subSubblockIndex = item.index;
-                    return renderSubSubblock(subSubblock, blockIndex, subblockIndex, subSubblockIndex);
+                    return renderSubSubblock(
+                      subSubblock,
+                      blockIndex,
+                      subblockIndex,
+                      subSubblockIndex,
+                    );
                   }
                 });
               })()}
@@ -2173,7 +2395,9 @@ function QuestionSection({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => addQuestion(sectionName, blockIndex, subblockIndex)}
+                onClick={() =>
+                  addQuestion(sectionName, blockIndex, subblockIndex)
+                }
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
@@ -2183,7 +2407,9 @@ function QuestionSection({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => addSubSubblock(sectionName, blockIndex, subblockIndex)}
+                onClick={() =>
+                  addSubSubblock(sectionName, blockIndex, subblockIndex)
+                }
                 className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-sm"
               >
                 <Plus className="h-3 w-3 mr-2" />
@@ -2196,9 +2422,17 @@ function QuestionSection({
     );
   };
 
-  const renderSubSubblock = (subSubblock: SubSubBlock, blockIndex: number, subblockIndex: number, subSubblockIndex: number) => {
+  const renderSubSubblock = (
+    subSubblock: SubSubBlock,
+    blockIndex: number,
+    subblockIndex: number,
+    subSubblockIndex: number,
+  ) => {
     return (
-      <div key={subSubblock.id} className="ml-4 border-l border-gray-300 pl-3 py-2">
+      <div
+        key={subSubblock.id}
+        className="ml-4 border-l border-gray-300 pl-3 py-2"
+      >
         {/* Level 3: Sub-subblock Header */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1 mr-4">
@@ -2206,7 +2440,12 @@ function QuestionSection({
               placeholder="Название под-подблока (например, Углубленные вопросы)"
               value={subSubblock.name}
               onChange={(e) =>
-                updateQuestionBlockName(blockIndex, e.target.value, subblockIndex, subSubblockIndex)
+                updateQuestionBlockName(
+                  blockIndex,
+                  e.target.value,
+                  subblockIndex,
+                  subSubblockIndex,
+                )
               }
               className="text-sm font-medium border border-gray-300 focus:border-gray-400"
             />
@@ -2218,10 +2457,10 @@ function QuestionSection({
             onClick={() => {
               const currentBlocks = form.getValues(sectionName) || [];
               const updatedBlocks = [...currentBlocks];
-              updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks = 
-                updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks.filter(
-                  (_, i) => i !== subSubblockIndex,
-                );
+              updatedBlocks[blockIndex].subblocks[subblockIndex].subSubblocks =
+                updatedBlocks[blockIndex].subblocks[
+                  subblockIndex
+                ].subSubblocks.filter((_, i) => i !== subSubblockIndex);
               form.setValue(sectionName, updatedBlocks);
               handleFieldChange(sectionName, JSON.stringify(updatedBlocks));
             }}
@@ -2257,7 +2496,14 @@ function QuestionSection({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => addQuestion(sectionName, blockIndex, subblockIndex, subSubblockIndex)}
+            onClick={() =>
+              addQuestion(
+                sectionName,
+                blockIndex,
+                subblockIndex,
+                subSubblockIndex,
+              )
+            }
             className="text-gray-600 hover:bg-gray-100 border border-gray-300 hover:border-gray-400 text-xs"
           >
             <Plus className="h-3 w-3 mr-1" />
@@ -2299,8 +2545,8 @@ function QuestionSection({
                 size="sm"
                 onClick={() => setIsViewMode(true)}
                 className={`px-3 py-1 text-sm ${
-                  isViewMode 
-                    ? "bg-gray-200 text-gray-900" 
+                  isViewMode
+                    ? "bg-gray-200 text-gray-900"
                     : "hover:bg-gray-200 text-gray-700"
                 }`}
               >
@@ -2313,8 +2559,8 @@ function QuestionSection({
                 size="sm"
                 onClick={() => setIsViewMode(false)}
                 className={`px-3 py-1 text-sm ${
-                  !isViewMode 
-                    ? "bg-gray-200 text-gray-900" 
+                  !isViewMode
+                    ? "bg-gray-200 text-gray-900"
                     : "hover:bg-gray-200 text-gray-700"
                 }`}
               >
@@ -2331,7 +2577,12 @@ function QuestionSection({
         // View Mode
         <div className="space-y-4">
           {questionBlocks
-            .filter(block => block.name || block.questions.length > 0 || block.subblocks.length > 0)
+            .filter(
+              (block) =>
+                block.name ||
+                block.questions.length > 0 ||
+                block.subblocks.length > 0,
+            )
             .map((block, index) => renderViewModeBlock(block, index))}
         </div>
       ) : (
@@ -2348,7 +2599,10 @@ function QuestionSection({
               <div className="space-y-3">
                 <div className="text-4xl">📝</div>
                 <p className="text-lg font-medium">Место для ваших вопросов</p>
-                <p className="text-sm">Нажмите "Добавить блок вопросов" чтобы создать первый набор вопросов</p>
+                <p className="text-sm">
+                  Нажмите "Добавить блок вопросов" чтобы создать первый набор
+                  вопросов
+                </p>
               </div>
             </div>
           )}
@@ -2370,7 +2624,6 @@ function ResearchResultsForm({
   isLoading: boolean;
   onTempDataUpdate?: (data: { fullText: string }) => void;
 }) {
-  
   const form = useForm<{ artifactLink: string; fullText: string }>({
     defaultValues: {
       artifactLink: research?.artifactLink || "",
@@ -2465,7 +2718,9 @@ function ResearchResultsForm({
           name="fullText"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">Отчет в текстовом виде</FormLabel>
+              <FormLabel className="text-lg font-medium">
+                Отчет в текстовом виде
+              </FormLabel>
               <FormControl>
                 <MDEditor
                   value={field.value}
@@ -2479,16 +2734,37 @@ function ResearchResultsForm({
                   data-color-mode="light"
                   textareaProps={{
                     placeholder: "Введите полный текст содержания...",
-                    style: { resize: 'none' }
+                    style: { resize: "none" },
                   }}
                   components={{
                     preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                        ALLOWED_ATTR: []
+                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
+                        ALLOWED_TAGS: [
+                          "p",
+                          "br",
+                          "strong",
+                          "em",
+                          "ul",
+                          "ol",
+                          "li",
+                          "h1",
+                          "h2",
+                          "h3",
+                          "h4",
+                          "h5",
+                          "h6",
+                          "blockquote",
+                          "code",
+                          "pre",
+                        ],
+                        ALLOWED_ATTR: [],
                       });
-                      return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                    }
+                      return (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+                        />
+                      );
+                    },
                   }}
                 />
               </FormControl>
@@ -2506,7 +2782,6 @@ function ResearchResultsForm({
 }
 
 function ResearchDetail() {
-  
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const isNew = params.id === "new";
@@ -2518,8 +2793,6 @@ function ResearchDetail() {
   // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
 
-
-
   // Handler to update temporary form data
   const handleTempDataUpdate = (newData: Partial<InsertResearch>) => {
     setTempFormData((prev) => ({ ...prev, ...newData }));
@@ -2529,7 +2802,7 @@ function ResearchDetail() {
   useEffect(() => {
     setTempFormData({});
   }, [id]);
-  
+
   // Remove the inefficient query that loads all researches
   // Related researches will now use a searchable component instead
 
@@ -2559,11 +2832,19 @@ function ResearchDetail() {
     } else if (research) {
       // Handle special parsing for relatedResearches field
       const parsedTempData = { ...tempFormData };
-      if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
+      if (
+        parsedTempData.relatedResearches &&
+        typeof parsedTempData.relatedResearches === "string"
+      ) {
         try {
-          parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
+          parsedTempData.relatedResearches = JSON.parse(
+            parsedTempData.relatedResearches,
+          );
         } catch (error) {
-          console.error("Error parsing relatedResearches from temp data:", error);
+          console.error(
+            "Error parsing relatedResearches from temp data:",
+            error,
+          );
           parsedTempData.relatedResearches = [];
         }
       }
@@ -2575,20 +2856,19 @@ function ResearchDetail() {
   // Removed duplicate check query - no longer needed
 
   // Fetch meetings by research ID using a specific API endpoint
-  const { data: researchMeetings = [], isLoading: isMeetingsLoading } = useQuery<
-    Meeting[]
-  >({
-    queryKey: ["/api/meetings", "by-research", id],
-    queryFn: async () => {
-      if (!id) return [];
-      const res = await apiRequest("GET", `/api/meetings?researchId=${id}`);
-      if (!res.ok) throw new Error("Failed to fetch meetings");
-      const result = await res.json();
-      // Handle both paginated response {data: Meeting[]} and direct Meeting[] array
-      return Array.isArray(result) ? result : (result.data || []);
-    },
-    enabled: !isNew && !!id, // Only load meetings when viewing an existing research
-  });
+  const { data: researchMeetings = [], isLoading: isMeetingsLoading } =
+    useQuery<Meeting[]>({
+      queryKey: ["/api/meetings", "by-research", id],
+      queryFn: async () => {
+        if (!id) return [];
+        const res = await apiRequest("GET", `/api/meetings?researchId=${id}`);
+        if (!res.ok) throw new Error("Failed to fetch meetings");
+        const result = await res.json();
+        // Handle both paginated response {data: Meeting[]} and direct Meeting[] array
+        return Array.isArray(result) ? result : result.data || [];
+      },
+      enabled: !isNew && !!id, // Only load meetings when viewing an existing research
+    });
 
   const createMutation = useMutation({
     mutationFn: async (researchData: InsertResearch) => {
@@ -2667,17 +2947,22 @@ function ResearchDetail() {
   const handleUnifiedSave = (overviewFormData: InsertResearch) => {
     // Merge overview form data with temporary data from all tabs
     const parsedTempData = { ...tempFormData };
-    
+
     // Parse relatedResearches if it's a JSON string
-    if (parsedTempData.relatedResearches && typeof parsedTempData.relatedResearches === 'string') {
+    if (
+      parsedTempData.relatedResearches &&
+      typeof parsedTempData.relatedResearches === "string"
+    ) {
       try {
-        parsedTempData.relatedResearches = JSON.parse(parsedTempData.relatedResearches);
+        parsedTempData.relatedResearches = JSON.parse(
+          parsedTempData.relatedResearches,
+        );
       } catch (error) {
         console.error("Error parsing relatedResearches for save:", error);
         parsedTempData.relatedResearches = [];
       }
     }
-    
+
     const completeFormData: InsertResearch = {
       ...overviewFormData,
       ...parsedTempData, // This contains data from Brief, Guide, Recruitment, Results tabs
@@ -2685,7 +2970,10 @@ function ResearchDetail() {
 
     if (!isNew && id) {
       // For update, we need to include the ID
-      const updateData = { ...completeFormData, id } as unknown as ResearchWithId;
+      const updateData = {
+        ...completeFormData,
+        id,
+      } as unknown as ResearchWithId;
       updateMutation.mutate(updateData);
     } else {
       // Create new research directly without duplicate check
@@ -2743,7 +3031,9 @@ function ResearchDetail() {
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
-            {isNew ? "Новое исследование" : research?.name || "Детали исследования"}
+            {isNew
+              ? "Новое исследование"
+              : research?.name || "Детали исследования"}
           </span>
         </div>
 
@@ -2793,21 +3083,11 @@ function ResearchDetail() {
           <div className="px-8 py-6">
             <Tabs defaultValue="info" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="info">
-                  {"Обзор"}
-                </TabsTrigger>
-                <TabsTrigger value="brief">
-                  {"Бриф"}
-                </TabsTrigger>
-                <TabsTrigger value="guide">
-                  {"Гайд"}
-                </TabsTrigger>
-                <TabsTrigger value="recruitment">
-                  {"Рекрутинг"}
-                </TabsTrigger>
-                <TabsTrigger value="results">
-                  {"Результаты"}
-                </TabsTrigger>
+                <TabsTrigger value="info">{"Обзор"}</TabsTrigger>
+                <TabsTrigger value="brief">{"Бриф"}</TabsTrigger>
+                <TabsTrigger value="guide">{"Гайд"}</TabsTrigger>
+                <TabsTrigger value="recruitment">{"Рекрутинг"}</TabsTrigger>
+                <TabsTrigger value="results">{"Результаты"}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="info" className="mt-6">
@@ -2863,14 +3143,14 @@ function ResearchDetail() {
               <div className="mt-10">
                 <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
                   <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                    <CardTitle className="text-xl">
-                      Связанные встречи
-                    </CardTitle>
+                    <CardTitle className="text-xl">Связанные встречи</CardTitle>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() =>
-                        setLocation(`/meetings/new?researchId=${id}`)
+                        setLocation(
+                          `/meetings/new?researchId=${id}&from=research`,
+                        )
                       }
                       className="flex items-center gap-1"
                     >
@@ -2909,7 +3189,9 @@ function ResearchDetail() {
                                 key={meeting.id}
                                 className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
                                 onClick={() =>
-                                  setLocation(`/meetings/${meeting.id}`)
+                                  setLocation(
+                                    `/meetings/${meeting.id}?from=research&researchId=${id}`,
+                                  )
                                 }
                               >
                                 <TableCell>

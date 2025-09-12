@@ -1499,7 +1499,6 @@ export class DatabaseStorage implements IStorage {
       .from(meetings)
       .leftJoin(researches, eq(meetings.researchId, researches.id))
       .where(and(...conditions));
-
     const meetingsData = await meetingsQuery;
 
     // Get filter options

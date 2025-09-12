@@ -124,7 +124,7 @@ export default function ResearchForm({
       dateStart: startDate,
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: "Interviews" as const,
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     },
   });
@@ -149,7 +149,7 @@ export default function ResearchForm({
       dateStart: newStartDate,
       dateEnd: newEndDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: "Interviews" as const,
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     });
   }, [initialData, form]);
@@ -261,8 +261,8 @@ export default function ResearchForm({
               />
             </div>
 
-            {/* Second row: Status and Color */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Second row: Status, Research Type, and Color */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="status"
@@ -290,6 +290,53 @@ export default function ResearchForm({
                             {status}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="researchType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      Research Type
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange("researchType", value);
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select research type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CATI (Telephone Survey)">
+                          CATI (Telephone Survey)
+                        </SelectItem>
+                        <SelectItem value="CAWI (Online Survey)">
+                          CAWI (Online Survey)
+                        </SelectItem>
+                        <SelectItem value="Moderated usability testing">
+                          Moderated usability testing
+                        </SelectItem>
+                        <SelectItem value="Unmoderated usability testing">
+                          Unmoderated usability testing
+                        </SelectItem>
+                        <SelectItem value="Co-creation session">
+                          Co-creation session
+                        </SelectItem>
+                        <SelectItem value="Interviews">Interviews</SelectItem>
+                        <SelectItem value="Desk research">Desk research</SelectItem>
+                        <SelectItem value="Not assigned">Not assigned</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -154,8 +154,9 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
     "Unmoderated usability testing",
     "Co-creation session",
     "Interviews",
-    "Desk research"
-  ]).default("Interviews"),
+    "Desk research",
+    "Not assigned"
+  ]).default("Not assigned"),
   products: z.array(z.string()).optional().default([]),
   customerFullName: z.string().optional(),
   additionalStakeholders: z.array(z.string()).optional(),
@@ -179,9 +180,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   summarizationResult: true,
 }).extend({
   date: z.coerce.date(),
-  cnum: z.string()
-    .min(1, "CNUM is required")
-    .transform(val => val.toUpperCase()),
+  cnum: z.string().optional().transform((val) => val ? val.toUpperCase() : val),
   gcc: z.string().optional(),
   status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
     .default(MeetingStatus.IN_PROGRESS),
