@@ -4,6 +4,7 @@ import {
   quotePlugin, 
   listsPlugin, 
   linkPlugin, 
+  linkDialogPlugin,
   markdownShortcutPlugin, 
   BoldItalicUnderlineToggles, 
   UndoRedo, 
@@ -20,9 +21,7 @@ import {
   codeBlockPlugin,
   CodeToggle,
   codeMirrorPlugin,
-  MDXEditorMethods,
-  InsertAdmonition,
-  AdmonitionDirectiveDescriptor
+  MDXEditorMethods
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
 
@@ -52,6 +51,7 @@ export const WysiwygMarkdownEditor = ({
           quotePlugin(),
           listsPlugin(),
           linkPlugin(),
+          linkDialogPlugin(),
           thematicBreakPlugin(),
           tablePlugin(),
           codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
