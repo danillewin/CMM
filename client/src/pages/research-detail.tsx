@@ -975,29 +975,86 @@ function ResearchRecruitmentForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: {
-    clientsWeSearchFor: string;
-    inviteTemplate: string;
-  }) => void;
+  onTempDataUpdate?: (data: Partial<InsertResearch>) => void;
 }) {
-  const form = useForm<{ clientsWeSearchFor: string; inviteTemplate: string }>({
+  // Products list from research-form.tsx
+  const PRODUCT_OPTIONS = [
+    "CDC Integrations",
+    "Lending",
+    "Факторинг",
+    "Аккредитивы",
+    "Гарантии и спец.счета",
+    "АДМ",
+    "Эквайринг",
+    "СБП: B2C, C2B",
+    "СБП: B2B",
+    "Корпоративные карты",
+    "Валютные контракты и платежи",
+    "FX",
+    "Таможенные карты",
+    "Зарплатный проект",
+    "Cash Pooling",
+    "Рублевые платежи (входящие и исходящие)",
+    "Динамическое дисконтирование",
+    "IPS: SWAP и РЕПО",
+    "IPS: инвест. продукты (акции, облигации и т.д.)",
+    "Деривативы",
+    "IB: Advisory (M&A, Securitisation), Digital Advisory",
+    "CDC Mobile",
+    "LORO платежи (рублевые и валютные)",
+    "Custody",
+    "Специальный Депозитарий",
+  ];
+
+  const form = useForm<{
+    recruitmentQuantity?: number;
+    recruitmentRoles?: string;
+    recruitmentSegments?: string;
+    recruitmentUsedProducts?: string[];
+    recruitmentUsedChannels?: string;
+    recruitmentCqMin?: number;
+    recruitmentCqMax?: number;
+    recruitmentLegalEntityType?: string;
+    recruitmentRestrictions?: string;
+  }>({
     defaultValues: {
-      clientsWeSearchFor: research?.clientsWeSearchFor || "",
-      inviteTemplate: research?.inviteTemplate || "",
+      recruitmentQuantity: research?.recruitmentQuantity || undefined,
+      recruitmentRoles: research?.recruitmentRoles || "",
+      recruitmentSegments: research?.recruitmentSegments || undefined,
+      recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || "",
+      recruitmentCqMin: research?.recruitmentCqMin || 0,
+      recruitmentCqMax: research?.recruitmentCqMax || 10,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || undefined,
+      recruitmentRestrictions: research?.recruitmentRestrictions || undefined,
     },
   });
 
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      clientsWeSearchFor: research?.clientsWeSearchFor || "",
-      inviteTemplate: research?.inviteTemplate || "",
+      recruitmentQuantity: research?.recruitmentQuantity || undefined,
+      recruitmentRoles: research?.recruitmentRoles || "",
+      recruitmentSegments: research?.recruitmentSegments || undefined,
+      recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || "",
+      recruitmentCqMin: research?.recruitmentCqMin || 0,
+      recruitmentCqMax: research?.recruitmentCqMax || 10,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || undefined,
+      recruitmentRestrictions: research?.recruitmentRestrictions || undefined,
     });
   }, [research, form]);
 
   const handleSubmit = (data: {
-    clientsWeSearchFor: string;
-    inviteTemplate: string;
+    recruitmentQuantity?: number;
+    recruitmentRoles?: string;
+    recruitmentSegments?: string;
+    recruitmentUsedProducts?: string[];
+    recruitmentUsedChannels?: string;
+    recruitmentCqMin?: number;
+    recruitmentCqMax?: number;
+    recruitmentLegalEntityType?: string;
+    recruitmentRestrictions?: string;
   }) => {
     if (research) {
       onUpdate({
@@ -1033,8 +1090,16 @@ function ResearchRecruitmentForm({
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: data.clientsWeSearchFor,
-        inviteTemplate: data.inviteTemplate,
+        // New recruitment fields
+        recruitmentQuantity: data.recruitmentQuantity,
+        recruitmentRoles: data.recruitmentRoles,
+        recruitmentSegments: data.recruitmentSegments,
+        recruitmentUsedProducts: data.recruitmentUsedProducts,
+        recruitmentUsedChannels: data.recruitmentUsedChannels,
+        recruitmentCqMin: data.recruitmentCqMin,
+        recruitmentCqMax: data.recruitmentCqMax,
+        recruitmentLegalEntityType: data.recruitmentLegalEntityType,
+        recruitmentRestrictions: data.recruitmentRestrictions,
       });
     }
   };
@@ -1049,58 +1114,27 @@ function ResearchRecruitmentForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Recruitment Quantity */}
         <FormField
           control={form.control}
-          name="clientsWeSearchFor"
+          name="recruitmentQuantity"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                Клиенты для поиска
+                Количество респондентов
               </FormLabel>
               <FormControl>
-                <MDEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("clientsWeSearchFor", newValue);
-                  }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Опишите, кого мы ищем...",
-                    style: { resize: "none" },
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                        ALLOWED_TAGS: [
-                          "p",
-                          "br",
-                          "strong",
-                          "em",
-                          "ul",
-                          "ol",
-                          "li",
-                          "h1",
-                          "h2",
-                          "h3",
-                          "h4",
-                          "h5",
-                          "h6",
-                          "blockquote",
-                          "code",
-                          "pre",
-                        ],
-                        ALLOWED_ATTR: [],
-                      });
-                      return (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                        />
-                      );
-                    },
+                <Input
+                  data-testid="input-quantity"
+                  type="number"
+                  min={1}
+                  step={1}
+                  placeholder="Введите количество"
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || undefined;
+                    field.onChange(value);
+                    handleFieldChange("recruitmentQuantity", value);
                   }}
                 />
               </FormControl>
@@ -1108,61 +1142,192 @@ function ResearchRecruitmentForm({
             </FormItem>
           )}
         />
+
+        {/* Recruitment Roles */}
         <FormField
           control={form.control}
-          name="inviteTemplate"
+          name="recruitmentRoles"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-lg font-medium">
-                Шаблон приглашения
+                Роли респондентов
               </FormLabel>
               <FormControl>
-                <MDEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("inviteTemplate", newValue);
-                  }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Введите шаблон приглашения...",
-                    style: { resize: "none" },
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                        ALLOWED_TAGS: [
-                          "p",
-                          "br",
-                          "strong",
-                          "em",
-                          "ul",
-                          "ol",
-                          "li",
-                          "h1",
-                          "h2",
-                          "h3",
-                          "h4",
-                          "h5",
-                          "h6",
-                          "blockquote",
-                          "code",
-                          "pre",
-                        ],
-                        ALLOWED_ATTR: [],
-                      });
-                      return (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                        />
-                      );
-                    },
+                <Input
+                  data-testid="input-roles"
+                  placeholder="Например: Руководители, менеджеры, предприниматели"
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    handleFieldChange("recruitmentRoles", e.target.value);
                   }}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Recruitment Segments */}
+        <FormField
+          control={form.control}
+          name="recruitmentSegments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">
+                Сегменты клиентов
+              </FormLabel>
+              <Select value={field.value || ""} onValueChange={(value) => {
+                field.onChange(value);
+                handleFieldChange("recruitmentSegments", value);
+              }}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-segments">
+                    <SelectValue placeholder="Выберите сегмент" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="SMB">SMB</SelectItem>
+                  <SelectItem value="Mid">Mid-market</SelectItem>
+                  <SelectItem value="Enterprise">Enterprise</SelectItem>
+                  <SelectItem value="Fintech">Fintech</SelectItem>
+                  <SelectItem value="Retail">Retail</SelectItem>
+                  <SelectItem value="Other">Другое</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Used Products */}
+        <FormField
+          control={form.control}
+          name="recruitmentUsedProducts"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">
+                Используемые продукты
+              </FormLabel>
+              <FormControl>
+                <SearchMultiSelect
+                  data-testid="multiselect-products"
+                  items={PRODUCT_OPTIONS}
+                  values={field.value || []}
+                  onChange={(values) => {
+                    field.onChange(values);
+                    handleFieldChange("recruitmentUsedProducts", values);
+                  }}
+                  placeholder="Выберите продукты"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Used Channels */}
+        <FormField
+          control={form.control}
+          name="recruitmentUsedChannels"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">
+                Используемые каналы
+              </FormLabel>
+              <FormControl>
+                <Input
+                  data-testid="input-channels"
+                  placeholder="Например: Интернет-банк, мобильное приложение, отделения"
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    handleFieldChange("recruitmentUsedChannels", e.target.value);
+                  }}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* CQ Range */}
+        <div className="space-y-2">
+          <FormLabel className="text-lg font-medium">
+            Диапазон CQ (от {form.watch("recruitmentCqMin") || 0} до {form.watch("recruitmentCqMax") || 10})
+          </FormLabel>
+          <RangeSlider
+            data-testid="slider-cq"
+            min={0}
+            max={10}
+            step={1}
+            value={[form.watch("recruitmentCqMin") || 0, form.watch("recruitmentCqMax") || 10]}
+            onValueChange={([min, max]) => {
+              form.setValue("recruitmentCqMin", min, { shouldDirty: true });
+              form.setValue("recruitmentCqMax", max, { shouldDirty: true });
+              handleFieldChange("recruitmentCqMin", min);
+              handleFieldChange("recruitmentCqMax", max);
+            }}
+            className="w-full"
+          />
+        </div>
+
+        {/* Legal Entity Type */}
+        <FormField
+          control={form.control}
+          name="recruitmentLegalEntityType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">
+                Тип юридического лица
+              </FormLabel>
+              <Select value={field.value || ""} onValueChange={(value) => {
+                field.onChange(value);
+                handleFieldChange("recruitmentLegalEntityType", value);
+              }}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-entity">
+                    <SelectValue placeholder="Выберите тип" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="ИП">ИП</SelectItem>
+                  <SelectItem value="ООО">ООО</SelectItem>
+                  <SelectItem value="АО">АО</SelectItem>
+                  <SelectItem value="Самозанятый">Самозанятый</SelectItem>
+                  <SelectItem value="Другое">Другое</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Restrictions */}
+        <FormField
+          control={form.control}
+          name="recruitmentRestrictions"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">
+                Ограничения по набору
+              </FormLabel>
+              <Select value={field.value || ""} onValueChange={(value) => {
+                field.onChange(value);
+                handleFieldChange("recruitmentRestrictions", value);
+              }}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-restrictions">
+                    <SelectValue placeholder="Выберите ограничения" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Нет">Нет ограничений</SelectItem>
+                  <SelectItem value="Только клиенты банка">Только клиенты банка</SelectItem>
+                  <SelectItem value="Только Москва">Только Москва</SelectItem>
+                  <SelectItem value="NDA/Compliance">NDA/Compliance</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
