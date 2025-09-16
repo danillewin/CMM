@@ -70,8 +70,16 @@ export const researches = pgTable("researches", {
   guideMainQuestions: text("guide_main_questions"), // Основные вопросы (JSON string)
   guideConcludingQuestions: text("guide_concluding_questions"), // Заключительные вопросы (JSON string)
   fullText: text("full_text"),
-  clientsWeSearchFor: text("clients_we_search_for"),
-  inviteTemplate: text("invite_template"),
+  // New recruitment fields
+  recruitmentQuantity: integer("recruitment_quantity"), // Количество
+  recruitmentRoles: text("recruitment_roles"), // Роли
+  recruitmentSegments: text("recruitment_segments"), // Сегменты (SME, Middle, Large, International)
+  recruitmentUsedProducts: text("recruitment_used_products").array(), // Используемые продукты
+  recruitmentUsedChannels: text("recruitment_used_channels"), // Используемые каналы
+  recruitmentCqMin: integer("recruitment_cq_min"), // CQ минимум (0-10)
+  recruitmentCqMax: integer("recruitment_cq_max"), // CQ максимум (0-10)
+  recruitmentLegalEntityType: text("recruitment_legal_entity_type"), // Тип юридического лица (CNUM, GCC)
+  recruitmentRestrictions: text("recruitment_restrictions"), // Ограничения
 });
 
 // Jobs to be Done table
@@ -173,6 +181,16 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   guideMainQuestions: z.string().optional(),
   guideConcludingQuestions: z.string().optional(),
   fullText: z.string().optional(),
+  // New recruitment field validations
+  recruitmentQuantity: z.number().int().positive().optional(),
+  recruitmentRoles: z.string().optional(),
+  recruitmentSegments: z.enum(["SME", "Middle", "Large", "International"]).optional(),
+  recruitmentUsedProducts: z.array(z.string()).optional().default([]),
+  recruitmentUsedChannels: z.string().optional(),
+  recruitmentCqMin: z.number().int().min(0).max(10).optional(),
+  recruitmentCqMax: z.number().int().min(0).max(10).optional(),
+  recruitmentLegalEntityType: z.enum(["CNUM", "GCC"]).optional(),
+  recruitmentRestrictions: z.enum(["Нет", "Fisa"]).optional(),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
