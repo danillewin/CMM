@@ -228,8 +228,10 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/researches", async (req, res) => {
     try {
+      console.log("Request body for research creation:", JSON.stringify(req.body, null, 2));
       const result = insertResearchSchema.safeParse(req.body);
       if (!result.success) {
+        console.error("Validation errors:", JSON.stringify(result.error.errors, null, 2));
         res.status(400).json({ message: "Invalid research data", errors: result.error.errors });
         return;
       }

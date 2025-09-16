@@ -1296,10 +1296,13 @@ function ResearchRecruitmentForm({
             minValue={form.watch("recruitmentCqMin") || 0}
             maxValue={form.watch("recruitmentCqMax") || 10}
             onChange={([min, max]) => {
-              form.setValue("recruitmentCqMin", min, { shouldDirty: true });
-              form.setValue("recruitmentCqMax", max, { shouldDirty: true });
-              handleFieldChange("recruitmentCqMin", min);
-              handleFieldChange("recruitmentCqMax", max);
+              // Ensure values are numbers, not strings
+              const minNum = Number(min);
+              const maxNum = Number(max);
+              form.setValue("recruitmentCqMin", isNaN(minNum) ? undefined : minNum, { shouldDirty: true });
+              form.setValue("recruitmentCqMax", isNaN(maxNum) ? undefined : maxNum, { shouldDirty: true });
+              handleFieldChange("recruitmentCqMin", isNaN(minNum) ? undefined : minNum);
+              handleFieldChange("recruitmentCqMax", isNaN(maxNum) ? undefined : maxNum);
             }}
             className="w-full"
           />
