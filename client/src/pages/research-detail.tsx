@@ -14,9 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
+  Edit2,
   Loader2,
   ExternalLink,
   Plus as PlusIcon,
+  Users,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -974,6 +976,193 @@ function ResearchBriefForm({
         </Button>
       </form>
     </Form>
+  );
+}
+
+// Component for displaying recruitment data in read-only mode
+function ResearchRecruitmentView({
+  research,
+  onEdit,
+}: {
+  research: Research;
+  onEdit: () => void;
+}) {
+  const hasRecruitmentData = 
+    research.recruitmentQuantity ||
+    research.recruitmentRoles ||
+    (research.recruitmentSegments && research.recruitmentSegments.length > 0) ||
+    (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
+    (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0) ||
+    research.recruitmentCqMin !== undefined ||
+    research.recruitmentCqMax !== undefined ||
+    (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0) ||
+    research.recruitmentRestrictions !== undefined;
+
+  if (!hasRecruitmentData) {
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100 text-center">
+        <div className="max-w-md mx-auto">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-blue-600" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Данные по рекрутингу не заполнены</h3>
+          <p className="text-gray-600 mb-4">Добавьте информацию о поиске и критериях отбора респондентов</p>
+          <Button 
+            onClick={onEdit}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+          >
+            Заполнить данные рекрутинга
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100 flex-1">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Набор респондентов</h2>
+          <p className="text-gray-600">Параметры поиска и критерии отбора респондентов</p>
+        </div>
+        <Button 
+          onClick={onEdit}
+          variant="outline"
+          className="ml-4 border-blue-200 text-blue-700 hover:bg-blue-50"
+        >
+          <Edit2 className="w-4 h-4 mr-2" />
+          Редактировать
+        </Button>
+      </div>
+
+      {/* Content in cards */}
+      <div className="grid gap-6">
+        {/* Basic Info */}
+        {(research.recruitmentQuantity || research.recruitmentRoles) && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Общая информация</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {research.recruitmentQuantity && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Количество респондентов</label>
+                  <div className="mt-1 p-3 bg-gray-50 rounded-lg">
+                    {research.recruitmentQuantity}
+                  </div>
+                </div>
+              )}
+              {research.recruitmentRoles && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Роли респондентов</label>
+                  <div className="mt-1 p-3 bg-gray-50 rounded-lg">
+                    {research.recruitmentRoles}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Segments and Products */}
+        {((research.recruitmentSegments && research.recruitmentSegments.length > 0) || 
+          (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
+          (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)) && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Сегменты и продукты</h3>
+            <div className="space-y-4">
+              {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Сегменты</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {research.recruitmentSegments.map((segment, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                        {segment}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Используемые продукты</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {research.recruitmentUsedProducts.map((product, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
+                        {product}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Используемые каналы</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {research.recruitmentUsedChannels.map((channel, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
+                        {channel}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* CQ Range and Legal Entity */}
+        {((research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) ||
+          (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)) && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Дополнительные критерии</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Диапазон CQ</label>
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                    {research.recruitmentCqMin} - {research.recruitmentCqMax}
+                  </div>
+                </div>
+              )}
+              
+              {research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Тип юридического лица</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {research.recruitmentLegalEntityType.map((type, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800">
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* FISA Restrictions */}
+        {research.recruitmentRestrictions !== undefined && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Ограничения</h3>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Ограничения по FISA</label>
+              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                  research.recruitmentRestrictions 
+                    ? "bg-red-100 text-red-800" 
+                    : "bg-green-100 text-green-800"
+                }`}>
+                  {research.recruitmentRestrictions ? "Да" : "Нет"}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -3081,6 +3270,7 @@ function ResearchDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [recruitmentEditMode, setRecruitmentEditMode] = useState(false);
   const { toast } = useToast();
   // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
@@ -3412,12 +3602,22 @@ function ResearchDetail() {
               </TabsContent>
 
               <TabsContent value="recruitment" className="mt-6">
-                <ResearchRecruitmentForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
+                {recruitmentEditMode || isNew ? (
+                  <ResearchRecruitmentForm
+                    research={effectiveResearch}
+                    onUpdate={(data) => {
+                      handleSubmit(data);
+                      setRecruitmentEditMode(false); // Exit edit mode after save
+                    }}
+                    isLoading={isPending}
+                    onTempDataUpdate={handleTempDataUpdate}
+                  />
+                ) : (
+                  <ResearchRecruitmentView
+                    research={effectiveResearch as Research}
+                    onEdit={() => setRecruitmentEditMode(true)}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="results" className="mt-6">
