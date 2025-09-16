@@ -51,6 +51,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from "dompurify";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -1017,55 +1019,74 @@ function ResearchRecruitmentForm({
   ];
 
   const form = useForm<{
-    recruitmentQuantity?: number;
+    recruitmentQuantity?: string;
     recruitmentRoles?: string;
-    recruitmentSegments?: string;
+    recruitmentSegments?: string[];
     recruitmentUsedProducts?: string[];
-    recruitmentUsedChannels?: string;
+    recruitmentUsedChannels?: string[];
     recruitmentCqMin?: number;
     recruitmentCqMax?: number;
-    recruitmentLegalEntityType?: string;
-    recruitmentRestrictions?: string;
+    recruitmentLegalEntityType?: string[];
+    recruitmentRestrictions?: boolean;
   }>({
     defaultValues: {
-      recruitmentQuantity: research?.recruitmentQuantity || undefined,
+      recruitmentQuantity: research?.recruitmentQuantity || "",
       recruitmentRoles: research?.recruitmentRoles || "",
-      recruitmentSegments: research?.recruitmentSegments || undefined,
+      recruitmentSegments: research?.recruitmentSegments || [],
       recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
-      recruitmentUsedChannels: research?.recruitmentUsedChannels || "",
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || [],
       recruitmentCqMin: research?.recruitmentCqMin || 0,
       recruitmentCqMax: research?.recruitmentCqMax || 10,
-      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || undefined,
-      recruitmentRestrictions: research?.recruitmentRestrictions || undefined,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || [],
+      recruitmentRestrictions: research?.recruitmentRestrictions || false,
     },
   });
 
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      recruitmentQuantity: research?.recruitmentQuantity || undefined,
+      recruitmentQuantity: research?.recruitmentQuantity || "",
       recruitmentRoles: research?.recruitmentRoles || "",
-      recruitmentSegments: research?.recruitmentSegments || undefined,
+      recruitmentSegments: research?.recruitmentSegments || [],
       recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
-      recruitmentUsedChannels: research?.recruitmentUsedChannels || "",
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || [],
       recruitmentCqMin: research?.recruitmentCqMin || 0,
       recruitmentCqMax: research?.recruitmentCqMax || 10,
-      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || undefined,
-      recruitmentRestrictions: research?.recruitmentRestrictions || undefined,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || [],
+      recruitmentRestrictions: research?.recruitmentRestrictions || false,
     });
   }, [research, form]);
 
   const handleSubmit = (data: {
-    recruitmentQuantity?: number;
+    recruitmentQuantity?: string;
     recruitmentRoles?: string;
-    recruitmentSegments?: string;
+    recruitmentSegments?: string[];
     recruitmentUsedProducts?: string[];
-    recruitmentUsedChannels?: string;
+    recruitmentUsedChannels?: string[];
     recruitmentCqMin?: number;
     recruitmentCqMax?: number;
-    recruitmentLegalEntityType?: string;
-    recruitmentRestrictions?: string;
+    recruitmentLegalEntityType?: string[];
+    recruitmentRestrictions?: boolean;
   }) => {
+    // For new research (no existing research), only save temporary data
+    if (!research) {
+      if (onTempDataUpdate) {
+        onTempDataUpdate({
+          recruitmentQuantity: data.recruitmentQuantity,
+          recruitmentRoles: data.recruitmentRoles,
+          recruitmentSegments: data.recruitmentSegments,
+          recruitmentUsedProducts: data.recruitmentUsedProducts,
+          recruitmentUsedChannels: data.recruitmentUsedChannels,
+          recruitmentCqMin: data.recruitmentCqMin,
+          recruitmentCqMax: data.recruitmentCqMax,
+          recruitmentLegalEntityType: data.recruitmentLegalEntityType,
+          recruitmentRestrictions: data.recruitmentRestrictions,
+        });
+      }
+      return;
+    }
+
+    // For existing research, update the full research
     if (research) {
       onUpdate({
         name: research.name,
@@ -1123,7 +1144,18 @@ function ResearchRecruitmentForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Набор респондентов</h2>
+          <p className="text-gray-600">Определите параметры поиска и критерии отбора респондентов для вашего исследования</p>
+        </div>
+
+        {/* Basic Info Section */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Общая информация</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         {/* Recruitment Quantity */}
         <FormField
           control={form.control}
@@ -1239,7 +1271,7 @@ function ResearchRecruitmentForm({
           )}
         />
 
-        {/* Used Channels - Multiple Selection */}
+        {/* Used Channels - Beautiful Multi-Select */}
         <FormField
           control={form.control}
           name="recruitmentUsedChannels"
@@ -1248,36 +1280,80 @@ function ResearchRecruitmentForm({
               <FormLabel className="text-lg font-medium">
                 Используемые каналы
               </FormLabel>
-              <div className="space-y-2">
-                {[
-                  "Интернет-банк", 
-                  "Мобильное приложение", 
-                  "Отделения", 
-                  "Колл-центр",
-                  "Банкоматы",
-                  "Другое"
-                ].map((channel) => (
-                  <div key={channel} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      data-testid={`checkbox-channel-${channel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                      checked={(field.value || []).includes(channel)}
-                      onChange={(e) => {
-                        const currentValues = field.value || [];
-                        let newValues;
-                        if (e.target.checked) {
-                          newValues = [...currentValues, channel];
-                        } else {
-                          newValues = currentValues.filter((v: string) => v !== channel);
-                        }
-                        field.onChange(newValues);
-                        handleFieldChange("recruitmentUsedChannels", newValues);
-                      }}
-                    />
-                    <label className="text-sm">{channel}</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between h-auto min-h-[40px] text-left"
+                      data-testid="button-channels"
+                    >
+                      <div className="flex flex-wrap gap-1">
+                        {field.value && field.value.length > 0 ? (
+                          field.value.map((channel) => (
+                            <span
+                              key={channel}
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {channel}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Выберите каналы...
+                          </span>
+                        )}
+                      </div>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-60 overflow-y-auto p-3">
+                    <div className="space-y-2">
+                      {[
+                        "Интернет-банк", 
+                        "Мобильное приложение", 
+                        "Отделения", 
+                        "Колл-центр",
+                        "Банкоматы",
+                        "Другое"
+                      ].map((channel) => (
+                        <div
+                          key={channel}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={channel}
+                            checked={
+                              (field.value || []).includes(channel)
+                            }
+                            onCheckedChange={(checked) => {
+                              const currentChannels = field.value || [];
+                              let newChannels;
+                              if (checked) {
+                                newChannels = [...currentChannels, channel];
+                              } else {
+                                newChannels = currentChannels.filter((c: string) => c !== channel);
+                              }
+                              field.onChange(newChannels);
+                              handleFieldChange("recruitmentUsedChannels", newChannels);
+                            }}
+                            data-testid={`checkbox-channel-${channel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                          />
+                          <label
+                            htmlFor={channel}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {channel}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                </PopoverContent>
+              </Popover>
               <FormMessage />
             </FormItem>
           )}
@@ -1384,7 +1460,10 @@ function ResearchRecruitmentForm({
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
+          </div>
+        </div>
+
+        <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Сохранить набор
         </Button>
