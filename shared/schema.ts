@@ -71,15 +71,15 @@ export const researches = pgTable("researches", {
   guideConcludingQuestions: text("guide_concluding_questions"), // Заключительные вопросы (JSON string)
   fullText: text("full_text"),
   // New recruitment fields
-  recruitmentQuantity: integer("recruitment_quantity"), // Количество
+  recruitmentQuantity: text("recruitment_quantity"), // Количество (text input)
   recruitmentRoles: text("recruitment_roles"), // Роли
-  recruitmentSegments: text("recruitment_segments"), // Сегменты (SME, Middle, Large, International)
+  recruitmentSegments: text("recruitment_segments").array(), // Сегменты (multiple selection)
   recruitmentUsedProducts: text("recruitment_used_products").array(), // Используемые продукты
-  recruitmentUsedChannels: text("recruitment_used_channels"), // Используемые каналы
+  recruitmentUsedChannels: text("recruitment_used_channels").array(), // Используемые каналы (multiple selection)
   recruitmentCqMin: integer("recruitment_cq_min"), // CQ минимум (0-10)
   recruitmentCqMax: integer("recruitment_cq_max"), // CQ максимум (0-10)
-  recruitmentLegalEntityType: text("recruitment_legal_entity_type"), // Тип юридического лица (CNUM, GCC)
-  recruitmentRestrictions: text("recruitment_restrictions"), // Ограничения
+  recruitmentLegalEntityType: text("recruitment_legal_entity_type").array(), // Тип юридического лица (multiple selection)
+  recruitmentRestrictions: boolean("recruitment_restrictions"), // Ограничения (да/нет)
 });
 
 // Jobs to be Done table
@@ -182,15 +182,15 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   guideConcludingQuestions: z.string().optional(),
   fullText: z.string().optional(),
   // New recruitment field validations
-  recruitmentQuantity: z.number().int().positive().optional(),
+  recruitmentQuantity: z.string().optional(), // Changed to string (text input)
   recruitmentRoles: z.string().optional(),
-  recruitmentSegments: z.string().optional(),
+  recruitmentSegments: z.array(z.string()).optional(), // Changed to array for multiple selection
   recruitmentUsedProducts: z.array(z.string()).optional(),
-  recruitmentUsedChannels: z.string().optional(),
+  recruitmentUsedChannels: z.array(z.string()).optional(), // Changed to array for multiple selection
   recruitmentCqMin: z.number().int().min(0).max(10).optional(),
   recruitmentCqMax: z.number().int().min(0).max(10).optional(),
-  recruitmentLegalEntityType: z.string().optional(),
-  recruitmentRestrictions: z.string().optional(),
+  recruitmentLegalEntityType: z.array(z.string()).optional(), // Changed to array for multiple selection
+  recruitmentRestrictions: z.boolean().optional(), // Changed to boolean for да/нет
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
