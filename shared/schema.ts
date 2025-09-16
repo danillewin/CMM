@@ -184,13 +184,13 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   // New recruitment field validations
   recruitmentQuantity: z.number().int().positive().optional(),
   recruitmentRoles: z.string().optional(),
-  recruitmentSegments: z.enum(["SME", "Middle", "Large", "International"]).optional(),
-  recruitmentUsedProducts: z.array(z.string()).optional().default([]),
+  recruitmentSegments: z.string().optional(),
+  recruitmentUsedProducts: z.array(z.string()).optional(),
   recruitmentUsedChannels: z.string().optional(),
   recruitmentCqMin: z.number().int().min(0).max(10).optional(),
   recruitmentCqMax: z.number().int().min(0).max(10).optional(),
-  recruitmentLegalEntityType: z.enum(["CNUM", "GCC"]).optional(),
-  recruitmentRestrictions: z.enum(["Нет", "Fisa"]).optional(),
+  recruitmentLegalEntityType: z.string().optional(),
+  recruitmentRestrictions: z.string().optional(),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
@@ -238,7 +238,7 @@ export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertPosition = z.infer<typeof insertPositionSchema>;
 export type Position = typeof positions.$inferSelect;
-export type InsertResearch = z.infer<typeof insertResearchSchema>;
+export type InsertResearch = z.input<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect & {

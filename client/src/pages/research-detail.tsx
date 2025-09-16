@@ -79,6 +79,8 @@ import {
 } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { RangeSlider } from "@/components/ui/range-slider";
+import { SearchMultiselect } from "@/components/search-multiselect";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -277,8 +279,16 @@ function ResearchBriefForm({
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
+        // Recruitment fields (preserve existing values)
+        recruitmentQuantity: research.recruitmentQuantity,
+        recruitmentRoles: research.recruitmentRoles,
+        recruitmentSegments: research.recruitmentSegments,
+        recruitmentUsedProducts: research.recruitmentUsedProducts || [],
+        recruitmentUsedChannels: research.recruitmentUsedChannels,
+        recruitmentCqMin: research.recruitmentCqMin,
+        recruitmentCqMax: research.recruitmentCqMax,
+        recruitmentLegalEntityType: research.recruitmentLegalEntityType,
+        recruitmentRestrictions: research.recruitmentRestrictions,
       });
     }
   };
@@ -1210,11 +1220,11 @@ function ResearchRecruitmentForm({
                 Используемые продукты
               </FormLabel>
               <FormControl>
-                <SearchMultiSelect
+                <SearchMultiselect
                   data-testid="multiselect-products"
-                  items={PRODUCT_OPTIONS}
-                  values={field.value || []}
-                  onChange={(values) => {
+                  apiEndpoint="/api/products"
+                  selectedValues={field.value || []}
+                  onSelectionChange={(values) => {
                     field.onChange(values);
                     handleFieldChange("recruitmentUsedProducts", values);
                   }}
@@ -1261,8 +1271,9 @@ function ResearchRecruitmentForm({
             min={0}
             max={10}
             step={1}
-            value={[form.watch("recruitmentCqMin") || 0, form.watch("recruitmentCqMax") || 10]}
-            onValueChange={([min, max]) => {
+            minValue={form.watch("recruitmentCqMin") || 0}
+            maxValue={form.watch("recruitmentCqMax") || 10}
+            onChange={([min, max]) => {
               form.setValue("recruitmentCqMin", min, { shouldDirty: true });
               form.setValue("recruitmentCqMax", max, { shouldDirty: true });
               handleFieldChange("recruitmentCqMin", min);
@@ -1544,8 +1555,6 @@ function ResearchGuideForm({
         })(),
 
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -2837,8 +2846,6 @@ function ResearchResultsForm({
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
