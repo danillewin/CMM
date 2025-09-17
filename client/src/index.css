@@ -12,65 +12,86 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists */
-.mdx-content ul.contains-task-list,
-.mdx-content ul[data-task-list],
-.mdx-content ul:has(li.task-list-item) {
+/* Fix checkbox overlap in MDXEditor task lists - HIGH SPECIFICITY OVERRIDE */
+.mdx-content.mdx-overrides ul.contains-task-list,
+.mdx-content.mdx-overrides ul[data-task-list],
+.mdx-content.mdx-overrides ul:has(li.task-list-item) {
   list-style: none !important;
   padding-left: 0 !important;
   margin-left: 0 !important;
 }
 
-.mdx-content li.task-list-item,
-.mdx-content li[data-task-list-item] {
-  list-style: none !important;
-  margin-left: 0 !important;
-  padding-left: 0 !important;
+.mdx-content.mdx-overrides li.task-list-item,
+.mdx-content.mdx-overrides li[data-task-list-item] {
   display: flex !important;
   align-items: flex-start !important;
   gap: 0.75rem !important;
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
   position: relative !important;
 }
 
-.mdx-content li.task-list-item::marker,
-.mdx-content li[data-task-list-item]::marker,
-.mdx-content li.task-list-item::before,
-.mdx-content li[data-task-list-item]::before {
+.mdx-content.mdx-overrides li.task-list-item::marker,
+.mdx-content.mdx-overrides li[data-task-list-item]::marker,
+.mdx-content.mdx-overrides li.task-list-item::before,
+.mdx-content.mdx-overrides li[data-task-list-item]::before {
   content: "" !important;
   display: none !important;
 }
 
-.mdx-content li.task-list-item > input[type="checkbox"],
-.mdx-content li[data-task-list-item] > input[type="checkbox"] {
-  margin-top: 0.25rem !important;
-  flex: none !important;
-  flex-shrink: 0 !important;
-  width: 16px !important;
-  height: 16px !important;
-  position: static !important;
-  margin-right: 0 !important;
-  margin-left: 0 !important;
+/* Target nested checkbox structure inside labels/spans */
+.mdx-content.mdx-overrides li.task-list-item label,
+.mdx-content.mdx-overrides li[data-task-list-item] label {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.5rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Ensure text content has proper spacing */
-.mdx-content li.task-list-item > p,
-.mdx-content li.task-list-item > span,
-.mdx-content li[data-task-list-item] > p,
-.mdx-content li[data-task-list-item] > span {
+/* Reset checkbox positioning and margins */
+.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
+.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
+  position: static !important;
+  margin: 0.25rem 0.5rem 0 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 auto !important;
+  transform: none !important;
+}
+
+/* Ensure text content has proper spacing - HIGH SPECIFICITY */
+.mdx-content.mdx-overrides li.task-list-item > p,
+.mdx-content.mdx-overrides li.task-list-item > span,
+.mdx-content.mdx-overrides li.task-list-item > div,
+.mdx-content.mdx-overrides li.task-list-item > label,
+.mdx-content.mdx-overrides li[data-task-list-item] > p,
+.mdx-content.mdx-overrides li[data-task-list-item] > span,
+.mdx-content.mdx-overrides li[data-task-list-item] > div,
+.mdx-content.mdx-overrides li[data-task-list-item] > label {
   margin: 0 !important;
   padding: 0 !important;
   flex: 1 !important;
+}
+
+/* Restore nested list indentation */
+.mdx-content.mdx-overrides li.task-list-item ul,
+.mdx-content.mdx-overrides li.task-list-item ol {
+  padding-left: 1.25rem !important;
+  margin-left: 0 !important;
 }
 
 .mdx-content {
   line-height: 1.625;
 }
 
-/* Override any prose styles that might interfere */
-.prose .mdx-content li.task-list-item {
+/* Override any prose styles that might interfere - MAXIMUM SPECIFICITY */
+.prose.mdx-content.mdx-overrides li.task-list-item {
   display: flex !important;
   align-items: flex-start !important;
   list-style: none !important;
   margin-left: 0 !important;
   padding-left: 0 !important;
+  gap: 0.75rem !important;
 }

@@ -46,7 +46,7 @@ export const WysiwygMarkdownEditor = ({
         markdown={value}
         onChange={(markdown) => onChange?.(markdown)}
         placeholder={placeholder}
-        contentEditableClassName="mdx-content prose prose-sm max-w-none focus:outline-none"
+        contentEditableClassName="mdx-content prose prose-sm max-w-none focus:outline-none mdx-overrides"
         plugins={[
           // Core formatting plugins - order matters!
           headingsPlugin({ allowedHeadingLevels: [1, 2, 3, 4, 5, 6] }),
