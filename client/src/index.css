@@ -89,6 +89,47 @@
   top: 1px;
 }
 
+/* Markdown Preview Styling */
+/* Checkbox list items with flex alignment for vertical centering */
+.mdx-content li:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  list-style: none;
+}
+
+/* Fallback for browsers without :has() support */
+.mdx-content li.task-list-item {
+  display: flex;
+  align-items: center;
+  list-style: none;
+}
+
+/* Checkbox styling with right margin */
+.mdx-content li:has(input[type="checkbox"]) input[type="checkbox"],
+.mdx-content li.task-list-item input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+/* Ordered lists with restored numbers */
+.mdx-content ol {
+  list-style: decimal;
+  padding-left: 20px;
+}
+
+.mdx-content.mdx-overrides ol > li {
+  display: list-item;
+}
+
+/* Unordered lists with restored bullets */
+.mdx-content ul {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.mdx-content.mdx-overrides ul > li {
+  display: list-item;
+}
+
 
 .mdx-content {
   line-height: 1.625;
