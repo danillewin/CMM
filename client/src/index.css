@@ -12,122 +12,34 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - GRID LAYOUT SOLUTION */
-.mdx-content.mdx-overrides ul.contains-task-list,
-.mdx-content.mdx-overrides ul[data-task-list],
-.mdx-content.mdx-overrides ul:has(li.task-list-item) {
+/* Fix checkbox overlap in MDXEditor task lists - POSITION+PADDING SOLUTION */
+.mdx-content.mdx-overrides ul:has(input[type="checkbox"]) {
   list-style: none !important;
   padding-left: 0 !important;
   margin-left: 0 !important;
 }
 
-/* Use CSS Grid to create proper columns - prevents text from appearing under checkbox */
-.mdx-content.mdx-overrides li.task-list-item,
-.mdx-content.mdx-overrides li[data-task-list-item] {
-  display: grid !important;
-  grid-template-columns: 1.25rem 1fr !important;
-  align-items: start !important;
-  gap: 0.5rem !important;
+.mdx-content.mdx-overrides li:has(input[type="checkbox"]) {
+  position: relative !important;
+  padding-left: 1.75rem !important; /* >= checkbox size + gap */
   list-style: none !important;
-  padding-left: 0 !important;
-  margin-left: 0 !important;
 }
 
-.mdx-content.mdx-overrides li.task-list-item::marker,
-.mdx-content.mdx-overrides li[data-task-list-item]::marker,
-.mdx-content.mdx-overrides li.task-list-item::before,
-.mdx-content.mdx-overrides li[data-task-list-item]::before {
-  content: "" !important;
-  display: none !important;
-}
-
-/* Promote label contents into the grid layout - fixes text under checkbox issue */
-.mdx-content.mdx-overrides li.task-list-item > label:has(> input[type="checkbox"]),
-.mdx-content.mdx-overrides li[data-task-list-item] > label:has(> input[type="checkbox"]),
-.mdx-content.mdx-overrides li.task-list-item > :is(label, div, span):has(> input[type="checkbox"]),
-.mdx-content.mdx-overrides li[data-task-list-item] > :is(label, div, span):has(> input[type="checkbox"]) {
-  display: contents !important;
-}
-
-/* Checkbox goes in first grid column */
-.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
-.mdx-content.mdx-overrides li.task-list-item > label > input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] > input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] > label > input[type="checkbox"] {
-  grid-column: 1 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Content from labels goes to second column */
-.mdx-content.mdx-overrides li.task-list-item > label > :not(input[type="checkbox"]),
-.mdx-content.mdx-overrides li[data-task-list-item] > label > :not(input[type="checkbox"]) {
-  grid-column: 2 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* ALL other content goes in second grid column - prevents anything from wrapping under checkbox */
-.mdx-content.mdx-overrides li.task-list-item > :not(input[type="checkbox"]):not(label:has(> input[type="checkbox"])),
-.mdx-content.mdx-overrides li[data-task-list-item] > :not(input[type="checkbox"]):not(label:has(> input[type="checkbox"])) {
-  grid-column: 2 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Explicit targeting for common content types to ensure they stay in column 2 */
-.mdx-content.mdx-overrides li.task-list-item > div,
-.mdx-content.mdx-overrides li.task-list-item > p,
-.mdx-content.mdx-overrides li.task-list-item > span,
-.mdx-content.mdx-overrides li.task-list-item > ul,
-.mdx-content.mdx-overrides li.task-list-item > ol,
-.mdx-content.mdx-overrides li.task-list-item > pre,
-.mdx-content.mdx-overrides li.task-list-item > blockquote,
-.mdx-content.mdx-overrides li.task-list-item > .task-content,
-.mdx-content.mdx-overrides li[data-task-list-item] > div,
-.mdx-content.mdx-overrides li[data-task-list-item] > p,
-.mdx-content.mdx-overrides li[data-task-list-item] > span,
-.mdx-content.mdx-overrides li[data-task-list-item] > ul,
-.mdx-content.mdx-overrides li[data-task-list-item] > ol,
-.mdx-content.mdx-overrides li[data-task-list-item] > pre,
-.mdx-content.mdx-overrides li[data-task-list-item] > blockquote,
-.mdx-content.mdx-overrides li[data-task-list-item] > .task-content {
-  grid-column: 2 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Reset checkbox to normal styling */
-.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
+.mdx-content.mdx-overrides li:has(input[type="checkbox"]) input[type="checkbox"] {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0.2em !important; /* align with first line */
   width: 16px !important;
   height: 16px !important;
   margin: 0 !important;
 }
 
 /* Restore nested list indentation */
-.mdx-content.mdx-overrides li.task-list-item ul,
-.mdx-content.mdx-overrides li.task-list-item ol,
-.mdx-content.mdx-overrides li[data-task-list-item] ul,
-.mdx-content.mdx-overrides li[data-task-list-item] ol {
+.mdx-content.mdx-overrides li:has(input[type="checkbox"]) > ul,
+.mdx-content.mdx-overrides li:has(input[type="checkbox"]) > ol {
   padding-left: 1.25rem !important;
-  margin-left: 0 !important;
 }
 
 .mdx-content {
   line-height: 1.625;
-}
-
-/* Override any prose styles that might interfere - MAXIMUM SPECIFICITY */
-.prose.mdx-content.mdx-overrides li.task-list-item {
-  display: grid !important;
-  grid-template-columns: 1.25rem 1fr !important;
-  align-items: start !important;
-  gap: 0.5rem !important;
-  list-style: none !important;
-  margin-left: 0 !important;
-  padding-left: 0 !important;
 }
