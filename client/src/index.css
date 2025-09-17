@@ -55,14 +55,16 @@
   margin: 0 !important;
 }
 
-/* 6. Text content alignment - 1px upward shift for vertical centering */
+/* 6. Text content alignment - perfectly centered with checkbox middle */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   grid-column: 2 !important;
   min-width: 0 !important;
   margin: 0 !important;
   padding: 0.125rem 0 !important;
-  transform: translateY(-1px) !important;
+  display: flex !important;
+  align-items: center !important;
+  line-height: 1rem !important;
 }
 
 
