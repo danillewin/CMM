@@ -64,6 +64,7 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   flex: 1 1 auto;
   min-width: 0;
+  transform: translateY(-1px);
 }
 
 
