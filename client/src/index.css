@@ -41,17 +41,33 @@
   display: none !important;
 }
 
-/* Checkbox and label go in first grid column */
-.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
+/* Promote label contents into the grid layout - fixes text under checkbox issue */
 .mdx-content.mdx-overrides li.task-list-item > label:has(> input[type="checkbox"]),
+.mdx-content.mdx-overrides li[data-task-list-item] > label:has(> input[type="checkbox"]),
+.mdx-content.mdx-overrides li.task-list-item > :is(label, div, span):has(> input[type="checkbox"]),
+.mdx-content.mdx-overrides li[data-task-list-item] > :is(label, div, span):has(> input[type="checkbox"]) {
+  display: contents !important;
+}
+
+/* Checkbox goes in first grid column */
+.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
+.mdx-content.mdx-overrides li.task-list-item > label > input[type="checkbox"],
 .mdx-content.mdx-overrides li[data-task-list-item] > input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] > label:has(> input[type="checkbox"]) {
+.mdx-content.mdx-overrides li[data-task-list-item] > label > input[type="checkbox"] {
   grid-column: 1 !important;
   margin: 0 !important;
   padding: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+/* Content from labels goes to second column */
+.mdx-content.mdx-overrides li.task-list-item > label > :not(input[type="checkbox"]),
+.mdx-content.mdx-overrides li[data-task-list-item] > label > :not(input[type="checkbox"]) {
+  grid-column: 2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ALL other content goes in second grid column - prevents anything from wrapping under checkbox */
@@ -94,7 +110,9 @@
 
 /* Restore nested list indentation */
 .mdx-content.mdx-overrides li.task-list-item ul,
-.mdx-content.mdx-overrides li.task-list-item ol {
+.mdx-content.mdx-overrides li.task-list-item ol,
+.mdx-content.mdx-overrides li[data-task-list-item] ul,
+.mdx-content.mdx-overrides li[data-task-list-item] ol {
   padding-left: 1.25rem !important;
   margin-left: 0 !important;
 }
