@@ -12,44 +12,31 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - FLEX LAYOUT SOLUTION */
-.mdx-content.mdx-overrides ul,
-.mdx-content.mdx-overrides ol {
+/* Fix checkbox overlap in MDXEditor task lists - TARGET ACTUAL MDXEDITOR DOM */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
-  padding-left: 0 !important;
-  margin-left: 0 !important;
-}
-
-/* Neutralize prose list rules inside the editor */
-.mdx-content.mdx-overrides .prose ul,
-.mdx-content.mdx-overrides .prose ol,
-.mdx-content.mdx-overrides .prose li {
   margin: 0 !important;
   padding: 0 !important;
-  list-style: none !important;
 }
 
-/* Apply flex layout to task items - creates real columns so text can't flow under checkbox */
-.mdx-content.mdx-overrides li.task-list-item,
-.mdx-content.mdx-overrides li[data-task-list-item] {
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
   display: flex !important;
   align-items: flex-start !important;
   gap: 0.5rem !important;
-  margin: 0 !important;
 }
 
-.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
-.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] > input[type="checkbox"],
-.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
-  flex: 0 0 auto;
-  margin: 0.1rem 0.5rem 0 0 !important;
-  position: static !important;
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > input[type="checkbox"] {
+  flex: 0 0 auto !important;
+  margin: 0.2rem 0.5rem 0 0 !important;
 }
 
-.mdx-content.mdx-overrides li.task-list-item > *:not(input),
-.mdx-content.mdx-overrides li[data-task-list-item] > *:not(input) {
-  flex: 1 1 auto;
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [data-node-view-content] {
+  flex: 1 1 auto !important;
+}
+
+/* Fallback targeting for contenteditable if data-node-view-content isn't available */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [contenteditable="true"] {
+  flex: 1 1 auto !important;
 }
 
 .mdx-content {
