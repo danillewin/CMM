@@ -50,7 +50,7 @@
   padding: 0 !important;
 }
 
-/* Reset checkbox positioning and margins */
+/* Reset checkbox positioning and margins - PREVENT TEXT INPUT */
 .mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
 .mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
   position: static !important;
@@ -59,6 +59,30 @@
   height: 16px !important;
   flex: 0 0 auto !important;
   transform: none !important;
+  /* Prevent text input and cursor positioning inside checkbox */
+  pointer-events: auto !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  /* Block text editing */
+  -webkit-appearance: checkbox !important;
+  appearance: checkbox !important;
+  /* Prevent text cursor and make checkbox-only interactive */
+  caret-color: transparent !important;
+  outline: none !important;
+  /* Prevent any content editing behavior */
+  -webkit-user-modify: read-only !important;
+  /* Make it behave as a proper checkbox only */
+  resize: none !important;
+  overflow: hidden !important;
+}
+
+/* Add extra protection by preventing text editing in the entire checkbox area */
+.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"]:focus,
+.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"]:focus {
+  caret-color: transparent !important;
+  text-shadow: none !important;
 }
 
 /* Ensure text content has proper spacing - HIGH SPECIFICITY */
