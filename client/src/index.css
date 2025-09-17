@@ -12,10 +12,10 @@
   }
 }
 
-/* Fix checkbox positioning in MDXEditor task lists - minimal container padding */
+/* Fix checkbox positioning in MDXEditor task lists - ensure container spacing */
 .mdx-content.mdx-overrides {
-  padding-left: 0.5rem !important;
-  padding-right: 0.5rem !important;
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
 }
@@ -25,15 +25,15 @@
   margin: 0 !important;
   padding: 0.25rem 0 !important;
   display: grid !important;
-  grid-template-columns: 1.5rem 1fr !important;
-  column-gap: 1.5rem !important;
+  grid-template-columns: 2rem 1fr !important;
+  column-gap: 1rem !important;
   align-items: start !important;
 }
 
-/* Apply extra margin only to checkboxes */
+/* Apply extra margin only to checkboxes - ensure they stay within container */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
-  margin-left: 1rem !important;
-  margin-right: 0.5rem !important;
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
 }
 
 /* Vertically center label text with checkbox */
