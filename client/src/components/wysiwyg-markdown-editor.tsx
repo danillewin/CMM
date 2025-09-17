@@ -46,17 +46,25 @@ export const WysiwygMarkdownEditor = ({
         markdown={value}
         onChange={(markdown) => onChange?.(markdown)}
         placeholder={placeholder}
+        contentEditableClassName="prose prose-sm max-w-none focus:outline-none"
         plugins={[
+          // Core formatting plugins - order matters!
           headingsPlugin({ allowedHeadingLevels: [1, 2, 3, 4, 5, 6] }),
-          quotePlugin(),
           listsPlugin(),
+          quotePlugin(),
           linkPlugin(),
           linkDialogPlugin(),
+          
+          // Additional plugins
           thematicBreakPlugin(),
           tablePlugin(),
           codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
           codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', txt: 'text', tsx: 'TypeScript' } }),
+          
+          // Enable keyboard shortcuts - must come after formatting plugins
           markdownShortcutPlugin(),
+          
+          // Toolbar - must come last
           toolbarPlugin({
             toolbarContents: () => (
               <>
