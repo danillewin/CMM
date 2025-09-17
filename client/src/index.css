@@ -27,21 +27,24 @@
   display: grid !important;
   grid-template-columns: auto 1fr !important;
   column-gap: 0 !important;
-  align-items: start !important;
+  align-items: center !important;
 }
 
 /* Reset checkbox margins and add spacing to text */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
   margin: 0 6px 0 0 !important;
-  vertical-align: middle !important;
 }
 
-/* Vertically center label text with checkbox */
+/* Vertically center label with checkbox */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
   grid-column: 1 !important;
   margin: 0 !important;
-  vertical-align: middle !important;
-  transform: translateY(1px) !important;
+}
+
+/* Shift the text content up by 1px for better checkbox alignment */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
+  transform: translateY(-1px) !important;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] label input[type="checkbox"] {
