@@ -29,18 +29,41 @@
   padding-left: 20px !important;
 }
 
-/* 3. Task list item structure - simple flex layout */
+/* 3. Restore heading sizes - h1 through h6 */
+.mdx-content.mdx-overrides h1 { font-size: 1.875rem; font-weight: 700; margin: 0.8em 0 0.4em; }
+.mdx-content.mdx-overrides h2 { font-size: 1.5rem; font-weight: 600; margin: 1em 0 0.5em; }
+.mdx-content.mdx-overrides h3 { font-size: 1.25rem; font-weight: 600; margin: 0.9em 0 0.5em; }
+.mdx-content.mdx-overrides h4 { font-size: 1.125rem; font-weight: 600; margin: 0.85em 0 0.45em; }
+.mdx-content.mdx-overrides h5 { font-size: 1rem; font-weight: 600; margin: 0.75em 0 0.4em; }
+.mdx-content.mdx-overrides h6 { font-size: 0.875rem; font-weight: 600; color: hsl(var(--muted-foreground)); margin: 0.7em 0 0.35em; }
+
+/* 4. Ensure list markers render properly */
+.mdx-content.mdx-overrides ul { list-style: disc; padding-left: 1.25rem !important; }
+.mdx-content.mdx-overrides ol { list-style: decimal; padding-left: 1.25rem !important; }
+.mdx-content.mdx-overrides ol > li { display: list-item; }
+
+/* 5. Task list items - flex layout with visible checkboxes */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   display: flex !important;
-  align-items: center !important; /* чекбокс и текст ровно по середине */
+  align-items: center !important;
+  gap: 6px;
   list-style: none !important;
-  margin: 0 !important;
   padding: 0.25rem 0 !important;
 }
 
-/* 4. Checkbox styling - simple margin */
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
-  margin-right: 6px !important;
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > input[type="checkbox"] {
+  appearance: auto;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: hsl(var(--primary));
+}
+
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 
