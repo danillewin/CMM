@@ -987,9 +987,9 @@ export default function MeetingDetail() {
       }
 
       // Redirect based on where the user came from
-      if (fromContext === "research" && fromResearchId) {
+      if (sourceType === "research" && sourceId) {
         // If creating from research page, go back to research with new meeting visible
-        setLocation(`/researches/${fromResearchId}`);
+        setLocation(`/researches/${sourceId}`);
       } else {
         // Default behavior - go to the newly created meeting detail page
         setLocation(`/meetings/${data.id}`);
