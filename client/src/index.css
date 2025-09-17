@@ -16,7 +16,7 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
   margin: 0 !important;
-  padding: 0.125rem 0 0.125rem 0.5rem !important; /* left inset to keep checkbox in bounds */
+  padding: 0.125rem 0 0.125rem 0.875rem !important; /* left inset to keep checkbox well within bounds */
   box-sizing: border-box;
 }
 
