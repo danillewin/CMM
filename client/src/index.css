@@ -17,10 +17,12 @@
   list-style: none !important;
   padding-left: 0 !important;
   text-indent: 0 !important;
-  margin-left: 0.5rem !important;
-  margin-right: 0 !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin: 0 !important;
+}
+
+/* Add container-level padding to ensure checkboxes stay within bounds */
+.mdx-content.mdx-overrides ul:has([data-node-type="taskListItem"]) {
+  padding-left: 0.5rem !important;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
@@ -29,6 +31,7 @@
   align-items: start !important;
   column-gap: 0.5rem !important;
   margin: 0 !important;
+  padding-left: 2px !important; /* Extra buffer to guarantee checkbox stays within bounds */
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
