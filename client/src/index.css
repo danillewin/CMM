@@ -12,31 +12,28 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - STRUCTURAL GRID SOLUTION */
+/* Fix checkbox overlap in MDXEditor task lists - CORRECTED DOM STRUCTURE */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0 0 0 2rem !important;
   display: grid !important;
   grid-template-columns: 1.25rem 1fr !important;
   column-gap: 0.5rem !important;
   align-items: start !important;
 }
 
-/* Add container-level padding to ensure content stays within bounds */
-.mdx-content.mdx-overrides ul:has([data-node-type="taskListItem"]) {
-  padding-left: 3.5rem !important;
-  margin-left: 0 !important;
-}
-
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > input[type="checkbox"] {
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
   grid-column: 1 !important;
   margin: 0 !important;
+}
+
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] label input[type="checkbox"] {
   position: static !important;
+  margin: 0 !important;
   transform: none !important;
 }
 
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label,
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   grid-column: 2 !important;
