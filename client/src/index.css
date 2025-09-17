@@ -12,32 +12,44 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - POSITION+PADDING SOLUTION */
-.mdx-content.mdx-overrides ul:has(input[type="checkbox"]) {
+/* Fix checkbox overlap in MDXEditor task lists - FLEX LAYOUT SOLUTION */
+.mdx-content.mdx-overrides ul,
+.mdx-content.mdx-overrides ol {
   list-style: none !important;
   padding-left: 0 !important;
   margin-left: 0 !important;
 }
 
-.mdx-content.mdx-overrides li:has(input[type="checkbox"]) {
-  position: relative !important;
-  padding-left: 1.75rem !important; /* >= checkbox size + gap */
+/* Neutralize prose list rules inside the editor */
+.mdx-content.mdx-overrides .prose ul,
+.mdx-content.mdx-overrides .prose ol,
+.mdx-content.mdx-overrides .prose li {
+  margin: 0 !important;
+  padding: 0 !important;
   list-style: none !important;
 }
 
-.mdx-content.mdx-overrides li:has(input[type="checkbox"]) input[type="checkbox"] {
-  position: absolute !important;
-  left: 0 !important;
-  top: 0.2em !important; /* align with first line */
-  width: 16px !important;
-  height: 16px !important;
+/* Apply flex layout to task items - creates real columns so text can't flow under checkbox */
+.mdx-content.mdx-overrides li.task-list-item,
+.mdx-content.mdx-overrides li[data-task-list-item] {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.5rem !important;
   margin: 0 !important;
 }
 
-/* Restore nested list indentation */
-.mdx-content.mdx-overrides li:has(input[type="checkbox"]) > ul,
-.mdx-content.mdx-overrides li:has(input[type="checkbox"]) > ol {
-  padding-left: 1.25rem !important;
+.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
+.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
+.mdx-content.mdx-overrides li[data-task-list-item] > input[type="checkbox"],
+.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
+  flex: 0 0 auto;
+  margin: 0.1rem 0.5rem 0 0 !important;
+  position: static !important;
+}
+
+.mdx-content.mdx-overrides li.task-list-item > *:not(input),
+.mdx-content.mdx-overrides li[data-task-list-item] > *:not(input) {
+  flex: 1 1 auto;
 }
 
 .mdx-content {
