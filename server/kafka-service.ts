@@ -407,10 +407,7 @@ class KafkaService {
 
       // Get complete research data with linked entities
       const linkedJtbds = await storage.getJtbdsByResearch(research.id);
-      const relatedMeetings = await storage.getMeetings();
-      const researchMeetings = relatedMeetings.filter(
-        (meeting) => meeting.researchId === research.id,
-      );
+      const researchMeetings = await storage.getMeetingsByResearch(research.id);
       
       // Get attachments for all related meetings
       const allAttachments: any[] = [];

@@ -36,6 +36,7 @@ import { kafkaService } from "./kafka-service";
 
 export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
+  getMeetingsByResearch(researchId: number): Promise<Meeting[]>;
   getMeetingsPaginated(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MeetingTableItem>>;
@@ -217,6 +218,10 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getMeetings(): Promise<Meeting[]> {
     return db.select().from(meetings);
+  }
+
+  async getMeetingsByResearch(researchId: number): Promise<Meeting[]> {
+    return db.select().from(meetings).where(eq(meetings.researchId, researchId));
   }
 
   async getMeetingsPaginated(
