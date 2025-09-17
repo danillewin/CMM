@@ -13,30 +13,64 @@
 }
 
 /* Fix checkbox overlap in MDXEditor task lists */
-.mdx-content ul.contains-task-list {
-  list-style: none;
-  padding-left: 0;
-  margin-left: 0;
+.mdx-content ul.contains-task-list,
+.mdx-content ul[data-task-list],
+.mdx-content ul:has(li.task-list-item) {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
 }
 
-.mdx-content li.task-list-item {
-  list-style: none;
-  margin-left: 0;
-  padding-left: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
+.mdx-content li.task-list-item,
+.mdx-content li[data-task-list-item] {
+  list-style: none !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  position: relative !important;
 }
 
-.mdx-content li.task-list-item::marker {
-  content: "";
+.mdx-content li.task-list-item::marker,
+.mdx-content li[data-task-list-item]::marker,
+.mdx-content li.task-list-item::before,
+.mdx-content li[data-task-list-item]::before {
+  content: "" !important;
+  display: none !important;
 }
 
-.mdx-content li.task-list-item > input[type="checkbox"] {
-  margin-top: 0.25rem;
-  flex: none;
+.mdx-content li.task-list-item > input[type="checkbox"],
+.mdx-content li[data-task-list-item] > input[type="checkbox"] {
+  margin-top: 0.25rem !important;
+  flex: none !important;
+  flex-shrink: 0 !important;
+  width: 16px !important;
+  height: 16px !important;
+  position: static !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Ensure text content has proper spacing */
+.mdx-content li.task-list-item > p,
+.mdx-content li.task-list-item > span,
+.mdx-content li[data-task-list-item] > p,
+.mdx-content li[data-task-list-item] > span {
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1 !important;
 }
 
 .mdx-content {
   line-height: 1.625;
+}
+
+/* Override any prose styles that might interfere */
+.prose .mdx-content li.task-list-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  list-style: none !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
 }
