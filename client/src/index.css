@@ -45,7 +45,7 @@
 /* 5. Task list items - flex layout with visible checkboxes */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   display: flex !important;
-  align-items: flex-start !important;
+  align-items: center !important;
   gap: 6px;
   list-style: none !important;
   padding: 0.25rem 0 !important;
@@ -57,8 +57,6 @@
   height: 1em;
   flex: 0 0 auto;
   margin: 0;
-  position: relative;
-  top: 0.12em;
   accent-color: hsl(var(--primary));
 }
 
@@ -87,10 +85,10 @@
 
 
 /* Markdown Preview Styling */
-/* Checkbox list items with flex alignment for top alignment */
+/* Checkbox list items with flex alignment for center alignment */
 .mdx-content li:has(input[type="checkbox"]) {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   list-style: none;
   line-height: 1.2;
 }
@@ -98,19 +96,18 @@
 /* Fallback for browsers without :has() support */
 .mdx-content li.task-list-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   list-style: none;
   line-height: 1.2;
 }
 
-/* Checkbox styling with proper sizing and positioning */
+/* Checkbox styling with proper sizing and spacing */
 .mdx-content li:has(input[type="checkbox"]) input[type="checkbox"],
 .mdx-content li.task-list-item input[type="checkbox"] {
   width: 1em;
   height: 1em;
-  position: relative;
-  top: 0.12em;
   margin-right: 6px;
+  flex-shrink: 0;
 }
 
 /* Ordered lists with restored numbers */
