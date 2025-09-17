@@ -45,7 +45,6 @@
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] label input[type="checkbox"] {
   position: static !important;
-  margin: 0 !important;
   transform: none !important;
   width: 1rem !important;
   height: 1rem !important;
