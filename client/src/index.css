@@ -64,9 +64,29 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   flex: 1 1 auto;
   min-width: 0;
-  display: flex;
-  align-items: center;
-  line-height: 1.25;
+  display: block;
+  line-height: 1.2;
+}
+
+/* Ensure the caret uses the tightened line-height */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] p,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] span,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] a,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] code,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] strong,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] em {
+  line-height: inherit !important;
+}
+
+/* Remove default p margins to avoid vertical drift */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] p {
+  margin: 0;
+}
+
+/* Optical nudge on the checkbox for perfect alignment */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > input[type="checkbox"] {
+  position: relative;
+  top: 1px;
 }
 
 
