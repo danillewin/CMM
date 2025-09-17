@@ -40,13 +40,14 @@
   align-items: center !important;
 }
 
-/* 4. Checkbox styling - no negative margins, 6px right margin */
+/* 4. Checkbox styling - font-relative size with proper centering */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
   margin: 0 6px 0 0 !important;
   vertical-align: middle !important;
-  position: static !important;
-  width: 1rem !important;
-  height: 1rem !important;
+  position: relative !important;
+  width: 1em !important;
+  height: 1em !important;
+  top: -0.06em !important;
 }
 
 /* 5. Label container for checkbox */
@@ -55,16 +56,15 @@
   margin: 0 !important;
 }
 
-/* 6. Text content alignment - perfectly centered with checkbox middle */
+/* 6. Text content alignment - rely on grid centering with natural line height */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   grid-column: 2 !important;
   min-width: 0 !important;
   margin: 0 !important;
   padding: 0.125rem 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  line-height: 1rem !important;
+  line-height: normal !important;
+  min-height: 1em !important;
 }
 
 
