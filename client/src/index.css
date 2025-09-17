@@ -41,9 +41,11 @@
   display: none !important;
 }
 
-/* Checkbox label goes in first grid column */
-.mdx-content.mdx-overrides li.task-list-item > label,
-.mdx-content.mdx-overrides li[data-task-list-item] > label {
+/* Checkbox and label go in first grid column */
+.mdx-content.mdx-overrides li.task-list-item > input[type="checkbox"],
+.mdx-content.mdx-overrides li.task-list-item > label:has(> input[type="checkbox"]),
+.mdx-content.mdx-overrides li[data-task-list-item] > input[type="checkbox"],
+.mdx-content.mdx-overrides li[data-task-list-item] > label:has(> input[type="checkbox"]) {
   grid-column: 1 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -52,11 +54,31 @@
   justify-content: center !important;
 }
 
-/* Content area goes in second grid column */
-.mdx-content.mdx-overrides li.task-list-item > .task-content,
+/* ALL other content goes in second grid column - prevents anything from wrapping under checkbox */
+.mdx-content.mdx-overrides li.task-list-item > :not(input[type="checkbox"]):not(label:has(> input[type="checkbox"])),
+.mdx-content.mdx-overrides li[data-task-list-item] > :not(input[type="checkbox"]):not(label:has(> input[type="checkbox"])) {
+  grid-column: 2 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Explicit targeting for common content types to ensure they stay in column 2 */
 .mdx-content.mdx-overrides li.task-list-item > div,
-.mdx-content.mdx-overrides li[data-task-list-item] > .task-content,
-.mdx-content.mdx-overrides li[data-task-list-item] > div {
+.mdx-content.mdx-overrides li.task-list-item > p,
+.mdx-content.mdx-overrides li.task-list-item > span,
+.mdx-content.mdx-overrides li.task-list-item > ul,
+.mdx-content.mdx-overrides li.task-list-item > ol,
+.mdx-content.mdx-overrides li.task-list-item > pre,
+.mdx-content.mdx-overrides li.task-list-item > blockquote,
+.mdx-content.mdx-overrides li.task-list-item > .task-content,
+.mdx-content.mdx-overrides li[data-task-list-item] > div,
+.mdx-content.mdx-overrides li[data-task-list-item] > p,
+.mdx-content.mdx-overrides li[data-task-list-item] > span,
+.mdx-content.mdx-overrides li[data-task-list-item] > ul,
+.mdx-content.mdx-overrides li[data-task-list-item] > ol,
+.mdx-content.mdx-overrides li[data-task-list-item] > pre,
+.mdx-content.mdx-overrides li[data-task-list-item] > blockquote,
+.mdx-content.mdx-overrides li[data-task-list-item] > .task-content {
   grid-column: 2 !important;
   margin: 0 !important;
   padding: 0 !important;
