@@ -16,13 +16,16 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 0.125rem 0 0.125rem 0.5rem !important; /* left inset to keep checkbox in bounds */
+  box-sizing: border-box;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
   display: flex !important;
   align-items: flex-start !important;
   gap: 0.5rem !important;
+  margin: 0 !important; /* reset browser defaults */
+  max-width: 100%;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > input[type="checkbox"] {
@@ -32,11 +35,13 @@
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [data-node-view-content] {
   flex: 1 1 auto !important;
+  min-width: 0 !important; /* prevent flex overflow */
 }
 
 /* Fallback targeting for contenteditable if data-node-view-content isn't available */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [contenteditable="true"] {
   flex: 1 1 auto !important;
+  min-width: 0 !important; /* prevent flex overflow */
 }
 
 .mdx-content {
