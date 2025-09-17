@@ -46,17 +46,18 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   display: flex !important;
   align-items: center !important;
-  gap: 6px;
+  gap: 8px;
   list-style: none !important;
-  padding: 0.25rem 0 !important;
+  margin-bottom: 4px;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > input[type="checkbox"] {
   appearance: auto;
   width: 1em;
   height: 1em;
-  flex: 0 0 auto;
   margin: 0;
+  padding: 0;
+  flex-shrink: 0;
   accent-color: hsl(var(--primary));
 }
 
@@ -64,7 +65,8 @@
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   flex: 1 1 auto;
   min-width: 0;
-  display: block;
+  margin: 0;
+  padding: 0;
   line-height: 1.2;
 }
 
@@ -89,6 +91,8 @@
 .mdx-content li:has(input[type="checkbox"]) {
   display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
   list-style: none;
   line-height: 1.2;
 }
@@ -97,6 +101,8 @@
 .mdx-content li.task-list-item {
   display: flex;
   align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
   list-style: none;
   line-height: 1.2;
 }
@@ -106,7 +112,8 @@
 .mdx-content li.task-list-item input[type="checkbox"] {
   width: 1em;
   height: 1em;
-  margin-right: 6px;
+  margin: 0;
+  padding: 0;
   flex-shrink: 0;
 }
 
