@@ -17,8 +17,10 @@
   list-style: none !important;
   padding-left: 0 !important;
   text-indent: 0 !important;
-  margin-left: 0 !important;
-  margin: 0 !important;
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
