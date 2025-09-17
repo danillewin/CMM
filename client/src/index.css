@@ -33,6 +33,7 @@
 /* Reset checkbox margins and add spacing to text */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
   margin: 0 6px 0 0 !important;
+  vertical-align: middle !important;
 }
 
 /* Vertically center label with checkbox */
