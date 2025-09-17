@@ -12,43 +12,38 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - ROBUST GRID LAYOUT SOLUTION */
+/* Fix checkbox overlap in MDXEditor task lists - STRUCTURAL GRID SOLUTION */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
-  padding-left: 0 !important;
-  text-indent: 0 !important;
   margin: 0 !important;
-}
-
-/* Add container-level padding to ensure checkboxes stay within bounds */
-.mdx-content.mdx-overrides ul:has([data-node-type="taskListItem"]) {
-  padding-left: 0.5rem !important;
-}
-
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
+  padding: 0 !important;
   display: grid !important;
-  grid-template-columns: 1.125rem 1fr !important;
-  align-items: start !important;
+  grid-template-columns: 1.25rem 1fr !important;
   column-gap: 0.5rem !important;
-  margin: 0 !important;
-  padding-left: 2px !important; /* Extra buffer to guarantee checkbox stays within bounds */
+  align-items: start !important;
 }
 
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
+/* Add container-level padding to ensure content stays within bounds */
+.mdx-content.mdx-overrides ul:has([data-node-type="taskListItem"]) {
+  padding-left: 1rem !important;
+  margin-left: 0 !important;
+}
+
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > input[type="checkbox"] {
+  grid-column: 1 !important;
   margin: 0 !important;
   position: static !important;
-  left: 0 !important;
   transform: none !important;
 }
 
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [data-node-view-content] {
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
+  grid-column: 2 !important;
   min-width: 0 !important;
+  margin: 0 !important;
 }
 
-/* Fallback targeting for contenteditable if data-node-view-content isn't available */
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label > [contenteditable="true"] {
-  min-width: 0 !important;
-}
 
 .mdx-content {
   line-height: 1.625;
