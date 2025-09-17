@@ -1276,5 +1276,137 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Kafka resend API endpoints
+  // Resend completed meetings by ID list
+  app.post("/api/kafka/resend-meetings", async (req, res) => {
+    try {
+      const { meetingIds } = req.body;
+      
+      if (!Array.isArray(meetingIds) || meetingIds.length === 0) {
+        return res.status(400).json({ 
+          message: "Invalid request: meetingIds must be a non-empty array" 
+        });
+      }
+      
+      const results: {
+        success: number[];
+        failed: { id: any; error: string }[];
+        notFound: number[];
+      } = {
+        success: [],
+        failed: [],
+        notFound: []
+      };
+      
+      for (const meetingId of meetingIds) {
+        try {
+          const id = parseInt(meetingId);
+          if (isNaN(id)) {
+            results.failed.push({ id: meetingId, error: "Invalid ID format" });
+            continue;
+          }
+          
+          const meeting = await storage.getMeeting(id);
+          if (!meeting) {
+            results.notFound.push(id);
+            continue;
+          }
+          
+          // Use the enhanced sendCompletedMeeting method
+          await kafkaService.sendCompletedMeeting(meeting, true);
+          results.success.push(id);
+          
+        } catch (error) {
+          console.error(`Error resending meeting ${meetingId}:`, error);
+          results.failed.push({ 
+            id: meetingId, 
+            error: error instanceof Error ? error.message : "Unknown error" 
+          });
+        }
+      }
+      
+      const status = results.failed.length > 0 ? 207 : 200; // Multi-status if any failures
+      res.status(status).json({
+        message: `Processed ${meetingIds.length} meeting(s)`,
+        results
+      });
+      
+    } catch (error) {
+      console.error("Error in resend meetings endpoint:", error);
+      res.status(500).json({ message: "Failed to resend meetings" });
+    }
+  });
+  
+  // Resend completed researches by ID list
+  app.post("/api/kafka/resend-researches", async (req, res) => {
+    try {
+      const { researchIds } = req.body;
+      
+      if (!Array.isArray(researchIds) || researchIds.length === 0) {
+        return res.status(400).json({ 
+          message: "Invalid request: researchIds must be a non-empty array" 
+        });
+      }
+      
+      const results: {
+        success: number[];
+        failed: { id: any; error: string }[];
+        notFound: number[];
+      } = {
+        success: [],
+        failed: [],
+        notFound: []
+      };
+      
+      for (const researchId of researchIds) {
+        try {
+          const id = parseInt(researchId);
+          if (isNaN(id)) {
+            results.failed.push({ id: researchId, error: "Invalid ID format" });
+            continue;
+          }
+          
+          const research = await storage.getResearch(id);
+          if (!research) {
+            results.notFound.push(id);
+            continue;
+          }
+          
+          // Use the enhanced sendCompletedResearch method
+          await kafkaService.sendCompletedResearch(research, true);
+          results.success.push(id);
+          
+        } catch (error) {
+          console.error(`Error resending research ${researchId}:`, error);
+          results.failed.push({ 
+            id: researchId, 
+            error: error instanceof Error ? error.message : "Unknown error" 
+          });
+        }
+      }
+      
+      const status = results.failed.length > 0 ? 207 : 200; // Multi-status if any failures
+      res.status(status).json({
+        message: `Processed ${researchIds.length} research(es)`,
+        results
+      });
+      
+    } catch (error) {
+      console.error("Error in resend researches endpoint:", error);
+      res.status(500).json({ message: "Failed to resend researches" });
+    }
+  });
+  
+  // Get Kafka service status
+  app.get("/api/kafka/status", async (req, res) => {
+    try {
+      const status = kafkaService.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting Kafka status:", error);
+      res.status(500).json({ message: "Failed to get Kafka status" });
+    }
+  });
+
   return createServer(app);
 }
