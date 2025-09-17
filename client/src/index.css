@@ -29,42 +29,18 @@
   padding-left: 20px !important;
 }
 
-/* 3. Task list item structure and layout */
+/* 3. Task list item structure - simple flex layout */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
+  display: flex !important;
+  align-items: center !important; /* чекбокс и текст ровно по середине */
   list-style: none !important;
   margin: 0 !important;
   padding: 0.25rem 0 !important;
-  display: grid !important;
-  grid-template-columns: auto 1fr !important;
-  column-gap: 0 !important;
-  align-items: center !important;
 }
 
-/* 4. Checkbox styling - font-relative size with proper centering */
+/* 4. Checkbox styling - simple margin */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
-  margin: 0 6px 0 0 !important;
-  vertical-align: middle !important;
-  position: relative !important;
-  width: 1em !important;
-  height: 1em !important;
-  top: -0.06em !important;
-}
-
-/* 5. Label container for checkbox */
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
-  grid-column: 1 !important;
-  margin: 0 !important;
-}
-
-/* 6. Text content alignment - rely on grid centering with natural line height */
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
-  grid-column: 2 !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-  padding: 0.125rem 0 !important;
-  line-height: normal !important;
-  min-height: 1em !important;
+  margin-right: 6px !important;
 }
 
 
