@@ -12,7 +12,7 @@
   }
 }
 
-/* Fix checkbox overlap in MDXEditor task lists - HIGH SPECIFICITY OVERRIDE */
+/* Fix checkbox overlap in MDXEditor task lists - GRID LAYOUT SOLUTION */
 .mdx-content.mdx-overrides ul.contains-task-list,
 .mdx-content.mdx-overrides ul[data-task-list],
 .mdx-content.mdx-overrides ul:has(li.task-list-item) {
@@ -21,15 +21,16 @@
   margin-left: 0 !important;
 }
 
+/* Use CSS Grid to create proper columns - prevents text from appearing under checkbox */
 .mdx-content.mdx-overrides li.task-list-item,
 .mdx-content.mdx-overrides li[data-task-list-item] {
-  display: flex !important;
-  align-items: flex-start !important;
-  gap: 0.75rem !important;
+  display: grid !important;
+  grid-template-columns: 1.25rem 1fr !important;
+  align-items: start !important;
+  gap: 0.5rem !important;
   list-style: none !important;
   padding-left: 0 !important;
   margin-left: 0 !important;
-  position: relative !important;
 }
 
 .mdx-content.mdx-overrides li.task-list-item::marker,
@@ -40,63 +41,33 @@
   display: none !important;
 }
 
-/* Target nested checkbox structure inside labels/spans */
-.mdx-content.mdx-overrides li.task-list-item label,
-.mdx-content.mdx-overrides li[data-task-list-item] label {
+/* Checkbox label goes in first grid column */
+.mdx-content.mdx-overrides li.task-list-item > label,
+.mdx-content.mdx-overrides li[data-task-list-item] > label {
+  grid-column: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
   display: flex !important;
-  align-items: flex-start !important;
-  gap: 0.5rem !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Content area goes in second grid column */
+.mdx-content.mdx-overrides li.task-list-item > .task-content,
+.mdx-content.mdx-overrides li.task-list-item > div,
+.mdx-content.mdx-overrides li[data-task-list-item] > .task-content,
+.mdx-content.mdx-overrides li[data-task-list-item] > div {
+  grid-column: 2 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
 
-/* Reset checkbox positioning and margins - PREVENT TEXT INPUT */
+/* Reset checkbox to normal styling */
 .mdx-content.mdx-overrides li.task-list-item input[type="checkbox"],
 .mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"] {
-  position: static !important;
-  margin: 0.25rem 0.5rem 0 0 !important;
   width: 16px !important;
   height: 16px !important;
-  flex: 0 0 auto !important;
-  transform: none !important;
-  /* Prevent text input and cursor positioning inside checkbox */
-  pointer-events: auto !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  /* Block text editing */
-  -webkit-appearance: checkbox !important;
-  appearance: checkbox !important;
-  /* Prevent text cursor and make checkbox-only interactive */
-  caret-color: transparent !important;
-  outline: none !important;
-  /* Prevent any content editing behavior */
-  -webkit-user-modify: read-only !important;
-  /* Make it behave as a proper checkbox only */
-  resize: none !important;
-  overflow: hidden !important;
-}
-
-/* Add extra protection by preventing text editing in the entire checkbox area */
-.mdx-content.mdx-overrides li.task-list-item input[type="checkbox"]:focus,
-.mdx-content.mdx-overrides li[data-task-list-item] input[type="checkbox"]:focus {
-  caret-color: transparent !important;
-  text-shadow: none !important;
-}
-
-/* Ensure text content has proper spacing - HIGH SPECIFICITY */
-.mdx-content.mdx-overrides li.task-list-item > p,
-.mdx-content.mdx-overrides li.task-list-item > span,
-.mdx-content.mdx-overrides li.task-list-item > div,
-.mdx-content.mdx-overrides li.task-list-item > label,
-.mdx-content.mdx-overrides li[data-task-list-item] > p,
-.mdx-content.mdx-overrides li[data-task-list-item] > span,
-.mdx-content.mdx-overrides li[data-task-list-item] > div,
-.mdx-content.mdx-overrides li[data-task-list-item] > label {
   margin: 0 !important;
-  padding: 0 !important;
-  flex: 1 !important;
 }
 
 /* Restore nested list indentation */
@@ -112,10 +83,11 @@
 
 /* Override any prose styles that might interfere - MAXIMUM SPECIFICITY */
 .prose.mdx-content.mdx-overrides li.task-list-item {
-  display: flex !important;
-  align-items: flex-start !important;
+  display: grid !important;
+  grid-template-columns: 1.25rem 1fr !important;
+  align-items: start !important;
+  gap: 0.5rem !important;
   list-style: none !important;
   margin-left: 0 !important;
   padding-left: 0 !important;
-  gap: 0.75rem !important;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { 
   MDXEditor, 
   headingsPlugin, 
@@ -43,64 +43,6 @@ export const WysiwygMarkdownEditor = ({
 }: WysiwygMarkdownEditorProps) => {
   const editorRef = useRef<MDXEditorMethods>(null)
 
-  // Prevent text input in checkbox areas
-  useEffect(() => {
-    const handleCheckboxProtection = () => {
-      const editorElement = editorRef.current?.getMarkdown ? 
-        document.querySelector('.mdx-content.mdx-overrides') : null
-      
-      if (!editorElement) return
-      
-      // Find all task list items
-      const taskItems = editorElement.querySelectorAll('li.task-list-item, li[data-task-list-item]')
-      
-      taskItems.forEach((item) => {
-        // Make checkbox labels non-editable
-        const labels = item.querySelectorAll('label')
-        labels.forEach(label => {
-          label.setAttribute('contenteditable', 'false')
-          // Add click handler to toggle checkbox instead of positioning cursor
-          const checkbox = label.querySelector('input[type="checkbox"]') as HTMLInputElement
-          if (checkbox) {
-            label.onclick = (e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              checkbox.checked = !checkbox.checked
-              // Trigger change event to update markdown
-              checkbox.dispatchEvent(new Event('change', { bubbles: true }))
-            }
-          }
-        })
-        
-        // Make checkbox inputs non-editable for text
-        const checkboxes = item.querySelectorAll('input[type="checkbox"]')
-        checkboxes.forEach(checkbox => {
-          checkbox.setAttribute('contenteditable', 'false')
-        })
-      })
-    }
-    
-    // Apply protection when content changes
-    const timer = setTimeout(handleCheckboxProtection, 100)
-    return () => clearTimeout(timer)
-  }, [value])
-
-  // Add keyboard event handler to prevent typing in checkbox areas
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      const isCheckboxArea = target.closest('li.task-list-item label, li[data-task-list-item] label')
-      
-      // Block printable characters in checkbox areas
-      if (isCheckboxArea && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        e.stopPropagation()
-      }
-    }
-    
-    document.addEventListener('keydown', handleKeyDown, true)
-    return () => document.removeEventListener('keydown', handleKeyDown, true)
-  }, [])
   return (
     <div className={`border border-gray-200 rounded-md overflow-hidden ${className}`} style={{ height }}>
       <MDXEditor
