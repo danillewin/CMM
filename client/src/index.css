@@ -13,6 +13,8 @@
 }
 
 /* Fix checkbox positioning in MDXEditor task lists - ensure full visibility */
+
+/* 1. Preview container padding to prevent content from touching borders */
 .mdx-content.mdx-overrides {
   padding-left: 12px !important;
   padding-right: 0.75rem !important;
@@ -20,6 +22,14 @@
   padding-bottom: 0.5rem !important;
 }
 
+/* 2. Reset default list styles for ul and ol to prevent overflow */
+.mdx-content.mdx-overrides ul,
+.mdx-content.mdx-overrides ol {
+  margin-left: 0 !important;
+  padding-left: 20px !important;
+}
+
+/* 3. Task list item structure and layout */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] {
   list-style: none !important;
   margin: 0 !important;
@@ -30,37 +40,29 @@
   align-items: center !important;
 }
 
-/* Reset checkbox margins and add spacing to text */
+/* 4. Checkbox styling - no negative margins, 6px right margin */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] input[type="checkbox"] {
   margin: 0 6px 0 0 !important;
   vertical-align: middle !important;
+  position: static !important;
+  width: 1rem !important;
+  height: 1rem !important;
 }
 
-/* Vertically center label with checkbox */
+/* 5. Label container for checkbox */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > label {
   grid-column: 1 !important;
   margin: 0 !important;
 }
 
-/* Shift the text content up by 1px for better checkbox alignment */
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
-  transform: translateY(-1px) !important;
-}
-
-.mdx-content.mdx-overrides [data-node-type="taskListItem"] label input[type="checkbox"] {
-  position: static !important;
-  transform: none !important;
-  width: 1rem !important;
-  height: 1rem !important;
-}
-
+/* 6. Text content alignment - 1px upward shift for vertical centering */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [data-node-view-content],
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] > [contenteditable="true"] {
   grid-column: 2 !important;
   min-width: 0 !important;
   margin: 0 !important;
   padding: 0.125rem 0 !important;
+  transform: translateY(-1px) !important;
 }
 
 
