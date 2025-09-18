@@ -45,12 +45,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsInitialized(true);
     });
 
-    // Set initial state for development mode or when not authenticated
-    if (!isLoggedIn()) {
-      setIsAuthenticated(false);
-      setUser(null);
-      setToken(null);
+    // Check if we're in development mode (no VITE_KEYCLOAK_URL)
+    const isDevelopmentMode = !import.meta.env.VITE_KEYCLOAK_URL;
+    
+    if (isDevelopmentMode) {
+      // In development mode, always set up mock authentication
+      console.log('Development mode: Using mock authentication');
+      const userInfo = getUserInfo();
+      const userToken = getToken();
+      
+      setIsAuthenticated(true);
+      setUser(userInfo);
+      setToken(userToken);
       setIsInitialized(true);
+    } else {
+      // In production mode, set initial state if not authenticated
+      if (!isLoggedIn()) {
+        setIsAuthenticated(false);
+        setUser(null);
+        setToken(null);
+        setIsInitialized(true);
+      }
     }
   }, []);
 
