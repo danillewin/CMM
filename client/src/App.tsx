@@ -2,6 +2,7 @@ import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import NotFound from "@/pages/not-found";
 import Meetings from "@/pages/meetings";
 import MeetingDetail from "@/pages/meeting-detail";
@@ -15,9 +16,11 @@ import Jtbds from "@/pages/jtbds";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
+import { LogIn, LogOut, User } from "lucide-react";
 
 function Navigation() {
   const [location] = useLocation();
+  const { isAuthenticated, user, login, logout, isInitialized } = useAuth();
 
   return (
     <nav className="border-b mb-4">
@@ -55,6 +58,29 @@ function Navigation() {
               </Button>
             </Link>
           </div>
+          
+          {/* User Authentication Section */}
+          <div className="flex items-center gap-3">
+            {isInitialized && (
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="h-4 w-4" />
+                  <span>{user?.username || 'anonymous'}</span>
+                </div>
+                {isAuthenticated ? (
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Выйти
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={login}>
+                    <LogIn className="h-4 w-4 mr-1" />
+                    Войти
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
@@ -82,11 +108,13 @@ function App() {
   useScrollTop();
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <Navigation />
-      <Router />
-      <Toaster />
-    </QueryClientProvider>
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <Navigation />
+        <Router />
+        <Toaster />
+      </QueryClientProvider>
+    </AuthProvider>
   );
 }
 

@@ -203,14 +203,28 @@ export default function Researches() {
     try {
       const savedFilters = localStorage.getItem("researches-table-filters");
       if (savedFilters) {
-        const { status, researcher, team, researchTypes, products, showStartsInNWeeks, weeksNumber } = JSON.parse(savedFilters);
-        if (status) setStatusFilter(status);
-        if (researcher) setResearcherFilter(researcher);
-        if (team) setTeamFilter(team);
-        if (researchTypes && Array.isArray(researchTypes)) setResearchTypeFilters(researchTypes);
-        if (products && Array.isArray(products)) setProductFilters(products);
-        if (showStartsInNWeeks !== undefined) setShowStartsInNWeeks(showStartsInNWeeks);
-        if (weeksNumber) setWeeksNumber(weeksNumber);
+        const filters = JSON.parse(savedFilters);
+        
+        // Load display filters
+        if (filters.search !== undefined) setSearch(filters.search);
+        if (filters.status) setStatusFilter(filters.status);
+        if (filters.researcher) setResearcherFilter(filters.researcher);
+        if (filters.team) setTeamFilter(filters.team);
+        if (filters.researchTypes && Array.isArray(filters.researchTypes)) setResearchTypeFilters(filters.researchTypes);
+        if (filters.products && Array.isArray(filters.products)) setProductFilters(filters.products);
+        if (filters.showStartsInNWeeks !== undefined) setShowStartsInNWeeks(filters.showStartsInNWeeks);
+        if (filters.weeksNumber) setWeeksNumber(filters.weeksNumber);
+        if (filters.sortBy !== undefined) setSortBy(filters.sortBy);
+        if (filters.sortDir !== undefined) setSortDir(filters.sortDir);
+        if (filters.viewMode !== undefined) setViewMode(filters.viewMode);
+        
+        // Load applied filters
+        if (filters.appliedSearch !== undefined) setAppliedSearch(filters.appliedSearch);
+        if (filters.appliedStatusFilter !== undefined) setAppliedStatusFilter(filters.appliedStatusFilter);
+        if (filters.appliedTeamFilter && Array.isArray(filters.appliedTeamFilter)) setAppliedTeamFilter(filters.appliedTeamFilter);
+        if (filters.appliedResearcherFilter && Array.isArray(filters.appliedResearcherFilter)) setAppliedResearcherFilter(filters.appliedResearcherFilter);
+        if (filters.appliedResearchTypeFilters && Array.isArray(filters.appliedResearchTypeFilters)) setAppliedResearchTypeFilters(filters.appliedResearchTypeFilters);
+        if (filters.appliedProductFilters && Array.isArray(filters.appliedProductFilters)) setAppliedProductFilters(filters.appliedProductFilters);
       }
     } catch (error) {
       console.error("Error loading saved filters:", error);
@@ -220,19 +234,35 @@ export default function Researches() {
   // Save filters to localStorage when they change
   useEffect(() => {
     try {
-      localStorage.setItem("researches-table-filters", JSON.stringify({
+      const filtersToSave = {
+        search,
         status: statusFilter,
         researcher: researcherFilter,
         team: teamFilter,
         researchTypes: researchTypeFilters,
         products: productFilters,
         showStartsInNWeeks,
-        weeksNumber
-      }));
+        weeksNumber,
+        sortBy,
+        sortDir,
+        viewMode,
+        appliedSearch,
+        appliedStatusFilter,
+        appliedTeamFilter,
+        appliedResearcherFilter,
+        appliedResearchTypeFilters,
+        appliedProductFilters,
+      };
+      localStorage.setItem("researches-table-filters", JSON.stringify(filtersToSave));
     } catch (error) {
       console.error("Error saving filters:", error);
     }
-  }, [statusFilter, researcherFilter, teamFilter, researchTypeFilters, productFilters, showStartsInNWeeks, weeksNumber]);
+  }, [
+    search, statusFilter, researcherFilter, teamFilter, researchTypeFilters, 
+    productFilters, showStartsInNWeeks, weeksNumber, sortBy, sortDir, viewMode,
+    appliedSearch, appliedStatusFilter, appliedTeamFilter, appliedResearcherFilter, 
+    appliedResearchTypeFilters, appliedProductFilters
+  ]);
 
   const getValueForSorting = (research: ResearchTableItem, field: string) => {
     switch (field) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { CustomFilter, InsertCustomFilter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useCurrentUser } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,8 +92,8 @@ export default function CustomFilterManager({
   const [isPublic, setIsPublic] = useState(false);
   const [editingFilter, setEditingFilter] = useState<CustomFilter | null>(null);
 
-  // Get current user - for demo purposes, use a placeholder
-  const currentUser = "demo-user";
+  // Get current user from auth context
+  const { username: currentUser } = useCurrentUser();
 
   // Fetch saved filters for this page type
   const { data: savedFilters = [], refetch: refetchFilters } = useQuery<CustomFilter[]>({
