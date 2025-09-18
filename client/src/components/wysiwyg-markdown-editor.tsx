@@ -9,7 +9,6 @@ import {
   BoldItalicUnderlineToggles, 
   UndoRedo, 
   BlockTypeSelect,
-  CreateLink,
   InsertImage,
   ListsToggle,
   Separator,
@@ -81,7 +80,6 @@ export const WysiwygMarkdownEditor = ({
                 <Separator />
                 <BlockTypeSelect />
                 <Separator />
-                <CreateLink />
                 <InsertImage />
                 <Separator />
                 <InsertTable />
