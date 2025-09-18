@@ -28,7 +28,7 @@ import {
   applyBlockType$
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
-import { Quote } from 'lucide-react'
+import { Quote, BookOpen } from 'lucide-react'
 import { useCellValues } from '@mdxeditor/editor'
 
 interface WysiwygMarkdownEditorProps {
@@ -37,6 +37,38 @@ interface WysiwygMarkdownEditorProps {
   placeholder?: string
   height?: number
   className?: string
+}
+
+// Custom Citation Toggle Button Component - applies academic citation style
+const CitationToggle = () => {
+  const [currentBlockType] = useCellValues(currentBlockType$)
+  const applyBlockType = usePublisher(applyBlockType$)
+
+  const applyCitation = () => {
+    // Apply quote formatting for citations (academic standard)
+    if (currentBlockType === 'quote') {
+      applyBlockType('paragraph')
+    } else {
+      applyBlockType('quote')
+    }
+  }
+
+  const isActive = currentBlockType === 'quote'
+
+  return (
+    <button
+      type="button"
+      className={`p-1 rounded hover:bg-gray-100 transition-colors ${
+        isActive ? 'bg-green-100 text-green-600' : 'text-gray-600'
+      }`}
+      onClick={applyCitation}
+      title="Toggle Quote/Citation Format"
+      aria-pressed={isActive}
+      data-testid="button-citation"
+    >
+      <BookOpen size={16} />
+    </button>
+  )
 }
 
 // Custom Quote Toggle Button Component  
@@ -114,7 +146,7 @@ export const WysiwygMarkdownEditor = ({
                 <CodeToggle />
                 <StrikeThroughSupSubToggles />
                 <Separator />
-                <QuoteToggle />
+                <CitationToggle />
                 <Separator />
                 <ListsToggle />
                 <Separator />
