@@ -28,7 +28,6 @@ import {
   applyBlockType$
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
-import { Quote, BookOpen } from 'lucide-react'
 import { useCellValues } from '@mdxeditor/editor'
 
 interface WysiwygMarkdownEditorProps {
@@ -39,68 +38,6 @@ interface WysiwygMarkdownEditorProps {
   className?: string
 }
 
-// Custom Citation Toggle Button Component - applies academic citation style
-const CitationToggle = () => {
-  const [currentBlockType] = useCellValues(currentBlockType$)
-  const applyBlockType = usePublisher(applyBlockType$)
-
-  const applyCitation = () => {
-    // Apply quote formatting for citations (academic standard)
-    if (currentBlockType === 'quote') {
-      applyBlockType('paragraph')
-    } else {
-      applyBlockType('quote')
-    }
-  }
-
-  const isActive = currentBlockType === 'quote'
-
-  return (
-    <button
-      type="button"
-      className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-        isActive ? 'bg-green-100 text-green-600' : 'text-gray-600'
-      }`}
-      onClick={applyCitation}
-      title="Toggle Quote/Citation Format"
-      aria-pressed={isActive}
-      data-testid="button-citation"
-    >
-      <BookOpen size={16} />
-    </button>
-  )
-}
-
-// Custom Quote Toggle Button Component  
-const QuoteToggle = () => {
-  const [currentBlockType] = useCellValues(currentBlockType$)
-  const applyBlockType = usePublisher(applyBlockType$)
-
-  const toggleQuote = () => {
-    if (currentBlockType === 'quote') {
-      applyBlockType('paragraph')
-    } else {
-      applyBlockType('quote')
-    }
-  }
-
-  const isActive = currentBlockType === 'quote'
-
-  return (
-    <button
-      type="button"
-      className={`p-1 rounded hover:bg-gray-100 transition-colors ${
-        isActive ? 'bg-blue-100 text-blue-600' : 'text-gray-600'
-      }`}
-      onClick={toggleQuote}
-      title="Toggle Quote"
-      aria-pressed={isActive}
-      data-testid="button-quote"
-    >
-      <Quote size={16} />
-    </button>
-  )
-}
 
 export const WysiwygMarkdownEditor = ({ 
   value = "", 
@@ -123,7 +60,6 @@ export const WysiwygMarkdownEditor = ({
           // Core formatting plugins - order matters!
           headingsPlugin({ allowedHeadingLevels: [1, 2, 3, 4, 5, 6] }),
           listsPlugin(),
-          quotePlugin(),
           linkPlugin(),
           linkDialogPlugin(),
           
@@ -145,8 +81,6 @@ export const WysiwygMarkdownEditor = ({
                 <BoldItalicUnderlineToggles />
                 <CodeToggle />
                 <StrikeThroughSupSubToggles />
-                <Separator />
-                <CitationToggle />
                 <Separator />
                 <ListsToggle />
                 <Separator />
