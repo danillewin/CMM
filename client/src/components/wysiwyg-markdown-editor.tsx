@@ -2,14 +2,12 @@ import { useRef } from 'react'
 import { 
   MDXEditor, 
   headingsPlugin, 
-  quotePlugin, 
   listsPlugin, 
   linkPlugin, 
   linkDialogPlugin,
   markdownShortcutPlugin, 
   BoldItalicUnderlineToggles, 
   UndoRedo, 
-  BlockTypeSelect,
   CreateLink,
   InsertImage,
   ListsToggle,
@@ -22,13 +20,9 @@ import {
   codeBlockPlugin,
   CodeToggle,
   codeMirrorPlugin,
-  MDXEditorMethods,
-  usePublisher,
-  currentBlockType$,
-  applyBlockType$
+  MDXEditorMethods
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
-import { useCellValues } from '@mdxeditor/editor'
 
 interface WysiwygMarkdownEditorProps {
   value?: string
@@ -83,8 +77,6 @@ export const WysiwygMarkdownEditor = ({
                 <StrikeThroughSupSubToggles />
                 <Separator />
                 <ListsToggle />
-                <Separator />
-                <BlockTypeSelect />
                 <Separator />
                 <CreateLink />
                 <InsertImage />
