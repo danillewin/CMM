@@ -84,9 +84,13 @@ export function registerRoutes(app: Express): Server {
       }
       const position = await storage.createPosition(result.data);
       res.status(201).json(position);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating position:", error);
-      res.status(500).json({ message: "Failed to create position" });
+      if (error.code === '23505' && error.constraint === 'positions_name_unique') {
+        res.status(409).json({ message: "Position with this name already exists" });
+      } else {
+        res.status(500).json({ message: "Failed to create position" });
+      }
     }
   });
 
