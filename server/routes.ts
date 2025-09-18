@@ -1125,17 +1125,27 @@ export function registerRoutes(app: Express): Server {
     // TODO: Add actual JWT token validation when Keycloak is configured
     // For development, parse token without validation (INSECURE - for dev only)
     if (process.env.NODE_ENV === 'development') {
-      try {
-        // Simple base64 decode for development (DO NOT USE IN PRODUCTION)
-        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+      // Handle specific mock token from frontend development mode
+      if (token === 'mock-token-dev-user') {
         req.user = {
-          sub: payload.sub || 'anonymous',
-          preferred_username: payload.preferred_username,
-          email: payload.email,
-          name: payload.name
+          sub: 'dev-user-id',
+          preferred_username: 'dev-user',
+          email: 'dev@example.com',
+          name: 'Development User'
         };
-      } catch (error) {
-        req.user = null;
+      } else {
+        try {
+          // Simple base64 decode for development (DO NOT USE IN PRODUCTION)
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          req.user = {
+            sub: payload.sub || 'anonymous',
+            preferred_username: payload.preferred_username,
+            email: payload.email,
+            name: payload.name
+          };
+        } catch (error) {
+          req.user = null;
+        }
       }
     } else {
       // In production, we need proper JWT validation
