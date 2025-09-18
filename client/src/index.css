@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --spacing-1_5: 1.5rem;
+  }
+
   * {
     @apply border-border;
   }
@@ -83,6 +87,15 @@
 /* Remove default p margins to avoid vertical drift */
 .mdx-content.mdx-overrides [data-node-type="taskListItem"] p {
   margin: 0;
+}
+
+/* List item checked and unchecked states with top positioning */
+._listItemUnchecked {
+  top: var(--spacing-1_5);
+}
+
+._listItemChecked {
+  top: var(--spacing-1_5);
 }
 
 
