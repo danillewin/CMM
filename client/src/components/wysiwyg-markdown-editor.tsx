@@ -22,9 +22,14 @@ import {
   codeBlockPlugin,
   CodeToggle,
   codeMirrorPlugin,
-  MDXEditorMethods
+  MDXEditorMethods,
+  usePublisher,
+  currentBlockType$,
+  applyBlockType$
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
+import { Quote } from 'lucide-react'
+import { useCellValues } from '@mdxeditor/editor'
 
 interface WysiwygMarkdownEditorProps {
   value?: string
@@ -32,6 +37,37 @@ interface WysiwygMarkdownEditorProps {
   placeholder?: string
   height?: number
   className?: string
+}
+
+// Custom Quote Toggle Button Component  
+const QuoteToggle = () => {
+  const [currentBlockType] = useCellValues(currentBlockType$)
+  const applyBlockType = usePublisher(applyBlockType$)
+
+  const toggleQuote = () => {
+    if (currentBlockType === 'quote') {
+      applyBlockType('paragraph')
+    } else {
+      applyBlockType('quote')
+    }
+  }
+
+  const isActive = currentBlockType === 'quote'
+
+  return (
+    <button
+      type="button"
+      className={`p-1 rounded hover:bg-gray-100 transition-colors ${
+        isActive ? 'bg-blue-100 text-blue-600' : 'text-gray-600'
+      }`}
+      onClick={toggleQuote}
+      title="Toggle Quote"
+      aria-pressed={isActive}
+      data-testid="button-quote"
+    >
+      <Quote size={16} />
+    </button>
+  )
 }
 
 export const WysiwygMarkdownEditor = ({ 
@@ -77,6 +113,8 @@ export const WysiwygMarkdownEditor = ({
                 <BoldItalicUnderlineToggles />
                 <CodeToggle />
                 <StrikeThroughSupSubToggles />
+                <Separator />
+                <QuoteToggle />
                 <Separator />
                 <ListsToggle />
                 <Separator />
