@@ -1095,13 +1095,63 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Authentication middleware to extract user info from token
+  const extractUser = (req: any, res: any, next: any) => {
+    // Check for explicit development mode flag
+    if (process.env.SERVER_DEV_AUTH === 'true') {
+      req.user = {
+        sub: 'dev-user-id',
+        preferred_username: 'dev-user',
+        email: 'dev@example.com',
+        name: 'Development User'
+      };
+      return next();
+    }
+
+    // Extract user from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      req.user = null; // Anonymous user
+      return next();
+    }
+
+    // Extract token
+    const token = authHeader.substring(7);
+    
+    // TODO: Add actual JWT token validation when Keycloak is configured
+    // For development, parse token without validation (INSECURE - for dev only)
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        // Simple base64 decode for development (DO NOT USE IN PRODUCTION)
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        req.user = {
+          sub: payload.sub || 'anonymous',
+          preferred_username: payload.preferred_username,
+          email: payload.email,
+          name: payload.name
+        };
+      } catch (error) {
+        req.user = null;
+      }
+    } else {
+      // In production, we need proper JWT validation
+      // TODO: Implement proper JWT verification with Keycloak JWKS
+      req.user = null;
+    }
+    
+    next();
+  };
+
   // Custom filters API routes
-  app.get("/api/custom-filters", async (req, res) => {
+  app.get("/api/custom-filters", extractUser, async (req: any, res) => {
     try {
-      const { pageType, createdBy } = req.query;
+      const { pageType } = req.query;
+      const currentUserSub = req.user?.sub;
+      
+      // Get filters for current user (if authenticated) and shared filters
       const filters = await storage.getCustomFilters(
         pageType as string,
-        createdBy as string
+        currentUserSub
       );
       res.json(filters);
     } catch (error) {
@@ -1129,8 +1179,14 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/custom-filters", async (req, res) => {
+  app.post("/api/custom-filters", extractUser, async (req: any, res) => {
     try {
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to create filters" });
+        return;
+      }
+
       const validation = insertCustomFilterSchema.safeParse(req.body);
       if (!validation.success) {
         res.status(400).json({ 
@@ -1139,7 +1195,14 @@ export function registerRoutes(app: Express): Server {
         });
         return;
       }
-      const newFilter = await storage.createCustomFilter(validation.data);
+
+      // Set createdBy from authenticated user, not from request body
+      const filterData = {
+        ...validation.data,
+        createdBy: currentUserSub
+      };
+
+      const newFilter = await storage.createCustomFilter(filterData);
       res.status(201).json(newFilter);
     } catch (error) {
       console.error("Error creating custom filter:", error);
@@ -1147,18 +1210,46 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.patch("/api/custom-filters/:id", async (req, res) => {
+  app.patch("/api/custom-filters/:id", extractUser, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         res.status(400).json({ message: "Invalid filter ID" });
         return;
       }
-      const updatedFilter = await storage.updateCustomFilter(id, req.body);
-      if (!updatedFilter) {
+
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to update filters" });
+        return;
+      }
+
+      // Check if filter exists and user owns it
+      const existingFilter = await storage.getCustomFilter(id);
+      if (!existingFilter) {
         res.status(404).json({ message: "Custom filter not found" });
         return;
       }
+
+      if (existingFilter.createdBy !== currentUserSub) {
+        res.status(403).json({ message: "You can only update your own filters" });
+        return;
+      }
+
+      // Only allow updating specific fields, prevent changing createdBy
+      const allowedUpdateFields = {
+        name: req.body.name,
+        description: req.body.description,
+        filters: req.body.filters,
+        shared: req.body.shared
+      };
+
+      // Remove undefined fields
+      const updateData = Object.fromEntries(
+        Object.entries(allowedUpdateFields).filter(([_, value]) => value !== undefined)
+      );
+
+      const updatedFilter = await storage.updateCustomFilter(id, updateData);
       res.json(updatedFilter);
     } catch (error) {
       console.error("Error updating custom filter:", error);
@@ -1166,13 +1257,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.delete("/api/custom-filters/:id", async (req, res) => {
+  app.delete("/api/custom-filters/:id", extractUser, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         res.status(400).json({ message: "Invalid filter ID" });
         return;
       }
+
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to delete filters" });
+        return;
+      }
+
+      // Check if filter exists and user owns it
+      const existingFilter = await storage.getCustomFilter(id);
+      if (!existingFilter) {
+        res.status(404).json({ message: "Custom filter not found" });
+        return;
+      }
+
+      if (existingFilter.createdBy !== currentUserSub) {
+        res.status(403).json({ message: "You can only delete your own filters" });
+        return;
+      }
+
       const success = await storage.deleteCustomFilter(id);
       if (!success) {
         res.status(404).json({ message: "Custom filter not found" });

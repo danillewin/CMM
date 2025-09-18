@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import keycloak, { initKeycloak, getUserInfo, isLoggedIn, doLogin, doLogout } from '@/lib/keycloak';
+import keycloak, { initKeycloak, getUserInfo, isLoggedIn, doLogin, doLogout, getToken } from '@/lib/keycloak';
 
 interface UserInfo {
   username: string;
@@ -26,25 +26,32 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<UserInfo | null>({
-    username: 'anonymous',
-    roles: []
-  });
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(true); // Start as initialized for debugging
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Simplified initialization - set as anonymous by default
     console.log('AuthProvider initialized');
     
-    // TODO: Add Keycloak initialization here later
-    // For now, just set anonymous user
-    setIsAuthenticated(false);
-    setUser({
-      username: 'anonymous',
-      roles: []
+    // Initialize Keycloak with callback
+    initKeycloak(() => {
+      // This callback is called when authentication is successful
+      const userInfo = getUserInfo();
+      const userToken = getToken();
+      
+      setIsAuthenticated(isLoggedIn());
+      setUser(userInfo);
+      setToken(userToken);
+      setIsInitialized(true);
     });
-    setIsInitialized(true);
+
+    // Set initial state for development mode or when not authenticated
+    if (!isLoggedIn()) {
+      setIsAuthenticated(false);
+      setUser(null);
+      setToken(null);
+      setIsInitialized(true);
+    }
   }, []);
 
   const handleLogin = () => {
