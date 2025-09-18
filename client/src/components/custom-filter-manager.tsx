@@ -96,16 +96,8 @@ export default function CustomFilterManager({
   const { username: currentUser } = useCurrentUser();
 
   // Fetch saved filters for this page type
-  const { data: savedFilters = [], refetch: refetchFilters } = useQuery<CustomFilter[]>({
+  const { data: savedFilters = [] } = useQuery<CustomFilter[]>({
     queryKey: ["/api/custom-filters", { pageType }],
-    queryFn: async () => {
-      const response = await fetch(`/api/custom-filters?pageType=${pageType}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch filters');
-      }
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    },
   });
 
   // Create filter mutation
@@ -118,7 +110,7 @@ export default function CustomFilterManager({
       toast({ title: "Фильтр успешно сохранен" });
       setIsCreateDialogOpen(false);
       resetForm();
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -139,7 +131,7 @@ export default function CustomFilterManager({
       toast({ title: "Фильтр успешно обновлен" });
       setIsCreateDialogOpen(false);
       resetForm();
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -157,7 +149,7 @@ export default function CustomFilterManager({
     },
     onSuccess: () => {
       toast({ title: "Фильтр успешно удален" });
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -271,16 +263,16 @@ export default function CustomFilterManager({
                 id="filter-name"
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
-                placeholder={"Сохранить"}
+                placeholder={"Введите название фильтра"}
               />
             </div>
             <div>
-              <Label htmlFor="filter-description">{"Сохранить"}</Label>
+              <Label htmlFor="filter-description">{"Описание"}</Label>
               <Textarea
                 id="filter-description"
                 value={filterDescription}
                 onChange={(e) => setFilterDescription(e.target.value)}
-                placeholder={"Сохранить"}
+                placeholder={"Дополнительное описание фильтра"}
                 rows={3}
               />
             </div>
@@ -292,7 +284,7 @@ export default function CustomFilterManager({
               />
               <Label htmlFor="filter-public" className="flex items-center gap-2">
                 {isPublic ? <Users className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {"Сохранить"}
+                {isPublic ? "Общий фильтр" : "Личный фильтр"}
               </Label>
             </div>
             <div className="flex justify-end gap-2">
@@ -306,7 +298,7 @@ export default function CustomFilterManager({
                 onClick={handleSaveCurrentFilters}
                 disabled={createFilterMutation.isPending || updateFilterMutation.isPending}
               >
-                {editingFilter ? "Сохранить" : "Сохранить"}
+                {editingFilter ? "Сохранить" : "Создать"}
               </Button>
             </div>
           </div>
@@ -318,19 +310,19 @@ export default function CustomFilterManager({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-1" />
-            {"Сохранить"} ({savedFilters.length})
+            {"Мои фильтры"} ({savedFilters.length})
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{"Сохранить"}</DialogTitle>
+            <DialogTitle>{"Управление фильтрами"}</DialogTitle>
           </DialogHeader>
           
           {savedFilters.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{"Сохранить"}</p>
-              <p className="text-sm mt-2">{"Сохранить"}</p>
+              <p>{"Нет сохраненных фильтров"}</p>
+              <p className="text-sm mt-2">{"Сохраните фильтр для быстрого доступа в будущем"}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -352,17 +344,17 @@ export default function CustomFilterManager({
                             {filter.shared ? (
                               <>
                                 <Users className="h-3 w-3 mr-1" />
-                                {"Сохранить"}
+                                {"Общий"}
                               </>
                             ) : (
                               <>
                                 <Lock className="h-3 w-3 mr-1" />
-                                {"Сохранить"}
+                                {"Личный"}
                               </>
                             )}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {"Сохранить"} {filter.createdBy}
+                            {"Автор:"} {filter.createdBy}
                           </span>
                         </div>
                       </div>
@@ -396,10 +388,10 @@ export default function CustomFilterManager({
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
-                                    {"Сохранить"}
+                                    {"Удалить фильтр"}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    {"Сохранить"}
+                                    {"Вы уверены, что хотите удалить этот фильтр? Это действие нельзя отменить."}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
