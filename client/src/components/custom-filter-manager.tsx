@@ -188,9 +188,9 @@ export default function CustomFilterManager({
       name: filterName.trim(),
       description: filterDescription.trim() || undefined,
       pageType,
-      filterData: JSON.stringify(currentFilters),
+      filters: currentFilters,
       createdBy: currentUser,
-      isPublic: isPublic ? "true" : "false",
+      shared: isPublic,
     };
 
     if (editingFilter) {
@@ -205,7 +205,7 @@ export default function CustomFilterManager({
 
   const handleApplyFilter = (filter: CustomFilter) => {
     try {
-      const filterData = JSON.parse(filter.filterData) as FilterData;
+      const filterData = filter.filters as FilterData;
       onApplyFilter(filterData);
       toast({ title: "Фильтр применен" });
     } catch (error) {
@@ -221,7 +221,7 @@ export default function CustomFilterManager({
     setEditingFilter(filter);
     setFilterName(filter.name);
     setFilterDescription(filter.description || "");
-    setIsPublic(filter.isPublic === "true");
+    setIsPublic(filter.shared);
     setIsCreateDialogOpen(true);
   };
 
@@ -347,8 +347,8 @@ export default function CustomFilterManager({
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={filter.isPublic === "true" ? "default" : "secondary"}>
-                            {filter.isPublic === "true" ? (
+                          <Badge variant={filter.shared ? "default" : "secondary"}>
+                            {filter.shared ? (
                               <>
                                 <Users className="h-3 w-3 mr-1" />
                                 {"Сохранить"}
