@@ -465,14 +465,16 @@ function ResearchGuideForm({
                 {t("research.guideIntroText")}
               </FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder={t("research.guideIntroTextPlaceholder")}
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleFieldChange("guideIntroText", e.target.value);
+                <WysiwygMarkdownEditor
+                  value={field.value}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("guideIntroText", newValue);
                   }}
-                  rows={4}
+                  placeholder={t("research.guideIntroTextPlaceholder")}
+                  height={200}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
