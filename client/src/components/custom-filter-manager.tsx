@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
@@ -255,6 +256,9 @@ export default function CustomFilterManager({
             <DialogTitle>
               {editingFilter ? "Редактировать фильтр" : "Сохранить фильтр"}
             </DialogTitle>
+            <DialogDescription>
+              {editingFilter ? "Изменить настройки существующего фильтра" : "Сохранить текущие настройки фильтров для дальнейшего использования"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -316,6 +320,9 @@ export default function CustomFilterManager({
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{"Управление фильтрами"}</DialogTitle>
+            <DialogDescription>
+              {"Просмотр, применение и управление сохранёнными фильтрами"}
+            </DialogDescription>
           </DialogHeader>
           
           {savedFilters.length === 0 ? (
