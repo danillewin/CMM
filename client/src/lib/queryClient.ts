@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { getToken } from "@/lib/keycloak";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -14,13 +15,21 @@ export async function apiRequest(
   options?: { headers?: Record<string, string> },
 ): Promise<Response> {
   const isFormData = data instanceof FormData;
+  const token = getToken();
+  
+  const headers: Record<string, string> = {
+    ...(isFormData ? {} : data ? { "Content-Type": "application/json" } : {}),
+    ...options?.headers,
+  };
+  
+  // Add authorization header if token is available
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   
   const res = await fetch(url, {
     method,
-    headers: {
-      ...(isFormData ? {} : data ? { "Content-Type": "application/json" } : {}),
-      ...options?.headers,
-    },
+    headers,
     body: isFormData ? data : data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -35,7 +44,16 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    
+    // Add authorization header if token is available
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    
     const res = await fetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 
