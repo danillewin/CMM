@@ -8,6 +8,7 @@ import {
   markdownShortcutPlugin, 
   BoldItalicUnderlineToggles, 
   UndoRedo, 
+  BlockTypeSelect,
   CreateLink,
   InsertImage,
   ListsToggle,
@@ -77,6 +78,8 @@ export const WysiwygMarkdownEditor = ({
                 <StrikeThroughSupSubToggles />
                 <Separator />
                 <ListsToggle />
+                <Separator />
+                <BlockTypeSelect />
                 <Separator />
                 <CreateLink />
                 <InsertImage />
