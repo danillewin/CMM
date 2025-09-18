@@ -114,6 +114,23 @@
   top: var(--spacing-1_5);
 }
 
+/* Target CSS module scoped classes for MDX editor */
+.mdx-content [class*="_listItemUnchecked"]:before {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemUnchecked"]:after {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemChecked"]:before {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemChecked"]:after {
+  top: var(--spacing-1_5) !important;
+}
+
 
 /* Markdown Preview Styling */
 /* Checkbox list items with flex alignment for center alignment */
