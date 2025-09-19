@@ -21,15 +21,14 @@ import * as XLSX from 'xlsx';
 import { getResearchColor } from "@/lib/colors";
 import { ConfigurableTable, type ColumnConfig } from "@/components/configurable-table";
 import { SearchMultiselect } from "@/components/search-multiselect";
-import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
+import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 export default function Meetings() {
-  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [researchFilter, setResearchFilter] = useState<string[]>([]);
@@ -179,11 +178,11 @@ export default function Meetings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
-      toast({ title: t("forms.save") + " " + t("forms.saving") });
+      toast({ title: "Сохранение..." });
     },
     onError: (error) => {
       toast({ 
-        title: t("errors.generic"), 
+        title: "Произошла ошибка", 
         description: error.message,
         variant: "destructive" 
       });
@@ -193,16 +192,16 @@ export default function Meetings() {
   // Export functions
   const exportToCSV = () => {
     const csvContent = filteredMeetings.map(meeting => ({
-      [t("meetings.respondentName")]: meeting.respondentName,
-      [t("meetings.respondentPosition")]: meeting.respondentPosition,
-      [t("meetings.cnum")]: meeting.cnum,
-      [t("meetings.companyName")]: meeting.companyName,
-      [t("meetings.relationshipManager")]: meeting.relationshipManager,
-      [t("meetings.recruiter")]: meeting.salesPerson,
-      [t("meetings.researcher")]: meeting.researcher || '—',
-      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
-      [t("meetings.status")]: meeting.status,
-      [t("meetings.research")]: meeting.researchName || '—'
+      ["Имя респондента"]: meeting.respondentName,
+      ["Должность респондента"]: meeting.respondentPosition,
+      ["CNUM"]: meeting.cnum,
+      ["Название компании"]: meeting.companyName,
+      ["Клиентский менеджер"]: meeting.relationshipManager,
+      ["Рекрутер"]: meeting.salesPerson,
+      ["Исследователь"]: meeting.researcher || '—',
+      ["Дата"]: formatDateShort(meeting.date),
+      ["Статус"]: meeting.status,
+      ["Исследование"]: meeting.researchName || '—'
     }));
 
     const csvString = [
@@ -219,21 +218,21 @@ export default function Meetings() {
 
   const exportToExcel = () => {
     const excelData = filteredMeetings.map(meeting => ({
-      [t("meetings.respondentName")]: meeting.respondentName,
-      [t("meetings.respondentPosition")]: meeting.respondentPosition,
-      [t("meetings.cnum")]: meeting.cnum,
-      [t("meetings.companyName")]: meeting.companyName,
-      [t("meetings.relationshipManager")]: meeting.relationshipManager,
-      [t("meetings.recruiter")]: meeting.salesPerson,
-      [t("meetings.researcher")]: meeting.researcher || '—',
-      [t("meetings.date")]: new Date(meeting.date).toLocaleDateString(),
-      [t("meetings.status")]: meeting.status,
-      [t("meetings.research")]: meeting.researchName || '—'
+      ["Имя респондента"]: meeting.respondentName,
+      ["Должность респондента"]: meeting.respondentPosition,
+      ["CNUM"]: meeting.cnum,
+      ["Название компании"]: meeting.companyName,
+      ["Клиентский менеджер"]: meeting.relationshipManager,
+      ["Рекрутер"]: meeting.salesPerson,
+      ["Исследователь"]: meeting.researcher || '—',
+      ["Дата"]: formatDateShort(meeting.date),
+      ["Статус"]: meeting.status,
+      ["Исследование"]: meeting.researchName || '—'
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, t("meetings.title"));
+    XLSX.utils.book_append_sheet(wb, ws, "Встречи с клиентами");
     XLSX.writeFile(wb, `meetings_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
@@ -286,7 +285,7 @@ export default function Meetings() {
   const columns: ColumnConfig[] = useMemo(() => [
     {
       id: "hasGift", 
-      name: t("meetings.hasGift"),
+      name: "Есть подарок",
       visible: true,
       sortField: "hasGift",
       render: (meeting: Meeting) => (
@@ -304,7 +303,7 @@ export default function Meetings() {
     },
     {
       id: "status",
-      name: t("meetings.status"),
+      name: "Статус",
       visible: true,
       sortField: "status",
       render: (meeting: Meeting) => (
@@ -319,18 +318,18 @@ export default function Meetings() {
               className="w-[140px] bg-white/80 backdrop-blur-sm shadow-sm"
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              <SelectValue>{meeting.status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
-                meeting.status === MeetingStatus.SET ? t("meetings.statusSet") :
-                meeting.status === MeetingStatus.DONE ? t("meetings.statusDone") :
-                meeting.status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : meeting.status}</SelectValue>
+              <SelectValue>{meeting.status === MeetingStatus.IN_PROGRESS ? "В процессе" : 
+                meeting.status === MeetingStatus.SET ? "Встреча назначена" :
+                meeting.status === MeetingStatus.DONE ? "Завершено" :
+                meeting.status === MeetingStatus.DECLINED ? "Отклонено" : meeting.status}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {Object.values(MeetingStatus).map((status) => (
                 <SelectItem key={status} value={status}>
-                  {status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
-                   status === MeetingStatus.SET ? t("meetings.statusSet") :
-                   status === MeetingStatus.DONE ? t("meetings.statusDone") :
-                   status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status}
+                  {status === MeetingStatus.IN_PROGRESS ? "В процессе" : 
+                   status === MeetingStatus.SET ? "Встреча назначена" :
+                   status === MeetingStatus.DONE ? "Завершено" :
+                   status === MeetingStatus.DECLINED ? "Отклонено" : status}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -340,7 +339,7 @@ export default function Meetings() {
     },
     {
       id: "cnum",
-      name: t("meetings.cnum"),
+      name: "CNUM",
       visible: true,
       sortField: "cnum",
       render: (meeting: Meeting) => (
@@ -349,7 +348,7 @@ export default function Meetings() {
     },
     {
       id: "gcc",
-      name: t("meetings.gcc"),
+      name: "GCC",
       visible: true,
       sortField: "gcc",
       render: (meeting: Meeting) => (
@@ -358,7 +357,7 @@ export default function Meetings() {
     },
     {
       id: "companyName",
-      name: t("meetings.companyName"),
+      name: "Название компании",
       visible: true,
       sortField: "companyName",
       render: (meeting: Meeting) => (
@@ -367,7 +366,7 @@ export default function Meetings() {
     },
     {
       id: "respondentName",
-      name: t("meetings.respondentName"),
+      name: "Имя респондента",
       visible: true,
       sortField: "respondentName",
       render: (meeting: Meeting) => (
@@ -376,7 +375,7 @@ export default function Meetings() {
     },
     {
       id: "respondentPosition",
-      name: t("meetings.respondentPosition"),
+      name: "Должность респондента",
       visible: true,
       sortField: "respondentPosition",
       render: (meeting: Meeting) => (
@@ -385,7 +384,7 @@ export default function Meetings() {
     },
     {
       id: "relationshipManager",
-      name: t("meetings.relationshipManager"),
+      name: "Клиентский менеджер",
       visible: true,
       sortField: "relationshipManager",
       render: (meeting: Meeting) => (
@@ -394,7 +393,7 @@ export default function Meetings() {
     },
     {
       id: "salesPerson",
-      name: t("meetings.recruiter"),
+      name: "Рекрутер",
       visible: true,
       sortField: "salesPerson",
       render: (meeting: Meeting) => (
@@ -403,7 +402,7 @@ export default function Meetings() {
     },
     {
       id: "researcher",
-      name: t("meetings.researcher"),
+      name: "Исследователь",
       visible: true,
       sortField: "researcher",
       render: (meeting: Meeting) => (
@@ -412,7 +411,7 @@ export default function Meetings() {
     },
     {
       id: "research",
-      name: t("meetings.research"),
+      name: "Исследование",
       visible: true,
       sortField: "research",
       render: (meeting: MeetingTableItem) => {
@@ -439,16 +438,16 @@ export default function Meetings() {
     },
     {
       id: "date",
-      name: t("meetings.date"),
+      name: "Дата",
       visible: true,
       sortField: "date",
       render: (meeting: Meeting) => (
-        <span>{new Date(meeting.date).toLocaleDateString()}</span>
+        <span>{formatDateShort(meeting.date)}</span>
       )
     },
     {
       id: "email",
-      name: t("meetings.email"),
+      name: "Email",
       visible: false,
       sortField: "email",
       render: (meeting: Meeting) => (
@@ -457,7 +456,7 @@ export default function Meetings() {
     },
     {
       id: "notes",
-      name: t("meetings.notes"),
+      name: "Заметки",
       visible: false,
       render: (meeting: Meeting) => (
         <div className="max-w-[300px]">
@@ -483,7 +482,7 @@ export default function Meetings() {
         </div>
       )
     }
-  ], [t, meetings, updateStatusMutation]); // Dependencies for useMemo
+  ], [meetings, updateStatusMutation]); // Dependencies for useMemo
 
   // Prepare filter configurations with useMemo to update on language change
   const filterConfigs = useMemo(() => {
@@ -492,14 +491,14 @@ export default function Meetings() {
       return [
         {
           id: "status",
-          name: t("filters.status"),
+          name: "Статус",
           options: [
-            { label: t("filters.all"), value: "ALL" },
+            { label: "Все", value: "ALL" },
             ...Object.values(MeetingStatus).map(status => ({ 
-              label: status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
-                     status === MeetingStatus.SET ? t("meetings.statusSet") :
-                     status === MeetingStatus.DONE ? t("meetings.statusDone") :
-                     status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status, 
+              label: status === MeetingStatus.IN_PROGRESS ? "В процессе" : 
+                     status === MeetingStatus.SET ? "Встреча назначена" :
+                     status === MeetingStatus.DONE ? "Завершено" :
+                     status === MeetingStatus.DECLINED ? "Отклонено" : status, 
               value: status 
             }))
           ],
@@ -508,7 +507,7 @@ export default function Meetings() {
         },
         {
           id: "research",
-          name: t("meetings.research"),
+          name: "Исследование",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/researches",
           selectedValues: researchFilter,
@@ -517,7 +516,7 @@ export default function Meetings() {
         },
         {
           id: "manager",
-          name: t("meetings.relationshipManager"),
+          name: "Клиентский менеджер",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/managers",
           selectedValues: managerFilter,
@@ -526,7 +525,7 @@ export default function Meetings() {
         },
         {
           id: "recruiter",
-          name: t("meetings.recruiter"),
+          name: "Рекрутер",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/recruiters",
           selectedValues: recruiterFilter,
@@ -535,7 +534,7 @@ export default function Meetings() {
         },
         {
           id: "researcher",
-          name: t("meetings.researcher"),
+          name: "Исследователь",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/researchers",
           selectedValues: researcherFilter,
@@ -544,7 +543,7 @@ export default function Meetings() {
         },
         {
           id: "position",
-          name: t("meetings.respondentPosition"),
+          name: "Должность респондента",
           component: "searchMultiselect" as const,
           apiEndpoint: "/api/filters/positions",
           selectedValues: positionFilter,
@@ -553,11 +552,11 @@ export default function Meetings() {
         },
         {
           id: "hasGift",
-          name: t("meetings.hasGift"),
+          name: "Есть подарок",
           options: [
-            { label: t("filters.all"), value: "ALL" },
-            { label: t("meetings.giftYes"), value: "yes" },
-            { label: t("meetings.giftNo"), value: "no" }
+            { label: "Все", value: "ALL" },
+            { label: "Да", value: "yes" },
+            { label: "Нет", value: "no" }
           ],
           value: giftFilter || "ALL",
           onChange: setGiftFilter
@@ -568,14 +567,14 @@ export default function Meetings() {
     return [
     {
       id: "status",
-      name: t("filters.status"),
+      name: "Статус",
       options: [
-        { label: t("filters.all"), value: "ALL" },
+        { label: "Все", value: "ALL" },
         ...Object.values(MeetingStatus).map(status => ({ 
-          label: status === MeetingStatus.IN_PROGRESS ? t("meetings.statusInProgress") : 
-                 status === MeetingStatus.SET ? t("meetings.statusSet") :
-                 status === MeetingStatus.DONE ? t("meetings.statusDone") :
-                 status === MeetingStatus.DECLINED ? t("meetings.statusDeclined") : status, 
+          label: status === MeetingStatus.IN_PROGRESS ? "В процессе" : 
+                 status === MeetingStatus.SET ? "Встреча назначена" :
+                 status === MeetingStatus.DONE ? "Завершено" :
+                 status === MeetingStatus.DECLINED ? "Отклонено" : status, 
           value: status 
         }))
       ],
@@ -584,7 +583,7 @@ export default function Meetings() {
     },
     {
       id: "research",
-      name: t("meetings.research"),
+      name: "Исследование",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/researches",
       selectedValues: researchFilter,
@@ -593,7 +592,7 @@ export default function Meetings() {
     },
     {
       id: "manager",
-      name: t("meetings.relationshipManager"),
+      name: "Клиентский менеджер",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/managers",
       selectedValues: managerFilter,
@@ -602,7 +601,7 @@ export default function Meetings() {
     },
     {
       id: "recruiter",
-      name: t("meetings.recruiter"),
+      name: "Рекрутер",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/recruiters",
       selectedValues: recruiterFilter,
@@ -611,7 +610,7 @@ export default function Meetings() {
     },
     {
       id: "researcher",
-      name: t("meetings.researcher"),
+      name: "Исследователь",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/researchers",
       selectedValues: researcherFilter,
@@ -620,7 +619,7 @@ export default function Meetings() {
     },
     {
       id: "position",
-      name: t("meetings.respondentPosition"),
+      name: "Должность респондента",
       component: "searchMultiselect" as const,
       apiEndpoint: "/api/filters/positions",
       selectedValues: positionFilter,
@@ -629,17 +628,17 @@ export default function Meetings() {
     },
     {
       id: "hasGift",
-      name: t("meetings.hasGift"),
+      name: "Есть подарок",
       options: [
-        { label: t("filters.all"), value: "ALL" },
-        { label: t("meetings.giftYes"), value: "yes" },
-        { label: t("meetings.giftNo"), value: "no" }
+        { label: "Все", value: "ALL" },
+        { label: "Да", value: "yes" },
+        { label: "Нет", value: "no" }
       ],
       value: giftFilter || "ALL",
       onChange: setGiftFilter
     }
     ];
-  }, [t, statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
+  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
   // Load saved filters from localStorage
   useEffect(() => {
@@ -680,7 +679,7 @@ export default function Meetings() {
       <div className="container mx-auto max-w-[1400px] space-y-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">{t("meetings.title")}</h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Встречи с клиентами</h1>
             <ResearcherFilterManager
               pageType="meetings"
               currentFilters={{
@@ -711,7 +710,7 @@ export default function Meetings() {
               onClick={() => setLocation("/meetings/new")}
             >
               <Plus className="h-4 w-4 mr-2" />
-              {t("meetings.newMeeting")}
+              Новая встреча
             </Button>
             <div className="flex gap-3">
               <Button
@@ -720,7 +719,7 @@ export default function Meetings() {
                 onClick={exportToCSV}
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Export CSV
+                Экспорт CSV
               </Button>
               <Button
                 variant="outline"
@@ -728,7 +727,7 @@ export default function Meetings() {
                 onClick={exportToExcel}
               >
                 <FileDown className="h-4 w-4 mr-2" />
-                Export Excel
+                Экспорт Excel
               </Button>
             </div>
           </div>
@@ -752,7 +751,7 @@ export default function Meetings() {
               filters={filterConfigs}
               searchValue={search}
               onSearchChange={setSearch}
-              emptyStateMessage={t("meetings.noMeetings", "No meetings found")}
+              emptyStateMessage={"Встречи не найдены"}
               onApplyFilters={applyFilters}
               hasUnappliedFilters={
                 statusFilter !== appliedStatusFilter ||

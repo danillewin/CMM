@@ -38,15 +38,17 @@ import { JtbdSelector } from "./jtbd-selector";
 import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
+import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
-import DOMPurify from 'dompurify';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import DOMPurify from "dompurify";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const PRODUCT_OPTIONS = [
@@ -124,7 +126,7 @@ export default function ResearchForm({
       dateStart: startDate,
       dateEnd: endDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: "Interviews" as const,
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     },
   });
@@ -149,7 +151,7 @@ export default function ResearchForm({
       dateStart: newStartDate,
       dateEnd: newEndDate,
       color: initialData?.color ?? RESEARCH_COLORS[0],
-      researchType: "Interviews" as const,
+      researchType: (initialData?.researchType as any) || "Not assigned",
       products: initialData?.products ?? [],
     });
   }, [initialData, form]);
@@ -179,30 +181,6 @@ export default function ResearchForm({
     }
   };
 
-  // Helper function to format dates consistently
-  const formatDateForInput = (date: Date | string) => {
-    try {
-      if (!date) return ""; // Return empty string if date is null/undefined
-
-      const dateObj = date instanceof Date ? date : new Date(date);
-
-      // Check if date is valid
-      if (isNaN(dateObj.getTime())) {
-        console.warn("Invalid date:", date);
-        return "";
-      }
-
-      // Format to YYYY-MM-DD
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      return `${year}-${month}-${day}`;
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "";
-    }
-  };
-
   return (
     <>
       <Form {...form}>
@@ -214,7 +192,7 @@ export default function ResearchForm({
                 <h3 className="text-base font-medium">Jobs to be Done</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Connect relevant jobs that this research aims to address
+                Добавьте джобу, которая относится к исследованию
               </p>
               <JtbdSelector
                 entityId={initialData.id}
@@ -235,18 +213,19 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Start Date
+                      Старт исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => {
-                          const newDate = new Date(e.target.value);
-                          field.onChange(newDate);
-                          handleFieldChange("dateStart", newDate);
+                      <DatePicker
+                        value={field.value}
+                        onChange={(date) => {
+                          if (date) {
+                            field.onChange(date);
+                            handleFieldChange("dateStart", date);
+                          }
                         }}
+                        placeholder="дд/мм/гг"
                         className="w-full"
                       />
                     </FormControl>
@@ -261,18 +240,19 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      End Date
+                      Конец исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={formatDateForInput(field.value)}
-                        onChange={(e) => {
-                          const newDate = new Date(e.target.value);
-                          field.onChange(newDate);
-                          handleFieldChange("dateEnd", newDate);
+                      <DatePicker
+                        value={field.value}
+                        onChange={(date) => {
+                          if (date) {
+                            field.onChange(date);
+                            handleFieldChange("dateEnd", date);
+                          }
                         }}
+                        placeholder="дд/мм/гг"
                         className="w-full"
                       />
                     </FormControl>
@@ -282,15 +262,15 @@ export default function ResearchForm({
               />
             </div>
 
-            {/* Second row: Status and Color */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Second row: Status, Research Type, and Color */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Status
+                      Статус
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <Select
@@ -302,7 +282,7 @@ export default function ResearchForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Выберите статус" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -320,10 +300,61 @@ export default function ResearchForm({
 
               <FormField
                 control={form.control}
+                name="researchType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      Research Type
+                      <RequiredFieldIndicator />
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleFieldChange("researchType", value);
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select research type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CATI (Telephone Survey)">
+                          CATI (Telephone Survey)
+                        </SelectItem>
+                        <SelectItem value="CAWI (Online Survey)">
+                          CAWI (Online Survey)
+                        </SelectItem>
+                        <SelectItem value="Moderated usability testing">
+                          Moderated usability testing
+                        </SelectItem>
+                        <SelectItem value="Unmoderated usability testing">
+                          Unmoderated usability testing
+                        </SelectItem>
+                        <SelectItem value="Co-creation session">
+                          Co-creation session
+                        </SelectItem>
+                        <SelectItem value="Interviews">Interviews</SelectItem>
+                        <SelectItem value="Desk research">
+                          Desk research
+                        </SelectItem>
+                        <SelectItem value="Not assigned">
+                          Not assigned
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="color"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base">Color</FormLabel>
+                    <FormLabel className="text-base">Цвет</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -337,7 +368,7 @@ export default function ResearchForm({
                                 className="w-5 h-5 rounded-full"
                                 style={{ backgroundColor: field.value }}
                               />
-                              <span>Selected Color</span>
+                              <span>Выбранный цвет</span>
                             </div>
                             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -385,7 +416,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Research Name
+                    Название исследования
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -409,7 +440,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Team
+                    Команда
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -434,7 +465,7 @@ export default function ResearchForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Researcher
+                    Исследователь
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
@@ -460,7 +491,7 @@ export default function ResearchForm({
               name="products"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-base">Products</FormLabel>
+                  <FormLabel className="text-base">Продукты</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -481,7 +512,7 @@ export default function ResearchForm({
                               ))
                             ) : (
                               <span className="text-muted-foreground">
-                                Select products...
+                                Выберите продукты...
                               </span>
                             )}
                           </div>
@@ -536,7 +567,7 @@ export default function ResearchForm({
 
           <div className="mb-8">
             <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
-              Description
+              Описание
             </div>
 
             <FormField
@@ -575,7 +606,7 @@ export default function ResearchForm({
               disabled={isLoading}
               size="sm"
             >
-              {isLoading ? "Saving..." : "Save Research"}
+              {isLoading ? "Сохранение..." : "Сохранить исследование"}
             </Button>
             {onCancel && (
               <Button
@@ -585,7 +616,7 @@ export default function ResearchForm({
                 onClick={onCancel}
                 size="sm"
               >
-                Cancel
+                Отмена
               </Button>
             )}
             {onDelete && (
@@ -597,7 +628,7 @@ export default function ResearchForm({
                 disabled={isLoading}
                 size="sm"
               >
-                Delete Research
+                Удалить исследование
               </Button>
             )}
           </div>

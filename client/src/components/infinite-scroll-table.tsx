@@ -39,7 +39,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
   filters,
   searchValue,
   onSearchChange,
-  emptyStateMessage = "No data available",
+  emptyStateMessage = "Нет доступных данных",
   onApplyFilters,
   hasUnappliedFilters,
 }: InfiniteScrollTableProps<T>) {
@@ -107,11 +107,6 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
         {hasNextPage && !isFetchingNextPage && (
           <div className="text-gray-400 text-sm">
             Scroll down to load more
-          </div>
-        )}
-        {!hasNextPage && data.length > 0 && (
-          <div className="text-gray-400 text-sm">
-            No more items to load
           </div>
         )}
       </div>

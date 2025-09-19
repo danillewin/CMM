@@ -44,7 +44,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation } from "react-i18next";
 
 interface FilterData {
   // Common filters
@@ -83,8 +82,7 @@ export default function CustomFilterManager({
   onApplyFilter,
   onResetFilters,
 }: CustomFilterManagerProps) {
-  const { t } = useTranslation();
-  const { toast } = useToast();
+    const { toast } = useToast();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
@@ -116,14 +114,14 @@ export default function CustomFilterManager({
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: t("filters.saveSuccess") });
+      toast({ title: "Фильтр успешно сохранен" });
       setIsCreateDialogOpen(false);
       resetForm();
       refetchFilters();
     },
     onError: (error: Error) => {
       toast({
-        title: t("errors.generic"),
+        title: "Произошла ошибка",
         description: error.message,
         variant: "destructive",
       });
@@ -137,14 +135,14 @@ export default function CustomFilterManager({
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: t("filters.updateSuccess") });
+      toast({ title: "Фильтр успешно обновлен" });
       setIsCreateDialogOpen(false);
       resetForm();
       refetchFilters();
     },
     onError: (error: Error) => {
       toast({
-        title: t("errors.generic"),
+        title: "Произошла ошибка",
         description: error.message,
         variant: "destructive",
       });
@@ -157,12 +155,12 @@ export default function CustomFilterManager({
       await apiRequest("DELETE", `/api/custom-filters/${id}`);
     },
     onSuccess: () => {
-      toast({ title: t("filters.deleteSuccess") });
+      toast({ title: "Фильтр успешно удален" });
       refetchFilters();
     },
     onError: (error: Error) => {
       toast({
-        title: t("errors.generic"),
+        title: "Произошла ошибка",
         description: error.message,
         variant: "destructive",
       });
@@ -179,8 +177,8 @@ export default function CustomFilterManager({
   const handleSaveCurrentFilters = () => {
     if (!filterName.trim()) {
       toast({
-        title: t("errors.validation"),
-        description: t("filters.nameRequired"),
+        title: "Ошибка валидации",
+        description: "Название фильтра обязательно",
         variant: "destructive",
       });
       return;
@@ -209,11 +207,11 @@ export default function CustomFilterManager({
     try {
       const filterData = JSON.parse(filter.filterData) as FilterData;
       onApplyFilter(filterData);
-      toast({ title: t("filters.applied", { name: filter.name }) });
+      toast({ title: "Фильтр применен" });
     } catch (error) {
       toast({
-        title: t("errors.generic"),
-        description: t("filters.corruptedData"),
+        title: "Произошла ошибка",
+        description: "Поврежденные данные фильтра",
         variant: "destructive",
       });
     }
@@ -256,32 +254,32 @@ export default function CustomFilterManager({
             }}
           >
             <Save className="h-4 w-4 mr-1" />
-            {t("filters.save")}
+            {"Сохранить фильтр"}
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingFilter ? t("filters.editFilter") : t("filters.saveFilter")}
+              {editingFilter ? "Редактировать фильтр" : "Сохранить фильтр"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="filter-name">{t("filters.name")}</Label>
+              <Label htmlFor="filter-name">{"Название"}</Label>
               <Input
                 id="filter-name"
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
-                placeholder={t("filters.namePlaceholder")}
+                placeholder={"Сохранить"}
               />
             </div>
             <div>
-              <Label htmlFor="filter-description">{t("filters.description")}</Label>
+              <Label htmlFor="filter-description">{"Сохранить"}</Label>
               <Textarea
                 id="filter-description"
                 value={filterDescription}
                 onChange={(e) => setFilterDescription(e.target.value)}
-                placeholder={t("filters.descriptionPlaceholder")}
+                placeholder={"Сохранить"}
                 rows={3}
               />
             </div>
@@ -293,7 +291,7 @@ export default function CustomFilterManager({
               />
               <Label htmlFor="filter-public" className="flex items-center gap-2">
                 {isPublic ? <Users className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {t("filters.shareWithTeam")}
+                {"Сохранить"}
               </Label>
             </div>
             <div className="flex justify-end gap-2">
@@ -301,13 +299,13 @@ export default function CustomFilterManager({
                 variant="outline"
                 onClick={() => setIsCreateDialogOpen(false)}
               >
-                {t("common.cancel")}
+                {"Отмена"}
               </Button>
               <Button
                 onClick={handleSaveCurrentFilters}
                 disabled={createFilterMutation.isPending || updateFilterMutation.isPending}
               >
-                {editingFilter ? t("common.update") : t("common.save")}
+                {editingFilter ? "Сохранить" : "Сохранить"}
               </Button>
             </div>
           </div>
@@ -319,19 +317,19 @@ export default function CustomFilterManager({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-1" />
-            {t("filters.manage")} ({savedFilters.length})
+            {"Сохранить"} ({savedFilters.length})
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{t("filters.savedFilters")}</DialogTitle>
+            <DialogTitle>{"Сохранить"}</DialogTitle>
           </DialogHeader>
           
           {savedFilters.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{t("filters.noSavedFilters")}</p>
-              <p className="text-sm mt-2">{t("filters.createFirstFilter")}</p>
+              <p>{"Сохранить"}</p>
+              <p className="text-sm mt-2">{"Сохранить"}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -353,17 +351,17 @@ export default function CustomFilterManager({
                             {filter.isPublic === "true" ? (
                               <>
                                 <Users className="h-3 w-3 mr-1" />
-                                {t("filters.shared")}
+                                {"Сохранить"}
                               </>
                             ) : (
                               <>
                                 <Lock className="h-3 w-3 mr-1" />
-                                {t("filters.private")}
+                                {"Сохранить"}
                               </>
                             )}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {t("filters.createdBy")} {filter.createdBy}
+                            {"Сохранить"} {filter.createdBy}
                           </span>
                         </div>
                       </div>
@@ -373,7 +371,7 @@ export default function CustomFilterManager({
                           variant="outline"
                           onClick={() => handleApplyFilter(filter)}
                         >
-                          {t("filters.apply")}
+                          {"Применить"}
                         </Button>
                         {filter.createdBy === currentUser && (
                           <>
@@ -397,21 +395,21 @@ export default function CustomFilterManager({
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
-                                    {t("filters.deleteConfirmTitle")}
+                                    {"Сохранить"}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    {t("filters.deleteConfirmMessage", { name: filter.name })}
+                                    {"Сохранить"}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>
-                                    {t("common.cancel")}
+                                    {"Отмена"}
                                   </AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleDeleteFilter(filter.id)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
-                                    {t("common.delete")}
+                                    {"Удалить"}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
@@ -435,7 +433,7 @@ export default function CustomFilterManager({
           size="sm"
           onClick={onResetFilters}
         >
-          {t("filters.reset")}
+          {"Сбросить фильтры"}
         </Button>
       )}
     </div>

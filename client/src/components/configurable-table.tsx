@@ -52,7 +52,6 @@ import { GripVertical, Settings, Filter, Search, X, Save, Bookmark, Loader2 } fr
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "react-i18next";
 
 // Column configuration type
 export type ColumnConfig = {
@@ -324,7 +323,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="relative bg-white border-gray-200 hover:bg-gray-50">
                   <Filter className="h-4 w-4 mr-2" />
-                  Filters
+                  Фильтры
                   {activeFilterCount > 0 && (
                     <Badge 
                       variant="secondary" 
@@ -337,7 +336,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
               </PopoverTrigger>
               <PopoverContent className="w-[450px] p-4" align="end">
                 <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Filters</h4>
+                  <h4 className="font-medium text-sm">Фильтры</h4>
                   <div className="grid grid-cols-2 gap-3">
                     {filters?.map(filter => (
                       <div key={filter.id} className="space-y-1">
@@ -348,7 +347,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                             <label className="text-sm font-medium">{filter.name}</label>
                             <SearchMultiselect
                               apiEndpoint={filter.apiEndpoint || ""}
-                              placeholder={`Select ${filter.name}`}
+                              placeholder={`Выберите ${filter.name}`}
                               selectedValues={filter.selectedValues || []}
                               onSelectionChange={(values: string[]) => {
                                 if (filter.onChange) {
@@ -363,7 +362,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                             <label className="text-sm font-medium">{filter.name}</label>
                             <Select value={filter.value} onValueChange={filter.onChange as (value: string) => void}>
                               <SelectTrigger className="w-full bg-white">
-                                <SelectValue placeholder={`Select ${filter.name}`} />
+                                <SelectValue placeholder={`Выберите ${filter.name}`} />
                               </SelectTrigger>
                               <SelectContent>
                                 {filter.options?.map(option => (
@@ -393,7 +392,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         }`}
                       >
                         <Filter className="h-4 w-4 mr-2" />
-                        Apply Filters
+                        Применить фильтры
                       </Button>
                     )}
                     {activeFilterCount > 0 && (
@@ -422,7 +421,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
                           }
                         }}
                       >
-                        Clear All Filters
+                        Очистить все фильтры
                       </Button>
                     )}
                   </div>
@@ -435,12 +434,12 @@ export function ConfigurableTable<T extends { id: number | string }>({
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="bg-white border-gray-200 hover:bg-gray-50">
                 <Settings className="h-4 w-4 mr-2" />
-                Configure
+                Настроить
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Table Columns</DialogTitle>
+                <DialogTitle>Колонки таблицы</DialogTitle>
               </DialogHeader>
               <div className="max-h-[400px] overflow-y-auto p-1">
                 <DndContext
@@ -506,7 +505,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
             ) : data.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={visibleColumns.length} className="text-center py-8 text-gray-500">
-                  {emptyStateMessage || "No data available"}
+                  {emptyStateMessage || "Нет доступных данных"}
                 </TableCell>
               </TableRow>
             ) : (

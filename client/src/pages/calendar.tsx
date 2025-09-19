@@ -32,7 +32,6 @@ import {
   parseISO
 } from "date-fns";
 import MeetingForm from "@/components/meeting-form";
-import { useTranslation } from "react-i18next";
 import ResearcherFilterManager from "@/components/researcher-filter-manager";
 
 
@@ -44,7 +43,6 @@ export default function Calendar() {
   const [researcherFilter, setResearcherFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const { toast } = useToast();
-  const { t } = useTranslation();
 
 
   // Calculate date range for current month
@@ -82,11 +80,11 @@ export default function Calendar() {
       queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings", monthStart.toISOString(), monthEnd.toISOString()] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", selectedMeeting?.id] });
       setSelectedMeeting(null);
-      toast({ title: t("meeting_updated_successfully") });
+      toast({ title: "Сохранить" });
     },
     onError: (error: Error) => {
       toast({
-        title: t("failed_to_update_meeting"),
+        title: "Сохранить",
         description: error.message,
         variant: "destructive"
       });
@@ -168,7 +166,7 @@ export default function Calendar() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">{t("calendar.title", "Calendar")}</h1>
+          <h1 className="text-3xl font-bold">{"Сохранить"}</h1>
           <ResearcherFilterManager
             pageType="calendar"
             currentFilters={{
@@ -189,15 +187,15 @@ export default function Calendar() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Filters</CardTitle>
+              <CardTitle>Фильтры</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select value={teamFilter} onValueChange={setTeamFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by team" />
+                  <SelectValue placeholder="Фильтр по команде" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Teams</SelectItem>
+                  <SelectItem value="ALL">Все команды</SelectItem>
                   {teams.map((team) => (
                     <SelectItem key={team} value={team}>{team}</SelectItem>
                   ))}
@@ -206,10 +204,10 @@ export default function Calendar() {
 
               <Select value={researcherFilter} onValueChange={setResearcherFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by researcher" />
+                  <SelectValue placeholder="Фильтр по исследователю" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Researchers</SelectItem>
+                  <SelectItem value="ALL">Все исследователи</SelectItem>
                   {researchers.map((researcher) => (
                     <SelectItem key={researcher} value={researcher}>{researcher}</SelectItem>
                   ))}
@@ -218,10 +216,10 @@ export default function Calendar() {
 
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Фильтр по статусу" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  <SelectItem value="ALL">Все статусы</SelectItem>
                   {Object.values(ResearchStatus).map((status) => (
                     <SelectItem key={status} value={status}>{status}</SelectItem>
                   ))}
@@ -232,7 +230,7 @@ export default function Calendar() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Researches</CardTitle>
+              <CardTitle>Исследования</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[calc(100vh-400px)]">
@@ -291,7 +289,7 @@ export default function Calendar() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="grid grid-cols-7 gap-px bg-muted">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              {["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"].map((day) => (
                 <div key={day} className="p-3 text-center text-sm font-medium">
                   {day}
                 </div>
@@ -301,7 +299,7 @@ export default function Calendar() {
               <div className="flex items-center justify-center h-64 bg-card">
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">Loading calendar data...</span>
+                  <span className="text-sm text-muted-foreground">Загрузка данных календаря...</span>
                 </div>
               </div>
             ) : (
@@ -355,7 +353,7 @@ export default function Calendar() {
             <div className="flex items-center justify-center p-8">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                <span className="text-sm text-muted-foreground">{t("loading_meeting_details")}...</span>
+                <span className="text-sm text-muted-foreground">{"Сохранить"}...</span>
               </div>
             </div>
           ) : fullMeetingData ? (
@@ -378,12 +376,12 @@ export default function Calendar() {
             />
           ) : (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground">{t("error_loading_meeting")}</p>
+              <p className="text-muted-foreground">{"Сохранить"}</p>
               <Button 
                 onClick={() => setSelectedMeeting(null)}
                 className="mt-4"
               >
-                {t("close")}
+                {"Сохранить"}
               </Button>
             </div>
           )}
