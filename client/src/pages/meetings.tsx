@@ -693,39 +693,6 @@ export default function Meetings() {
     ];
   }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
-  // Load saved filters from localStorage
-  useEffect(() => {
-    try {
-      const savedFilters = localStorage.getItem("meetings-table-filters");
-      if (savedFilters) {
-        const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
-        if (status) setStatusFilter(status);
-        if (research !== undefined) setResearchFilter(Array.isArray(research) ? research : research === null ? [] : [research.toString()]);
-        if (manager) setManagerFilter(Array.isArray(manager) ? manager : [manager]);
-        if (recruiter) setRecruiterFilter(Array.isArray(recruiter) ? recruiter : [recruiter]);
-        if (researcher) setResearcherFilter(Array.isArray(researcher) ? researcher : [researcher]);
-        if (position) setPositionFilter(Array.isArray(position) ? position : [position]);
-      }
-    } catch (error) {
-      console.error("Error loading saved filters:", error);
-    }
-  }, []);
-
-  // Save filters to localStorage when they change
-  useEffect(() => {
-    try {
-      localStorage.setItem("meetings-table-filters", JSON.stringify({
-        status: statusFilter,
-        research: researchFilter,
-        manager: managerFilter,
-        recruiter: recruiterFilter,
-        researcher: researcherFilter,
-        position: positionFilter
-      }));
-    } catch (error) {
-      console.error("Error saving filters:", error);
-    }
-  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
