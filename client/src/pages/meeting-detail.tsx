@@ -72,18 +72,7 @@ import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateShort } from "@/lib/date-utils";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import MDEditor from "@uiw/react-md-editor";
-import DOMPurify from "dompurify";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Collapsible,
   CollapsibleContent,

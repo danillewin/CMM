@@ -88,7 +88,7 @@ import FileUpload from "@/components/file-upload";
 type ResearchWithId = Research;
 
 // Component for Brief tab
-function ResearchBriefForm({
+function ResearchDetailBriefForm({
   research,
   onUpdate,
   isLoading,
@@ -3006,7 +3006,7 @@ function ResearchDetail() {
               </TabsContent>
 
               <TabsContent value="brief" className="mt-6">
-                <ResearchBriefForm
+                <ResearchDetailBriefForm
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
