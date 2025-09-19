@@ -302,11 +302,13 @@ function MeetingInfoForm({
   onUpdate,
   isLoading,
   onTempDataUpdate,
+  onDelete,
 }: {
   meeting?: Meeting;
   onUpdate: (data: InsertMeeting) => void;
   isLoading: boolean;
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
+  onDelete?: () => void;
 }) {
   return (
     <MeetingForm
@@ -316,6 +318,7 @@ function MeetingInfoForm({
       hideNotesAndFullText={true}
       onTempDataUpdate={onTempDataUpdate}
       isCreating={false}
+      onDelete={onDelete}
     />
   );
 }
@@ -1095,35 +1098,6 @@ export default function MeetingDetail() {
                 </div>
               )}
             </div>
-
-            {/* Action buttons - positioned after the tags */}
-            {!isNew && (
-              <div className="flex items-center gap-2 mt-4">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleDelete}
-                  disabled={isPending}
-                  className="bg-red-500 hover:bg-red-600 text-white"
-                  data-testid="button-delete-meeting"
-                >
-                  <svg 
-                    className="h-4 w-4 mr-1" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
-                    />
-                  </svg>
-                  Удалить встречу
-                </Button>
-              </div>
-            )}
           </div>
 
           {/* Tabbed interface - Notion-style */}
@@ -1201,6 +1175,7 @@ export default function MeetingDetail() {
                     onUpdate={handleSubmit}
                     isLoading={isPending}
                     onTempDataUpdate={handleTempDataUpdate}
+                    onDelete={!isNew ? handleDelete : undefined}
                   />
                 </TabsContent>
 
