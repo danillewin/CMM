@@ -911,50 +911,16 @@ function ResearchDetailBriefForm({
                 Поле для свободного комментария
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("brief", newValue);
                   }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter research brief...",
-                    style: { resize: "none" },
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                        ALLOWED_TAGS: [
-                          "p",
-                          "br",
-                          "strong",
-                          "em",
-                          "ul",
-                          "ol",
-                          "li",
-                          "h1",
-                          "h2",
-                          "h3",
-                          "h4",
-                          "h5",
-                          "h6",
-                          "blockquote",
-                          "code",
-                          "pre",
-                        ],
-                        ALLOWED_ATTR: [],
-                      });
-                      return (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                        />
-                      );
-                    },
-                  }}
+                  placeholder="Enter research brief..."
+                  height={300}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
