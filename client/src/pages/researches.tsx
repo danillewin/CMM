@@ -615,6 +615,7 @@ export default function Researches() {
                 weeksNumber,
               }}
               onApplyFilter={(filters) => {
+                // Update display filter states
                 if (filters.search !== undefined) setSearch(filters.search);
                 if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
                 if (filters.teamFilter !== undefined) setTeamFilter(filters.teamFilter);
@@ -623,6 +624,14 @@ export default function Researches() {
                 if (filters.productFilters !== undefined) setProductFilters(filters.productFilters);
                 if (filters.showStartsInNWeeks !== undefined) setShowStartsInNWeeks(filters.showStartsInNWeeks);
                 if (filters.weeksNumber !== undefined) setWeeksNumber(filters.weeksNumber);
+                
+                // Also update applied filter states so filters are immediately active
+                if (filters.search !== undefined) setAppliedSearch(filters.search);
+                if (filters.researcherFilter !== undefined) setAppliedResearcherFilter(filters.researcherFilter);
+                if (filters.teamFilter !== undefined) setAppliedTeamFilter(filters.teamFilter);
+                if (filters.statusFilter !== undefined) setAppliedStatusFilter(filters.statusFilter);
+                if (filters.researchTypeFilters !== undefined) setAppliedResearchTypeFilters(filters.researchTypeFilters);
+                if (filters.productFilters !== undefined) setAppliedProductFilters(filters.productFilters);
               }}
             />
           </div>

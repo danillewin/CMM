@@ -746,6 +746,7 @@ export default function Meetings() {
                 giftFilter,
               }}
               onApplyFilter={(filters) => {
+                // Update display filter states
                 if (filters.search !== undefined) setSearch(filters.search);
                 if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
                 if (filters.researchFilter !== undefined) setResearchFilter(filters.researchFilter);
@@ -754,6 +755,16 @@ export default function Meetings() {
                 if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
                 if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
                 if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
+                
+                // Also update applied filter states so filters are immediately active
+                if (filters.search !== undefined) setAppliedSearch(filters.search);
+                if (filters.statusFilter !== undefined) setAppliedStatusFilter(filters.statusFilter);
+                if (filters.researchFilter !== undefined) setAppliedResearchFilter(filters.researchFilter);
+                if (filters.managerFilter !== undefined) setAppliedManagerFilter(filters.managerFilter);
+                if (filters.recruiterFilter !== undefined) setAppliedRecruiterFilter(filters.recruiterFilter);
+                if (filters.researcherFilter !== undefined) setAppliedResearcherFilter(filters.researcherFilter);
+                if (filters.positionFilter !== undefined) setAppliedPositionFilter(filters.positionFilter);
+                if (filters.giftFilter !== undefined) setAppliedGiftFilter(filters.giftFilter);
               }}
             />
           </div>
