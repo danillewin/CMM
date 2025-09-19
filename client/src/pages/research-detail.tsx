@@ -83,6 +83,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import FileUpload from "@/components/file-upload";
+import MDEditor from "@uiw/react-md-editor";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
