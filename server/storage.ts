@@ -36,6 +36,7 @@ import { kafkaService } from "./kafka-service";
 
 export interface IStorage {
   getMeetings(): Promise<Meeting[]>;
+  getMeetingsByResearch(researchId: number): Promise<Meeting[]>;
   getMeetingsPaginated(
     params: PaginationParams,
   ): Promise<PaginatedResponse<MeetingTableItem>>;
@@ -217,6 +218,10 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   async getMeetings(): Promise<Meeting[]> {
     return db.select().from(meetings);
+  }
+
+  async getMeetingsByResearch(researchId: number): Promise<Meeting[]> {
+    return db.select().from(meetings).where(eq(meetings.researchId, researchId));
   }
 
   async getMeetingsPaginated(
@@ -554,7 +559,29 @@ export class DatabaseStorage implements IStorage {
       ];
 
       const result = await pool.query(query, values);
-      return result.rows[0];
+      const row = result.rows[0];
+      
+      // Map database fields to Meeting type
+      return {
+        id: row.id,
+        respondentName: row.respondent_name,
+        respondentPosition: row.respondent_position,
+        cnum: row.cnum,
+        gcc: row.gcc,
+        companyName: row.company_name,
+        email: row.email,
+        researcher: row.researcher,
+        relationshipManager: row.relationship_manager,
+        salesPerson: row.recruiter,
+        date: row.date,
+        researchId: row.research_id,
+        status: row.status,
+        notes: row.notes,
+        fullText: row.full_text,
+        hasGift: row.has_gift,
+        summarizationStatus: row.summarization_status,
+        summarizationResult: row.summarization_result,
+      };
     } catch (error) {
       console.error("Error in createMeeting:", error);
       throw error;
@@ -592,7 +619,9 @@ export class DatabaseStorage implements IStorage {
           notes = $15,
           full_text = $16,
           has_gift = $17
-        WHERE id = $18
+          summarization_status = $18,
+          summarization_result = $19
+        WHERE id = $20
         RETURNING *
       `;
 
@@ -614,6 +643,8 @@ export class DatabaseStorage implements IStorage {
         meeting.notes || null,
         meeting.fullText || null,
         meeting.hasGift || "no", // Gift indicator field
+        (meeting as any).summarizationStatus || null,
+        (meeting as any).summarizationResult || null,
         id,
       ];
 
@@ -623,7 +654,29 @@ export class DatabaseStorage implements IStorage {
         return undefined;
       }
 
-      const updatedMeeting = result.rows[0];
+      const row = result.rows[0];
+      
+      // Map database fields to Meeting type
+      const updatedMeeting = {
+        id: row.id,
+        respondentName: row.respondent_name,
+        respondentPosition: row.respondent_position,
+        cnum: row.cnum,
+        gcc: row.gcc,
+        companyName: row.company_name,
+        email: row.email,
+        researcher: row.researcher,
+        relationshipManager: row.relationship_manager,
+        salesPerson: row.recruiter,
+        date: row.date,
+        researchId: row.research_id,
+        status: row.status,
+        notes: row.notes,
+        fullText: row.full_text,
+        hasGift: row.has_gift,
+        summarizationStatus: row.summarization_status,
+        summarizationResult: row.summarization_result,
+      };
 
       // Check if meeting reached "Done" status and send to Kafka
       const isNowDone = updatedMeeting.status === "Done";

@@ -27,8 +27,9 @@ import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
-import MDEditor from '@uiw/react-md-editor';
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
+import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
 import { ResearchSelector } from "./research-selector";
 
@@ -681,28 +682,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Введите заметки о встрече...",
-                            style: { resize: 'none' }
-                          }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Введите заметки о встрече..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -722,28 +708,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Введите полный текст содержания...",
-                            style: { resize: 'none' }
-                          }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Введите полный текст содержания..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

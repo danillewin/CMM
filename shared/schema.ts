@@ -179,7 +179,6 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
-  summarizationResult: true,
 }).extend({
   date: z.coerce.date(),
   time: z.string().nullable().optional(), // Optional time field
@@ -202,6 +201,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
   summarizationStatus: z.enum(["not_started", "in_progress", "completed", "failed"]).default("not_started"),
+  summarizationResult: z.any().optional(), // Allow any JSON structure for summarization results
 });
 
 // JTBD insert schema
