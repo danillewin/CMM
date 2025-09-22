@@ -45,8 +45,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import MDEditor from "@uiw/react-md-editor";
-import DOMPurify from 'dompurify';
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
+import DOMPurify from "dompurify";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const PRODUCT_OPTIONS = [
@@ -178,7 +180,6 @@ export default function ResearchForm({
       }
     }
   };
-
 
   return (
     <>
@@ -335,8 +336,12 @@ export default function ResearchForm({
                           Co-creation session
                         </SelectItem>
                         <SelectItem value="Interviews">Interviews</SelectItem>
-                        <SelectItem value="Desk research">Desk research</SelectItem>
-                        <SelectItem value="Not assigned">Not assigned</SelectItem>
+                        <SelectItem value="Desk research">
+                          Desk research
+                        </SelectItem>
+                        <SelectItem value="Not assigned">
+                          Not assigned
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -572,29 +577,16 @@ export default function ResearchForm({
                 <FormItem className="w-full">
                   <FormControl>
                     <div data-color-mode="light">
-                      <MDEditor
+                      <WysiwygMarkdownEditor
                         value={field.value}
                         onChange={(value) => {
                           const newValue = value || "";
                           field.onChange(newValue);
                           handleFieldChange("description", newValue);
                         }}
-                        preview="edit"
+                        placeholder="Enter research description..."
                         height={300}
-                        className="border border-gray-200 rounded-md overflow-hidden"
-                        textareaProps={{
-                          placeholder: "Введите описание исследования...",
-                          style: { resize: 'none' }
-                        }}
-                        components={{
-                          preview: (source, state, dispatch) => {
-                            const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                              ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                              ALLOWED_ATTR: []
-                            });
-                            return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                          }
-                        }}
+                        className=""
                       />
                     </div>
                   </FormControl>

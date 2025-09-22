@@ -66,19 +66,13 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
+import DOMPurify from 'dompurify';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateShort } from "@/lib/date-utils";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import MDEditor from "@uiw/react-md-editor";
-import DOMPurify from "dompurify";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Collapsible,
   CollapsibleContent,
@@ -409,127 +403,53 @@ function MeetingResultsForm({
 
         {/* Meeting Results Form */}
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="notes"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg font-medium">
-                  Заметки о встрече
-                </FormLabel>
-                <FormControl>
-                  <MDEditor
-                    value={field.value}
-                    onChange={(val) => {
-                      const newValue = val || "";
-                      field.onChange(newValue);
-                      handleFieldChange("notes", newValue);
-                    }}
-                    preview="edit"
-                    hideToolbar={false}
-                    data-color-mode="light"
-                    height={300}
-                    textareaProps={{
-                      placeholder: "Введите заметки о встрече...",
-                      style: { resize: "none" },
-                    }}
-                    components={{
-                      preview: (source, state, dispatch) => {
-                        const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                          ALLOWED_TAGS: [
-                            "p",
-                            "br",
-                            "strong",
-                            "em",
-                            "ul",
-                            "ol",
-                            "li",
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "blockquote",
-                            "code",
-                            "pre",
-                          ],
-                          ALLOWED_ATTR: [],
-                        });
-                        return (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                          />
-                        );
-                      },
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fullText"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg font-medium">
-                  Отчет в текстовом виде
-                </FormLabel>
-                <FormControl>
-                  <MDEditor
-                    value={field.value}
-                    onChange={(val) => {
-                      const newValue = val || "";
-                      field.onChange(newValue);
-                      handleFieldChange("fullText", newValue);
-                    }}
-                    preview="edit"
-                    hideToolbar={false}
-                    data-color-mode="light"
-                    height={300}
-                    textareaProps={{
-                      placeholder: "Введите полный текст...",
-                      style: { resize: "none" },
-                    }}
-                    components={{
-                      preview: (source, state, dispatch) => {
-                        const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                          ALLOWED_TAGS: [
-                            "p",
-                            "br",
-                            "strong",
-                            "em",
-                            "ul",
-                            "ol",
-                            "li",
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "blockquote",
-                            "code",
-                            "pre",
-                          ],
-                          ALLOWED_ATTR: [],
-                        });
-                        return (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                          />
-                        );
-                      },
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Заметки о встрече</FormLabel>
+              <FormControl>
+                <WysiwygMarkdownEditor
+                  value={field.value}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("notes", newValue);
+                  }}
+                  placeholder="Введите заметки о встрече..."
+                  height={300}
+                  className=""
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="fullText"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-lg font-medium">Отчет в текстовом виде</FormLabel>
+              <FormControl>
+                <WysiwygMarkdownEditor
+                  value={field.value}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("fullText", newValue);
+                  }}
+                  placeholder="Введите полный текст..."
+                  height={300}
+                  className=""
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
           {/* Summarization Results Section */}
           {meeting?.id && (
@@ -873,6 +793,7 @@ export default function MeetingDetail() {
   // Parse navigation source context
   const sourceType = searchParams.get("source"); // "research" or null
   const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
+  const fromContext = searchParams.get('from'); // This is what research-detail.tsx uses
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -1074,10 +995,14 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (sourceType === "research" && sourceId) {
+    if (fromContext === "research" && preselectedResearchId) {
+      // If creating from research page, go back to research page
+      setLocation(`/researches/${preselectedResearchId}`);
+    } else if (sourceType === "research" && sourceId) {
+      // If editing existing meeting from research context
       setLocation(`/researches/${sourceId}`);
     } else {
-      setLocation("/");
+      setLocation("/meetings");
     }
   };
 
@@ -1109,7 +1034,10 @@ export default function MeetingDetail() {
           </Button>
           <span className="mx-2 text-gray-300">/</span>
           <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
-            {sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи"}
+            {fromContext === "research" && preselectedResearch ? 
+              preselectedResearch.name :
+              (sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи")
+            }
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">

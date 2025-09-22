@@ -26,6 +26,7 @@ import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
@@ -526,13 +527,27 @@ export default function Meetings() {
       name: "Заметки",
       visible: false,
       render: (meeting: Meeting) => (
-        <span className="truncate max-w-[300px]">
-          {meeting.notes ? (
-            <span className="text-gray-500 italic">{"Заметки"}</span>
-          ) : (
-            <span className="text-gray-400">{"Встречи не найдены"}</span>
-          )}
-        </span>
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.notes} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
+      )
+    },
+    {
+      id: "fullText",
+      name: "Full Text",
+      visible: false,
+      render: (meeting: Meeting) => (
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.fullText} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
       )
     }
   ], [meetings, updateStatusMutation]); // Dependencies for useMemo
