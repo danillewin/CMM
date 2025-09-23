@@ -1005,7 +1005,7 @@ export default function MeetingDetail() {
       // If editing existing meeting from research context
       setLocation(`/researches/${sourceId}`);
     } else {
-      setLocation("/meetings");
+      setLocation("/");
     }
   };
 
