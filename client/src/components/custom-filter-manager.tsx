@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { CustomFilter, InsertCustomFilter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useCurrentUser } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription,
   DialogHeader, 
   DialogTitle, 
   DialogTrigger 
@@ -91,20 +93,12 @@ export default function CustomFilterManager({
   const [isPublic, setIsPublic] = useState(false);
   const [editingFilter, setEditingFilter] = useState<CustomFilter | null>(null);
 
-  // Get current user - for demo purposes, use a placeholder
-  const currentUser = "demo-user";
+  // Get current user from auth context
+  const { username: currentUser } = useCurrentUser();
 
   // Fetch saved filters for this page type
-  const { data: savedFilters = [], refetch: refetchFilters } = useQuery<CustomFilter[]>({
+  const { data: savedFilters = [] } = useQuery<CustomFilter[]>({
     queryKey: ["/api/custom-filters", { pageType }],
-    queryFn: async () => {
-      const response = await fetch(`/api/custom-filters?pageType=${pageType}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch filters');
-      }
-      const data = await response.json();
-      return Array.isArray(data) ? data : [];
-    },
   });
 
   // Create filter mutation
@@ -117,7 +111,7 @@ export default function CustomFilterManager({
       toast({ title: "Фильтр успешно сохранен" });
       setIsCreateDialogOpen(false);
       resetForm();
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -138,7 +132,7 @@ export default function CustomFilterManager({
       toast({ title: "Фильтр успешно обновлен" });
       setIsCreateDialogOpen(false);
       resetForm();
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -156,7 +150,7 @@ export default function CustomFilterManager({
     },
     onSuccess: () => {
       toast({ title: "Фильтр успешно удален" });
-      refetchFilters();
+      queryClient.invalidateQueries({ queryKey: ["/api/custom-filters", { pageType }] });
     },
     onError: (error: Error) => {
       toast({
@@ -188,9 +182,9 @@ export default function CustomFilterManager({
       name: filterName.trim(),
       description: filterDescription.trim() || undefined,
       pageType,
-      filterData: JSON.stringify(currentFilters),
+      filters: currentFilters,
       createdBy: currentUser,
-      isPublic: isPublic ? "true" : "false",
+      shared: isPublic,
     };
 
     if (editingFilter) {
@@ -205,7 +199,7 @@ export default function CustomFilterManager({
 
   const handleApplyFilter = (filter: CustomFilter) => {
     try {
-      const filterData = JSON.parse(filter.filterData) as FilterData;
+      const filterData = filter.filters as FilterData;
       onApplyFilter(filterData);
       toast({ title: "Фильтр применен" });
     } catch (error) {
@@ -221,7 +215,7 @@ export default function CustomFilterManager({
     setEditingFilter(filter);
     setFilterName(filter.name);
     setFilterDescription(filter.description || "");
-    setIsPublic(filter.isPublic === "true");
+    setIsPublic(filter.shared);
     setIsCreateDialogOpen(true);
   };
 
@@ -262,6 +256,9 @@ export default function CustomFilterManager({
             <DialogTitle>
               {editingFilter ? "Редактировать фильтр" : "Сохранить фильтр"}
             </DialogTitle>
+            <DialogDescription>
+              {editingFilter ? "Изменить настройки существующего фильтра" : "Сохранить текущие настройки фильтров для дальнейшего использования"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -270,16 +267,16 @@ export default function CustomFilterManager({
                 id="filter-name"
                 value={filterName}
                 onChange={(e) => setFilterName(e.target.value)}
-                placeholder={"Сохранить"}
+                placeholder={"Введите название фильтра"}
               />
             </div>
             <div>
-              <Label htmlFor="filter-description">{"Сохранить"}</Label>
+              <Label htmlFor="filter-description">{"Описание"}</Label>
               <Textarea
                 id="filter-description"
                 value={filterDescription}
                 onChange={(e) => setFilterDescription(e.target.value)}
-                placeholder={"Сохранить"}
+                placeholder={"Дополнительное описание фильтра"}
                 rows={3}
               />
             </div>
@@ -291,7 +288,7 @@ export default function CustomFilterManager({
               />
               <Label htmlFor="filter-public" className="flex items-center gap-2">
                 {isPublic ? <Users className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {"Сохранить"}
+                {isPublic ? "Общий фильтр" : "Личный фильтр"}
               </Label>
             </div>
             <div className="flex justify-end gap-2">
@@ -305,7 +302,7 @@ export default function CustomFilterManager({
                 onClick={handleSaveCurrentFilters}
                 disabled={createFilterMutation.isPending || updateFilterMutation.isPending}
               >
-                {editingFilter ? "Сохранить" : "Сохранить"}
+                {editingFilter ? "Сохранить" : "Создать"}
               </Button>
             </div>
           </div>
@@ -317,19 +314,22 @@ export default function CustomFilterManager({
         <DialogTrigger asChild>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-1" />
-            {"Сохранить"} ({savedFilters.length})
+            {"Мои фильтры"} ({savedFilters.length})
           </Button>
         </DialogTrigger>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{"Сохранить"}</DialogTitle>
+            <DialogTitle>{"Управление фильтрами"}</DialogTitle>
+            <DialogDescription>
+              {"Просмотр, применение и управление сохранёнными фильтрами"}
+            </DialogDescription>
           </DialogHeader>
           
           {savedFilters.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>{"Сохранить"}</p>
-              <p className="text-sm mt-2">{"Сохранить"}</p>
+              <p>{"Нет сохраненных фильтров"}</p>
+              <p className="text-sm mt-2">{"Сохраните фильтр для быстрого доступа в будущем"}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -347,21 +347,21 @@ export default function CustomFilterManager({
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-2">
-                          <Badge variant={filter.isPublic === "true" ? "default" : "secondary"}>
-                            {filter.isPublic === "true" ? (
+                          <Badge variant={filter.shared ? "default" : "secondary"}>
+                            {filter.shared ? (
                               <>
                                 <Users className="h-3 w-3 mr-1" />
-                                {"Сохранить"}
+                                {"Общий"}
                               </>
                             ) : (
                               <>
                                 <Lock className="h-3 w-3 mr-1" />
-                                {"Сохранить"}
+                                {"Личный"}
                               </>
                             )}
                           </Badge>
                           <span className="text-xs text-muted-foreground">
-                            {"Сохранить"} {filter.createdBy}
+                            {"Автор:"} {filter.createdBy}
                           </span>
                         </div>
                       </div>
@@ -395,10 +395,10 @@ export default function CustomFilterManager({
                               <AlertDialogContent>
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>
-                                    {"Сохранить"}
+                                    {"Удалить фильтр"}
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    {"Сохранить"}
+                                    {"Вы уверены, что хотите удалить этот фильтр? Это действие нельзя отменить."}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>

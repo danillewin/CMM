@@ -504,6 +504,8 @@ export class DatabaseStorage implements IStorage {
       relationshipManager: row.relationship_manager,
       salesPerson: row.recruiter,
       date: row.date,
+      time: row.time,
+      meetingLink: row.meeting_link,
       researchId: row.research_id,
       status: row.status,
       notes: row.notes,
@@ -526,13 +528,13 @@ export class DatabaseStorage implements IStorage {
         INSERT INTO meetings (
           respondent_name, respondent_position, cnum, 
           gcc, company_name, email, researcher, 
-          relationship_manager, recruiter, date, 
+          relationship_manager, recruiter, date, time, meeting_link,
           research_id, status, notes, full_text, has_gift
         ) VALUES (
           $1, $2, $3, 
           $4, $5, $6, $7, 
-          $8, $9, $10, 
-          $11, $12, $13, $14, $15
+          $8, $9, $10, $11, $12,
+          $13, $14, $15, $16, $17
         ) RETURNING *
       `;
 
@@ -547,6 +549,8 @@ export class DatabaseStorage implements IStorage {
         meeting.relationshipManager,
         meeting.salesPerson,
         meeting.date,
+        meeting.time || null,
+        meeting.meetingLink || null,
         meeting.researchId,
         meeting.status,
         meeting.notes || null,
@@ -608,14 +612,16 @@ export class DatabaseStorage implements IStorage {
           relationship_manager = $8,
           recruiter = $9,
           date = $10,
-          research_id = $11,
-          status = $12,
-          notes = $13,
-          full_text = $14,
-          has_gift = $15,
-          summarization_status = $16,
-          summarization_result = $17
-        WHERE id = $18
+          time = $11,
+          meeting_link = $12,
+          research_id = $13,
+          status = $14,
+          notes = $15,
+          full_text = $16,
+          has_gift = $17
+          summarization_status = $18,
+          summarization_result = $19
+        WHERE id = $20
         RETURNING *
       `;
 
@@ -630,6 +636,8 @@ export class DatabaseStorage implements IStorage {
         meeting.relationshipManager,
         meeting.salesPerson,
         meeting.date,
+        meeting.time || null,
+        meeting.meetingLink || null,
         meeting.researchId,
         meeting.status,
         meeting.notes || null,

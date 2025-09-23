@@ -109,6 +109,8 @@ export const meetings = pgTable("meetings", {
   relationshipManager: text("relationship_manager").notNull(),
   salesPerson: text("recruiter").notNull(),
   date: timestamp("date").notNull(),
+  time: text("time"), // Optional time field
+  meetingLink: text("meeting_link"), // Optional meeting link field
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
   notes: text("notes"),
@@ -179,6 +181,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
 }).extend({
   date: z.coerce.date(),
+  time: z.string().nullable().optional(), // Optional time field
+  meetingLink: z.string().nullable().optional(), // Optional meeting link field
   cnum: z.string().optional().transform((val) => val ? val.toUpperCase() : val),
   gcc: z.string().optional(),
   status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])

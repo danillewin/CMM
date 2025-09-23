@@ -796,6 +796,7 @@ export default function MeetingDetail() {
   // Parse navigation source context
   const sourceType = searchParams.get("source"); // "research" or null
   const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
+  const fromContext = searchParams.get('from'); // This is what research-detail.tsx uses
   
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -997,10 +998,14 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (sourceType === "research" && sourceId) {
+    if (fromContext === "research" && preselectedResearchId) {
+      // If creating from research page, go back to research page
+      setLocation(`/researches/${preselectedResearchId}`);
+    } else if (sourceType === "research" && sourceId) {
+      // If editing existing meeting from research context
       setLocation(`/researches/${sourceId}`);
     } else {
-      setLocation("/");
+      setLocation("/meetings");
     }
   };
 
@@ -1032,7 +1037,10 @@ export default function MeetingDetail() {
           </Button>
           <span className="mx-2 text-gray-300">/</span>
           <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
-            {sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи"}
+            {fromContext === "research" && preselectedResearch ? 
+              preselectedResearch.name :
+              (sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи")
+            }
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
