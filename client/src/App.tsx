@@ -16,7 +16,7 @@ import Jtbds from "@/pages/jtbds";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import { useScrollTop } from "@/hooks/use-scroll-top";
-import { LogIn, LogOut, User } from "lucide-react";
+import { LogIn, LogOut, User, Loader2 } from "lucide-react";
 
 function Navigation() {
   const [location] = useLocation();
@@ -103,6 +103,72 @@ function Router() {
   );
 }
 
+// Loading screen component
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+        <p className="text-gray-600">Checking authentication...</p>
+      </div>
+    </div>
+  );
+}
+
+// Login screen component
+function LoginScreen() {
+  const { login } = useAuth();
+  
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full space-y-8 p-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            Welcome to Research App
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Please sign in to continue
+          </p>
+        </div>
+        <div className="mt-8 space-y-6">
+          <Button 
+            onClick={login}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign in with Keycloak
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main App content component
+function AppContent() {
+  const { isAuthenticated, isLoading, isInitialized } = useAuth();
+  
+  // Show loading screen while checking authentication
+  if (isLoading || !isInitialized) {
+    return <LoadingScreen />;
+  }
+  
+  // Show login screen if not authenticated (only in production mode)
+  const isDevelopmentMode = !import.meta.env.VITE_KEYCLOAK_URL;
+  if (!isDevelopmentMode && !isAuthenticated) {
+    return <LoginScreen />;
+  }
+  
+  // Show main app content when authenticated
+  return (
+    <>
+      <Navigation />
+      <Router />
+      <Toaster />
+    </>
+  );
+}
+
 function App() {
   // Hook to instantly scroll to top on page navigation
   useScrollTop();
@@ -110,9 +176,7 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
-        <Navigation />
-        <Router />
-        <Toaster />
+        <AppContent />
       </QueryClientProvider>
     </AuthProvider>
   );
