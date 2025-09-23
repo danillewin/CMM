@@ -16,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   token: string | null;
   isInitialized: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,22 +30,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     console.log('AuthProvider initialized');
     
-    // Initialize Keycloak with callback
-    initKeycloak(() => {
-      // This callback is called when authentication is successful
-      const userInfo = getUserInfo();
-      const userToken = getToken();
-      
-      setIsAuthenticated(isLoggedIn());
-      setUser(userInfo);
-      setToken(userToken);
-      setIsInitialized(true);
-    });
-
     // Check if we're in development mode (no VITE_KEYCLOAK_URL)
     const isDevelopmentMode = !import.meta.env.VITE_KEYCLOAK_URL;
     
@@ -56,16 +46,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       setIsAuthenticated(true);
       setUser(userInfo);
-      setToken(userToken);
+      setToken(userToken || null);
       setIsInitialized(true);
+      setIsLoading(false);
     } else {
-      // In production mode, set initial state if not authenticated
-      if (!isLoggedIn()) {
-        setIsAuthenticated(false);
-        setUser(null);
-        setToken(null);
+      // In production mode, require Keycloak authentication
+      console.log('Production mode: Checking Keycloak authentication');
+      
+      // Initialize Keycloak with callback
+      initKeycloak(() => {
+        // This callback is called when authentication is successful
+        const userInfo = getUserInfo();
+        const userToken = getToken();
+        
+        if (isLoggedIn()) {
+          setIsAuthenticated(true);
+          setUser(userInfo);
+          setToken(userToken || null);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+          setToken(null);
+          // Automatically redirect to login if not authenticated
+          console.log('No valid token found, redirecting to login');
+          doLogin();
+          return; // Don't set initialized yet
+        }
+        
         setIsInitialized(true);
-      }
+        setIsLoading(false);
+      });
     }
   }, []);
 
@@ -92,6 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         logout: handleLogout,
         token,
         isInitialized,
+        isLoading,
       }}
     >
       {children}
