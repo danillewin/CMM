@@ -357,10 +357,12 @@ export default function RoadmapPage() {
                                 return (
                                   <Card
                                     key={research.id}
-                                    className="shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 border-0 mb-3"
+                                    className="shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 border-0 mb-3 inline-block"
                                     style={{
                                       marginLeft: `${left}px`,
-                                      width: `${width}px`,
+                                      minWidth: `${Math.max(width, 120 * zoomLevel)}px`,
+                                      width: 'fit-content',
+                                      maxWidth: `${Math.max(width * 1.5, 200 * zoomLevel)}px`,
                                       minHeight: `${Math.max(70 * zoomLevel, 60)}px`,
                                       backgroundColor: `${research.color}`,
                                       borderRadius: `${6 * zoomLevel}px`,
@@ -371,6 +373,7 @@ export default function RoadmapPage() {
                                       className="flex flex-col p-2 h-full"
                                       style={{ 
                                         padding: `${Math.max(8 * zoomLevel, 6)}px`,
+                                        minWidth: '0', // Allows text to wrap properly
                                       }}
                                     >
                                       {/* Title */}
@@ -384,7 +387,9 @@ export default function RoadmapPage() {
                                           WebkitLineClamp: 2,
                                           WebkitBoxOrient: 'vertical',
                                           overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
+                                          textOverflow: 'ellipsis',
+                                          wordBreak: 'break-word',
+                                          hyphens: 'auto'
                                         }}
                                       >
                                         {research.name}
@@ -401,7 +406,9 @@ export default function RoadmapPage() {
                                           WebkitLineClamp: 2,
                                           WebkitBoxOrient: 'vertical',
                                           overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
+                                          textOverflow: 'ellipsis',
+                                          wordBreak: 'break-word',
+                                          hyphens: 'auto'
                                         }}
                                       >
                                         {viewMode === "teams" ? research.researcher : research.team}
@@ -419,7 +426,9 @@ export default function RoadmapPage() {
                                             WebkitBoxOrient: 'vertical',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
-                                            minWidth: '0'
+                                            minWidth: '0',
+                                            wordBreak: 'break-word',
+                                            hyphens: 'auto'
                                           }}
                                         >
                                           {research.researchType}
