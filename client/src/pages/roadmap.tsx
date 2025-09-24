@@ -357,13 +357,13 @@ export default function RoadmapPage() {
           </Popover>
         </div>
 
-        <div className="h-[calc(100vh-12rem)] flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm overflow-hidden">
+        <div className="flex flex-col rounded-lg border bg-white/80 backdrop-blur-sm overflow-hidden max-h-[75vh]">
           <ScrollArea className="flex-1">
             <div className="min-w-full">
               <table className="min-w-full">
                 <thead className="sticky top-0 bg-white/95 backdrop-blur-sm z-40">
                   <tr>
-                    <th className="w-48 p-4 font-medium border-r border-b text-left z-40">
+                    <th className="w-48 p-2 font-medium border-r border-b text-left z-40">
                       {viewMode === "teams" ? "Team" : "Researcher"}
                     </th>
                     <th className="border-b p-0" style={{ width: `${monthWidth * months.length}px` }}>
@@ -371,7 +371,7 @@ export default function RoadmapPage() {
                         {months.map((month, i) => (
                           <div
                             key={i}
-                            className="border-r p-4 font-medium text-center"
+                            className="border-r p-2 font-medium text-center"
                             style={{ width: monthWidth }}
                           >
                             {format(month, 'MMMM yyyy')}
@@ -387,7 +387,7 @@ export default function RoadmapPage() {
                     return (
                       <tr key={group}>
                         <td 
-                          className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-30"
+                          className="w-48 p-2 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-30"
                         >
                           {group}
                         </td>
@@ -403,13 +403,13 @@ export default function RoadmapPage() {
                               return a.name.localeCompare(b.name);
                             });
                             
-                            const cardHeight = Math.max(70 * zoomLevel, 60);
-                            const cardSpacing = Math.max(25, 15 * zoomLevel); // Larger spacing to prevent cards from touching
+                            const cardHeight = Math.max(45 * zoomLevel, 40);
+                            const cardSpacing = Math.max(12, 8 * zoomLevel); // Compact spacing for fitting on one page
                             const containerHeight = sortedResearches.length * (cardHeight + cardSpacing) + 20;
                             
                             return (
                               <div 
-                                className="py-2 relative" 
+                                className="py-1 relative" 
                                 style={{ minHeight: `${containerHeight}px` }}
                               >
                                 {sortedResearches.map((research, index) => {
@@ -427,7 +427,7 @@ export default function RoadmapPage() {
                                         minWidth: `${Math.max(width, 120 * zoomLevel)}px`,
                                         width: 'fit-content',
                                         maxWidth: `${Math.max(width * 1.5, 200 * zoomLevel)}px`,
-                                        minHeight: `${Math.max(70 * zoomLevel, 60)}px`,
+                                        minHeight: `${Math.max(45 * zoomLevel, 40)}px`,
                                         backgroundColor: `${research.color}`,
                                         borderRadius: `${6 * zoomLevel}px`,
                                       }}
@@ -436,7 +436,7 @@ export default function RoadmapPage() {
                                       <div 
                                         className="flex flex-col p-2 h-full mt-[0px] mb-[0px] pt-[0px] pb-[0px]"
                                         style={{ 
-                                          padding: `${Math.max(8 * zoomLevel, 6)}px`,
+                                          padding: `${Math.max(6 * zoomLevel, 4)}px`,
                                           minWidth: '0', // Allows text to wrap properly
                                         }}
                                       >
@@ -444,9 +444,9 @@ export default function RoadmapPage() {
                                         <div 
                                           className="font-semibold text-white mb-1 leading-tight"
                                           style={{ 
-                                            fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
-                                            lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
-                                            marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
+                                            fontSize: `${Math.max(11 * zoomLevel, 9)}px`,
+                                            lineHeight: `${Math.max(14 * zoomLevel, 10)}px`,
+                                            marginBottom: `${Math.max(2 * zoomLevel, 1)}px`,
                                             display: '-webkit-box',
                                             WebkitLineClamp: 2,
                                             WebkitBoxOrient: 'vertical',
