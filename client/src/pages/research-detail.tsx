@@ -3309,6 +3309,8 @@ function ResearchDetail() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research created successfully" });
       // Redirect to the newly created research detail page
       setLocation(`/researches/${data.id}`);
@@ -3335,6 +3337,8 @@ function ResearchDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/researches", id] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research updated successfully" });
     },
     onError: (error) => {
@@ -3357,6 +3361,8 @@ function ResearchDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research deleted successfully" });
       setLocation("/researches"); // Return to researches list
     },

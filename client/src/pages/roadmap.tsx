@@ -64,7 +64,10 @@ function getCardPosition(research: Research, monthWidth: number, timelineStart: 
 
   const left = getExactPosition(start);
   const right = getExactPosition(end);
-  const width = Math.max(50, right - left);
+  // Calculate width based on actual duration, with reasonable minimum
+  const calculatedWidth = right - left;
+  const minWidth = Math.max(80, monthWidth * 0.2); // Minimum width based on zoom
+  const width = Math.max(minWidth, calculatedWidth);
 
   return { left, width };
 }
