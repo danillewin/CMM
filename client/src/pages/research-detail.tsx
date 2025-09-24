@@ -1037,7 +1037,6 @@ function ResearchRecruitmentView({
         {/* Basic Info */}
         {(research.recruitmentQuantity || research.recruitmentRoles) && (
           <div className="py-2">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Общая информация</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               {research.recruitmentQuantity && (
                 <div>
@@ -1060,7 +1059,6 @@ function ResearchRecruitmentView({
           (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
           (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)) && (
           <div className="py-2">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Сегменты и продукты</h3>
             <div className="space-y-2 text-sm">
               {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
                 <div>
@@ -1096,7 +1094,6 @@ function ResearchRecruitmentView({
         {((research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) ||
           (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)) && (
           <div className="py-2">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Дополнительные критерии</h3>
             <div className="space-y-2 text-sm">
               {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
                 <div>
@@ -1122,7 +1119,6 @@ function ResearchRecruitmentView({
         {/* FISA Restrictions */}
         {research.recruitmentRestrictions !== undefined && (
           <div className="py-2">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Ограничения</h3>
             <div className="text-sm">
               <span className="text-gray-600">Ограничения по FISA:</span>
               <span className="ml-2 text-gray-900">
