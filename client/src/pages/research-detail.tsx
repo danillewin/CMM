@@ -1032,101 +1032,89 @@ function ResearchRecruitmentView({
         </Button>
       </div>
 
-      {/* Content in simple layout */}
-      <div className="space-y-2">
-        {/* Basic Info */}
-        {(research.recruitmentQuantity || research.recruitmentRoles) && (
-          <div className="py-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              {research.recruitmentQuantity && (
-                <div>
-                  <span className="text-gray-600">Количество респондентов:</span>
-                  <span className="ml-2 text-gray-900">{research.recruitmentQuantity}</span>
-                </div>
-              )}
-              {research.recruitmentRoles && (
-                <div>
-                  <span className="text-gray-600">Роли респондентов:</span>
-                  <span className="ml-2 text-gray-900">{research.recruitmentRoles}</span>
-                </div>
-              )}
+      {/* Content in two columns layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div className="space-y-3">
+          {/* Количество респондентов */}
+          {research.recruitmentQuantity && (
+            <div>
+              <span className="text-base font-semibold text-black">Количество респондентов:</span>
+              <div className="mt-1 text-gray-900">{research.recruitmentQuantity}</div>
             </div>
-          </div>
-        )}
-
-        {/* Segments and Products */}
-        {((research.recruitmentSegments && research.recruitmentSegments.length > 0) || 
-          (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
-          (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)) && (
-          <div className="py-2">
-            <div className="space-y-2 text-sm">
-              {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
-                <div>
-                  <span className="text-gray-600">Сегменты:</span>
-                  <span className="ml-2 text-gray-900">
-                    {research.recruitmentSegments.join(', ')}
-                  </span>
-                </div>
-              )}
-              
-              {research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0 && (
-                <div>
-                  <span className="text-gray-600">Используемые продукты:</span>
-                  <span className="ml-2 text-gray-900">
-                    {research.recruitmentUsedProducts.join(', ')}
-                  </span>
-                </div>
-              )}
-
-              {research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0 && (
-                <div>
-                  <span className="text-gray-600">Используемые каналы:</span>
-                  <span className="ml-2 text-gray-900">
-                    {research.recruitmentUsedChannels.join(', ')}
-                  </span>
-                </div>
-              )}
+          )}
+          
+          {/* Сегменты */}
+          {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
+            <div>
+              <span className="text-base font-semibold text-black">Сегменты:</span>
+              <div className="mt-1 text-gray-900">
+                {research.recruitmentSegments.join(', ')}
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* CQ Range and Legal Entity */}
-        {((research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) ||
-          (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)) && (
-          <div className="py-2">
-            <div className="space-y-2 text-sm">
-              {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
-                <div>
-                  <span className="text-gray-600">Диапазон CQ:</span>
-                  <span className="ml-2 text-gray-900">
-                    {research.recruitmentCqMin} - {research.recruitmentCqMax}
-                  </span>
-                </div>
-              )}
-              
-              {research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0 && (
-                <div>
-                  <span className="text-gray-600">Тип юридического лица:</span>
-                  <span className="ml-2 text-gray-900">
-                    {research.recruitmentLegalEntityType.join(', ')}
-                  </span>
-                </div>
-              )}
+          )}
+          
+          {/* Роли респондентов */}
+          {research.recruitmentRoles && (
+            <div>
+              <span className="text-base font-semibold text-black">Роли респондентов:</span>
+              <div className="mt-1 text-gray-900">{research.recruitmentRoles}</div>
             </div>
-          </div>
-        )}
-
-        {/* FISA Restrictions */}
-        {research.recruitmentRestrictions !== undefined && (
-          <div className="py-2">
-            <div className="text-sm">
-              <span className="text-gray-600">Ограничения по FISA:</span>
-              <span className="ml-2 text-gray-900">
+          )}
+          
+          {/* Используемые продукты */}
+          {research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0 && (
+            <div>
+              <span className="text-base font-semibold text-black">Используемые продукты:</span>
+              <div className="mt-1 text-gray-900">
+                {research.recruitmentUsedProducts.join(', ')}
+              </div>
+            </div>
+          )}
+          
+          {/* Используемые каналы */}
+          {research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0 && (
+            <div>
+              <span className="text-base font-semibold text-black">Используемые каналы:</span>
+              <div className="mt-1 text-gray-900">
+                {research.recruitmentUsedChannels.join(', ')}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Right Column */}
+        <div className="space-y-3">
+          {/* Тип юридического лица */}
+          {research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0 && (
+            <div>
+              <span className="text-base font-semibold text-black">Тип юридического лица:</span>
+              <div className="mt-1 text-gray-900">
+                {research.recruitmentLegalEntityType.join(', ')}
+              </div>
+            </div>
+          )}
+          
+          {/* Ограничения по FISA */}
+          {research.recruitmentRestrictions !== undefined && (
+            <div>
+              <span className="text-base font-semibold text-black">Ограничения по FISA:</span>
+              <div className="mt-1 text-gray-900">
                 {research.recruitmentRestrictions ? "Да" : "Нет"}
-              </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+          
+          {/* Диапазон CQ */}
+          {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
+            <div>
+              <span className="text-base font-semibold text-black">Диапазон CQ:</span>
+              <div className="mt-1 text-gray-900">
+                {research.recruitmentCqMin} - {research.recruitmentCqMax}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
