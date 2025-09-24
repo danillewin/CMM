@@ -380,8 +380,11 @@ export default function RoadmapPage() {
                                           fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
                                           lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
                                           marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
-                                          wordBreak: 'break-word',
-                                          whiteSpace: 'normal'
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
                                         }}
                                       >
                                         {research.name}
@@ -394,8 +397,11 @@ export default function RoadmapPage() {
                                           fontSize: `${Math.max(10 * zoomLevel, 8)}px`,
                                           lineHeight: `${Math.max(12 * zoomLevel, 10)}px`,
                                           marginBottom: `${Math.max(4 * zoomLevel, 3)}px`,
-                                          wordBreak: 'break-word',
-                                          whiteSpace: 'normal'
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis'
                                         }}
                                       >
                                         {viewMode === "teams" ? research.researcher : research.team}
@@ -408,8 +414,11 @@ export default function RoadmapPage() {
                                           className="text-white/80 text-xs font-medium flex-1"
                                           style={{ 
                                             fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
-                                            wordBreak: 'break-word',
-                                            whiteSpace: 'normal',
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
                                             minWidth: '0'
                                           }}
                                         >
