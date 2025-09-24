@@ -65,10 +65,11 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
            isWithinInterval(start, { start: current, end: currentEnd });
   });
 
-  // Return position based on number of overlaps, with vertical spacing scaled by zoom level
-  const baseSpacing = 100;
-  const basePadding = 20;
-  return overlapping.length * (baseSpacing * zoomLevel) + (basePadding * zoomLevel);
+  // Return position with proper spacing to prevent overlap
+  const cardHeight = Math.max(90 * zoomLevel, 70);
+  const cardSpacing = Math.max(10 * zoomLevel, 8);
+  const basePadding = Math.max(10 * zoomLevel, 8);
+  return overlapping.length * (cardHeight + cardSpacing) + basePadding;
 }
 
 export default function RoadmapPage() {
@@ -350,9 +351,10 @@ export default function RoadmapPage() {
                 </thead>
                 <tbody>
                   {Object.entries(groupedResearches).map(([group, groupResearches]) => {
+                    const cardHeight = Math.max(90 * zoomLevel, 70);
                     const maxOverlap = Math.max(...groupResearches.map((_, i) => 
                       getVerticalPosition(groupResearches[i], groupResearches, i, zoomLevel)
-                    ));
+                    )) + cardHeight;
                     return (
                       <tr key={group}>
                         <td 
@@ -379,62 +381,73 @@ export default function RoadmapPage() {
                                   left: `${left}px`,
                                   width: `${width}px`,
                                   top: `${top}px`,
-                                  height: `${Math.max(80 * zoomLevel, 60)}px`,
+                                  height: `${Math.max(90 * zoomLevel, 70)}px`,
                                   backgroundColor: `${research.color}`,
                                   borderRadius: `${6 * zoomLevel}px`,
                                 }}
                                 onClick={() => handleResearchClick(research)}
                               >
                                 <div 
-                                  className="h-full flex flex-col justify-between p-3"
+                                  className="h-full flex flex-col p-2"
                                   style={{ 
-                                    padding: `${Math.max(12 * zoomLevel, 8)}px`,
+                                    padding: `${Math.max(8 * zoomLevel, 6)}px`,
                                   }}
                                 >
-                                  <div className="flex-1 min-h-0">
-                                    <div 
-                                      className="font-semibold text-white mb-1 leading-tight"
-                                      style={{ 
-                                        fontSize: `${Math.max(14 * zoomLevel, 11)}px`,
-                                        lineHeight: `${Math.max(18 * zoomLevel, 14)}px`,
-                                        marginBottom: `${Math.max(4 * zoomLevel, 2)}px`
-                                      }}
-                                      title={research.name}
-                                    >
-                                      {research.name}
-                                    </div>
-                                    <div 
-                                      className="text-white/90 text-xs leading-tight"
-                                      style={{ 
-                                        fontSize: `${Math.max(11 * zoomLevel, 9)}px`,
-                                        lineHeight: `${Math.max(14 * zoomLevel, 12)}px`,
-                                        marginBottom: `${Math.max(2 * zoomLevel, 1)}px`
-                                      }}
-                                    >
-                                      {viewMode === "teams" ? research.researcher : research.team}
-                                    </div>
+                                  {/* Title */}
+                                  <div 
+                                    className="font-semibold text-white mb-1 leading-tight overflow-hidden"
+                                    style={{ 
+                                      fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
+                                      lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
+                                      marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis'
+                                    }}
+                                    title={research.name}
+                                  >
+                                    {research.name}
                                   </div>
                                   
+                                  {/* Researcher/Team */}
                                   <div 
-                                    className="flex items-center justify-between mt-auto"
+                                    className="text-white/90 text-xs leading-tight overflow-hidden flex-shrink-0"
                                     style={{ 
-                                      marginTop: `${Math.max(6 * zoomLevel, 4)}px`
+                                      fontSize: `${Math.max(10 * zoomLevel, 8)}px`,
+                                      lineHeight: `${Math.max(12 * zoomLevel, 10)}px`,
+                                      marginBottom: `${Math.max(4 * zoomLevel, 3)}px`,
+                                      whiteSpace: 'nowrap',
+                                      textOverflow: 'ellipsis'
                                     }}
+                                    title={viewMode === "teams" ? research.researcher : research.team}
                                   >
+                                    {viewMode === "teams" ? research.researcher : research.team}
+                                  </div>
+                                  
+                                  {/* Bottom section */}
+                                  <div className="mt-auto flex items-center justify-between gap-2">
+                                    {/* Research Type */}
                                     <div 
-                                      className="text-white/80 text-xs font-medium"
+                                      className="text-white/80 text-xs font-medium overflow-hidden flex-1"
                                       style={{ 
-                                        fontSize: `${Math.max(10 * zoomLevel, 8)}px`
+                                        fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis'
                                       }}
+                                      title={research.researchType}
                                     >
                                       {research.researchType}
                                     </div>
+                                    
+                                    {/* Status Badge */}
                                     <div 
-                                      className="bg-white/20 px-2 py-1 rounded-full text-white text-xs font-medium"
+                                      className="bg-white/20 rounded-full text-white text-xs font-medium flex-shrink-0"
                                       style={{ 
-                                        fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
-                                        padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
-                                        borderRadius: `${Math.max(12 * zoomLevel, 8)}px`
+                                        fontSize: `${Math.max(8 * zoomLevel, 6)}px`,
+                                        padding: `${Math.max(1 * zoomLevel, 1)}px ${Math.max(4 * zoomLevel, 3)}px`,
+                                        borderRadius: `${Math.max(10 * zoomLevel, 6)}px`
                                       }}
                                       title={research.status}
                                     >
