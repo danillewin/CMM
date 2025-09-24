@@ -430,88 +430,88 @@ export default function RoadmapPage() {
                                       }}
                                       onClick={() => handleResearchClick(research)}
                                     >
-                                    <div 
-                                      className="flex flex-col p-2 h-full"
-                                      style={{ 
-                                        padding: `${Math.max(8 * zoomLevel, 6)}px`,
-                                        minWidth: '0', // Allows text to wrap properly
-                                      }}
-                                    >
-                                      {/* Title */}
                                       <div 
-                                        className="font-semibold text-white mb-1 leading-tight"
+                                        className="flex flex-col p-2 h-full mt-[0px] mb-[0px] pt-[0px] pb-[0px]"
                                         style={{ 
-                                          fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
-                                          lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
-                                          marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
-                                          display: '-webkit-box',
-                                          WebkitLineClamp: 2,
-                                          WebkitBoxOrient: 'vertical',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          wordBreak: 'break-word',
-                                          hyphens: 'auto'
+                                          padding: `${Math.max(8 * zoomLevel, 6)}px`,
+                                          minWidth: '0', // Allows text to wrap properly
                                         }}
                                       >
-                                        {research.name}
-                                      </div>
-                                      
-                                      {/* Researcher/Team */}
-                                      <div 
-                                        className="text-white/90 text-xs leading-tight flex-shrink-0"
-                                        style={{ 
-                                          fontSize: `${Math.max(10 * zoomLevel, 8)}px`,
-                                          lineHeight: `${Math.max(12 * zoomLevel, 10)}px`,
-                                          marginBottom: `${Math.max(4 * zoomLevel, 3)}px`,
-                                          display: '-webkit-box',
-                                          WebkitLineClamp: 2,
-                                          WebkitBoxOrient: 'vertical',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          wordBreak: 'break-word',
-                                          hyphens: 'auto'
-                                        }}
-                                      >
-                                        {viewMode === "teams" ? research.researcher : research.team}
-                                      </div>
-                                      
-                                      {/* Bottom section */}
-                                      <div className="mt-auto flex items-center justify-between gap-2 flex-wrap">
-                                        {/* Research Type */}
+                                        {/* Title */}
                                         <div 
-                                          className="text-white/80 text-xs font-medium flex-1"
+                                          className="font-semibold text-white mb-1 leading-tight"
                                           style={{ 
-                                            fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
+                                            fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
+                                            lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
+                                            marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
                                             display: '-webkit-box',
                                             WebkitLineClamp: 2,
                                             WebkitBoxOrient: 'vertical',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
-                                            minWidth: '0',
                                             wordBreak: 'break-word',
                                             hyphens: 'auto'
                                           }}
                                         >
-                                          {research.researchType}
+                                          {research.name}
                                         </div>
                                         
-                                        {/* Status Badge */}
+                                        {/* Researcher/Team */}
                                         <div 
-                                          className="bg-white/20 rounded-full text-white text-xs font-medium flex-shrink-0 mt-1"
+                                          className="text-white/90 text-xs leading-tight flex-shrink-0"
                                           style={{ 
-                                            fontSize: `${Math.max(8 * zoomLevel, 6)}px`,
-                                            padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
-                                            borderRadius: `${Math.max(10 * zoomLevel, 6)}px`
+                                            fontSize: `${Math.max(10 * zoomLevel, 8)}px`,
+                                            lineHeight: `${Math.max(12 * zoomLevel, 10)}px`,
+                                            marginBottom: `${Math.max(4 * zoomLevel, 3)}px`,
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            wordBreak: 'break-word',
+                                            hyphens: 'auto'
                                           }}
                                         >
-                                          {research.status === 'In Progress' ? 'In Progress' : 
-                                           research.status === 'Done' ? 'Done' : 
-                                           research.status === 'Planned' ? 'Planned' : research.status}
+                                          {viewMode === "teams" ? research.researcher : research.team}
+                                        </div>
+                                        
+                                        {/* Bottom section */}
+                                        <div className="mt-auto flex items-center justify-between gap-2 flex-wrap">
+                                          {/* Research Type */}
+                                          <div 
+                                            className="text-white/80 text-xs font-medium flex-1"
+                                            style={{ 
+                                              fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
+                                              display: '-webkit-box',
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: 'vertical',
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              minWidth: '0',
+                                              wordBreak: 'break-word',
+                                              hyphens: 'auto'
+                                            }}
+                                          >
+                                            {research.researchType}
+                                          </div>
+                                          
+                                          {/* Status Badge */}
+                                          <div 
+                                            className="bg-white/20 rounded-full text-white text-xs font-medium flex-shrink-0 mt-1"
+                                            style={{ 
+                                              fontSize: `${Math.max(8 * zoomLevel, 6)}px`,
+                                              padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
+                                              borderRadius: `${Math.max(10 * zoomLevel, 6)}px`
+                                            }}
+                                          >
+                                            {research.status === 'In Progress' ? 'In Progress' : 
+                                             research.status === 'Done' ? 'Done' : 
+                                             research.status === 'Planned' ? 'Planned' : research.status}
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  </Card>
-                                );
+                                    </Card>
+                                  );
                               })}
                               </div>
                             );
