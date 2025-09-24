@@ -152,28 +152,17 @@ export default function RoadmapPage() {
   }, {} as Record<string, Research[]>);
 
 
-  // Calculate date range to include all research dates
+  // Calculate date range starting from current month
   const today = new Date();
   const currentMonth = startOfMonth(today);
-  const yearStart = new Date(selectedYear, 0, 1); // January 1st
   const yearEnd = new Date(selectedYear, 11, 31); // December 31st
   
   const dates = researches.flatMap(r => [new Date(r.dateStart), new Date(r.dateEnd)]);
-  const researchMinDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : yearStart;
   const researchMaxDate = dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : yearEnd;
   
-  // Start from the earliest needed date (either current month, year start, or earliest research)
-  const minDate = startOfMonth(new Date(Math.min(
-    currentMonth.getTime(), 
-    yearStart.getTime(), 
-    researchMinDate.getTime()
-  )));
-  
-  const maxDate = endOfMonth(new Date(Math.max(
-    yearEnd.getTime(), 
-    researchMaxDate.getTime()
-  )));
-  
+  // Start from current month, extend to at least year end or research end date
+  const minDate = currentMonth;
+  const maxDate = endOfMonth(new Date(Math.max(yearEnd.getTime(), researchMaxDate.getTime())));
   const months = getMonthsBetween(minDate, maxDate);
 
   // Calculate month width based on zoom level
@@ -411,8 +400,9 @@ export default function RoadmapPage() {
                               return a.name.localeCompare(b.name);
                             });
                             
-                            const cardHeight = Math.max(70 * zoomLevel, 60) + 10;
-                            const containerHeight = sortedResearches.length * (cardHeight + 5) + 20;
+                            const cardHeight = Math.max(70 * zoomLevel, 60);
+                            const cardSpacing = Math.max(15, 10 * zoomLevel); // Increased spacing between cards
+                            const containerHeight = sortedResearches.length * (cardHeight + cardSpacing) + 20;
                             
                             return (
                               <div 
@@ -421,8 +411,8 @@ export default function RoadmapPage() {
                               >
                                 {sortedResearches.map((research, index) => {
                                   const { left, width } = getCardPosition(research, monthWidth, minDate, months);
-                                  // Calculate vertical offset for overlapping cards
-                                  const verticalOffset = index * (cardHeight + 5);
+                                  // Calculate vertical offset with proper spacing
+                                  const verticalOffset = index * (cardHeight + cardSpacing);
                                   
                                   return (
                                     <Card
