@@ -39,6 +39,7 @@ import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
 import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
+import { addMonths } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Popover,
@@ -222,6 +223,14 @@ export default function ResearchForm({
                           if (date) {
                             field.onChange(date);
                             handleFieldChange("dateStart", date);
+                            
+                            // Автоматически устанавливаем дату окончания на месяц вперед при создании нового исследования
+                            const isNewResearch = !initialData?.id;
+                            if (isNewResearch) {
+                              const oneMonthLater = addMonths(date, 1);
+                              form.setValue("dateEnd", oneMonthLater);
+                              handleFieldChange("dateEnd", oneMonthLater);
+                            }
                           }
                         }}
                         placeholder="дд/мм/гг"
