@@ -1303,38 +1303,29 @@ function ResearchRecruitmentForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Набор респондентов</h2>
-          <p className="text-gray-600">Определите параметры поиска и критерии отбора респондентов для вашего исследования</p>
-        </div>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="space-y-4">
 
-        {/* Basic Info Section */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Общая информация</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Recruitment Quantity */}
-        <FormField
-          control={form.control}
-          name="recruitmentQuantity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Количество респондентов
-              </FormLabel>
+          {/* Recruitment Quantity */}
+          <FormField
+            control={form.control}
+            name="recruitmentQuantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Количество респондентов
+                </FormLabel>
               <FormControl>
                 <Input
                   data-testid="input-quantity"
                   type="text"
-                  placeholder="Количество"
+                  placeholder="Например: 15-20"
                   value={field.value || ""}
                   onChange={(e) => {
                     field.onChange(e.target.value);
                     handleFieldChange("recruitmentQuantity", e.target.value);
                   }}
-                  className="w-32"
+                  className="max-w-xs"
                 />
               </FormControl>
               <FormMessage />
@@ -1342,15 +1333,15 @@ function ResearchRecruitmentForm({
           )}
         />
 
-        {/* Recruitment Roles */}
-        <FormField
-          control={form.control}
-          name="recruitmentRoles"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Роли респондентов
-              </FormLabel>
+          {/* Recruitment Roles */}
+          <FormField
+            control={form.control}
+            name="recruitmentRoles"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Роли респондентов
+                </FormLabel>
               <FormControl>
                 <Input
                   data-testid="input-roles"
@@ -1367,37 +1358,38 @@ function ResearchRecruitmentForm({
           )}
         />
 
-        {/* Recruitment Segments - Multiple Selection */}
-        <FormField
-          control={form.control}
-          name="recruitmentSegments"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Сегменты клиентов
-              </FormLabel>
-              <div className="space-y-2">
-                {["SME", "MidMarket", "Large", "International"].map((segment) => (
-                  <div key={segment} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      data-testid={`checkbox-segment-${segment.toLowerCase()}`}
-                      checked={(field.value || []).includes(segment)}
-                      onChange={(e) => {
-                        const currentValues = field.value || [];
-                        let newValues;
-                        if (e.target.checked) {
-                          newValues = [...currentValues, segment];
-                        } else {
-                          newValues = currentValues.filter((v: string) => v !== segment);
-                        }
-                        field.onChange(newValues);
-                        handleFieldChange("recruitmentSegments", newValues);
-                      }}
-                    />
-                    <label className="text-sm">{segment}</label>
-                  </div>
-                ))}
+          {/* Recruitment Segments - Multiple Selection */}
+          <FormField
+            control={form.control}
+            name="recruitmentSegments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Сегменты клиентов
+                </FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {["SME", "MidMarket", "Large", "International"].map((segment) => (
+                    <label key={segment} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        data-testid={`checkbox-segment-${segment.toLowerCase()}`}
+                        checked={(field.value || []).includes(segment)}
+                        onChange={(e) => {
+                          const currentValues = field.value || [];
+                          let newValues;
+                          if (e.target.checked) {
+                            newValues = [...currentValues, segment];
+                          } else {
+                            newValues = currentValues.filter((v: string) => v !== segment);
+                          }
+                          field.onChange(newValues);
+                          handleFieldChange("recruitmentSegments", newValues);
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{segment}</span>
+                    </label>
+                  ))}
               </div>
               <FormMessage />
             </FormItem>
@@ -1410,9 +1402,9 @@ function ResearchRecruitmentForm({
           name="recruitmentUsedProducts"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Используемые продукты
-              </FormLabel>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Используемые продукты
+                </FormLabel>
               <FormControl>
                 <SearchMultiselect
                   data-testid="multiselect-products"
@@ -1436,9 +1428,9 @@ function ResearchRecruitmentForm({
           name="recruitmentUsedChannels"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Используемые каналы
-              </FormLabel>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Используемые каналы
+                </FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -1520,8 +1512,8 @@ function ResearchRecruitmentForm({
 
         {/* CQ Range */}
         <div className="space-y-2">
-          <FormLabel className="text-lg font-medium">
-            Диапазон CQ (от {form.watch("recruitmentCqMin") || 0} до {form.watch("recruitmentCqMax") || 10})
+            <FormLabel className="text-sm font-medium text-gray-700">
+              Диапазон CQ (от {form.watch("recruitmentCqMin") || 0} до {form.watch("recruitmentCqMax") || 10})
           </FormLabel>
           <RangeSlider
             data-testid="slider-cq"
@@ -1549,32 +1541,33 @@ function ResearchRecruitmentForm({
           name="recruitmentLegalEntityType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Тип юридического лица
-              </FormLabel>
-              <div className="space-y-2">
-                {["CNUM", "GCC"].map((entityType) => (
-                  <div key={entityType} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      data-testid={`checkbox-entity-${entityType.toLowerCase()}`}
-                      checked={(field.value || []).includes(entityType)}
-                      onChange={(e) => {
-                        const currentValues = field.value || [];
-                        let newValues;
-                        if (e.target.checked) {
-                          newValues = [...currentValues, entityType];
-                        } else {
-                          newValues = currentValues.filter((v: string) => v !== entityType);
-                        }
-                        field.onChange(newValues);
-                        handleFieldChange("recruitmentLegalEntityType", newValues);
-                      }}
-                    />
-                    <label className="text-sm">{entityType}</label>
-                  </div>
-                ))}
-              </div>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Тип юридического лица
+                </FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {["CNUM", "GCC"].map((entityType) => (
+                    <label key={entityType} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        data-testid={`checkbox-entity-${entityType.toLowerCase()}`}
+                        checked={(field.value || []).includes(entityType)}
+                        onChange={(e) => {
+                          const currentValues = field.value || [];
+                          let newValues;
+                          if (e.target.checked) {
+                            newValues = [...currentValues, entityType];
+                          } else {
+                            newValues = currentValues.filter((v: string) => v !== entityType);
+                          }
+                          field.onChange(newValues);
+                          handleFieldChange("recruitmentLegalEntityType", newValues);
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{entityType}</span>
+                    </label>
+                  ))}
+                </div>
               <FormMessage />
             </FormItem>
           )}
@@ -1586,46 +1579,49 @@ function ResearchRecruitmentForm({
           name="recruitmentRestrictions"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Есть ли у респондентов ограничения по Fisa?
-              </FormLabel>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    data-testid="radio-fisa-yes"
-                    checked={field.value === true}
-                    onChange={() => {
-                      field.onChange(true);
-                      handleFieldChange("recruitmentRestrictions", true);
-                    }}
-                  />
-                  <label className="text-sm">Да</label>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Ограничения по FISA
+                </FormLabel>
+                <div className="flex gap-3">
+                  <label className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      data-testid="radio-fisa-yes"
+                      checked={field.value === true}
+                      onChange={() => {
+                        field.onChange(true);
+                        handleFieldChange("recruitmentRestrictions", true);
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Да</span>
+                  </label>
+                  <label className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      data-testid="radio-fisa-no"
+                      checked={field.value === false}
+                      onChange={() => {
+                        field.onChange(false);
+                        handleFieldChange("recruitmentRestrictions", false);
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Нет</span>
+                  </label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    data-testid="radio-fisa-no"
-                    checked={field.value === false}
-                    onChange={() => {
-                      field.onChange(false);
-                      handleFieldChange("recruitmentRestrictions", false);
-                    }}
-                  />
-                  <label className="text-sm">Нет</label>
-                </div>
-              </div>
               <FormMessage />
             </FormItem>
           )}
         />
-          </div>
         </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Сохранить набор
-        </Button>
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Сохранить
+          </Button>
+        </div>
       </form>
     </Form>
   );
