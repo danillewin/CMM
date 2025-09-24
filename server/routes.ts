@@ -226,6 +226,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Helper function to validate required fields for final save
+  const validateRequiredFields = (data: any): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!data.researcher || data.researcher.trim() === "") {
+      errors.push("Researcher is required");
+    }
+    
+    if (!data.team || data.team.trim() === "") {
+      errors.push("Team is required");
+    }
+    
+    if (!data.name || data.name.trim() === "") {
+      errors.push("Research name is required");
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   app.post("/api/researches", async (req, res) => {
     try {
       console.log("Request body for research creation:", JSON.stringify(req.body, null, 2));
@@ -235,6 +257,17 @@ export function registerRoutes(app: Express): Server {
         res.status(400).json({ message: "Invalid research data", errors: result.error.errors });
         return;
       }
+      
+      // Validate required fields for final save
+      const requiredFieldsValidation = validateRequiredFields(result.data);
+      if (!requiredFieldsValidation.isValid) {
+        res.status(400).json({ 
+          message: "Required fields missing", 
+          errors: requiredFieldsValidation.errors 
+        });
+        return;
+      }
+      
       const research = await storage.createResearch(result.data);
       res.status(201).json(research);
     } catch (error) {

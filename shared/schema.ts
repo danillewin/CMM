@@ -147,10 +147,11 @@ export const insertPositionSchema = createInsertSchema(positions).omit({
 export const insertResearchSchema = createInsertSchema(researches).omit({
   id: true,
 }).extend({
+  name: z.string().optional().default(""),
   dateStart: z.coerce.date().optional().default(() => new Date()),
   dateEnd: z.coerce.date().optional().default(() => new Date()),
-  researcher: z.string().min(1, "Researcher is required"),
-  team: z.string().min(1, "Team is required"),
+  researcher: z.string().optional().default(""),
+  team: z.string().optional().default(""),
   description: z.string().optional().default(""),
   status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
     .default(ResearchStatus.PLANNED),
