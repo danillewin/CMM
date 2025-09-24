@@ -28,27 +28,76 @@ function getMonthsBetween(startDate: Date, endDate: Date) {
   return eachMonthOfInterval({ start: startDate, end: endDate });
 }
 
-function getCardPosition(research: Research, monthWidth: number, timelineStart: Date) {
+function getCardPosition(research: Research, monthWidth: number, timelineStart: Date, months: Date[]) {
   const start = new Date(research.dateStart);
   const end = new Date(research.dateEnd);
 
-  // Calculate days from timeline start to research start
-  const daysFromStart = (start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
+  // Safety check for months array
+  if (!months || months.length === 0) {
+    return { left: 0, width: 100 };
+  }
 
-  // Calculate the width based on the actual duration in days
-  const durationInDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  // Function to calculate exact position within months array
+  function getExactPosition(date: Date) {
+    let totalPixels = 0;
+    
+    for (let i = 0; i < months.length; i++) {
+      const monthStart = startOfMonth(months[i]);
+      const monthEnd = endOfMonth(months[i]);
+      
+      if (date <= monthEnd) {
+        if (date >= monthStart) {
+          // Date falls within this month
+          const daysInMonth = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+          const daysFromMonthStart = (date.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24);
+          const positionInMonth = (daysFromMonthStart / daysInMonth) * monthWidth;
+          return totalPixels + positionInMonth;
+        }
+      } else {
+        // Add full month width and continue
+        totalPixels += monthWidth;
+      }
+    }
+    
+    return totalPixels;
+  }
 
-  // Convert days to pixels based on month width (assuming 30 days per month)
-  const left = (daysFromStart * monthWidth) / 30;
-  const width = Math.max(100, (durationInDays * monthWidth) / 30);
+  const left = getExactPosition(start);
+  const right = getExactPosition(end);
+  const width = Math.max(50, right - left);
 
   return { left, width };
 }
 
-function getCurrentDatePosition(monthWidth: number, timelineStart: Date) {
+function getCurrentDatePosition(monthWidth: number, timelineStart: Date, months: Date[]) {
   const today = new Date();
-  const daysFromStart = (today.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
-  return (daysFromStart * monthWidth) / 30;
+  
+  // Safety check for months array
+  if (!months || months.length === 0) {
+    return 0;
+  }
+  
+  let totalPixels = 0;
+  
+  for (let i = 0; i < months.length; i++) {
+    const monthStart = startOfMonth(months[i]);
+    const monthEnd = endOfMonth(months[i]);
+    
+    if (today <= monthEnd) {
+      if (today >= monthStart) {
+        // Today falls within this month
+        const daysInMonth = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        const daysFromMonthStart = (today.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24);
+        const positionInMonth = (daysFromMonthStart / daysInMonth) * monthWidth;
+        return totalPixels + positionInMonth;
+      }
+    } else {
+      // Add full month width and continue
+      totalPixels += monthWidth;
+    }
+  }
+  
+  return totalPixels;
 }
 
 // Remove the getVerticalPosition function - we'll use normal document flow instead
@@ -144,7 +193,7 @@ export default function RoadmapPage() {
   }
 
   // Calculate current date line position
-  const currentDatePosition = getCurrentDatePosition(monthWidth, minDate);
+  const currentDatePosition = getCurrentDatePosition(monthWidth, minDate, months);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -353,7 +402,7 @@ export default function RoadmapPage() {
                                 return a.name.localeCompare(b.name);
                               })
                               .map((research) => {
-                                const { left, width } = getCardPosition(research, monthWidth, minDate);
+                                const { left, width } = getCardPosition(research, monthWidth, minDate, months);
                                 return (
                                   <Card
                                     key={research.id}
