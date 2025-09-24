@@ -55,21 +55,29 @@ function getVerticalPosition(research: Research, existingResearches: Research[],
   const current = new Date(research.dateStart);
   const currentEnd = new Date(research.dateEnd);
 
-  // Find overlapping researches that started before this one
-  const overlapping = existingResearches.filter((r, i) => {
-    if (i >= index) return false;
-    const start = new Date(r.dateStart);
-    const end = new Date(r.dateEnd);
-    return isWithinInterval(current, { start, end }) ||
-           isWithinInterval(currentEnd, { start, end }) ||
-           isWithinInterval(start, { start: current, end: currentEnd });
-  });
-
-  // Return position with proper spacing to prevent overlap
   const cardHeight = Math.max(90 * zoomLevel, 70);
-  const cardSpacing = Math.max(10 * zoomLevel, 8);
+  const cardSpacing = Math.max(15 * zoomLevel, 12);
   const basePadding = Math.max(10 * zoomLevel, 8);
-  return overlapping.length * (cardHeight + cardSpacing) + basePadding;
+
+  // Calculate position by counting overlapping researches before this one
+  let overlapCount = 0;
+  for (let i = 0; i < index; i++) {
+    const other = existingResearches[i];
+    const otherStart = new Date(other.dateStart);
+    const otherEnd = new Date(other.dateEnd);
+    
+    // Check if there's any overlap between current and other research
+    const hasOverlap = isWithinInterval(current, { start: otherStart, end: otherEnd }) ||
+                      isWithinInterval(currentEnd, { start: otherStart, end: otherEnd }) ||
+                      isWithinInterval(otherStart, { start: current, end: currentEnd }) ||
+                      isWithinInterval(otherEnd, { start: current, end: currentEnd });
+    
+    if (hasOverlap) {
+      overlapCount++;
+    }
+  }
+
+  return basePadding + (overlapCount * (cardHeight + cardSpacing));
 }
 
 export default function RoadmapPage() {
@@ -122,17 +130,16 @@ export default function RoadmapPage() {
   }, {} as Record<string, Research[]>);
 
 
-  // Calculate date range optimized for the selected year
-  // Always show the full selected year, but extend if researches go beyond
-  const yearStart = new Date(selectedYear, 0, 1); // January 1st
+  // Calculate date range starting from today
+  const today = new Date();
+  const currentMonth = startOfMonth(today);
   const yearEnd = new Date(selectedYear, 11, 31); // December 31st
   
   const dates = researches.flatMap(r => [new Date(r.dateStart), new Date(r.dateEnd)]);
-  const researchMinDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : yearStart;
   const researchMaxDate = dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : yearEnd;
   
-  // Show at least the selected year, but extend if researches go beyond
-  const minDate = startOfMonth(new Date(Math.min(yearStart.getTime(), researchMinDate.getTime())));
+  // Start from current month, extend to at least year end or research end date
+  const minDate = currentMonth;
   const maxDate = endOfMonth(new Date(Math.max(yearEnd.getTime(), researchMaxDate.getTime())));
   const months = getMonthsBetween(minDate, maxDate);
 
@@ -364,11 +371,6 @@ export default function RoadmapPage() {
                           {group}
                         </td>
                         <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + (100 * zoomLevel)}px` }}>
-                          {/* Current date line */}
-                          <div
-                            className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-30"
-                            style={{ left: `${currentDatePosition}px` }}
-                          />
                           
                           {groupResearches.map((research, index) => {
                             const { left, width } = getCardPosition(research, monthWidth, minDate);
