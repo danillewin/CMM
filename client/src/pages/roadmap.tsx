@@ -401,7 +401,7 @@ export default function RoadmapPage() {
                             });
                             
                             const cardHeight = Math.max(70 * zoomLevel, 60);
-                            const cardSpacing = Math.max(15, 10 * zoomLevel); // Increased spacing between cards
+                            const cardSpacing = Math.max(25, 15 * zoomLevel); // Larger spacing to prevent cards from touching
                             const containerHeight = sortedResearches.length * (cardHeight + cardSpacing) + 20;
                             
                             return (
