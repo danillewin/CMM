@@ -476,9 +476,28 @@ export default function ResearchForm({
                     <Input
                       {...field}
                       className="w-full"
+                      placeholder="Введите имя и фамилию"
                       onChange={(e) => {
-                        field.onChange(e);
-                        handleFieldChange("researcher", e.target.value);
+                        const input = e.target.value;
+                        // Allow only letters, spaces, and common name characters (hyphens, apostrophes)
+                        const filteredInput = input.replace(/[^а-яёА-ЯЁa-zA-Z\s\-']/g, '');
+                        
+                        // Split by spaces and filter out empty strings
+                        const words = filteredInput.split(/\s+/).filter(word => word.length > 0);
+                        
+                        // Limit to maximum 2 words
+                        let validInput = '';
+                        if (words.length <= 2) {
+                          validInput = filteredInput;
+                        } else {
+                          // Take only first 2 words and join them
+                          validInput = words.slice(0, 2).join(' ');
+                        }
+                        
+                        // Update the field with the validated input
+                        const syntheticEvent = { ...e, target: { ...e.target, value: validInput } };
+                        field.onChange(syntheticEvent);
+                        handleFieldChange("researcher", validInput);
                       }}
                     />
                   </FormControl>
