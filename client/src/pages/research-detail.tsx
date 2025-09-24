@@ -1019,44 +1019,36 @@ function ResearchRecruitmentView({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100 flex-1">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Набор респондентов</h2>
-          <p className="text-gray-600">Параметры поиска и критерии отбора респондентов</p>
-        </div>
+    <div className="space-y-3">
+      {/* Edit button */}
+      <div className="flex justify-end">
         <Button 
           onClick={onEdit}
           variant="outline"
-          className="ml-4 border-blue-200 text-blue-700 hover:bg-blue-50"
+          size="sm"
         >
           <Edit2 className="w-4 h-4 mr-2" />
           Редактировать
         </Button>
       </div>
 
-      {/* Content in cards */}
-      <div className="grid gap-6">
+      {/* Content in simple layout */}
+      <div className="space-y-2">
         {/* Basic Info */}
         {(research.recruitmentQuantity || research.recruitmentRoles) && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Общая информация</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="py-2">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Общая информация</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
               {research.recruitmentQuantity && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Количество респондентов</label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-lg">
-                    {research.recruitmentQuantity}
-                  </div>
+                  <span className="text-gray-600">Количество респондентов:</span>
+                  <span className="ml-2 text-gray-900">{research.recruitmentQuantity}</span>
                 </div>
               )}
               {research.recruitmentRoles && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Роли респондентов</label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-lg">
-                    {research.recruitmentRoles}
-                  </div>
+                  <span className="text-gray-600">Роли респондентов:</span>
+                  <span className="ml-2 text-gray-900">{research.recruitmentRoles}</span>
                 </div>
               )}
             </div>
@@ -1067,45 +1059,33 @@ function ResearchRecruitmentView({
         {((research.recruitmentSegments && research.recruitmentSegments.length > 0) || 
           (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
           (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)) && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Сегменты и продукты</h3>
-            <div className="space-y-4">
+          <div className="py-2">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Сегменты и продукты</h3>
+            <div className="space-y-2 text-sm">
               {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Сегменты</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {research.recruitmentSegments.map((segment, index) => (
-                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
-                        {segment}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="text-gray-600">Сегменты:</span>
+                  <span className="ml-2 text-gray-900">
+                    {research.recruitmentSegments.join(', ')}
+                  </span>
                 </div>
               )}
               
               {research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Используемые продукты</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {research.recruitmentUsedProducts.map((product, index) => (
-                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800">
-                        {product}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="text-gray-600">Используемые продукты:</span>
+                  <span className="ml-2 text-gray-900">
+                    {research.recruitmentUsedProducts.join(', ')}
+                  </span>
                 </div>
               )}
 
               {research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Используемые каналы</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {research.recruitmentUsedChannels.map((channel, index) => (
-                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800">
-                        {channel}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="text-gray-600">Используемые каналы:</span>
+                  <span className="ml-2 text-gray-900">
+                    {research.recruitmentUsedChannels.join(', ')}
+                  </span>
                 </div>
               )}
             </div>
@@ -1115,28 +1095,24 @@ function ResearchRecruitmentView({
         {/* CQ Range and Legal Entity */}
         {((research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) ||
           (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)) && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Дополнительные критерии</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="py-2">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Дополнительные критерии</h3>
+            <div className="space-y-2 text-sm">
               {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Диапазон CQ</label>
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-600">Диапазон CQ:</span>
+                  <span className="ml-2 text-gray-900">
                     {research.recruitmentCqMin} - {research.recruitmentCqMax}
-                  </div>
+                  </span>
                 </div>
               )}
               
               {research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Тип юридического лица</label>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {research.recruitmentLegalEntityType.map((type, index) => (
-                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800">
-                        {type}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="text-gray-600">Тип юридического лица:</span>
+                  <span className="ml-2 text-gray-900">
+                    {research.recruitmentLegalEntityType.join(', ')}
+                  </span>
                 </div>
               )}
             </div>
@@ -1145,19 +1121,13 @@ function ResearchRecruitmentView({
 
         {/* FISA Restrictions */}
         {research.recruitmentRestrictions !== undefined && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 border-b border-gray-200 pb-2">Ограничения</h3>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Ограничения по FISA</label>
-              <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                  research.recruitmentRestrictions 
-                    ? "bg-red-100 text-red-800" 
-                    : "bg-green-100 text-green-800"
-                }`}>
-                  {research.recruitmentRestrictions ? "Да" : "Нет"}
-                </span>
-              </div>
+          <div className="py-2">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">Ограничения</h3>
+            <div className="text-sm">
+              <span className="text-gray-600">Ограничения по FISA:</span>
+              <span className="ml-2 text-gray-900">
+                {research.recruitmentRestrictions ? "Да" : "Нет"}
+              </span>
             </div>
           </div>
         )}
