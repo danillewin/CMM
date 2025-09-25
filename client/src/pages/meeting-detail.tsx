@@ -961,8 +961,12 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: async (data) => {
-      // Only invalidate the specific meeting and avoid broad invalidation
+      // Invalidate the meetings list to show the new meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Also invalidate the specific meeting
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", data.id] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
 
       // If there are selected JTBDs, link them to the newly created meeting
       if (selectedJtbdsForNewMeeting.length > 0) {
@@ -986,14 +990,8 @@ export default function MeetingDetail() {
         toast({ title: "Meeting created successfully" });
       }
 
-      // Redirect based on where the user came from
-      if (fromContext === "research" && fromResearchId) {
-        // If creating from research page, go back to research with new meeting visible
-        setLocation(`/researches/${fromResearchId}`);
-      } else {
-        // Default behavior - go to the newly created meeting detail page
-        setLocation(`/meetings/${data.id}`);
-      }
+      // Default behavior - go to the newly created meeting detail page
+      setLocation(`/meetings/${data.id}`);
     },
     onError: (error) => {
       toast({
@@ -1011,8 +1009,11 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: () => {
-      // Only invalidate the specific meeting, not the entire list
+      // Invalidate the meetings list and specific meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", id] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
       toast({ title: "Meeting updated successfully" });
     },
     onError: (error) => {
@@ -1030,8 +1031,10 @@ export default function MeetingDetail() {
       await apiRequest("DELETE", `/api/meetings/${id}`);
     },
     onSuccess: () => {
-      // Only invalidate when actually navigating back to the list
-      // No need to invalidate here as we're redirecting away from the detail page
+      // Invalidate meetings list to remove deleted meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
       toast({ title: "Meeting deleted successfully" });
       setLocation("/"); // Return to meetings list
     },

@@ -65,6 +65,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Meetings} />
+      <Route path="/meetings/new" component={MeetingDetail} />
       <Route path="/meetings/:id" component={MeetingDetail} />
       <Route path="/researches" component={Researches} />
       <Route path="/researches/:id" component={ResearchDetail} />
