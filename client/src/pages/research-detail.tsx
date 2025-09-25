@@ -987,37 +987,6 @@ function ResearchRecruitmentView({
   research: Research;
   onEdit: () => void;
 }) {
-  const hasRecruitmentData = 
-    research.recruitmentQuantity ||
-    research.recruitmentRoles ||
-    (research.recruitmentSegments && research.recruitmentSegments.length > 0) ||
-    (research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0) ||
-    (research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0) ||
-    research.recruitmentCqMin !== undefined ||
-    research.recruitmentCqMax !== undefined ||
-    (research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0) ||
-    research.recruitmentRestrictions !== undefined;
-
-  if (!hasRecruitmentData) {
-    return (
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100 text-center">
-        <div className="max-w-md mx-auto">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Users className="w-8 h-8 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Данные по рекрутингу не заполнены</h3>
-          <p className="text-gray-600 mb-4">Добавьте информацию о поиске и критериях отбора респондентов</p>
-          <Button 
-            onClick={onEdit}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-          >
-            Заполнить данные рекрутинга
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-3">
       {/* Edit button */}
@@ -1037,83 +1006,83 @@ function ResearchRecruitmentView({
         {/* Left Column */}
         <div className="space-y-3">
           {/* Количество респондентов */}
-          {research.recruitmentQuantity && (
-            <div>
-              <span className="text-base font-semibold text-black">Количество респондентов:</span>
-              <div className="mt-1 text-gray-900">{research.recruitmentQuantity}</div>
+          <div>
+            <span className="text-base font-semibold text-black">Количество респондентов:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentQuantity || "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Сегменты */}
-          {research.recruitmentSegments && research.recruitmentSegments.length > 0 && (
-            <div>
-              <span className="text-base font-semibold text-black">Сегменты:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentSegments.join(', ')}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Сегменты:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentSegments && research.recruitmentSegments.length > 0) 
+                ? research.recruitmentSegments.join(', ') 
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Роли респондентов */}
-          {research.recruitmentRoles && (
-            <div>
-              <span className="text-base font-semibold text-black">Роли респондентов:</span>
-              <div className="mt-1 text-gray-900">{research.recruitmentRoles}</div>
+          <div>
+            <span className="text-base font-semibold text-black">Роли респондентов:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentRoles || "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Используемые продукты */}
-          {research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0 && (
-            <div>
-              <span className="text-base font-semibold text-black">Используемые продукты:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentUsedProducts.join(', ')}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Используемые продукты:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0)
+                ? research.recruitmentUsedProducts.join(', ')
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Используемые каналы */}
-          {research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0 && (
-            <div>
-              <span className="text-base font-semibold text-black">Используемые каналы:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentUsedChannels.join(', ')}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Используемые каналы:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)
+                ? research.recruitmentUsedChannels.join(', ')
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
         </div>
         
         {/* Right Column */}
         <div className="space-y-3">
           {/* Тип юридического лица */}
-          {research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0 && (
-            <div>
-              <span className="text-base font-semibold text-black">Тип юридического лица:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentLegalEntityType.join(', ')}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Тип юридического лица:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)
+                ? research.recruitmentLegalEntityType.join(', ')
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Ограничения по FISA */}
-          {research.recruitmentRestrictions !== undefined && (
-            <div>
-              <span className="text-base font-semibold text-black">Ограничения по FISA:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentRestrictions ? "Да" : "Нет"}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Ограничения по FISA:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentRestrictions !== undefined
+                ? (research.recruitmentRestrictions ? "Да" : "Нет")
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
           
           {/* Диапазон CQ */}
-          {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined) && (
-            <div>
-              <span className="text-base font-semibold text-black">Диапазон CQ:</span>
-              <div className="mt-1 text-gray-900">
-                {research.recruitmentCqMin} - {research.recruitmentCqMax}
-              </div>
+          <div>
+            <span className="text-base font-semibold text-black">Диапазон CQ:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined)
+                ? `${research.recruitmentCqMin} - ${research.recruitmentCqMax}`
+                : "Не заполнено"}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
