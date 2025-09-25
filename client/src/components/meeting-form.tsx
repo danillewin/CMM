@@ -77,7 +77,7 @@ export default function MeetingForm({
   const { lastUsedManager, addManager } = useManagers();
 
   // Properly handle the date conversion for the form
-  const defaultDate = initialData 
+  const defaultDate = initialData && initialData.date 
     ? new Date(initialData.date).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
 
