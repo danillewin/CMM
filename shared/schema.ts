@@ -211,7 +211,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   researcher: z.string().optional(), // Field inherited from Research (not editable)
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
   salesPerson: z.string().min(1, "Recruiter is required"),
-  researchId: z.number({ required_error: "Research is required" }),
+  researchId: z.number().optional(),
   notes: z.string().optional(),
   fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
