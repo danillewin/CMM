@@ -53,8 +53,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from "dompurify";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -1311,7 +1309,7 @@ function ResearchRecruitmentForm({
           )}
         />
 
-          {/* Recruitment Segments - Multiple Selection */}
+          {/* Recruitment Segments - Text Input */}
           <FormField
             control={form.control}
             name="recruitmentSegments"
@@ -1320,34 +1318,22 @@ function ResearchRecruitmentForm({
                 <FormLabel className="text-sm font-medium text-gray-700">
                   Сегменты клиентов
                 </FormLabel>
-                <div className="flex flex-wrap gap-2">
-                  {["SME", "MidMarket", "Large", "International"].map((segment) => (
-                    <label key={segment} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="checkbox"
-                        data-testid={`checkbox-segment-${segment.toLowerCase()}`}
-                        checked={(field.value || []).includes(segment)}
-                        onChange={(e) => {
-                          const currentValues = field.value || [];
-                          let newValues;
-                          if (e.target.checked) {
-                            newValues = [...currentValues, segment];
-                          } else {
-                            newValues = currentValues.filter((v: string) => v !== segment);
-                          }
-                          field.onChange(newValues);
-                          handleFieldChange("recruitmentSegments", newValues);
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{segment}</span>
-                    </label>
-                  ))}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormControl>
+                  <Input
+                    data-testid="input-segments"
+                    placeholder="Например: SME, MidMarket, Large"
+                    value={Array.isArray(field.value) ? field.value.join(", ") : field.value || ""}
+                    onChange={(e) => {
+                      const segments = e.target.value.split(",").map(s => s.trim()).filter(s => s);
+                      field.onChange(segments);
+                      handleFieldChange("recruitmentSegments", segments);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
         {/* Used Products */}
         <FormField
@@ -1375,89 +1361,27 @@ function ResearchRecruitmentForm({
           )}
         />
 
-        {/* Used Channels - Beautiful Multi-Select */}
+        {/* Used Channels - Text Input */}
         <FormField
           control={form.control}
           name="recruitmentUsedChannels"
           render={({ field }) => (
             <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-700">
-                  Используемые каналы
-                </FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className="w-full justify-between h-auto min-h-[40px] text-left"
-                      data-testid="button-channels"
-                    >
-                      <div className="flex flex-wrap gap-1">
-                        {field.value && field.value.length > 0 ? (
-                          field.value.map((channel) => (
-                            <span
-                              key={channel}
-                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
-                            >
-                              {channel}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-muted-foreground">
-                            Выберите каналы...
-                          </span>
-                        )}
-                      </div>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <div className="max-h-60 overflow-y-auto p-3">
-                    <div className="space-y-2">
-                      {[
-                        "Интернет-банк", 
-                        "Мобильное приложение", 
-                        "Отделения", 
-                        "Колл-центр",
-                        "Банкоматы",
-                        "Другое"
-                      ].map((channel) => (
-                        <div
-                          key={channel}
-                          className="flex items-center space-x-2"
-                        >
-                          <Checkbox
-                            id={channel}
-                            checked={
-                              (field.value || []).includes(channel)
-                            }
-                            onCheckedChange={(checked) => {
-                              const currentChannels = field.value || [];
-                              let newChannels;
-                              if (checked) {
-                                newChannels = [...currentChannels, channel];
-                              } else {
-                                newChannels = currentChannels.filter((c: string) => c !== channel);
-                              }
-                              field.onChange(newChannels);
-                              handleFieldChange("recruitmentUsedChannels", newChannels);
-                            }}
-                            data-testid={`checkbox-channel-${channel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                          />
-                          <label
-                            htmlFor={channel}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {channel}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <FormLabel className="text-sm font-medium text-gray-700">
+                Используемые каналы
+              </FormLabel>
+              <FormControl>
+                <Input
+                  data-testid="input-channels"
+                  placeholder="Например: Интернет-банк, Мобильное приложение, Отделения"
+                  value={Array.isArray(field.value) ? field.value.join(", ") : field.value || ""}
+                  onChange={(e) => {
+                    const channels = e.target.value.split(",").map(c => c.trim()).filter(c => c);
+                    field.onChange(channels);
+                    handleFieldChange("recruitmentUsedChannels", channels);
+                  }}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -1488,39 +1412,27 @@ function ResearchRecruitmentForm({
           />
         </div>
 
-        {/* Legal Entity Type - Multiple Selection */}
+        {/* Legal Entity Type - Text Input */}
         <FormField
           control={form.control}
           name="recruitmentLegalEntityType"
           render={({ field }) => (
             <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-700">
-                  Тип юридического лица
-                </FormLabel>
-                <div className="flex flex-wrap gap-2">
-                  {["CNUM", "GCC"].map((entityType) => (
-                    <label key={entityType} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
-                      <input
-                        type="checkbox"
-                        data-testid={`checkbox-entity-${entityType.toLowerCase()}`}
-                        checked={(field.value || []).includes(entityType)}
-                        onChange={(e) => {
-                          const currentValues = field.value || [];
-                          let newValues;
-                          if (e.target.checked) {
-                            newValues = [...currentValues, entityType];
-                          } else {
-                            newValues = currentValues.filter((v: string) => v !== entityType);
-                          }
-                          field.onChange(newValues);
-                          handleFieldChange("recruitmentLegalEntityType", newValues);
-                        }}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{entityType}</span>
-                    </label>
-                  ))}
-                </div>
+              <FormLabel className="text-sm font-medium text-gray-700">
+                Тип юридического лица
+              </FormLabel>
+              <FormControl>
+                <Input
+                  data-testid="input-legal-entity"
+                  placeholder="Например: CNUM, GCC"
+                  value={Array.isArray(field.value) ? field.value.join(", ") : field.value || ""}
+                  onChange={(e) => {
+                    const entities = e.target.value.split(",").map(e => e.trim()).filter(e => e);
+                    field.onChange(entities);
+                    handleFieldChange("recruitmentLegalEntityType", entities);
+                  }}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
