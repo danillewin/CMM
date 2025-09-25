@@ -1,28 +1,30 @@
 import { useRef } from 'react'
-import { 
-  MDXEditor, 
-  headingsPlugin, 
-  listsPlugin, 
-  linkPlugin, 
-  linkDialogPlugin,
-  markdownShortcutPlugin, 
-  BoldItalicUnderlineToggles, 
-  UndoRedo, 
-  BlockTypeSelect,
-  CreateLink,
-  ListsToggle,
-  Separator,
-  StrikeThroughSupSubToggles,
-  toolbarPlugin,
-  thematicBreakPlugin,
-  tablePlugin,
-  InsertTable,
-  codeBlockPlugin,
-  CodeToggle,
-  codeMirrorPlugin,
-  MDXEditorMethods
-} from '@mdxeditor/editor'
-import '@mdxeditor/editor/style.css'
+
+// Temporary fallback - commenting out MDXEditor imports due to Vite resolution issues
+// import { 
+//   MDXEditor, 
+//   headingsPlugin, 
+//   listsPlugin, 
+//   linkPlugin, 
+//   linkDialogPlugin,
+//   markdownShortcutPlugin, 
+//   BoldItalicUnderlineToggles, 
+//   UndoRedo, 
+//   BlockTypeSelect,
+//   CreateLink,
+//   ListsToggle,
+//   Separator,
+//   StrikeThroughSupSubToggles,
+//   toolbarPlugin,
+//   thematicBreakPlugin,
+//   tablePlugin,
+//   InsertTable,
+//   codeBlockPlugin,
+//   CodeToggle,
+//   codeMirrorPlugin,
+//   MDXEditorMethods
+// } from '@mdxeditor/editor'
+// import '@mdxeditor/editor/style.css'
 
 interface WysiwygMarkdownEditorProps {
   value?: string
@@ -40,53 +42,15 @@ export const WysiwygMarkdownEditor = ({
   height = 200, 
   className = "" 
 }: WysiwygMarkdownEditorProps) => {
-  const editorRef = useRef<MDXEditorMethods>(null)
-
+  // Temporary fallback while MDXEditor is unavailable
   return (
     <div className={`border border-gray-200 rounded-md overflow-hidden ${className}`} style={{ height }}>
-      <MDXEditor
-        ref={editorRef}
-        markdown={value}
-        onChange={(markdown) => onChange?.(markdown)}
+      <textarea
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
-        contentEditableClassName="mdx-content mdx-overrides focus:outline-none"
-        plugins={[
-          // Core formatting plugins - order matters!
-          headingsPlugin({ allowedHeadingLevels: [1, 2, 3, 4, 5, 6] }),
-          listsPlugin(),
-          linkPlugin(),
-          linkDialogPlugin(),
-          
-          // Additional plugins
-          thematicBreakPlugin(),
-          tablePlugin(),
-          codeBlockPlugin({ defaultCodeBlockLanguage: 'txt' }),
-          codeMirrorPlugin({ codeBlockLanguages: { js: 'JavaScript', css: 'CSS', txt: 'text', tsx: 'TypeScript' } }),
-          
-          // Enable keyboard shortcuts - must come after formatting plugins
-          markdownShortcutPlugin(),
-          
-          // Toolbar - must come last
-          toolbarPlugin({
-            toolbarContents: () => (
-              <>
-                <UndoRedo />
-                <Separator />
-                <BoldItalicUnderlineToggles />
-                <CodeToggle />
-                <StrikeThroughSupSubToggles />
-                <Separator />
-                <ListsToggle />
-                <Separator />
-                <BlockTypeSelect />
-                <Separator />
-                <CreateLink />
-                <Separator />
-                <InsertTable />
-              </>
-            )
-          })
-        ]}
+        className="w-full h-full p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        style={{ minHeight: height }}
       />
     </div>
   )

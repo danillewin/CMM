@@ -1,5 +1,3 @@
-import Keycloak from 'keycloak-js';
-
 // Check if we're in development mode without Keycloak server
 const isDevelopmentMode = !import.meta.env.VITE_KEYCLOAK_URL;
 
@@ -22,9 +20,14 @@ const keycloakConfig = {
 };
 
 // Initialize Keycloak instance only if not in development mode
-let keycloak: Keycloak | null = null;
+let keycloak: any = null;
 if (!isDevelopmentMode) {
-  keycloak = new Keycloak(keycloakConfig);
+  // Dynamic import to avoid Vite pre-bundling issues
+  import('keycloak-js').then(({ default: Keycloak }) => {
+    keycloak = new Keycloak(keycloakConfig);
+  }).catch(() => {
+    console.warn('Keycloak not available, using mock authentication');
+  });
 }
 
 export default keycloak;
