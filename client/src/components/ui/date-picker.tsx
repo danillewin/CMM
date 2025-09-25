@@ -74,16 +74,14 @@ export function DatePicker({
         />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-0 top-0 h-full w-10 rounded-l-none border-l-0"
-                disabled={disabled}
-              >
-                <CalendarIcon className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute right-0 top-0 h-full w-10 rounded-l-none border-l-0"
+              disabled={disabled}
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar

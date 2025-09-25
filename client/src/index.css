@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --spacing-1_5: 1.5rem;
+  }
+
   * {
     @apply border-border;
   }
@@ -10,4 +14,227 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* Hide AM/PM in time input for 24-hour format */
+  .time-24h::-webkit-datetime-edit-ampm-field {
+    display: none;
+  }
+
+  /* Hide the hour/minute/second indicators text */
+  .time-24h::-webkit-datetime-edit-hour-field,
+  .time-24h::-webkit-datetime-edit-minute-field {
+    color: inherit;
+  }
+}
+
+/* Fix checkbox positioning in MDXEditor task lists - ensure full visibility */
+
+/* 1. Preview container padding to prevent content from touching borders */
+.mdx-content.mdx-overrides {
+  padding-left: 12px !important;
+  padding-right: 0.75rem !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* 2. Reset default list styles for ul and ol to prevent overflow */
+.mdx-content.mdx-overrides ul,
+.mdx-content.mdx-overrides ol {
+  margin-left: 0 !important;
+  padding-left: 20px !important;
+}
+
+/* 3. Restore heading sizes - h1 through h6 */
+.mdx-content.mdx-overrides h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0.8em 0 0.4em;
+}
+
+.mdx-content.mdx-overrides h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+}
+
+.mdx-content.mdx-overrides h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.9em 0 0.5em;
+}
+
+.mdx-content.mdx-overrides h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0.85em 0 0.45em;
+}
+
+.mdx-content.mdx-overrides h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.75em 0 0.4em;
+}
+
+.mdx-content.mdx-overrides h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  margin: 0.7em 0 0.35em;
+}
+
+/* 4. Ensure list markers render properly */
+.mdx-content.mdx-overrides ul {
+  list-style: disc;
+  padding-left: 1.25rem !important;
+}
+
+.mdx-content.mdx-overrides ol {
+  list-style: decimal;
+  padding-left: 1.25rem !important;
+}
+
+.mdx-content.mdx-overrides ol>li {
+  display: list-item;
+}
+
+/* 5. Task list items - flex layout with visible checkboxes */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px;
+  list-style: none !important;
+  margin-bottom: 4px;
+}
+
+.mdx-content.mdx-overrides [data-node-type="taskListItem"]>input[type="checkbox"] {
+  appearance: auto;
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: hsl(var(--primary));
+}
+
+.mdx-content.mdx-overrides [data-node-type="taskListItem"]>[data-node-view-content],
+.mdx-content.mdx-overrides [data-node-type="taskListItem"]>[contenteditable="true"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+/* Ensure the caret uses the tightened line-height */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] p,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] span,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] a,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] code,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] strong,
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] em {
+  line-height: inherit !important;
+}
+
+/* Remove default p margins to avoid vertical drift */
+.mdx-content.mdx-overrides [data-node-type="taskListItem"] p {
+  margin: 0;
+}
+
+/* List item checked and unchecked states with top positioning */
+._listItemUnchecked {
+  top: var(--spacing-1_5);
+}
+
+._listItemUnchecked:before {
+  top: var(--spacing-1_5);
+}
+
+._listItemUnchecked:after {
+  top: var(--spacing-1_5);
+}
+
+._listItemChecked {
+  top: var(--spacing-1_5);
+}
+
+._listItemChecked:before {
+  top: var(--spacing-1_5);
+}
+
+._listItemChecked:after {
+  top: var(--spacing-1_5);
+}
+
+/* Target CSS module scoped classes for MDX editor */
+.mdx-content [class*="_listItemUnchecked"]:before {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemUnchecked"]:after {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemChecked"]:before {
+  top: var(--spacing-1_5) !important;
+}
+
+.mdx-content [class*="_listItemChecked"]:after {
+  top: var(--spacing-1_5) !important;
+}
+
+
+/* Markdown Preview Styling */
+/* Checkbox list items with flex alignment for center alignment */
+.mdx-content li:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  list-style: none;
+  line-height: 1.2;
+}
+
+/* Fallback for browsers without :has() support */
+.mdx-content li.task-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  list-style: none;
+  line-height: 1.2;
+}
+
+/* Checkbox styling with proper sizing and spacing */
+.mdx-content li:has(input[type="checkbox"]) input[type="checkbox"],
+.mdx-content li.task-list-item input[type="checkbox"] {
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Ordered lists with restored numbers */
+.mdx-content ol {
+  list-style: decimal;
+  padding-left: 20px;
+}
+
+.mdx-content.mdx-overrides ol>li {
+  display: list-item;
+}
+
+/* Unordered lists with restored bullets */
+.mdx-content ul {
+  list-style: disc;
+  padding-left: 20px;
+}
+
+.mdx-content.mdx-overrides ul>li {
+  display: list-item;
+}
+
+
+.mdx-content {
+  line-height: 1.625;
 }

@@ -66,10 +66,9 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
-import { formatDateShort } from "@/lib/date-utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import MDEditor from "@uiw/react-md-editor";
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import DOMPurify from "dompurify";
 import {
   Table,
@@ -79,6 +78,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateShort } from "@/lib/date-utils";
+import MDEditor from "@uiw/react-md-editor";
 import {
   Collapsible,
   CollapsibleContent,
@@ -308,11 +309,13 @@ function MeetingInfoForm({
   onUpdate,
   isLoading,
   onTempDataUpdate,
+  onDelete,
 }: {
   meeting?: Meeting;
   onUpdate: (data: InsertMeeting) => void;
   isLoading: boolean;
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
+  onDelete?: () => void;
 }) {
   return (
     <MeetingForm
@@ -322,6 +325,7 @@ function MeetingInfoForm({
       hideNotesAndFullText={true}
       onTempDataUpdate={onTempDataUpdate}
       isCreating={false}
+      onDelete={onDelete}
     />
   );
 }
@@ -418,51 +422,16 @@ function MeetingResultsForm({
                   Заметки о встрече
                 </FormLabel>
                 <FormControl>
-                  <MDEditor
+                  <WysiwygMarkdownEditor
                     value={field.value}
                     onChange={(val) => {
                       const newValue = val || "";
                       field.onChange(newValue);
                       handleFieldChange("notes", newValue);
                     }}
-                    preview="edit"
-                    hideToolbar={false}
-                    data-color-mode="light"
+                    placeholder="Введите заметки о встрече..."
                     height={300}
-                    textareaProps={{
-                      placeholder: "Введите заметки о встрече...",
-                      style: { resize: "none" },
-                    }}
-                    components={{
-                      preview: (source, state, dispatch) => {
-                        const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                          ALLOWED_TAGS: [
-                            "p",
-                            "br",
-                            "strong",
-                            "em",
-                            "ul",
-                            "ol",
-                            "li",
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "blockquote",
-                            "code",
-                            "pre",
-                          ],
-                          ALLOWED_ATTR: [],
-                        });
-                        return (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                          />
-                        );
-                      },
-                    }}
+                    className=""
                   />
                 </FormControl>
                 <FormMessage />
@@ -479,51 +448,16 @@ function MeetingResultsForm({
                   Отчет в текстовом виде
                 </FormLabel>
                 <FormControl>
-                  <MDEditor
+                  <WysiwygMarkdownEditor
                     value={field.value}
                     onChange={(val) => {
                       const newValue = val || "";
                       field.onChange(newValue);
                       handleFieldChange("fullText", newValue);
                     }}
-                    preview="edit"
-                    hideToolbar={false}
-                    data-color-mode="light"
+                    placeholder="Введите полный текст..."
                     height={300}
-                    textareaProps={{
-                      placeholder: "Введите полный текст...",
-                      style: { resize: "none" },
-                    }}
-                    components={{
-                      preview: (source, state, dispatch) => {
-                        const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                          ALLOWED_TAGS: [
-                            "p",
-                            "br",
-                            "strong",
-                            "em",
-                            "ul",
-                            "ol",
-                            "li",
-                            "h1",
-                            "h2",
-                            "h3",
-                            "h4",
-                            "h5",
-                            "h6",
-                            "blockquote",
-                            "code",
-                            "pre",
-                          ],
-                          ALLOWED_ATTR: [],
-                        });
-                        return (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                          />
-                        );
-                      },
-                    }}
+                    className=""
                   />
                 </FormControl>
                 <FormMessage />
@@ -865,15 +799,22 @@ export default function MeetingDetail() {
   // State to manage form data across tabs during creation and editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertMeeting>>({});
   const { toast } = useToast();
-  
+
   // Parse query parameters for navigation context and new meeting creation
   const searchParams = new URLSearchParams(window.location.search);
-  const preselectedResearchId = isNew ? (searchParams.get("researchId") ? parseInt(searchParams.get("researchId")!) : undefined) : undefined;
-  
+  const preselectedResearchId = isNew
+    ? searchParams.get("researchId")
+      ? parseInt(searchParams.get("researchId")!)
+      : undefined
+    : undefined;
+
   // Parse navigation source context
   const sourceType = searchParams.get("source"); // "research" or null
-  const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
-  
+  const sourceId = searchParams.get("sourceId")
+    ? parseInt(searchParams.get("sourceId")!)
+    : null;
+  const fromContext = searchParams.get("from"); // This is what research-detail.tsx uses
+
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
     useState<Research | null>(null);
@@ -1077,7 +1018,11 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (sourceType === "research" && sourceId) {
+    if (fromContext === "research" && preselectedResearchId) {
+      // If creating from research page, go back to research page
+      setLocation(`/researches/${preselectedResearchId}`);
+    } else if (sourceType === "research" && sourceId) {
+      // If editing existing meeting from research context
       setLocation(`/researches/${sourceId}`);
     } else {
       setLocation("/");
@@ -1103,21 +1048,27 @@ export default function MeetingDetail() {
       <div className="container mx-auto max-w-4xl">
         {/* Header with breadcrumb-style navigation */}
         <div className="mb-6 flex items-center text-sm text-gray-500">
-          <Button 
-            variant="ghost" 
-            className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
+          <Button
+            variant="ghost"
+            className="p-1 text-gray-400 hover:text-gray-700 rounded-full"
             onClick={handleCancel}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="mx-2 text-gray-300">/</span>
-          <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
-            {sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи"}
+          <span
+            className="hover:text-gray-800 cursor-pointer"
+            onClick={handleCancel}
+          >
+            {fromContext === "research" && preselectedResearch
+              ? preselectedResearch.name
+              : sourceType === "research"
+                ? meeting?.researchName || "Исследования"
+                : "Встречи"}
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
             {isNew ? "Новая встреча" : meeting?.companyName || "Детали встречи"}
-
           </span>
         </div>
 
@@ -1255,6 +1206,7 @@ export default function MeetingDetail() {
                     onUpdate={handleSubmit}
                     isLoading={isPending}
                     onTempDataUpdate={handleTempDataUpdate}
+                    onDelete={!isNew ? handleDelete : undefined}
                   />
                 </TabsContent>
 

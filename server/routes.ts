@@ -84,9 +84,13 @@ export function registerRoutes(app: Express): Server {
       }
       const position = await storage.createPosition(result.data);
       res.status(201).json(position);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating position:", error);
-      res.status(500).json({ message: "Failed to create position" });
+      if (error.code === '23505' && error.constraint === 'positions_name_unique') {
+        res.status(409).json({ message: "Position with this name already exists" });
+      } else {
+        res.status(500).json({ message: "Failed to create position" });
+      }
     }
   });
 
@@ -1130,13 +1134,73 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Authentication middleware to extract user info from token
+  const extractUser = (req: any, res: any, next: any) => {
+    // Check for explicit development mode flag
+    if (process.env.SERVER_DEV_AUTH === 'true') {
+      req.user = {
+        sub: 'dev-user-id',
+        preferred_username: 'dev-user',
+        email: 'dev@example.com',
+        name: 'Development User'
+      };
+      return next();
+    }
+
+    // Extract user from Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      req.user = null; // Anonymous user
+      return next();
+    }
+
+    // Extract token
+    const token = authHeader.substring(7);
+    
+    // TODO: Add actual JWT token validation when Keycloak is configured
+    // For development, parse token without validation (INSECURE - for dev only)
+    if (process.env.NODE_ENV === 'development') {
+      // Handle specific mock token from frontend development mode
+      if (token === 'mock-token-dev-user') {
+        req.user = {
+          sub: 'dev-user-id',
+          preferred_username: 'dev-user',
+          email: 'dev@example.com',
+          name: 'Development User'
+        };
+      } else {
+        try {
+          // Simple base64 decode for development (DO NOT USE IN PRODUCTION)
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          req.user = {
+            sub: payload.sub || 'anonymous',
+            preferred_username: payload.preferred_username,
+            email: payload.email,
+            name: payload.name
+          };
+        } catch (error) {
+          req.user = null;
+        }
+      }
+    } else {
+      // In production, we need proper JWT validation
+      // TODO: Implement proper JWT verification with Keycloak JWKS
+      req.user = null;
+    }
+    
+    next();
+  };
+
   // Custom filters API routes
-  app.get("/api/custom-filters", async (req, res) => {
+  app.get("/api/custom-filters", extractUser, async (req: any, res) => {
     try {
-      const { pageType, createdBy } = req.query;
+      const { pageType } = req.query;
+      const currentUserSub = req.user?.sub;
+      
+      // Get filters for current user (if authenticated) and shared filters
       const filters = await storage.getCustomFilters(
         pageType as string,
-        createdBy as string
+        currentUserSub
       );
       res.json(filters);
     } catch (error) {
@@ -1164,8 +1228,14 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/custom-filters", async (req, res) => {
+  app.post("/api/custom-filters", extractUser, async (req: any, res) => {
     try {
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to create filters" });
+        return;
+      }
+
       const validation = insertCustomFilterSchema.safeParse(req.body);
       if (!validation.success) {
         res.status(400).json({ 
@@ -1174,7 +1244,14 @@ export function registerRoutes(app: Express): Server {
         });
         return;
       }
-      const newFilter = await storage.createCustomFilter(validation.data);
+
+      // Set createdBy from authenticated user, not from request body
+      const filterData = {
+        ...validation.data,
+        createdBy: currentUserSub
+      };
+
+      const newFilter = await storage.createCustomFilter(filterData);
       res.status(201).json(newFilter);
     } catch (error) {
       console.error("Error creating custom filter:", error);
@@ -1182,18 +1259,46 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.patch("/api/custom-filters/:id", async (req, res) => {
+  app.patch("/api/custom-filters/:id", extractUser, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         res.status(400).json({ message: "Invalid filter ID" });
         return;
       }
-      const updatedFilter = await storage.updateCustomFilter(id, req.body);
-      if (!updatedFilter) {
+
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to update filters" });
+        return;
+      }
+
+      // Check if filter exists and user owns it
+      const existingFilter = await storage.getCustomFilter(id);
+      if (!existingFilter) {
         res.status(404).json({ message: "Custom filter not found" });
         return;
       }
+
+      if (existingFilter.createdBy !== currentUserSub) {
+        res.status(403).json({ message: "You can only update your own filters" });
+        return;
+      }
+
+      // Only allow updating specific fields, prevent changing createdBy
+      const allowedUpdateFields = {
+        name: req.body.name,
+        description: req.body.description,
+        filters: req.body.filters,
+        shared: req.body.shared
+      };
+
+      // Remove undefined fields
+      const updateData = Object.fromEntries(
+        Object.entries(allowedUpdateFields).filter(([_, value]) => value !== undefined)
+      );
+
+      const updatedFilter = await storage.updateCustomFilter(id, updateData);
       res.json(updatedFilter);
     } catch (error) {
       console.error("Error updating custom filter:", error);
@@ -1201,13 +1306,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.delete("/api/custom-filters/:id", async (req, res) => {
+  app.delete("/api/custom-filters/:id", extractUser, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
         res.status(400).json({ message: "Invalid filter ID" });
         return;
       }
+
+      const currentUserSub = req.user?.sub;
+      if (!currentUserSub) {
+        res.status(401).json({ message: "Authentication required to delete filters" });
+        return;
+      }
+
+      // Check if filter exists and user owns it
+      const existingFilter = await storage.getCustomFilter(id);
+      if (!existingFilter) {
+        res.status(404).json({ message: "Custom filter not found" });
+        return;
+      }
+
+      if (existingFilter.createdBy !== currentUserSub) {
+        res.status(403).json({ message: "You can only delete your own filters" });
+        return;
+      }
+
       const success = await storage.deleteCustomFilter(id);
       if (!success) {
         res.status(404).json({ message: "Custom filter not found" });
@@ -1308,6 +1432,138 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching teams for filter:", error);
       res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  // Kafka resend API endpoints
+  // Resend completed meetings by ID list
+  app.post("/api/kafka/resend-meetings", async (req, res) => {
+    try {
+      const { meetingIds } = req.body;
+      
+      if (!Array.isArray(meetingIds) || meetingIds.length === 0) {
+        return res.status(400).json({ 
+          message: "Invalid request: meetingIds must be a non-empty array" 
+        });
+      }
+      
+      const results: {
+        success: number[];
+        failed: { id: any; error: string }[];
+        notFound: number[];
+      } = {
+        success: [],
+        failed: [],
+        notFound: []
+      };
+      
+      for (const meetingId of meetingIds) {
+        try {
+          const id = parseInt(meetingId);
+          if (isNaN(id)) {
+            results.failed.push({ id: meetingId, error: "Invalid ID format" });
+            continue;
+          }
+          
+          const meeting = await storage.getMeeting(id);
+          if (!meeting) {
+            results.notFound.push(id);
+            continue;
+          }
+          
+          // Use the enhanced sendCompletedMeeting method
+          await kafkaService.sendCompletedMeeting(meeting, true);
+          results.success.push(id);
+          
+        } catch (error) {
+          console.error(`Error resending meeting ${meetingId}:`, error);
+          results.failed.push({ 
+            id: meetingId, 
+            error: error instanceof Error ? error.message : "Unknown error" 
+          });
+        }
+      }
+      
+      const status = results.failed.length > 0 ? 207 : 200; // Multi-status if any failures
+      res.status(status).json({
+        message: `Processed ${meetingIds.length} meeting(s)`,
+        results
+      });
+      
+    } catch (error) {
+      console.error("Error in resend meetings endpoint:", error);
+      res.status(500).json({ message: "Failed to resend meetings" });
+    }
+  });
+  
+  // Resend completed researches by ID list
+  app.post("/api/kafka/resend-researches", async (req, res) => {
+    try {
+      const { researchIds } = req.body;
+      
+      if (!Array.isArray(researchIds) || researchIds.length === 0) {
+        return res.status(400).json({ 
+          message: "Invalid request: researchIds must be a non-empty array" 
+        });
+      }
+      
+      const results: {
+        success: number[];
+        failed: { id: any; error: string }[];
+        notFound: number[];
+      } = {
+        success: [],
+        failed: [],
+        notFound: []
+      };
+      
+      for (const researchId of researchIds) {
+        try {
+          const id = parseInt(researchId);
+          if (isNaN(id)) {
+            results.failed.push({ id: researchId, error: "Invalid ID format" });
+            continue;
+          }
+          
+          const research = await storage.getResearch(id);
+          if (!research) {
+            results.notFound.push(id);
+            continue;
+          }
+          
+          // Use the enhanced sendCompletedResearch method
+          await kafkaService.sendCompletedResearch(research, true);
+          results.success.push(id);
+          
+        } catch (error) {
+          console.error(`Error resending research ${researchId}:`, error);
+          results.failed.push({ 
+            id: researchId, 
+            error: error instanceof Error ? error.message : "Unknown error" 
+          });
+        }
+      }
+      
+      const status = results.failed.length > 0 ? 207 : 200; // Multi-status if any failures
+      res.status(status).json({
+        message: `Processed ${researchIds.length} research(es)`,
+        results
+      });
+      
+    } catch (error) {
+      console.error("Error in resend researches endpoint:", error);
+      res.status(500).json({ message: "Failed to resend researches" });
+    }
+  });
+  
+  // Get Kafka service status
+  app.get("/api/kafka/status", async (req, res) => {
+    try {
+      const status = kafkaService.getStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Error getting Kafka status:", error);
+      res.status(500).json({ message: "Failed to get Kafka status" });
     }
   });
 

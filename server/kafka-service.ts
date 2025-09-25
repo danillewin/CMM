@@ -276,6 +276,7 @@ class KafkaService {
       const relatedResearch = meeting.researchId
         ? await storage.getResearch(meeting.researchId)
         : null;
+      const attachments = await storage.getMeetingAttachments(meeting.id);
 
       const message = {
         id: meeting.id,
@@ -300,6 +301,26 @@ class KafkaService {
           // Content data - full information
           notes: meeting.notes,
           fullText: meeting.fullText,
+
+          // Summarization data
+          summarizationStatus: meeting.summarizationStatus,
+          summarizationResult: meeting.summarizationResult,
+
+          // File attachments
+          attachments: attachments.map((attachment) => ({
+            id: attachment.id,
+            fileName: attachment.fileName,
+            originalName: attachment.originalName,
+            fileSize: attachment.fileSize,
+            mimeType: attachment.mimeType,
+            uploadedAt: attachment.uploadedAt,
+            transcriptionStatus: attachment.transcriptionStatus,
+            transcriptionText: attachment.transcriptionText,
+            hasTranscription: !!attachment.transcriptionText,
+            retryCount: attachment.transcriptionRetryCount,
+            lastAttempt: attachment.lastTranscriptionAttempt,
+            errorMessage: attachment.errorMessage,
+          })),
 
           // Linked entities
           linkedJtbds: linkedJtbds.map((jtbd) => ({
@@ -328,9 +349,17 @@ class KafkaService {
         metadata: {
           totalLinkedJtbds: linkedJtbds.length,
           hasRelatedResearch: !!relatedResearch,
+          totalAttachments: attachments.length,
+          hasSummarization: !!meeting.summarizationResult,
           contentLength: {
             notes: meeting.notes?.length || 0,
             fullText: meeting.fullText?.length || 0,
+          },
+          attachmentsSummary: {
+            total: attachments.length,
+            transcribed: attachments.filter(a => a.transcriptionStatus === 'completed').length,
+            pending: attachments.filter(a => a.transcriptionStatus === 'pending').length,
+            failed: attachments.filter(a => a.transcriptionStatus === 'failed').length,
           },
         },
         timestamp: new Date().toISOString(),
@@ -348,13 +377,16 @@ class KafkaService {
               "entity-type": "meeting",
               "linked-entities": linkedJtbds.length.toString(),
               "has-research": relatedResearch ? "true" : "false",
+              "has-attachments": attachments.length > 0 ? "true" : "false",
+              "has-summarization": meeting.summarizationResult ? "true" : "false",
+              "transcribed-attachments": attachments.filter(a => a.transcriptionStatus === 'completed').length.toString(),
             },
           },
         ],
       });
 
       console.log(
-        `Sent completed meeting ${meeting.id} with ${linkedJtbds.length} JTBDs to Kafka topic: ${MEETINGS_TOPIC}`,
+        `Sent completed meeting ${meeting.id} with ${linkedJtbds.length} JTBDs, ${attachments.length} attachments to Kafka topic: ${MEETINGS_TOPIC}`,
       );
     } catch (error) {
       console.error("Failed to send meeting to Kafka:", error);
@@ -375,10 +407,17 @@ class KafkaService {
 
       // Get complete research data with linked entities
       const linkedJtbds = await storage.getJtbdsByResearch(research.id);
-      const relatedMeetings = await storage.getMeetings();
-      const researchMeetings = relatedMeetings.filter(
-        (meeting) => meeting.researchId === research.id,
-      );
+      const researchMeetings = await storage.getMeetingsByResearch(research.id);
+      
+      // Get attachments for all related meetings
+      const allAttachments: any[] = [];
+      for (const meeting of researchMeetings) {
+        const meetingAttachments = await storage.getMeetingAttachments(meeting.id);
+        allAttachments.push(...meetingAttachments.map(att => ({
+          ...att,
+          meetingId: meeting.id
+        })));
+      }
 
       const message = {
         id: research.id,
@@ -409,30 +448,64 @@ class KafkaService {
             parentId: jtbd.parentId,
           })),
 
-          // Related meetings information
-          relatedMeetings: researchMeetings.map((meeting) => ({
-            id: meeting.id,
-            respondentName: meeting.respondentName,
-            respondentPosition: meeting.respondentPosition,
-            companyName: meeting.companyName,
-            researcher: meeting.researcher,
-            date: meeting.date,
-            status: meeting.status,
-            cnum: meeting.cnum,
-            gcc: meeting.gcc,
-            hasGift: meeting.hasGift,
-            // Include brief content info without full text for performance
-            hasNotes: !!meeting.notes,
-            hasFullText: !!meeting.fullText,
-            notesLength: meeting.notes?.length || 0,
-            fullTextLength: meeting.fullText?.length || 0,
-          })),
+          // Related meetings information with attachments and summarization
+          relatedMeetings: researchMeetings.map((meeting) => {
+            const meetingAttachments = allAttachments.filter(att => att.meetingId === meeting.id);
+            return {
+              id: meeting.id,
+              respondentName: meeting.respondentName,
+              respondentPosition: meeting.respondentPosition,
+              companyName: meeting.companyName,
+              researcher: meeting.researcher,
+              date: meeting.date,
+              status: meeting.status,
+              cnum: meeting.cnum,
+              gcc: meeting.gcc,
+              hasGift: meeting.hasGift,
+              // Include brief content info without full text for performance
+              hasNotes: !!meeting.notes,
+              hasFullText: !!meeting.fullText,
+              notesLength: meeting.notes?.length || 0,
+              fullTextLength: meeting.fullText?.length || 0,
+              // Summarization data
+              summarizationStatus: meeting.summarizationStatus,
+              hasSummarization: !!meeting.summarizationResult,
+              // Attachments summary
+              attachmentsCount: meetingAttachments.length,
+              transcribedAttachments: meetingAttachments.filter(a => a.transcriptionStatus === 'completed').length,
+              attachments: meetingAttachments.map(att => ({
+                id: att.id,
+                fileName: att.fileName,
+                originalName: att.originalName,
+                fileSize: att.fileSize,
+                mimeType: att.mimeType,
+                uploadedAt: att.uploadedAt,
+                transcriptionStatus: att.transcriptionStatus,
+                hasTranscription: !!att.transcriptionText,
+                errorMessage: att.errorMessage,
+              })),
+            };
+          }),
+
+          // Overall attachments summary for research
+          attachmentsSummary: {
+            totalAttachments: allAttachments.length,
+            transcribedAttachments: allAttachments.filter(a => a.transcriptionStatus === 'completed').length,
+            pendingAttachments: allAttachments.filter(a => a.transcriptionStatus === 'pending').length,
+            failedAttachments: allAttachments.filter(a => a.transcriptionStatus === 'failed').length,
+            byMimeType: allAttachments.reduce((acc: any, att) => {
+              acc[att.mimeType] = (acc[att.mimeType] || 0) + 1;
+              return acc;
+            }, {}),
+          },
         },
         metadata: {
           totalLinkedJtbds: linkedJtbds.length,
           totalRelatedMeetings: researchMeetings.length,
           completedMeetings: researchMeetings.filter((m) => m.status === "Done")
             .length,
+          meetingsWithSummarization: researchMeetings.filter((m) => !!m.summarizationResult).length,
+          totalAttachments: allAttachments.length,
           contentLength: {
             description: research.description?.length || 0,
             brief: research.brief?.length || 0,
@@ -445,6 +518,13 @@ class KafkaService {
                 new Date(research.dateStart).getTime()) /
                 (1000 * 60 * 60 * 24),
             ),
+          },
+          attachmentStats: {
+            totalFiles: allAttachments.length,
+            totalSize: allAttachments.reduce((sum, att) => sum + att.fileSize, 0),
+            transcriptionComplete: allAttachments.filter(a => a.transcriptionStatus === 'completed').length,
+            transcriptionPending: allAttachments.filter(a => a.transcriptionStatus === 'pending').length,
+            transcriptionFailed: allAttachments.filter(a => a.transcriptionStatus === 'failed').length,
           },
         },
         timestamp: new Date().toISOString(),
@@ -462,6 +542,9 @@ class KafkaService {
               "entity-type": "research",
               "linked-entities": linkedJtbds.length.toString(),
               "related-meetings": researchMeetings.length.toString(),
+              "total-attachments": allAttachments.length.toString(),
+              "meetings-with-summarization": researchMeetings.filter((m) => !!m.summarizationResult).length.toString(),
+              "transcribed-attachments": allAttachments.filter(a => a.transcriptionStatus === 'completed').length.toString(),
               "research-type": research.researchType || "unknown",
               team: research.team || "unknown",
             },
@@ -470,7 +553,7 @@ class KafkaService {
       });
 
       console.log(
-        `Sent completed research ${research.id} with ${linkedJtbds.length} JTBDs and ${researchMeetings.length} meetings to Kafka topic: ${RESEARCHES_TOPIC}`,
+        `Sent completed research ${research.id} with ${linkedJtbds.length} JTBDs, ${researchMeetings.length} meetings, and ${allAttachments.length} attachments to Kafka topic: ${RESEARCHES_TOPIC}`,
       );
     } catch (error) {
       console.error("Failed to send research to Kafka:", error);

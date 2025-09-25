@@ -26,6 +26,7 @@ import { formatDateShort } from "@/lib/date-utils";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 export default function Meetings() {
   const [search, setSearch] = useState("");
@@ -69,6 +70,74 @@ export default function Meetings() {
   });
   
   const researches = researchesResponse?.data || [];
+
+  // Load saved filters from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedFilters = localStorage.getItem("meetings-table-filters");
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        
+        // Load display filters
+        if (filters.search !== undefined) setSearch(filters.search);
+        if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
+        if (filters.researchFilter && Array.isArray(filters.researchFilter)) setResearchFilter(filters.researchFilter);
+        if (filters.managerFilter && Array.isArray(filters.managerFilter)) setManagerFilter(filters.managerFilter);
+        if (filters.recruiterFilter && Array.isArray(filters.recruiterFilter)) setRecruiterFilter(filters.recruiterFilter);
+        if (filters.researcherFilter && Array.isArray(filters.researcherFilter)) setResearcherFilter(filters.researcherFilter);
+        if (filters.positionFilter && Array.isArray(filters.positionFilter)) setPositionFilter(filters.positionFilter);
+        if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
+        if (filters.sortBy !== undefined) setSortBy(filters.sortBy);
+        if (filters.sortDir !== undefined) setSortDir(filters.sortDir);
+        
+        // Load applied filters
+        if (filters.appliedSearch !== undefined) setAppliedSearch(filters.appliedSearch);
+        if (filters.appliedStatusFilter !== undefined) setAppliedStatusFilter(filters.appliedStatusFilter);
+        if (filters.appliedResearchFilter && Array.isArray(filters.appliedResearchFilter)) setAppliedResearchFilter(filters.appliedResearchFilter);
+        if (filters.appliedManagerFilter && Array.isArray(filters.appliedManagerFilter)) setAppliedManagerFilter(filters.appliedManagerFilter);
+        if (filters.appliedRecruiterFilter && Array.isArray(filters.appliedRecruiterFilter)) setAppliedRecruiterFilter(filters.appliedRecruiterFilter);
+        if (filters.appliedResearcherFilter && Array.isArray(filters.appliedResearcherFilter)) setAppliedResearcherFilter(filters.appliedResearcherFilter);
+        if (filters.appliedPositionFilter && Array.isArray(filters.appliedPositionFilter)) setAppliedPositionFilter(filters.appliedPositionFilter);
+        if (filters.appliedGiftFilter !== undefined) setAppliedGiftFilter(filters.appliedGiftFilter);
+      }
+    } catch (error) {
+      console.error("Error loading saved filters:", error);
+    }
+  }, []);
+
+  // Save filters to localStorage when they change
+  useEffect(() => {
+    try {
+      const filtersToSave = {
+        search,
+        statusFilter,
+        researchFilter,
+        managerFilter,
+        recruiterFilter,
+        researcherFilter,
+        positionFilter,
+        giftFilter,
+        sortBy,
+        sortDir,
+        appliedSearch,
+        appliedStatusFilter,
+        appliedResearchFilter,
+        appliedManagerFilter,
+        appliedRecruiterFilter,
+        appliedResearcherFilter,
+        appliedPositionFilter,
+        appliedGiftFilter,
+      };
+      localStorage.setItem("meetings-table-filters", JSON.stringify(filtersToSave));
+    } catch (error) {
+      console.error("Error saving filters:", error);
+    }
+  }, [
+    search, statusFilter, researchFilter, managerFilter, recruiterFilter, 
+    researcherFilter, positionFilter, giftFilter, sortBy, sortDir,
+    appliedSearch, appliedStatusFilter, appliedResearchFilter, appliedManagerFilter, 
+    appliedRecruiterFilter, appliedResearcherFilter, appliedPositionFilter, appliedGiftFilter
+  ]);
 
   // Apply filters function
   const applyFilters = () => {
@@ -458,13 +527,27 @@ export default function Meetings() {
       name: "Заметки",
       visible: false,
       render: (meeting: Meeting) => (
-        <span className="truncate max-w-[300px]">
-          {meeting.notes ? (
-            <span className="text-gray-500 italic">{"Заметки"}</span>
-          ) : (
-            <span className="text-gray-400">{"Встречи не найдены"}</span>
-          )}
-        </span>
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.notes} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
+      )
+    },
+    {
+      id: "fullText",
+      name: "Full Text",
+      visible: false,
+      render: (meeting: Meeting) => (
+        <div className="max-w-[300px]">
+          <MarkdownRenderer 
+            content={meeting.fullText} 
+            className="line-clamp-3 text-sm"
+            maxLength={200}
+          />
+        </div>
       )
     }
   ], [meetings, updateStatusMutation]); // Dependencies for useMemo
@@ -625,39 +708,6 @@ export default function Meetings() {
     ];
   }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter, giftFilter, meetings, setStatusFilter, setResearchFilter, setManagerFilter, setRecruiterFilter, setResearcherFilter, setPositionFilter, setGiftFilter]); // Dependencies for useMemo
 
-  // Load saved filters from localStorage
-  useEffect(() => {
-    try {
-      const savedFilters = localStorage.getItem("meetings-table-filters");
-      if (savedFilters) {
-        const { status, research, manager, recruiter, researcher, position } = JSON.parse(savedFilters);
-        if (status) setStatusFilter(status);
-        if (research !== undefined) setResearchFilter(Array.isArray(research) ? research : research === null ? [] : [research.toString()]);
-        if (manager) setManagerFilter(Array.isArray(manager) ? manager : [manager]);
-        if (recruiter) setRecruiterFilter(Array.isArray(recruiter) ? recruiter : [recruiter]);
-        if (researcher) setResearcherFilter(Array.isArray(researcher) ? researcher : [researcher]);
-        if (position) setPositionFilter(Array.isArray(position) ? position : [position]);
-      }
-    } catch (error) {
-      console.error("Error loading saved filters:", error);
-    }
-  }, []);
-
-  // Save filters to localStorage when they change
-  useEffect(() => {
-    try {
-      localStorage.setItem("meetings-table-filters", JSON.stringify({
-        status: statusFilter,
-        research: researchFilter,
-        manager: managerFilter,
-        recruiter: recruiterFilter,
-        researcher: researcherFilter,
-        position: positionFilter
-      }));
-    } catch (error) {
-      console.error("Error saving filters:", error);
-    }
-  }, [statusFilter, researchFilter, managerFilter, recruiterFilter, researcherFilter, positionFilter]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -678,6 +728,7 @@ export default function Meetings() {
                 giftFilter,
               }}
               onApplyFilter={(filters) => {
+                // Update display filter states
                 if (filters.search !== undefined) setSearch(filters.search);
                 if (filters.statusFilter !== undefined) setStatusFilter(filters.statusFilter);
                 if (filters.researchFilter !== undefined) setResearchFilter(filters.researchFilter);
@@ -686,6 +737,16 @@ export default function Meetings() {
                 if (filters.researcherFilter !== undefined) setResearcherFilter(filters.researcherFilter);
                 if (filters.positionFilter !== undefined) setPositionFilter(filters.positionFilter);
                 if (filters.giftFilter !== undefined) setGiftFilter(filters.giftFilter);
+                
+                // Also update applied filter states so filters are immediately active
+                if (filters.search !== undefined) setAppliedSearch(filters.search);
+                if (filters.statusFilter !== undefined) setAppliedStatusFilter(filters.statusFilter);
+                if (filters.researchFilter !== undefined) setAppliedResearchFilter(filters.researchFilter);
+                if (filters.managerFilter !== undefined) setAppliedManagerFilter(filters.managerFilter);
+                if (filters.recruiterFilter !== undefined) setAppliedRecruiterFilter(filters.recruiterFilter);
+                if (filters.researcherFilter !== undefined) setAppliedResearcherFilter(filters.researcherFilter);
+                if (filters.positionFilter !== undefined) setAppliedPositionFilter(filters.positionFilter);
+                if (filters.giftFilter !== undefined) setAppliedGiftFilter(filters.giftFilter);
               }}
             />
           </div>

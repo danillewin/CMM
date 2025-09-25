@@ -41,6 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import ResearchForm from "@/components/research-form";
 import ReactMarkdown from "react-markdown";
+import { ResearchBriefForm } from "@/components/research-brief-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertResearchSchema } from "@shared/schema";
@@ -57,6 +58,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from "dompurify";
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
+import DOMPurify from 'dompurify';
+import remarkGfm from 'remark-gfm';
+import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import {
   Plus,
@@ -85,12 +90,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { RangeSlider } from "@/components/ui/range-slider";
 import { SearchMultiselect } from "@/components/search-multiselect";
+import FileUpload from "@/components/file-upload";
+import MDEditor from "@uiw/react-md-editor";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
 
 // Component for Brief tab
-function ResearchBriefForm({
+function ResearchDetailBriefForm({
   research,
   onUpdate,
   isLoading,
@@ -920,50 +927,16 @@ function ResearchBriefForm({
                 Поле для свободного комментария
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("brief", newValue);
                   }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Enter research brief...",
-                    style: { resize: "none" },
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                        ALLOWED_TAGS: [
-                          "p",
-                          "br",
-                          "strong",
-                          "em",
-                          "ul",
-                          "ol",
-                          "li",
-                          "h1",
-                          "h2",
-                          "h3",
-                          "h4",
-                          "h5",
-                          "h6",
-                          "blockquote",
-                          "code",
-                          "pre",
-                        ],
-                        ALLOWED_ATTR: [],
-                      });
-                      return (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                        />
-                      );
-                    },
-                  }}
+                  placeholder="Enter research brief..."
+                  height={300}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -2019,14 +1992,16 @@ function ResearchGuideForm({
                 {"Вступительное слово"}
               </FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder={"Введите вступительное слово"}
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleFieldChange("guideIntroText", e.target.value);
+                <WysiwygMarkdownEditor
+                  value={field.value}
+                  onChange={(val) => {
+                    const newValue = val || "";
+                    field.onChange(newValue);
+                    handleFieldChange("guideIntroText", newValue);
                   }}
-                  rows={4}
+                  placeholder={"Введите вступительное слово"}
+                  height={200}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -3024,7 +2999,7 @@ function ResearchResultsForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: { fullText: string }) => void;
+  onTempDataUpdate?: (data: { artifactLink: string; fullText: string }) => void;
 }) {
   const form = useForm<{ artifactLink: string; fullText: string }>({
     defaultValues: {
@@ -3122,50 +3097,16 @@ function ResearchResultsForm({
                 Отчет в текстовом виде
               </FormLabel>
               <FormControl>
-                <MDEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     const newValue = val || "";
                     field.onChange(newValue);
                     handleFieldChange("fullText", newValue);
                   }}
-                  preview="edit"
-                  hideToolbar={false}
-                  data-color-mode="light"
-                  textareaProps={{
-                    placeholder: "Введите полный текст содержания...",
-                    style: { resize: "none" },
-                  }}
-                  components={{
-                    preview: (source, state, dispatch) => {
-                      const sanitizedHtml = DOMPurify.sanitize(source || "", {
-                        ALLOWED_TAGS: [
-                          "p",
-                          "br",
-                          "strong",
-                          "em",
-                          "ul",
-                          "ol",
-                          "li",
-                          "h1",
-                          "h2",
-                          "h3",
-                          "h4",
-                          "h5",
-                          "h6",
-                          "blockquote",
-                          "code",
-                          "pre",
-                        ],
-                        ALLOWED_ATTR: [],
-                      });
-                      return (
-                        <div
-                          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-                        />
-                      );
-                    },
-                  }}
+                  placeholder="Enter full text content..."
+                  height={400}
+                  className=""
                 />
               </FormControl>
               <FormMessage />
@@ -3509,7 +3450,7 @@ function ResearchDetail() {
               </TabsContent>
 
               <TabsContent value="brief" className="mt-6">
-                <ResearchBriefForm
+                <ResearchDetailBriefForm
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}

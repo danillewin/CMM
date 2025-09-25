@@ -27,8 +27,9 @@ import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
-import MDEditor from '@uiw/react-md-editor';
+import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
 import DOMPurify from 'dompurify';
+import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
 import { ResearchSelector } from "./research-selector";
 
@@ -80,6 +81,11 @@ export default function MeetingForm({
   const defaultDate = initialData && initialData.date 
     ? new Date(initialData.date).toISOString().slice(0, 10)
     : new Date().toISOString().slice(0, 10);
+    
+  // Extract time from date for separate time field
+  const defaultTime = initialData 
+    ? new Date(initialData.date).toTimeString().slice(0, 5)
+    : "10:00";
 
   type FormValues = {
     respondentName: string;
@@ -92,6 +98,8 @@ export default function MeetingForm({
     relationshipManager: string;
     salesPerson: string;
     date: Date;
+    time: string;
+    meetingLink: string;
     researchId: number | undefined;
     status: MeetingStatusType;
     notes: string;
@@ -112,6 +120,8 @@ export default function MeetingForm({
       relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
+      time: initialData?.time ?? "",
+      meetingLink: initialData?.meetingLink ?? "",
       researchId: initialData?.researchId ?? undefined,
       status: (initialData?.status as MeetingStatusType) ?? MeetingStatus.IN_PROGRESS,
       notes: initialData?.notes ?? "",
@@ -159,8 +169,23 @@ export default function MeetingForm({
     if (data.relationshipManager) {
       addManager(data.relationshipManager);
     }
-    // Convert form data to InsertMeeting type
-    onSubmit(data as unknown as InsertMeeting);
+    
+    // Combine date and time into a single Date object if time is provided
+    let combinedDateTime = new Date(data.date);
+    if (data.time && data.time.trim()) {
+      const [hours, minutes] = data.time.split(':').map(Number);
+      combinedDateTime.setHours(hours, minutes, 0, 0);
+    }
+    
+    // Convert form data to InsertMeeting type with combined date/time
+    const submitData = {
+      ...data,
+      date: combinedDateTime,
+      time: data.time || null, // Store time separately as well
+      meetingLink: data.meetingLink || null, // Store meeting link
+    };
+    
+    onSubmit(submitData as unknown as InsertMeeting);
   };
 
   // Clear validation error when user starts typing in either field
@@ -195,7 +220,7 @@ export default function MeetingForm({
           />
         </div>
         
-        {/* Date and Status Fields - Moved to top of form per user request */}
+        {/* Date, Time and Status Fields - Moved to top of form per user request */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
@@ -227,6 +252,89 @@ export default function MeetingForm({
             
             <FormField
               control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Время
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="text"
+                      className="w-full font-mono"
+                      data-testid="input-meeting-time"
+                      placeholder="ЧЧ:ММ (например: 14:30)"
+                      pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
+                      title="Время в 24-часовом формате (например: 14:30)"
+                      onChange={(e) => {
+                        let value = e.target.value;
+                        // Remove any non-digit or colon characters
+                        value = value.replace(/[^\d:]/g, '');
+                        
+                        // Auto-format as user types
+                        if (value.length === 2 && !value.includes(':')) {
+                          value = value + ':';
+                        }
+                        
+                        // Limit to 5 characters (HH:MM)
+                        if (value.length > 5) {
+                          value = value.substring(0, 5);
+                        }
+                        
+                        e.target.value = value;
+                        field.onChange(e);
+                      }}
+                      onBlur={(e) => {
+                        const value = e.target.value;
+                        const match = value.match(/^(\d{1,2}):?(\d{0,2})$/);
+                        
+                        if (match) {
+                          const hours = parseInt(match[1] || '0');
+                          const minutes = parseInt(match[2] || '0');
+                          
+                          if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+                            const formattedTime = 
+                              (hours < 10 ? '0' : '') + hours + ':' + 
+                              (minutes < 10 ? '0' : '') + minutes;
+                            e.target.value = formattedTime;
+                            field.onChange(e);
+                          }
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <FormField
+              control={form.control}
+              name="meetingLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">
+                    Ссылка на встречу
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="url"
+                      className="w-full"
+                      data-testid="input-meeting-link"
+                      placeholder="https://..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
@@ -239,7 +347,7 @@ export default function MeetingForm({
                     value={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger data-testid="select-meeting-status">
                         <SelectValue placeholder="Выберите статус" />
                       </SelectTrigger>
                     </FormControl>
@@ -574,28 +682,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Введите заметки о встрече...",
-                            style: { resize: 'none' }
-                          }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Введите заметки о встрече..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -615,28 +708,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <div data-color-mode="light">
-                        <MDEditor
-                          value={field.value}
-                          onChange={(value) => field.onChange(value || '')}
-                          preview="edit"
-                          height={300}
-                          className="border border-gray-200 rounded-md overflow-hidden"
-                          textareaProps={{
-                            placeholder: "Введите полный текст содержания...",
-                            style: { resize: 'none' }
-                          }}
-                          components={{
-                            preview: (source, state, dispatch) => {
-                              const sanitizedHtml = DOMPurify.sanitize(source || '', {
-                                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'],
-                                ALLOWED_ATTR: []
-                              });
-                              return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />;
-                            }
-                          }}
-                        />
-                      </div>
+                      <WysiwygMarkdownEditor
+                        value={field.value}
+                        onChange={(value) => field.onChange(value || '')}
+                        placeholder="Введите полный текст содержания..."
+                        height={300}
+                        className=""
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
