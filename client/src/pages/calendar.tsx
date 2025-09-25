@@ -348,7 +348,7 @@ export default function Calendar() {
 
       {/* Meeting Details Dialog */}
       <Dialog open={!!selectedMeeting} onOpenChange={(open) => !open && setSelectedMeeting(null)}>
-        <DialogContent className="w-[90vw] max-w-xl">
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto">
           {fullMeetingLoading ? (
             <div className="flex items-center justify-center p-8">
               <div className="flex items-center space-x-2">
