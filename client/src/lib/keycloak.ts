@@ -1,5 +1,5 @@
 // Check if we're in development mode without Keycloak server
-const isDevelopmentMode = !import.meta.env.VITE_KEYCLOAK_URL;
+const isDevelopmentMode = true; // Always use development mode for now
 
 // Mock user for development
 const mockUser = {
@@ -12,23 +12,15 @@ const mockUser = {
 
 let isAuthenticated = isDevelopmentMode;
 
-// Keycloak configuration
+// Keycloak configuration (unused in development mode)
 const keycloakConfig = {
   url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
   realm: import.meta.env.VITE_KEYCLOAK_REALM || 'master',
   clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'research-app',
 };
 
-// Initialize Keycloak instance only if not in development mode
+// Keycloak instance (always null in development mode)
 let keycloak: any = null;
-if (!isDevelopmentMode) {
-  // Dynamic import to avoid Vite pre-bundling issues
-  import('keycloak-js').then(({ default: Keycloak }) => {
-    keycloak = new Keycloak(keycloakConfig);
-  }).catch(() => {
-    console.warn('Keycloak not available, using mock authentication');
-  });
-}
 
 export default keycloak;
 
@@ -53,13 +45,13 @@ export const initKeycloak = (onAuthenticatedCallback: () => void) => {
       silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
       pkceMethod: 'S256', // Use PKCE for security
     })
-    .then((authenticated) => {
+    .then((authenticated: boolean) => {
       isAuthenticated = authenticated;
       if (authenticated) {
         onAuthenticatedCallback();
       }
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.error('Keycloak initialization failed:', error);
     });
 };

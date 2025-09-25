@@ -59,7 +59,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import MDEditor from "@uiw/react-md-editor";
 import DOMPurify from "dompurify";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
-import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -91,7 +90,6 @@ import { Separator } from "@/components/ui/separator";
 import { RangeSlider } from "@/components/ui/range-slider";
 import { SearchMultiselect } from "@/components/search-multiselect";
 import FileUpload from "@/components/file-upload";
-import MDEditor from "@uiw/react-md-editor";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
