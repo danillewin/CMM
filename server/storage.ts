@@ -618,7 +618,7 @@ export class DatabaseStorage implements IStorage {
           status = $14,
           notes = $15,
           full_text = $16,
-          has_gift = $17
+          has_gift = $17,
           summarization_status = $18,
           summarization_result = $19
         WHERE id = $20
