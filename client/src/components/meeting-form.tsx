@@ -139,13 +139,13 @@ export default function MeetingForm({
 
   // Automatically fill researchId and researcher when preselectedResearch is provided
   useEffect(() => {
-    if (preselectedResearch && isCreating && !initialData?.researchId) {
+    if (preselectedResearch && isCreating) {
       form.setValue('researchId', preselectedResearch.id);
       form.setValue('researcher', preselectedResearch.researcher);
       handleFieldChange('researchId', preselectedResearch.id);
       handleFieldChange('researcher', preselectedResearch.researcher);
     }
-  }, [preselectedResearch, isCreating, initialData?.researchId, form]);
+  }, [preselectedResearch, isCreating, form]);
 
   // Handle form submission
   const onSubmitWrapper = (data: FormValues) => {
