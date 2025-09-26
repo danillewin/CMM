@@ -687,16 +687,9 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for transcription uploads (disk storage for large files)
+  // Configure multer for transcription uploads (K8s-compatible streaming)
   const transcriptionUpload = multer({ 
-    storage: multer.diskStorage({
-      destination: '/tmp/uploads/',
-      filename: (req, file, cb) => {
-        // Generate unique filename for transcription files
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'transcribe-' + uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
-      }
-    }),
+    storage: multer.memoryStorage(), // Memory storage with immediate processing
     limits: {
       fileSize: 500 * 1024 * 1024, // Increased to 500MB limit
       files: 5, // Maximum 5 files
@@ -721,16 +714,9 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for meeting file attachments (disk storage for large files)
+  // Configure multer for meeting file attachments (K8s-compatible streaming)
   const meetingFileUpload = multer({ 
-    storage: multer.diskStorage({
-      destination: '/tmp/uploads/',
-      filename: (req, file, cb) => {
-        // Generate unique filename to avoid conflicts
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
-      }
-    }),
+    storage: multer.memoryStorage(), // Use memory storage but with streaming to object storage
     limits: {
       fileSize: 500 * 1024 * 1024, // Increased to 500MB limit per file
       files: 10, // Maximum 10 files per request
@@ -739,10 +725,16 @@ export function registerRoutes(app: Express): Server {
       parts: 20, // Maximum 20 parts (fields + files)
     },
     fileFilter: (req, file, cb) => {
-      // Sanitize filename
-      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      // Combined file filter for K8s compatibility and security
       
-      // Block dangerous file extensions
+      // Check file size for K8s memory considerations
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      if (req.headers['content-length'] && parseInt(req.headers['content-length']) > maxSize) {
+        cb(new Error(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`));
+        return;
+      }
+      
+      // Block dangerous file extensions for security
       const dangerousExtensions = /\.(exe|bat|cmd|scr|pif|vbs|js|jar|com|app|dmg|pkg|deb|rpm)$/i;
       if (dangerousExtensions.test(file.originalname)) {
         cb(new Error('File type not allowed for security reasons.'));
@@ -797,36 +789,13 @@ export function registerRoutes(app: Express): Server {
 
       const result = await transcriptionService.transcribeFiles({ files });
       
-      // Clean up temporary files
-      for (const file of files) {
-        if (file.path) {
-          try {
-            require('fs').unlinkSync(file.path);
-            console.log(`Cleaned up temporary transcription file: ${file.path}`);
-          } catch (cleanupError) {
-            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
-          }
-        }
-      }
+      // No cleanup needed for memory storage
       
       res.json(result);
     } catch (error) {
       console.error("Transcription error:", error);
       
-      // Clean up temporary files on error too
-      const files = req.files as Express.Multer.File[];
-      if (files) {
-        for (const file of files) {
-          if (file.path) {
-            try {
-              require('fs').unlinkSync(file.path);
-              console.log(`Cleaned up temporary transcription file after error: ${file.path}`);
-            } catch (cleanupError) {
-              console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
-            }
-          }
-        }
-      }
+      // No cleanup needed for memory storage
       
       res.status(500).json({ 
         message: "Transcription failed", 
@@ -880,14 +849,13 @@ export function registerRoutes(app: Express): Server {
           // Get upload URL from object storage
           const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
           
-          // Upload file to storage (read from disk instead of memory)
-          const fileStream = require('fs').createReadStream(file.path);
-          
+          // Upload file to storage using memory buffer (K8s compatible)
           const response = await fetch(uploadUrl, {
             method: 'PUT',
-            body: fileStream,
+            body: file.buffer,
             headers: {
               'Content-Type': file.mimetype,
+              'Content-Length': file.size.toString(),
             },
           });
 
@@ -914,20 +882,9 @@ export function registerRoutes(app: Express): Server {
 
           console.log(`Successfully uploaded file: ${file.originalname} for meeting ${meetingId}`);
           
-          // Clean up temporary file
-          try {
-            require('fs').unlinkSync(file.path);
-          } catch (cleanupError) {
-            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
-          }
+          // No cleanup needed - memory buffer automatically freed
         } catch (fileError) {
           console.error(`Error uploading file ${file.originalname}:`, fileError);
-          // Clean up temporary file even on error
-          try {
-            require('fs').unlinkSync(file.path);
-          } catch (cleanupError) {
-            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
-          }
         }
       }
 
