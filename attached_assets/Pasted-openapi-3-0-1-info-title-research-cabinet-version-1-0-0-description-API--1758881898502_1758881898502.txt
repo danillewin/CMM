@@ -1,0 +1,461 @@
+openapi: 3.0.1
+info:
+  title: research-cabinet
+  version: 1.0.0
+  description: API Кабинета исследований
+
+servers:
+  - url: https://auth-test.rbo-llm-mvp.raiffeisen.ru/api
+    description: Тестовый сервер
+  - url: https://auth.rbo-cmm.raiffeisen.ru/api
+    description: Прод сервер
+
+tags:
+  - name: researches
+    description: Исследования
+  - name: research-meetings
+    description: Встречи по исследованиям
+
+paths:
+  /researches:
+    get:
+      operationId: getResearches
+      description: Возвращает список исследований с пагинацией, сортировкой и фильтрацией
+      tags:
+        - researches
+      parameters:
+        - name: page
+          in: query
+          description: Номер страницы
+          required: false
+          schema:
+            type: integer
+            example: 1
+            minimum: 1
+
+        - name: limit
+          in: query
+          description: Количество записей на странице
+          required: false
+          schema:
+            type: integer
+            example: 20
+            minimum: 10
+            maximum: 100
+
+        - name: sortBy
+          in: query
+          description: "Поле для сортировки. Возможные значения: name, team, researcher, dateStart, dateEnd, status, researchType"
+          required: false
+          schema:
+            type: string
+            example: name
+
+        - name: sortDir
+          in: query
+          description: Направление сортировки
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            example: asc
+
+        - name: status
+          in: query
+          description: "Фильтр по статусу. Может быть несколько значений через запятую. Допустимые значения: Planned, In Progress"
+          required: false
+          schema:
+            type: string
+            example: Planned,In Progress
+          style: form
+          explode: false
+
+        - name: search
+          in: query
+          description: "Поиск по названию исследования"
+          required: false
+          schema:
+            type: string
+            example: PNL
+
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchesResponse"
+        "401":
+          description: Unauthorized
+      security:
+        - bearerAuth: []
+
+  /researches/{researchId}/meetings:
+    post:
+      operationId: createResearchMeeting
+      description: Создание встречи по исследованию
+      tags:
+        - research-meetings
+      parameters:
+        - name: researchId
+          in: path
+          description: Идентификатор исследования
+          required: true
+          schema:
+            type: integer
+            example: 23
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchMeetingDto"
+      responses:
+        "201":
+          description: Встреча создана
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchMeetingDto"
+      security:
+        - bearerAuth: [ ]
+
+  /researches/{researchId}/meetings/{meetingId}:
+    put:
+      operationId: updateResearchMeeting
+      description: Обновление встречи по исследованию
+      tags:
+        - research-meetings
+      parameters:
+        - name: researchId
+          in: path
+          description: Идентификатор исследования
+          required: true
+          schema:
+            type: integer
+            example: 23
+        - name: meetingId
+          in: path
+          description: Идентификатор встречи в кабинете исследователя
+          required: true
+          schema:
+            type: integer
+            example: 23
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchMeetingDto"
+      responses:
+        "200":
+          description: Встреча обновлена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchMeetingDto"
+      security:
+        - bearerAuth: [ ]
+    delete:
+      operationId: cancelResearchMeeting
+      description: Отмена встречи по исследованию
+      tags:
+        - research-meetings
+      parameters:
+        - name: researchId
+          in: path
+          description: Идентификатор исследования
+          required: true
+          schema:
+            type: integer
+            example: 23
+        - name: meetingId
+          in: path
+          description: Идентификатор встречи в кабинете исследователя
+          required: true
+          schema:
+            type: integer
+            example: 23
+      responses:
+        "200":
+          description: Встреча отменена
+      security:
+        - bearerAuth: [ ]
+
+components:
+  schemas:
+    Research:
+      type: object
+      description: Информация об исследовании
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор исследования
+          example: 397
+        name:
+          type: string
+          description: Название исследования
+          example: "2025_08 опрос УК PNL explainer"
+        team:
+          type: string
+          description: Название команды, проводящей исследование
+          example: "CM Team"
+        researcher:
+          type: string
+          description: Имя исследователя
+          example: "Елена Ленчукова"
+        description:
+          type: string
+          description: Описание исследования
+          example: "Исследование по теме бизнес-процессов"
+        dateStart:
+          type: string
+          format: date-time
+          description: Дата начала исследования
+          example: "2025-08-12T08:34:03.755Z"
+        dateEnd:
+          type: string
+          format: date-time
+          description: Дата окончания исследования
+          example: "2025-08-12T08:34:03.755Z"
+        status:
+          type: string
+          description: Статус исследования
+          example: "Завершено"
+        color:
+          type: string
+          description: Цвет для визуального отображения исследования
+          example: "#3b82f6"
+        researchType:
+          type: string
+          description: Тип исследования
+          example: "CAWI (Online Survey)"
+        products:
+          type: array
+          description: Список продуктов, связанных с исследованием
+          items:
+            type: string
+          example: ["RBO", "Integrations"]
+      required:
+        - id
+        - name
+        - team
+        - researcher
+        - description
+        - dateStart
+        - dateEnd
+        - status
+        - color
+        - researchType
+
+    ResearchesResponse:
+      type: object
+      description: Ответ со списком исследований
+      properties:
+        data:
+          type: array
+          description: Список исследований
+          items:
+            $ref: "#/components/schemas/Research"
+        hasMore:
+          type: boolean
+          description: Признак наличия дополнительных данных для загрузки
+          example: true
+        total:
+          type: integer
+          description: Общее количество исследований, соответствующих фильтрам
+          example: 51
+
+    ResearchMeetingDto:
+      type: object
+      required:
+        - id
+        - crmId
+        - clientId
+        - clientNumber
+        - gccNumber
+        - clientManager
+        - clientName
+        - createdBy
+        - date
+        - startTime
+        - endTime
+        - employees
+        - comment
+      properties:
+        id:
+          type: integer
+          nullable: false
+          description: Идентификатор встречи
+          example: "0"
+        crmId:
+          type: string
+          format: uuid
+          nullable: false
+          description: Идентификатор встречи CorpCRM
+          example: "0529a1cf-98d1-4d87-8630-52345a35e61b"
+        clientId:
+          type: string
+          format: uuid
+          description: Идентификатор клиента CorpCRM
+          example: "2d19250e-92d2-4c87-90a3-4a0d6e48d80d"
+        clientNumber:
+          type: string
+          nullable: false
+          description: Client number (CNUM), либо GCC number, если создано на GCC
+          example: "Z5683D"
+        gccNumber:
+          type: string
+          nullable: true
+          description: GCC number, заполнено, если клиент состоит в группе или это саб-группа
+          example: "VH23454"
+        clientManager:
+          type: string
+          nullable: true
+          description: Менеджер клиента
+          example: "ruaseno"
+        clientName:
+          $ref: "#/components/schemas/ClientNameDto"
+        createdBy:
+          type: string
+          nullable: false
+          description: Кем была создана встреча
+          example: "ruasomr"
+        date:
+          type: string
+          format: date
+          nullable: false
+          description: Дата встречи
+          example: "2025-09-23"
+        startTime:
+          type: string
+          nullable: false
+          description: Время начала встречи
+          example: "12:00"
+        endTime:
+          type: string
+          nullable: false
+          description: Время окончания встречи
+          example: "13:00"
+        comment:
+          type: string
+          nullable: false
+          minLength: 0
+          description: Комментарий по встрече (может быть пустым)
+        employees:
+          type: array
+          nullable: false
+          minItems: 1
+          uniqueItems: true
+          description: Список логинов участников встречи от банка
+          items:
+            type: string
+            nullable: false
+            description: Логин участника встречи
+            example: "ruatmal"
+        contacts:
+          type: array
+          nullable: false
+          description: Список контактов со стороны клиента
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/ClientContactDto"
+    ClientNameDto:
+      type: object
+      nullable: false
+      description: Название клиента на двух языках
+      required:
+        - nameRu
+        - nameEn
+        - fullNameRu
+        - fullNameEn
+      properties:
+        nameRu:
+          type: string
+          nullable: true
+          description: Короткое название клиента на русском
+          example: "ООО Фокус"
+        nameEn:
+          type: string
+          nullable: true
+          description: Короткое название клиента на английском
+          example: "Focus LLC"
+        fullNameRu:
+          type: string
+          nullable: true
+          description: Полное название клиента на русском
+          example: "Общество с ограниченной ответсвтенностью Фокус"
+        fullNameEn:
+          type: string
+          nullable: true
+          description: Полное название клиента на английском
+          example: "Limited liability company Focus"
+    ClientContactDto:
+      type: string
+      nullable: false
+      description: Информация о контакте
+      required:
+        - firstName
+        - lastName
+        - middleName
+        - emails
+        - phones
+        - categories
+        - position
+      properties:
+        firstName:
+          type: string
+          nullable: false
+          description: Имя
+          example: "Максим"
+        lastName:
+          type: string
+          nullable: false
+          description: Фамилия
+          example: "Иванов"
+        middleName:
+          type: string
+          nullable: true
+          description: Отчество (или второе имя)
+          example: "Евгеньевич"
+        emails:
+          type: array
+          nullable: false
+          minItems: 0
+          uniqueItems: true
+          items:
+            type: string
+            nullable: false
+            description: Электронная почта
+            example: "ivanova@fakel.ru"
+        phones:
+          type: array
+          nullable: false
+          minItems: 0
+          uniqueItems: true
+          items:
+            type: string
+            nullable: false
+            description: Номер телефона
+            example: "+79771236575(123)"
+        categories:
+          type: array
+          nullable: false
+          minItems: 1
+          uniqueItems: true
+          items:
+            type: string
+            nullable: false
+            description: Категория контакта
+            example: "Основной контакт для банка"
+        position:
+          type: string
+          nullable: true
+          description: Должность в компании клиента
+          example: "Финансовый директор"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

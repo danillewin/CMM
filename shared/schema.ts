@@ -379,3 +379,54 @@ export type ResearchTableItem = Pick<Research,
   'id' | 'name' | 'team' | 'researcher' | 'dateStart' | 'dateEnd' | 'status' | 
   'color' | 'researchType' | 'products' | 'description'
 >;
+
+// OpenAPI-compatible schemas for external API integration
+export const clientNameSchema = z.object({
+  nameRu: z.string().nullable().optional(),
+  nameEn: z.string().nullable().optional(),
+  fullNameRu: z.string().nullable().optional(),
+  fullNameEn: z.string().nullable().optional(),
+});
+
+export const clientContactSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  middleName: z.string().nullable().optional(),
+  emails: z.array(z.string().email()).default([]),
+  phones: z.array(z.string()).default([]),
+  categories: z.array(z.string()).min(1, "At least one category is required"),
+  position: z.string().nullable().optional(),
+});
+
+export const researchMeetingDtoSchema = z.object({
+  id: z.number().optional(), // Optional for creation, required for updates
+  crmId: z.string().uuid("Invalid CRM ID format"),
+  clientId: z.string().uuid("Invalid client ID format").optional(),
+  clientNumber: z.string().min(1, "Client number is required"),
+  gccNumber: z.string().nullable().optional(),
+  clientManager: z.string().nullable().optional(),
+  clientName: clientNameSchema,
+  createdBy: z.string().min(1, "Created by is required"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Start time must be in HH:MM format"),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "End time must be in HH:MM format"),
+  employees: z.array(z.string()).min(1, "At least one employee is required"),
+  comment: z.string().default(""),
+  contacts: z.array(clientContactSchema).default([]),
+});
+
+// Insert and update schemas for OpenAPI endpoints
+export const insertResearchMeetingDtoSchema = researchMeetingDtoSchema.omit({
+  id: true,
+});
+
+export const updateResearchMeetingDtoSchema = researchMeetingDtoSchema.partial().extend({
+  id: z.number(), // Required for updates
+});
+
+// Types for OpenAPI endpoints
+export type ClientNameDto = z.infer<typeof clientNameSchema>;
+export type ClientContactDto = z.infer<typeof clientContactSchema>;
+export type ResearchMeetingDto = z.infer<typeof researchMeetingDtoSchema>;
+export type InsertResearchMeetingDto = z.infer<typeof insertResearchMeetingDtoSchema>;
+export type UpdateResearchMeetingDto = z.infer<typeof updateResearchMeetingDtoSchema>;
