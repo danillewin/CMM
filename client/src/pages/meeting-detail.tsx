@@ -757,6 +757,15 @@ export default function MeetingDetail() {
   const isNew = params.id === "new";
   const id = isNew ? null : parseInt(params.id);
 
+  // Debug: Log params and isNew value to console
+  console.log("MeetingDetail debug:", { 
+    location, 
+    params, 
+    isNew, 
+    id,
+    "params.id": params.id
+  });
+
   // Completely prevent any /api/meetings queries (without ID) on this page
   useEffect(() => {
     // Cancel any queries to the general /api/meetings endpoint
@@ -881,15 +890,12 @@ export default function MeetingDetail() {
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
-    console.log('useEffect triggered:', { isNew, preselectedResearchId });
     if (isNew && preselectedResearchId) {
-      console.log('Loading preselected research:', preselectedResearchId);
       // Load the specific research if preselected via URL
       fetch(`/api/researches/${preselectedResearchId}`)
         .then((res) => res.json())
         .then((research) => {
           if (research) {
-            console.log('Preselected research loaded:', research);
             setPreselectedResearch(research);
           }
         })
