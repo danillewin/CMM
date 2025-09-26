@@ -10,7 +10,13 @@ import {
   insertJtbdSchema,
   insertCustomFilterSchema,
   insertMeetingAttachmentSchema,
-  updateMeetingAttachmentSchema
+  updateMeetingAttachmentSchema,
+  insertResearchMeetingDtoSchema,
+  updateResearchMeetingDtoSchema,
+  ResearchMeetingDto,
+  InsertResearchMeetingDto,
+  Meeting,
+  MeetingStatus
 } from "@shared/schema";
 
 import { kafkaService } from "./kafka-service";
@@ -1542,6 +1548,216 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error getting Kafka status:", error);
       res.status(500).json({ message: "Failed to get Kafka status" });
+    }
+  });
+
+  // =========================================
+  // OpenAPI-compatible Meeting Endpoints
+  // =========================================
+
+  // Helper function to map OpenAPI DTO to internal meeting format
+  function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number): any {
+    // Combine startTime and endTime with date to create time and meeting duration
+    const timeRange = `${dto.startTime}-${dto.endTime}`;
+    
+    return {
+      // Map OpenAPI fields to internal meeting fields
+      cnum: dto.clientNumber.toUpperCase(),
+      gcc: dto.gccNumber || null,
+      companyName: dto.clientName.nameRu || dto.clientName.nameEn || "",
+      respondentName: dto.contacts.length > 0 ? 
+        `${dto.contacts[0].firstName} ${dto.contacts[0].lastName}` : 
+        "External Contact",
+      respondentPosition: dto.contacts.length > 0 ? 
+        (dto.contacts[0].position || "Not specified") : 
+        "Not specified",
+      email: dto.contacts.length > 0 && dto.contacts[0].emails.length > 0 ? 
+        dto.contacts[0].emails[0] : null,
+      relationshipManager: dto.clientManager || dto.createdBy,
+      salesPerson: dto.employees.length > 0 ? dto.employees[0] : dto.createdBy,
+      researcher: dto.employees.length > 1 ? dto.employees[1] : dto.employees[0],
+      date: new Date(dto.date + "T00:00:00.000Z"),
+      time: timeRange,
+      notes: dto.comment,
+      researchId: researchId,
+      status: MeetingStatus.SET, // Default status for external meetings
+      fullText: `CRM ID: ${dto.crmId}\nEmployees: ${dto.employees.join(", ")}\nContacts: ${dto.contacts.map(c => `${c.firstName} ${c.lastName} (${c.position || "N/A"})`).join(", ")}`
+    };
+  }
+
+  // Helper function to map internal meeting to OpenAPI DTO format
+  function mapMeetingToDto(meeting: Meeting, crmId?: string): ResearchMeetingDto {
+    // Parse time range if available
+    const timeMatch = meeting.time?.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+    const startTime = timeMatch ? timeMatch[1] : "09:00";
+    const endTime = timeMatch ? timeMatch[2] : "10:00";
+    
+    // Parse contact information from respondent data
+    const names = meeting.respondentName.split(" ");
+    const firstName = names[0] || "Unknown";
+    const lastName = names.slice(1).join(" ") || "Contact";
+    
+    return {
+      id: meeting.id,
+      crmId: crmId || `meeting-${meeting.id}`, // Generate CRM ID if not provided
+      clientId: undefined, // Not stored in internal format
+      clientNumber: meeting.cnum,
+      gccNumber: meeting.gcc,
+      clientManager: meeting.relationshipManager,
+      clientName: {
+        nameRu: meeting.companyName || null,
+        nameEn: null,
+        fullNameRu: meeting.companyName || null,
+        fullNameEn: null,
+      },
+      createdBy: meeting.salesPerson,
+      date: meeting.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      startTime,
+      endTime,
+      employees: [meeting.salesPerson, meeting.researcher].filter((emp): emp is string => Boolean(emp)).filter((v, i, a) => a.indexOf(v) === i), // Remove duplicates
+      comment: meeting.notes || "",
+      contacts: [{
+        firstName,
+        lastName,
+        middleName: null,
+        emails: meeting.email ? [meeting.email] : [],
+        phones: [],
+        categories: ["Primary Contact"],
+        position: meeting.respondentPosition,
+      }],
+    };
+  }
+
+  // POST /researches/{researchId}/meetings - Create meeting
+  app.post("/researches/:researchId/meetings", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      if (isNaN(researchId)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+
+      // Validate request body
+      const result = insertResearchMeetingDtoSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid meeting data", 
+          errors: result.error.errors 
+        });
+      }
+
+      // Check if research exists
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      // Map DTO to internal format and create meeting
+      const meetingData = mapDtoToMeeting(result.data, researchId);
+      const meeting = await storage.createMeeting(meetingData);
+
+      // Return the meeting in OpenAPI format
+      const responseDto = mapMeetingToDto(meeting, result.data.crmId);
+      res.status(201).json(responseDto);
+    } catch (error) {
+      console.error("Error creating meeting via OpenAPI:", error);
+      res.status(500).json({ message: "Failed to create meeting" });
+    }
+  });
+
+  // PUT /researches/{researchId}/meetings/{meetingId} - Update meeting
+  app.put("/researches/:researchId/meetings/:meetingId", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      const meetingId = parseInt(req.params.meetingId);
+      
+      if (isNaN(researchId) || isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid research ID or meeting ID" });
+      }
+
+      // Validate request body with full DTO schema for updates
+      const result = updateResearchMeetingDtoSchema.safeParse({
+        ...req.body,
+        id: meetingId
+      });
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid meeting data", 
+          errors: result.error.errors 
+        });
+      }
+
+      // Check if research exists
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      // Check if meeting exists and belongs to the research
+      const existingMeeting = await storage.getMeeting(meetingId);
+      if (!existingMeeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+      
+      if (existingMeeting.researchId !== researchId) {
+        return res.status(400).json({ message: "Meeting does not belong to the specified research" });
+      }
+
+      // Map DTO to internal format and update meeting
+      const updateData = mapDtoToMeeting(result.data as any, researchId);
+      const updatedMeeting = await storage.updateMeeting(meetingId, updateData);
+
+      if (!updatedMeeting) {
+        return res.status(404).json({ message: "Meeting not found after update" });
+      }
+
+      // Return the updated meeting in OpenAPI format
+      const responseDto = mapMeetingToDto(updatedMeeting, result.data.crmId);
+      res.json(responseDto);
+    } catch (error) {
+      console.error("Error updating meeting via OpenAPI:", error);
+      res.status(500).json({ message: "Failed to update meeting" });
+    }
+  });
+
+  // DELETE /researches/{researchId}/meetings/{meetingId} - Cancel/delete meeting
+  app.delete("/researches/:researchId/meetings/:meetingId", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      const meetingId = parseInt(req.params.meetingId);
+      
+      if (isNaN(researchId) || isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid research ID or meeting ID" });
+      }
+
+      // Check if research exists
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      // Check if meeting exists and belongs to the research
+      const existingMeeting = await storage.getMeeting(meetingId);
+      if (!existingMeeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+      
+      if (existingMeeting.researchId !== researchId) {
+        return res.status(400).json({ message: "Meeting does not belong to the specified research" });
+      }
+
+      // Update meeting status to DECLINED instead of hard delete for data integrity
+      const updatedMeeting = await storage.updateMeeting(meetingId, {
+        ...existingMeeting,
+        status: MeetingStatus.DECLINED,
+        notes: (existingMeeting.notes || "") + " [CANCELLED via API]",
+        hasGift: (existingMeeting.hasGift === "yes" ? "yes" : "no") as "yes" | "no" // Ensure hasGift is valid
+      });
+
+      res.status(200).json({ message: "Meeting cancelled successfully" });
+    } catch (error) {
+      console.error("Error cancelling meeting via OpenAPI:", error);
+      res.status(500).json({ message: "Failed to cancel meeting" });
     }
   });
 
