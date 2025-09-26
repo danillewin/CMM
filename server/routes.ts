@@ -1626,6 +1626,50 @@ export function registerRoutes(app: Express): Server {
     };
   }
 
+  // Helper function to validate position exists
+  // Throws an error if storage fails, returns boolean for validation result
+  async function validatePosition(position: string): Promise<boolean> {
+    const positions = await storage.getPositions();
+    return positions.some(p => p.name === position);
+  }
+
+  // Helper function to handle database errors
+  function handleDatabaseError(error: any, operation: string) {
+    console.error(`Error in ${operation}:`, error);
+    
+    // Handle foreign key constraint violations
+    if (error.code === '23503') {
+      if (error.constraint === 'meetings_respondent_position_positions_name_fk') {
+        return {
+          status: 400,
+          message: "Invalid respondent position. Position must exist in the system.",
+          details: `Position '${error.detail?.match(/Key \(respondent_position\)=\(([^)]+)\)/)?.[1] || 'unknown'}' is not available.`
+        };
+      }
+      // Handle other foreign key violations
+      return {
+        status: 400,
+        message: "Invalid reference data provided",
+        details: error.detail || "Referenced data does not exist"
+      };
+    }
+    
+    // Handle other known database errors
+    if (error.code === '23505') {
+      return {
+        status: 409,
+        message: "Duplicate data conflict",
+        details: error.detail || "Data already exists"
+      };
+    }
+    
+    // Default to 500 for unknown errors
+    return {
+      status: 500,
+      message: `Failed to ${operation.replace(/([A-Z])/g, ' $1').toLowerCase()}`
+    };
+  }
+
   // POST /researches/{researchId}/meetings - Create meeting
   app.post("/researches/:researchId/meetings", async (req, res) => {
     try {
@@ -1649,6 +1693,18 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Research not found" });
       }
 
+      // Validate that the respondent position exists
+      const firstContact = result.data.contacts?.[0];
+      if (firstContact?.position) {
+        const positionExists = await validatePosition(firstContact.position);
+        if (!positionExists) {
+          return res.status(400).json({ 
+            message: "Invalid respondent position", 
+            details: `Position '${firstContact.position}' does not exist in the system. Please use an existing position or create it first.`
+          });
+        }
+      }
+
       // Map DTO to internal format and create meeting
       const meetingData = mapDtoToMeeting(result.data, researchId);
       const meeting = await storage.createMeeting(meetingData);
@@ -1656,9 +1712,12 @@ export function registerRoutes(app: Express): Server {
       // Return the meeting in OpenAPI format
       const responseDto = mapMeetingToDto(meeting, result.data.crmId);
       res.status(201).json(responseDto);
-    } catch (error) {
-      console.error("Error creating meeting via OpenAPI:", error);
-      res.status(500).json({ message: "Failed to create meeting" });
+    } catch (error: any) {
+      const errorResponse = handleDatabaseError(error, "createMeeting");
+      res.status(errorResponse.status).json({
+        message: errorResponse.message,
+        ...(errorResponse.details && { details: errorResponse.details })
+      });
     }
   });
 
@@ -1701,6 +1760,18 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Meeting does not belong to the specified research" });
       }
 
+      // Validate that the respondent position exists (if being updated)
+      const firstContact = result.data.contacts?.[0];
+      if (firstContact?.position) {
+        const positionExists = await validatePosition(firstContact.position);
+        if (!positionExists) {
+          return res.status(400).json({ 
+            message: "Invalid respondent position", 
+            details: `Position '${firstContact.position}' does not exist in the system. Please use an existing position or create it first.`
+          });
+        }
+      }
+
       // Map DTO to internal format and update meeting
       const updateData = mapDtoToMeeting(result.data as any, researchId);
       const updatedMeeting = await storage.updateMeeting(meetingId, updateData);
@@ -1712,9 +1783,12 @@ export function registerRoutes(app: Express): Server {
       // Return the updated meeting in OpenAPI format
       const responseDto = mapMeetingToDto(updatedMeeting, result.data.crmId);
       res.json(responseDto);
-    } catch (error) {
-      console.error("Error updating meeting via OpenAPI:", error);
-      res.status(500).json({ message: "Failed to update meeting" });
+    } catch (error: any) {
+      const errorResponse = handleDatabaseError(error, "updateMeeting");
+      res.status(errorResponse.status).json({
+        message: errorResponse.message,
+        ...(errorResponse.details && { details: errorResponse.details })
+      });
     }
   });
 
