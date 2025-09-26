@@ -687,11 +687,18 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for transcription uploads (memory storage - audio/video only)
+  // Configure multer for transcription uploads (disk storage for large files)
   const transcriptionUpload = multer({ 
-    storage: multer.memoryStorage(),
+    storage: multer.diskStorage({
+      destination: '/tmp/uploads/',
+      filename: (req, file, cb) => {
+        // Generate unique filename for transcription files
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'transcribe-' + uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
+      }
+    }),
     limits: {
-      fileSize: 100 * 1024 * 1024, // 100MB limit
+      fileSize: 500 * 1024 * 1024, // Increased to 500MB limit
       files: 5, // Maximum 5 files
       fieldSize: 1024, // 1KB field value limit
       fieldNameSize: 100, // 100 bytes field name limit
@@ -714,11 +721,18 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for meeting file attachments (broader file type support with security)
+  // Configure multer for meeting file attachments (disk storage for large files)
   const meetingFileUpload = multer({ 
-    storage: multer.memoryStorage(),
+    storage: multer.diskStorage({
+      destination: '/tmp/uploads/',
+      filename: (req, file, cb) => {
+        // Generate unique filename to avoid conflicts
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'));
+      }
+    }),
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB limit per file
+      fileSize: 500 * 1024 * 1024, // Increased to 500MB limit per file
       files: 10, // Maximum 10 files per request
       fieldSize: 1024, // 1KB field value limit
       fieldNameSize: 100, // 100 bytes field name limit
@@ -783,9 +797,37 @@ export function registerRoutes(app: Express): Server {
 
       const result = await transcriptionService.transcribeFiles({ files });
       
+      // Clean up temporary files
+      for (const file of files) {
+        if (file.path) {
+          try {
+            require('fs').unlinkSync(file.path);
+            console.log(`Cleaned up temporary transcription file: ${file.path}`);
+          } catch (cleanupError) {
+            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
+          }
+        }
+      }
+      
       res.json(result);
     } catch (error) {
       console.error("Transcription error:", error);
+      
+      // Clean up temporary files on error too
+      const files = req.files as Express.Multer.File[];
+      if (files) {
+        for (const file of files) {
+          if (file.path) {
+            try {
+              require('fs').unlinkSync(file.path);
+              console.log(`Cleaned up temporary transcription file after error: ${file.path}`);
+            } catch (cleanupError) {
+              console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
+            }
+          }
+        }
+      }
+      
       res.status(500).json({ 
         message: "Transcription failed", 
         error: error instanceof Error ? error.message : "Unknown error" 
@@ -838,10 +880,12 @@ export function registerRoutes(app: Express): Server {
           // Get upload URL from object storage
           const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
           
-          // Upload file to storage
+          // Upload file to storage (read from disk instead of memory)
+          const fileStream = require('fs').createReadStream(file.path);
+          
           const response = await fetch(uploadUrl, {
             method: 'PUT',
-            body: file.buffer,
+            body: fileStream,
             headers: {
               'Content-Type': file.mimetype,
             },
@@ -869,9 +913,21 @@ export function registerRoutes(app: Express): Server {
           uploadedAttachments.push(attachment);
 
           console.log(`Successfully uploaded file: ${file.originalname} for meeting ${meetingId}`);
+          
+          // Clean up temporary file
+          try {
+            require('fs').unlinkSync(file.path);
+          } catch (cleanupError) {
+            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
+          }
         } catch (fileError) {
           console.error(`Error uploading file ${file.originalname}:`, fileError);
-          // Continue with other files, but log the error
+          // Clean up temporary file even on error
+          try {
+            require('fs').unlinkSync(file.path);
+          } catch (cleanupError) {
+            console.warn(`Failed to cleanup temporary file ${file.path}:`, cleanupError);
+          }
         }
       }
 

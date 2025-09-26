@@ -96,10 +96,22 @@ class TranscriptionService {
     try {
       const openai = getOpenAIClient();
       
-      // Convert the buffer to a File object that OpenAI can use
-      const audioFile = await toFile(file.buffer, file.originalname, {
-        type: file.mimetype,
-      });
+      // Convert the buffer/file to a File object that OpenAI can use (memory efficient)
+      let audioFile;
+      if (file.buffer) {
+        // For memory storage (buffer available)
+        audioFile = await toFile(file.buffer, file.originalname, {
+          type: file.mimetype,
+        });
+      } else if (file.path) {
+        // For disk storage (file path available) - more memory efficient
+        const fs = require('fs');
+        audioFile = await toFile(fs.createReadStream(file.path), file.originalname, {
+          type: file.mimetype,
+        });
+      } else {
+        throw new Error('Neither file buffer nor path available');
+      }
 
       console.log(`Transcribing file: ${file.originalname} (${file.size} bytes) with model: ${TRANSCRIPTION_MODEL}`);
 

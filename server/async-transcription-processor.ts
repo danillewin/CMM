@@ -32,50 +32,81 @@ export class AsyncTranscriptionProcessor {
         lastTranscriptionAttempt: new Date()
       });
 
-      // Download file from object storage
+      // Download file from object storage to temporary location for streaming
       const objectFile = await this.objectStorageService.getObjectEntityFile(attachment.objectPath);
       const [metadata] = await objectFile.getMetadata();
       
-      // Get file buffer
-      const chunks: Buffer[] = [];
-      const stream = objectFile.createReadStream();
+      // Create temporary file path for streaming (memory efficient)
+      const fs = require('fs');
+      const path = require('path');
+      const tempDir = '/tmp/transcription';
       
+      // Ensure temp directory exists
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
+      const tempFilePath = path.join(tempDir, `temp-${attachment.id}-${Date.now()}-${attachment.fileName}`);
+      const tempWriteStream = fs.createWriteStream(tempFilePath);
+      const objectReadStream = objectFile.createReadStream();
+      
+      // Stream file to temporary location (no memory buffering)
       await new Promise<void>((resolve, reject) => {
-        stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-        stream.on('end', () => resolve());
-        stream.on('error', (error) => reject(error));
+        objectReadStream.pipe(tempWriteStream);
+        tempWriteStream.on('finish', resolve);
+        tempWriteStream.on('error', reject);
+        objectReadStream.on('error', reject);
       });
 
-      const fileBuffer = Buffer.concat(chunks);
+      console.log(`File streamed to temporary location: ${tempFilePath}`);
 
-      // Create a mock Express.Multer.File object for the transcription service
-      const multerFile: Express.Multer.File = {
-        fieldname: 'file',
-        originalname: attachment.originalName,
-        encoding: '7bit',
-        mimetype: attachment.mimeType,
-        size: attachment.fileSize,
-        buffer: fileBuffer,
-        destination: '',
-        filename: attachment.fileName,
-        path: '',
-        stream: stream as any,
-      };
+      try {
+        // Create a file object that points to the temporary file (no buffer)
+        const multerFile: Express.Multer.File = {
+          fieldname: 'file',
+          originalname: attachment.originalName,
+          encoding: '7bit',
+          mimetype: attachment.mimeType,
+          size: attachment.fileSize,
+          buffer: undefined as any, // No buffer - use path instead
+          destination: tempDir,
+          filename: path.basename(tempFilePath),
+          path: tempFilePath, // File path for streaming
+          stream: undefined as any,
+        };
 
-      // Transcribe the file
-      const result = await transcriptionService.transcribeFiles({ files: [multerFile] });
-      
-      // Update attachment with successful transcription
-      await storage.updateMeetingAttachment(attachmentId, {
-        transcriptionStatus: 'completed',
-        transcriptionText: result.text,
-        errorMessage: undefined
-      });
+        // Transcribe the file using streaming
+        const result = await transcriptionService.transcribeFiles({ files: [multerFile] });
+        
+        // Clean up temporary file immediately after transcription
+        try {
+          fs.unlinkSync(tempFilePath);
+          console.log(`Cleaned up temporary file: ${tempFilePath}`);
+        } catch (cleanupError) {
+          console.warn(`Failed to cleanup temporary file ${tempFilePath}:`, cleanupError);
+        }
+        
+        // Update attachment with successful transcription
+        await storage.updateMeetingAttachment(attachmentId, {
+          transcriptionStatus: 'completed',
+          transcriptionText: result.text,
+          errorMessage: undefined
+        });
 
-      console.log(`Successfully completed transcription for file: ${attachment.originalName}`);
+        console.log(`Successfully completed transcription for file: ${attachment.originalName}`);
 
-      // Check if all transcriptions are now complete for this meeting
-      await this.checkAndTriggerSummarization(attachment.meetingId);
+        // Check if all transcriptions are now complete for this meeting
+        await this.checkAndTriggerSummarization(attachment.meetingId);
+        
+      } catch (transcriptionError) {
+        // Clean up temporary file on error too
+        try {
+          fs.unlinkSync(tempFilePath);
+        } catch (cleanupError) {
+          console.warn(`Failed to cleanup temporary file ${tempFilePath}:`, cleanupError);
+        }
+        throw transcriptionError;
+      }
       
     } catch (error) {
       console.error(`Transcription failed for file ${attachment.originalName}:`, error);

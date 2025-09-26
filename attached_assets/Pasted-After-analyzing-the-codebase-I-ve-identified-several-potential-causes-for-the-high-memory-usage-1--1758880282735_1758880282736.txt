@@ -1,0 +1,130 @@
+After analyzing the codebase, I've identified several potential causes for the high memory usage (1.5Gi for a 187Mi file) in your S3 integration and transcription
+  process:
+
+  Key Issues:
+
+  1. Inefficient File Buffering in Async Transcription Processor
+  In async-transcription-processor.ts, the entire file is loaded into memory at once:
+
+    1 // Download file from object storage
+    2 const objectFile = await this.objectStorageService.getObjectEntityFile(attachment.objectPath);
+    3 const [metadata] = await objectFile.getMetadata();
+    4 
+    5 // Get file buffer - THIS LOADS THE ENTIRE FILE INTO MEMORY
+    6 const chunks: Buffer[] = [];
+    7 const stream = objectFile.createReadStream();
+    8 
+    9 await new Promise<void>((resolve, reject) => {
+   10   stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+   11   stream.on('end', () => resolve());
+   12   stream.on('error', (error) => reject(error));
+   13 });
+   14 
+   15 const fileBuffer = Buffer.concat(chunks); // Creates a single large buffer
+
+  This approach loads the entire file into memory as a single buffer, which for a 187MB file could easily consume much more memory due to:
+   - Buffer overhead
+   - JavaScript object overhead
+   - Temporary copies during processing
+
+  2. Inefficient Stream Implementation in Minio Client
+  In minioClient.ts, the custom stream implementation may not be properly managing memory:
+
+    1 createReadStream(): Readable {
+    2   // Create a readable stream that will be populated with data from MinIO
+    3   const stream = new Readable({
+    4     read() {} // No-op read function, we'll push data manually
+    5   });
+    6 
+    7   // Get object stream from MinIO
+    8   minioClient.getObject(this.bucketName, this.objectName, (err, dataStream) => {
+    9     // ... data is pushed to stream
+   10   });
+   11 
+   12   return stream;
+   13 }
+
+  This implementation doesn't properly handle backpressure, which can lead to memory buildup when data is pushed faster than it's consumed.
+
+  3. OpenAI API File Handling
+  In transcription-service.ts, the file is converted to a File object:
+
+   1 const audioFile = await toFile(file.buffer, file.originalname, {
+   2   type: file.mimetype,
+   3 });
+
+  The toFile function may create additional copies of the buffer in memory.
+
+  4. Multer Memory Storage
+  In routes.ts, Multer is configured with memory storage:
+
+   1 const transcriptionUpload = multer({
+   2   storage: multer.memoryStorage(), // Stores files in memory
+   3   // ...
+   4 });
+
+  This means files are first loaded into memory during upload, then loaded again during transcription.
+
+  Recommendations:
+
+  1. Implement Streaming Transcription
+  Instead of buffering the entire file, stream it directly to the transcription service:
+
+   1 // Create a temporary file or use a stream directly
+   2 const stream = objectFile.createReadStream();
+   3 // Pass stream directly to OpenAI instead of buffering
+
+  2. Use Disk Storage for Large Files
+  Modify Multer configuration to use disk storage for large files:
+
+    1 const storage = multer.diskStorage({
+    2   destination: (req, file, cb) => {
+    3     cb(null, '/tmp/uploads/')
+    4   },
+    5   filename: (req, file, cb) => {
+    6     cb(null, Date.now() + '-' + file.originalname)
+    7   }
+    8 });
+    9 
+   10 const upload = multer({
+   11   storage: storage,
+   12   limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit
+   13 });
+
+  3. Implement Proper Backpressure Handling
+  Fix the Minio client stream implementation to properly handle backpressure:
+
+    1 createReadStream(): Readable {
+    2   const stream = new Readable({
+    3     read() {}
+    4   });
+    5 
+    6   minioClient.getObject(this.bucketName, this.objectName, (err, dataStream) => {
+    7     if (err) {
+    8       stream.emit('error', err);
+    9       return;
+   10     }
+   11 
+   12     // Properly pipe with backpressure handling
+   13     dataStream.on('data', (chunk) => {
+   14       if (!stream.push(chunk)) {
+   15         dataStream.pause(); // Handle backpressure
+   16       }
+   17     });
+   18 
+   19     dataStream.on('end', () => {
+   20       stream.push(null);
+   21     });
+   22 
+   23     dataStream.on('error', (err) => {
+   24       stream.emit('error', err);
+   25     });
+   26 
+   27     // Resume when requested
+   28     stream.on('drain', () => {
+   29       dataStream.resume();
+   30     });
+   31   });
+   32 
+   33   return stream;
+   34 }
