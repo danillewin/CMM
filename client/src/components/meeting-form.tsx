@@ -592,6 +592,7 @@ export default function MeetingForm({
                         handleFieldChange("researcher", research.researcher);
                       }}
                       placeholder="Выберите исследование..."
+                      disabled={isCreating && !!preselectedResearch}
                       displayName={
                         !isCreating && initialData 
                           ? (initialData as any).researchName 
