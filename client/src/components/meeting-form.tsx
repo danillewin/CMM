@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertMeetingSchema, type InsertMeeting, MeetingStatus, type Meeting, type Research, type MeetingStatusType, type Jtbd } from "@shared/schema";
@@ -136,6 +136,16 @@ export default function MeetingForm({
       onTempDataUpdate({ [field]: value } as any);
     }
   };
+
+  // Automatically fill researchId and researcher when preselectedResearch is provided
+  useEffect(() => {
+    if (preselectedResearch && isCreating && !initialData?.researchId) {
+      form.setValue('researchId', preselectedResearch.id);
+      form.setValue('researcher', preselectedResearch.researcher);
+      handleFieldChange('researchId', preselectedResearch.id);
+      handleFieldChange('researcher', preselectedResearch.researcher);
+    }
+  }, [preselectedResearch, isCreating, initialData?.researchId, form]);
 
   // Handle form submission
   const onSubmitWrapper = (data: FormValues) => {
