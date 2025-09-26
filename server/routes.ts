@@ -1577,7 +1577,6 @@ export function registerRoutes(app: Express): Server {
       salesPerson: dto.employees.length > 0 ? dto.employees[0] : dto.createdBy,
       researcher: dto.employees.length > 1 ? dto.employees[1] : dto.employees[0],
       date: new Date(dto.date + "T00:00:00.000Z"),
-      time: timeRange,
       notes: dto.comment,
       researchId: researchId,
       status: MeetingStatus.SET, // Default status for external meetings
@@ -1587,10 +1586,9 @@ export function registerRoutes(app: Express): Server {
 
   // Helper function to map internal meeting to OpenAPI DTO format
   function mapMeetingToDto(meeting: Meeting, crmId?: string): ResearchMeetingDto {
-    // Parse time range if available
-    const timeMatch = meeting.time?.match(/^(\d{2}:\d{2})-(\d{2}:\d{2})$/);
-    const startTime = timeMatch ? timeMatch[1] : "09:00";
-    const endTime = timeMatch ? timeMatch[2] : "10:00";
+    // Default time values since time field doesn't exist in database
+    const startTime = "09:00";
+    const endTime = "10:00";
     
     // Parse contact information from respondent data
     const names = meeting.respondentName.split(" ");
@@ -1750,8 +1748,18 @@ export function registerRoutes(app: Express): Server {
       const updatedMeeting = await storage.updateMeeting(meetingId, {
         ...existingMeeting,
         status: MeetingStatus.DECLINED,
-        notes: (existingMeeting.notes || "") + " [CANCELLED via API]",
-        hasGift: (existingMeeting.hasGift === "yes" ? "yes" : "no") as "yes" | "no" // Ensure hasGift is valid
+        notes: (existingMeeting.notes || "") + " [CANCELLED via API]", // Override notes with cancellation message
+        hasGift: (existingMeeting.hasGift === "yes" ? "yes" : "no") as "yes" | "no", // Ensure hasGift is valid
+        summarizationStatus: (existingMeeting.summarizationStatus === "in_progress" || 
+                            existingMeeting.summarizationStatus === "completed" || 
+                            existingMeeting.summarizationStatus === "failed" ? 
+                            existingMeeting.summarizationStatus : "not_started") as "not_started" | "in_progress" | "completed" | "failed",
+        gcc: existingMeeting.gcc || undefined, // Convert null to undefined
+        companyName: existingMeeting.companyName || undefined, // Convert null to undefined
+        email: existingMeeting.email || undefined, // Convert null to undefined
+        // Note: time and meetingLink fields don't exist in database schema
+        fullText: existingMeeting.fullText || undefined, // Convert null to undefined
+        researcher: existingMeeting.researcher || undefined // Convert null to undefined
       });
 
       res.status(200).json({ message: "Meeting cancelled successfully" });
