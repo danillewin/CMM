@@ -881,12 +881,15 @@ export default function MeetingDetail() {
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
+    console.log('useEffect triggered:', { isNew, preselectedResearchId });
     if (isNew && preselectedResearchId) {
+      console.log('Loading preselected research:', preselectedResearchId);
       // Load the specific research if preselected via URL
       fetch(`/api/researches/${preselectedResearchId}`)
         .then((res) => res.json())
         .then((research) => {
           if (research) {
+            console.log('Preselected research loaded:', research);
             setPreselectedResearch(research);
           }
         })
