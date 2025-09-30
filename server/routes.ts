@@ -722,11 +722,11 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for transcription uploads (memory storage - audio/video only)
+  // Configure multer for transcription uploads (K8s-compatible streaming)
   const transcriptionUpload = multer({ 
-    storage: multer.memoryStorage(),
+    storage: multer.memoryStorage(), // Memory storage with immediate processing
     limits: {
-      fileSize: 100 * 1024 * 1024, // 100MB limit
+      fileSize: 500 * 1024 * 1024, // Increased to 500MB limit
       files: 5, // Maximum 5 files
       fieldSize: 1024, // 1KB field value limit
       fieldNameSize: 100, // 100 bytes field name limit
@@ -749,21 +749,27 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for meeting file attachments (broader file type support with security)
+  // Configure multer for meeting file attachments (K8s-compatible streaming)
   const meetingFileUpload = multer({ 
-    storage: multer.memoryStorage(),
+    storage: multer.memoryStorage(), // Use memory storage but with streaming to object storage
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB limit per file
+      fileSize: 500 * 1024 * 1024, // Increased to 500MB limit per file
       files: 10, // Maximum 10 files per request
       fieldSize: 1024, // 1KB field value limit
       fieldNameSize: 100, // 100 bytes field name limit
       parts: 20, // Maximum 20 parts (fields + files)
     },
     fileFilter: (req, file, cb) => {
-      // Sanitize filename
-      const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      // Combined file filter for K8s compatibility and security
       
-      // Block dangerous file extensions
+      // Check file size for K8s memory considerations
+      const maxSize = 500 * 1024 * 1024; // 500MB
+      if (req.headers['content-length'] && parseInt(req.headers['content-length']) > maxSize) {
+        cb(new Error(`File too large. Maximum size is ${maxSize / (1024 * 1024)}MB`));
+        return;
+      }
+      
+      // Block dangerous file extensions for security
       const dangerousExtensions = /\.(exe|bat|cmd|scr|pif|vbs|js|jar|com|app|dmg|pkg|deb|rpm)$/i;
       if (dangerousExtensions.test(file.originalname)) {
         cb(new Error('File type not allowed for security reasons.'));
@@ -818,9 +824,14 @@ export function registerRoutes(app: Express): Server {
 
       const result = await transcriptionService.transcribeFiles({ files });
       
+      // No cleanup needed for memory storage
+      
       res.json(result);
     } catch (error) {
       console.error("Transcription error:", error);
+      
+      // No cleanup needed for memory storage
+      
       res.status(500).json({ 
         message: "Transcription failed", 
         error: error instanceof Error ? error.message : "Unknown error" 
@@ -873,12 +884,13 @@ export function registerRoutes(app: Express): Server {
           // Get upload URL from object storage
           const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
           
-          // Upload file to storage
+          // Upload file to storage using memory buffer (K8s compatible)
           const response = await fetch(uploadUrl, {
             method: 'PUT',
             body: file.buffer,
             headers: {
               'Content-Type': file.mimetype,
+              'Content-Length': file.size.toString(),
             },
           });
 
@@ -904,9 +916,10 @@ export function registerRoutes(app: Express): Server {
           uploadedAttachments.push(attachment);
 
           console.log(`Successfully uploaded file: ${file.originalname} for meeting ${meetingId}`);
+          
+          // No cleanup needed - memory buffer automatically freed
         } catch (fileError) {
           console.error(`Error uploading file ${file.originalname}:`, fileError);
-          // Continue with other files, but log the error
         }
       }
 

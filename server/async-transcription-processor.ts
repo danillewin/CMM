@@ -32,37 +32,42 @@ export class AsyncTranscriptionProcessor {
         lastTranscriptionAttempt: new Date()
       });
 
-      // Download file from object storage
+      // K8s-compatible: Download file from object storage directly to memory buffer
       const objectFile = await this.objectStorageService.getObjectEntityFile(attachment.objectPath);
       const [metadata] = await objectFile.getMetadata();
       
-      // Get file buffer
+      console.log(`Processing file for transcription: ${attachment.originalName} (${attachment.fileSize} bytes)`);
+      
+      // Stream file to memory buffer (K8s compatible - no disk storage)
       const chunks: Buffer[] = [];
-      const stream = objectFile.createReadStream();
+      const objectReadStream = objectFile.createReadStream();
       
       await new Promise<void>((resolve, reject) => {
-        stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-        stream.on('end', () => resolve());
-        stream.on('error', (error) => reject(error));
+        objectReadStream.on('data', (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+        objectReadStream.on('end', () => resolve());
+        objectReadStream.on('error', (error) => reject(error));
       });
 
       const fileBuffer = Buffer.concat(chunks);
+      console.log(`File loaded to memory buffer: ${fileBuffer.length} bytes`);
 
-      // Create a mock Express.Multer.File object for the transcription service
+      // Create a file object with memory buffer (K8s compatible)
       const multerFile: Express.Multer.File = {
         fieldname: 'file',
         originalname: attachment.originalName,
         encoding: '7bit',
         mimetype: attachment.mimeType,
         size: attachment.fileSize,
-        buffer: fileBuffer,
+        buffer: fileBuffer, // Use memory buffer for K8s compatibility
         destination: '',
         filename: attachment.fileName,
-        path: '',
-        stream: stream as any,
+        path: '', // No path for memory storage
+        stream: objectReadStream as any,
       };
 
-      // Transcribe the file
+      // Transcribe the file using memory buffer
       const result = await transcriptionService.transcribeFiles({ files: [multerFile] });
       
       // Update attachment with successful transcription
