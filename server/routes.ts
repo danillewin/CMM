@@ -740,7 +740,7 @@ export function registerRoutes(app: Express): Server {
     fileFilter: (req, file, cb) => {
       // Accept audio and video files only for transcription
       const allowedTypes = [
-        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac',
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/x-m4a',
         'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
       ];
       
@@ -792,7 +792,7 @@ export function registerRoutes(app: Express): Server {
         // Images
         'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
         // Audio
-        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac',
+        'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/x-m4a',
         // Video
         'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 'video/webm', 'video/mkv'
       ];
