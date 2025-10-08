@@ -313,7 +313,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Research Type
+                      Тип исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <Select
@@ -325,7 +325,7 @@ export default function ResearchForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select research type" />
+                          <SelectValue placeholder="Выберите тип исследования" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -336,20 +336,20 @@ export default function ResearchForm({
                           CAWI (Online Survey)
                         </SelectItem>
                         <SelectItem value="Moderated usability testing">
-                          Moderated usability testing
+                          Модерируемое юзабилити-тестирование
                         </SelectItem>
                         <SelectItem value="Unmoderated usability testing">
-                          Unmoderated usability testing
+                          Немодерируемое юзабилити-тестирование
                         </SelectItem>
                         <SelectItem value="Co-creation session">
-                          Co-creation session
+                          Сессия совместного создания
                         </SelectItem>
-                        <SelectItem value="Interviews">Interviews</SelectItem>
+                        <SelectItem value="Interviews">Интервью</SelectItem>
                         <SelectItem value="Desk research">
-                          Desk research
+                          Кабинетное исследование
                         </SelectItem>
                         <SelectItem value="Not assigned">
-                          Not assigned
+                          Не назначено
                         </SelectItem>
                       </SelectContent>
                     </Select>

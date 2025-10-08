@@ -312,54 +312,6 @@ function ResearchDetailBriefForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Research Type Field */}
-        <FormField
-          control={form.control}
-          name="researchType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                {"Тип исследования"}
-              </FormLabel>
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  handleFieldChange("researchType", value);
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите тип исследования" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CATI (Telephone Survey)">
-                    CATI (Telephone Survey)
-                  </SelectItem>
-                  <SelectItem value="CAWI (Online Survey)">
-                    CAWI (Online Survey)
-                  </SelectItem>
-                  <SelectItem value="Moderated usability testing">
-                    Модерируемое юзабилити-тестирование
-                  </SelectItem>
-                  <SelectItem value="Unmoderated usability testing">
-                    Немодерируемое юзабилити-тестирование
-                  </SelectItem>
-                  <SelectItem value="Co-creation session">
-                    Сессия совместного создания
-                  </SelectItem>
-                  <SelectItem value="Interviews">Интервью</SelectItem>
-                  <SelectItem value="Desk research">
-                    Кабинетное исследование
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="customerFullName"
