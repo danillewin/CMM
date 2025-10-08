@@ -1026,14 +1026,27 @@ export default function MeetingDetail() {
   };
 
   const handleCancel = () => {
+    // Debug: Log navigation context
+    console.log("handleCancel debug:", {
+      fromContext,
+      preselectedResearchId,
+      sourceType,
+      sourceId,
+      isNew,
+      searchParams: Object.fromEntries(searchParams.entries())
+    });
+    
     // Navigate back to source if available, otherwise go to meetings
     if (fromContext === "research" && preselectedResearchId) {
       // If creating from research page, go back to research page
+      console.log("Navigating to research via fromContext:", preselectedResearchId);
       setLocation(`/researches/${preselectedResearchId}`);
     } else if (sourceType === "research" && sourceId) {
       // If editing existing meeting from research context
+      console.log("Navigating to research via sourceType:", sourceId);
       setLocation(`/researches/${sourceId}`);
     } else {
+      console.log("Navigating to root");
       setLocation("/");
     }
   };
