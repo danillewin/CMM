@@ -1060,7 +1060,7 @@ export default function MeetingDetail() {
             className="hover:text-gray-800 cursor-pointer"
             onClick={handleCancel}
           >
-            {sourceType === "research" && (preselectedResearch || meeting?.researchName)
+            {sourceType === "research"
               ? preselectedResearch?.name || meeting?.researchName || "Исследования"
               : "Встречи"}
           </span>
