@@ -92,6 +92,7 @@ export default function MeetingForm({
     gcc: string;
     companyName: string;
     email: string;
+    phone: string;
     researcher: string;
     relationshipManager: string;
     salesPerson: string;
