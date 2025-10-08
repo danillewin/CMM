@@ -1591,7 +1591,7 @@ export function registerRoutes(app: Express): Server {
   // =========================================
 
   // Helper function to map OpenAPI DTO to internal meeting format
-  function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number): any {
+  function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number, researcherFromResearch?: string): any {
     // Combine startTime and endTime with date to create time and meeting duration
     const timeRange = `${dto.startTime}-${dto.endTime}`;
     
@@ -1609,8 +1609,8 @@ export function registerRoutes(app: Express): Server {
       email: dto.contacts.length > 0 && dto.contacts[0].emails.length > 0 ? 
         dto.contacts[0].emails[0] : null,
       relationshipManager: dto.clientManager || dto.createdBy,
-      salesPerson: dto.employees.length > 0 ? dto.employees[0] : dto.createdBy,
-      researcher: dto.employees.length > 1 ? dto.employees[1] : dto.employees[0],
+      salesPerson: dto.createdBy, // Рекрутер (Recruiter) - from createdBy
+      researcher: researcherFromResearch || dto.createdBy, // Исследователь (Researcher) - from related research
       date: new Date(dto.date + "T00:00:00.000Z"),
       time: timeRange,
       meetingLink: dto.location || null,
@@ -1750,7 +1750,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Map DTO to internal format and create meeting
-      const meetingData = mapDtoToMeeting(result.data, researchId);
+      const meetingData = mapDtoToMeeting(result.data, researchId, research.researcher);
       const meeting = await storage.createMeeting(meetingData);
 
       // Return the meeting in OpenAPI format
@@ -1817,7 +1817,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Map DTO to internal format and update meeting
-      const updateData = mapDtoToMeeting(result.data as any, researchId);
+      const updateData = mapDtoToMeeting(result.data as any, researchId, research.researcher);
       const updatedMeeting = await storage.updateMeeting(meetingId, updateData);
 
       if (!updatedMeeting) {
