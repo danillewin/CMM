@@ -48,14 +48,18 @@ export const WysiwygMarkdownEditor = ({
         .mdxeditor ul li {
           display: flex !important;
           align-items: flex-start !important;
-          gap: 0.5rem !important;
+          gap: 0.75rem !important;
         }
         
         .mdxeditor ul li input[type="checkbox"] {
-          margin-top: 0.25rem !important;
+          margin-top: 0.125rem !important;
           flex-shrink: 0 !important;
           width: 1rem !important;
           height: 1rem !important;
+        }
+        
+        .mdxeditor ul li input[type="checkbox"] + * {
+          margin-left: 0.25rem !important;
         }
         
         .mdxeditor ol li,
