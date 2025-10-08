@@ -1873,6 +1873,7 @@ export function registerRoutes(app: Express): Server {
         gcc: existingMeeting.gcc || undefined, // Convert null to undefined
         companyName: existingMeeting.companyName || undefined, // Convert null to undefined
         email: existingMeeting.email || undefined, // Convert null to undefined
+        phone: existingMeeting.phone || undefined, // Convert null to undefined
         // Note: time and meetingLink fields don't exist in database schema
         fullText: existingMeeting.fullText || undefined, // Convert null to undefined
         researcher: existingMeeting.researcher || undefined // Convert null to undefined
