@@ -45,21 +45,20 @@ export const WysiwygMarkdownEditor = ({
           max-height: calc(${height}px - 48px) !important;
         }
         
-        .mdxeditor ul li {
-          display: flex !important;
-          align-items: flex-start !important;
-          gap: 0.75rem !important;
+        .mdxeditor ul li:has(input[type="checkbox"]) {
+          list-style: none !important;
+          display: block !important;
+          position: relative !important;
+          padding-left: 1.75rem !important;
         }
         
         .mdxeditor ul li input[type="checkbox"] {
-          margin-top: 0.125rem !important;
-          flex-shrink: 0 !important;
+          position: absolute !important;
+          left: 0 !important;
+          top: 0.125rem !important;
           width: 1rem !important;
           height: 1rem !important;
-        }
-        
-        .mdxeditor ul li input[type="checkbox"] + * {
-          margin-left: 0.25rem !important;
+          margin: 0 !important;
         }
         
         .mdxeditor ol li,
