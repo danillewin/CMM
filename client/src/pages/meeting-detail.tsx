@@ -1144,23 +1144,27 @@ export default function MeetingDetail() {
                   onSubmit={handleSubmit}
                   initialData={
                     preselectedResearchId && preselectedResearch
-                      ? ({
-                          id: 0, // New meeting
-                          researchId: preselectedResearchId,
-                          date: new Date(),
-                          // Default values for required fields
-                          respondentName: "",
-                          respondentPosition: "",
-                          cnum: "",
-                          gcc: null,
-                          companyName: null,
-                          email: "",
-                          researcher: preselectedResearch.researcher || "", // Set the researcher from the selected research
-                          relationshipManager: "",
-                          salesPerson: "",
-                          status: MeetingStatus.IN_PROGRESS,
-                          notes: null,
-                        } as Meeting)
+                      ? (() => {
+                          const data = {
+                            id: 0, // New meeting
+                            researchId: preselectedResearchId,
+                            date: new Date(),
+                            // Default values for required fields
+                            respondentName: "",
+                            respondentPosition: "",
+                            cnum: "",
+                            gcc: null,
+                            companyName: null,
+                            email: "",
+                            researcher: preselectedResearch.researcher || "", // Set the researcher from the selected research
+                            relationshipManager: "",
+                            salesPerson: "",
+                            status: MeetingStatus.IN_PROGRESS,
+                            notes: null,
+                          } as Meeting;
+                          console.log('MeetingForm initialData:', { researchId: data.researchId, researcher: data.researcher, researchName: preselectedResearch.name });
+                          return data;
+                        })()
                       : undefined
                   }
                   isLoading={isPending}
