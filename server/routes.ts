@@ -499,14 +499,11 @@ export function registerRoutes(app: Express): Server {
 
   app.patch("/api/meetings/:id", async (req, res) => {
     try {
-      console.log("PATCH /api/meetings request body:", JSON.stringify(req.body, null, 2));
       const result = insertMeetingSchema.safeParse(req.body);
       if (!result.success) {
         res.status(400).json({ message: "Invalid meeting data", errors: result.error.errors });
         return;
       }
-      
-      console.log("Validated meeting data:", JSON.stringify(result.data, null, 2));
       
       // If researchId is provided, get the researcher from the associated research
       let meetingData = result.data;

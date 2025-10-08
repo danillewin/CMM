@@ -503,6 +503,7 @@ export class DatabaseStorage implements IStorage {
       gcc: row.gcc,
       companyName: row.company_name,
       email: row.email,
+      phone: row.phone,
       researcher: row.researcher,
       relationshipManager: row.relationship_manager,
       salesPerson: row.recruiter,
@@ -530,14 +531,14 @@ export class DatabaseStorage implements IStorage {
       const query = `
         INSERT INTO meetings (
           respondent_name, respondent_position, cnum, 
-          gcc, company_name, email, researcher, 
+          gcc, company_name, email, phone, researcher, 
           relationship_manager, recruiter, date, time, meeting_link,
           research_id, status, notes, full_text, has_gift
         ) VALUES (
           $1, $2, $3, 
-          $4, $5, $6, $7, 
-          $8, $9, $10, $11, $12,
-          $13, $14, $15, $16, $17
+          $4, $5, $6, $7, $8, 
+          $9, $10, $11, $12, $13,
+          $14, $15, $16, $17, $18
         ) RETURNING *
       `;
 
@@ -548,6 +549,7 @@ export class DatabaseStorage implements IStorage {
         meeting.gcc || null,
         meeting.companyName || null,
         meeting.email || null,
+        meeting.phone || null,
         meeting.researcher || null,
         meeting.relationshipManager,
         meeting.salesPerson,
@@ -573,6 +575,7 @@ export class DatabaseStorage implements IStorage {
         gcc: row.gcc,
         companyName: row.company_name,
         email: row.email,
+        phone: row.phone,
         researcher: row.researcher,
         relationshipManager: row.relationship_manager,
         salesPerson: row.recruiter,
@@ -613,20 +616,21 @@ export class DatabaseStorage implements IStorage {
           gcc = $4,
           company_name = $5,
           email = $6,
-          researcher = $7,
-          relationship_manager = $8,
-          recruiter = $9,
-          date = $10,
-          time = $11,
-          meeting_link = $12,
-          research_id = $13,
-          status = $14,
-          notes = $15,
-          full_text = $16,
-          has_gift = $17,
-          summarization_status = $18,
-          summarization_result = $19
-        WHERE id = $20
+          phone = $7,
+          researcher = $8,
+          relationship_manager = $9,
+          recruiter = $10,
+          date = $11,
+          time = $12,
+          meeting_link = $13,
+          research_id = $14,
+          status = $15,
+          notes = $16,
+          full_text = $17,
+          has_gift = $18,
+          summarization_status = $19,
+          summarization_result = $20
+        WHERE id = $21
         RETURNING *
       `;
 
@@ -637,6 +641,7 @@ export class DatabaseStorage implements IStorage {
         meeting.gcc || null,
         meeting.companyName || null,
         meeting.email || null,
+        meeting.phone || null,
         meeting.researcher || null,
         meeting.relationshipManager,
         meeting.salesPerson,
@@ -670,6 +675,7 @@ export class DatabaseStorage implements IStorage {
         gcc: row.gcc,
         companyName: row.company_name,
         email: row.email,
+        phone: row.phone,
         researcher: row.researcher,
         relationshipManager: row.relationship_manager,
         salesPerson: row.recruiter,
