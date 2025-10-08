@@ -1737,15 +1737,13 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Research not found" });
       }
 
-      // Validate that the respondent position exists
+      // Validate that the respondent position exists, create if not found
       const firstContact = result.data.contacts?.[0];
       if (firstContact?.position) {
         const positionExists = await validatePosition(firstContact.position);
         if (!positionExists) {
-          return res.status(400).json({ 
-            message: "Invalid respondent position", 
-            details: `Position '${firstContact.position}' does not exist in the system. Please use an existing position or create it first.`
-          });
+          // Create the position automatically
+          await storage.createPosition({ name: firstContact.position });
         }
       }
 
@@ -1804,15 +1802,13 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Meeting does not belong to the specified research" });
       }
 
-      // Validate that the respondent position exists (if being updated)
+      // Validate that the respondent position exists (if being updated), create if not found
       const firstContact = result.data.contacts?.[0];
       if (firstContact?.position) {
         const positionExists = await validatePosition(firstContact.position);
         if (!positionExists) {
-          return res.status(400).json({ 
-            message: "Invalid respondent position", 
-            details: `Position '${firstContact.position}' does not exist in the system. Please use an existing position or create it first.`
-          });
+          // Create the position automatically
+          await storage.createPosition({ name: firstContact.position });
         }
       }
 
