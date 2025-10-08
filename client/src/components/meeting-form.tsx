@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { useManagers } from "@/hooks/use-managers";
 import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PositionAutocomplete } from "./position-autocomplete";
@@ -75,7 +74,6 @@ export default function MeetingForm({
   // Research data is now loaded on-demand via ResearchSelector component
   // No need to pre-load all researches
   const researches: Research[] = [];
-  const { lastUsedManager, addManager } = useManagers();
 
   // Properly handle the date conversion for the form
   const defaultDate = initialData && initialData.date 
@@ -117,7 +115,7 @@ export default function MeetingForm({
       companyName: initialData?.companyName ?? "",
       email: initialData?.email ?? "",
       researcher: initialData?.researcher ?? "", // Researcher from connected research
-      relationshipManager: initialData?.relationshipManager ?? (!initialData ? lastUsedManager : ""),
+      relationshipManager: initialData?.relationshipManager ?? "",
       salesPerson: initialData?.salesPerson ?? "",
       date: new Date(defaultDate),
       time: initialData?.time ?? "",
@@ -175,10 +173,6 @@ export default function MeetingForm({
     
     // Clear validation error if submission is valid
     setValidationError(false);
-    
-    if (data.relationshipManager) {
-      addManager(data.relationshipManager);
-    }
     
     // Combine date and time into a single Date object if time is provided
     let combinedDateTime = new Date(data.date);
