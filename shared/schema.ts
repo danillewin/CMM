@@ -117,6 +117,8 @@ export const meetings = pgTable("meetings", {
   relationshipManager: text("relationship_manager").notNull(),
   salesPerson: text("recruiter").notNull(),
   date: timestamp("date").notNull(),
+  time: text("time"), // Optional time field
+  meetingLink: text("meeting_link"), // Optional meeting link/location field
   researchId: integer("research_id").references(() => researches.id).notNull(),
   status: text("status").notNull().default(MeetingStatus.IN_PROGRESS),
   notes: text("notes"),
@@ -428,6 +430,7 @@ export const researchMeetingDtoSchema = z.object({
   employees: z.array(z.string()).min(1, "At least one employee is required"),
   comment: z.string().default(""),
   contacts: z.array(clientContactSchema).default([]),
+  location: z.string().nullable().optional(), // Location/meeting link field
 });
 
 // Insert and update schemas for OpenAPI endpoints
