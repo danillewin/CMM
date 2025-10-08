@@ -68,7 +68,7 @@ export const WysiwygMarkdownEditor = ({
         
         .mdxeditor [class*="_listItemChecked_"],
         .mdxeditor [class*="_listItemUnchecked_"] {
-          padding-left: var(--spacing-4) !important;
+          padding-left: var(--spacing-5) !important;
         }
         
         .mdxeditor ol li,
