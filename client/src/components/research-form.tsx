@@ -39,6 +39,7 @@ import { RESEARCH_COLORS } from "@/lib/colors";
 import { RequiredFieldIndicator } from "@/components/required-field-indicator";
 import { ChevronDown } from "lucide-react";
 import { formatDateForInput, parseDateFromInput } from "@/lib/date-utils";
+import { addMonths } from "date-fns";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Popover,
@@ -223,6 +224,14 @@ export default function ResearchForm({
                           if (date) {
                             field.onChange(date);
                             handleFieldChange("dateStart", date);
+                            
+                            // Автоматически устанавливаем дату окончания на месяц вперед при создании нового исследования
+                            const isNewResearch = !initialData?.id;
+                            if (isNewResearch) {
+                              const oneMonthLater = addMonths(date, 1);
+                              form.setValue("dateEnd", oneMonthLater);
+                              handleFieldChange("dateEnd", oneMonthLater);
+                            }
                           }
                         }}
                         placeholder="дд/мм/гг"
@@ -304,7 +313,7 @@ export default function ResearchForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base">
-                      Research Type
+                      Тип исследования
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <Select
@@ -316,7 +325,7 @@ export default function ResearchForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select research type" />
+                          <SelectValue placeholder="Выберите тип исследования" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -327,20 +336,20 @@ export default function ResearchForm({
                           CAWI (Online Survey)
                         </SelectItem>
                         <SelectItem value="Moderated usability testing">
-                          Moderated usability testing
+                          Модерируемое юзабилити-тестирование
                         </SelectItem>
                         <SelectItem value="Unmoderated usability testing">
-                          Unmoderated usability testing
+                          Немодерируемое юзабилити-тестирование
                         </SelectItem>
                         <SelectItem value="Co-creation session">
-                          Co-creation session
+                          Сессия совместного создания
                         </SelectItem>
-                        <SelectItem value="Interviews">Interviews</SelectItem>
+                        <SelectItem value="Interviews">Интервью</SelectItem>
                         <SelectItem value="Desk research">
-                          Desk research
+                          Кабинетное исследование
                         </SelectItem>
                         <SelectItem value="Not assigned">
-                          Not assigned
+                          Не назначено
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -472,9 +481,28 @@ export default function ResearchForm({
                     <Input
                       {...field}
                       className="w-full"
+                      placeholder="Введите имя и фамилию"
                       onChange={(e) => {
-                        field.onChange(e);
-                        handleFieldChange("researcher", e.target.value);
+                        const input = e.target.value;
+                        // Allow only letters, spaces, and common name characters (hyphens, apostrophes)
+                        const filteredInput = input.replace(/[^а-яёА-ЯЁa-zA-Z\s\-']/g, '');
+                        
+                        // Split by spaces and filter out empty strings
+                        const words = filteredInput.split(/\s+/).filter(word => word.length > 0);
+                        
+                        // Limit to maximum 2 words
+                        let validInput = '';
+                        if (words.length <= 2) {
+                          validInput = filteredInput;
+                        } else {
+                          // Take only first 2 words and join them
+                          validInput = words.slice(0, 2).join(' ');
+                        }
+                        
+                        // Update the field with the validated input
+                        const syntheticEvent = { ...e, target: { ...e.target, value: validInput } };
+                        field.onChange(syntheticEvent);
+                        handleFieldChange("researcher", validInput);
                       }}
                     />
                   </FormControl>

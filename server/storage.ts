@@ -221,7 +221,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMeetingsByResearch(researchId: number): Promise<Meeting[]> {
-    return db.select().from(meetings).where(eq(meetings.researchId, researchId));
+    return db
+      .select()
+      .from(meetings)
+      .where(eq(meetings.researchId, researchId));
   }
 
   async getMeetingsPaginated(
@@ -556,7 +559,7 @@ export class DatabaseStorage implements IStorage {
 
       const result = await pool.query(query, values);
       const row = result.rows[0];
-      
+
       // Map database fields to Meeting type
       return {
         id: row.id,
@@ -647,7 +650,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       const row = result.rows[0];
-      
+
       // Map database fields to Meeting type
       const updatedMeeting = {
         id: row.id,

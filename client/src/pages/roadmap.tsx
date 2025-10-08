@@ -28,48 +28,82 @@ function getMonthsBetween(startDate: Date, endDate: Date) {
   return eachMonthOfInterval({ start: startDate, end: endDate });
 }
 
-function getCardPosition(research: Research, monthWidth: number, timelineStart: Date) {
+function getCardPosition(research: Research, monthWidth: number, timelineStart: Date, months: Date[]) {
   const start = new Date(research.dateStart);
   const end = new Date(research.dateEnd);
 
-  // Calculate days from timeline start to research start
-  const daysFromStart = (start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
+  // Safety check for months array
+  if (!months || months.length === 0) {
+    return { left: 0, width: 100 };
+  }
 
-  // Calculate the width based on the actual duration in days
-  const durationInDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+  // Function to calculate exact position within months array
+  function getExactPosition(date: Date) {
+    let totalPixels = 0;
+    
+    for (let i = 0; i < months.length; i++) {
+      const monthStart = startOfMonth(months[i]);
+      const monthEnd = endOfMonth(months[i]);
+      
+      if (date <= monthEnd) {
+        if (date >= monthStart) {
+          // Date falls within this month
+          const daysInMonth = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+          const daysFromMonthStart = (date.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24);
+          const positionInMonth = (daysFromMonthStart / daysInMonth) * monthWidth;
+          return totalPixels + positionInMonth;
+        }
+      } else {
+        // Add full month width and continue
+        totalPixels += monthWidth;
+      }
+    }
+    
+    return totalPixels;
+  }
 
-  // Convert days to pixels based on month width (assuming 30 days per month)
-  const left = (daysFromStart * monthWidth) / 30;
-  const width = Math.max(100, (durationInDays * monthWidth) / 30);
+  const left = getExactPosition(start);
+  const right = getExactPosition(end);
+  // Calculate width based on actual duration, with reasonable minimum
+  const calculatedWidth = right - left;
+  const minWidth = Math.max(80, monthWidth * 0.2); // Minimum width based on zoom
+  const width = Math.max(minWidth, calculatedWidth);
 
   return { left, width };
 }
 
-function getCurrentDatePosition(monthWidth: number, timelineStart: Date) {
+function getCurrentDatePosition(monthWidth: number, timelineStart: Date, months: Date[]) {
   const today = new Date();
-  const daysFromStart = (today.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
-  return (daysFromStart * monthWidth) / 30;
+  
+  // Safety check for months array
+  if (!months || months.length === 0) {
+    return 0;
+  }
+  
+  let totalPixels = 0;
+  
+  for (let i = 0; i < months.length; i++) {
+    const monthStart = startOfMonth(months[i]);
+    const monthEnd = endOfMonth(months[i]);
+    
+    if (today <= monthEnd) {
+      if (today >= monthStart) {
+        // Today falls within this month
+        const daysInMonth = (monthEnd.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        const daysFromMonthStart = (today.getTime() - monthStart.getTime()) / (1000 * 60 * 60 * 24);
+        const positionInMonth = (daysFromMonthStart / daysInMonth) * monthWidth;
+        return totalPixels + positionInMonth;
+      }
+    } else {
+      // Add full month width and continue
+      totalPixels += monthWidth;
+    }
+  }
+  
+  return totalPixels;
 }
 
-function getVerticalPosition(research: Research, existingResearches: Research[], index: number, zoomLevel: number): number {
-  const current = new Date(research.dateStart);
-  const currentEnd = new Date(research.dateEnd);
-
-  // Find overlapping researches that started before this one
-  const overlapping = existingResearches.filter((r, i) => {
-    if (i >= index) return false;
-    const start = new Date(r.dateStart);
-    const end = new Date(r.dateEnd);
-    return isWithinInterval(current, { start, end }) ||
-           isWithinInterval(currentEnd, { start, end }) ||
-           isWithinInterval(start, { start: current, end: currentEnd });
-  });
-
-  // Return position based on number of overlaps, with vertical spacing scaled by zoom level
-  const baseSpacing = 100;
-  const basePadding = 20;
-  return overlapping.length * (baseSpacing * zoomLevel) + (basePadding * zoomLevel);
-}
+// Remove the getVerticalPosition function - we'll use normal document flow instead
 
 export default function RoadmapPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("teams");
@@ -121,17 +155,16 @@ export default function RoadmapPage() {
   }, {} as Record<string, Research[]>);
 
 
-  // Calculate date range optimized for the selected year
-  // Always show the full selected year, but extend if researches go beyond
-  const yearStart = new Date(selectedYear, 0, 1); // January 1st
+  // Calculate date range starting from current month
+  const today = new Date();
+  const currentMonth = startOfMonth(today);
   const yearEnd = new Date(selectedYear, 11, 31); // December 31st
   
   const dates = researches.flatMap(r => [new Date(r.dateStart), new Date(r.dateEnd)]);
-  const researchMinDate = dates.length ? new Date(Math.min(...dates.map(d => d.getTime()))) : yearStart;
   const researchMaxDate = dates.length ? new Date(Math.max(...dates.map(d => d.getTime()))) : yearEnd;
   
-  // Show at least the selected year, but extend if researches go beyond
-  const minDate = startOfMonth(new Date(Math.min(yearStart.getTime(), researchMinDate.getTime())));
+  // Start from current month, extend to at least year end or research end date
+  const minDate = currentMonth;
   const maxDate = endOfMonth(new Date(Math.max(yearEnd.getTime(), researchMaxDate.getTime())));
   const months = getMonthsBetween(minDate, maxDate);
 
@@ -163,7 +196,7 @@ export default function RoadmapPage() {
   }
 
   // Calculate current date line position
-  const currentDatePosition = getCurrentDatePosition(monthWidth, minDate);
+  const currentDatePosition = getCurrentDatePosition(monthWidth, minDate, months);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50/50 to-gray-100/50 px-6 py-8">
@@ -350,103 +383,142 @@ export default function RoadmapPage() {
                 </thead>
                 <tbody>
                   {Object.entries(groupedResearches).map(([group, groupResearches]) => {
-                    const maxOverlap = Math.max(...groupResearches.map((_, i) => 
-                      getVerticalPosition(groupResearches[i], groupResearches, i, zoomLevel)
-                    ));
+                    // No need to calculate maxOverlap since cards stack naturally
                     return (
                       <tr key={group}>
                         <td 
                           className="w-48 p-4 font-medium border-r border-b bg-white/90 backdrop-blur-sm sticky left-0 z-30"
-                          style={{ height: `${maxOverlap + (100 * zoomLevel)}px` }}
                         >
                           {group}
                         </td>
-                        <td className="relative border-b" style={{ width: `${monthWidth * months.length}px`, height: `${maxOverlap + (100 * zoomLevel)}px` }}>
-                          {/* Current date line */}
-                          <div
-                            className="absolute top-0 bottom-0 w-[2px] bg-red-500 z-30"
-                            style={{ left: `${currentDatePosition}px` }}
-                          />
-                          
-                          {groupResearches.map((research, index) => {
-                            const { left, width } = getCardPosition(research, monthWidth, minDate);
-                            const top = getVerticalPosition(research, groupResearches, index, zoomLevel);
+                        <td className="border-b" style={{ width: `${monthWidth * months.length}px` }}>
+                          {(() => {
+                            const sortedResearches = [...groupResearches].sort((a, b) => {
+                              const dateA = new Date(a.dateStart).getTime();
+                              const dateB = new Date(b.dateStart).getTime();
+                              if (dateA !== dateB) return dateA - dateB;
+                              const endDateA = new Date(a.dateEnd).getTime();
+                              const endDateB = new Date(b.dateEnd).getTime();
+                              if (endDateA !== endDateB) return endDateA - endDateB;
+                              return a.name.localeCompare(b.name);
+                            });
+                            
+                            const cardHeight = Math.max(70 * zoomLevel, 60);
+                            const cardSpacing = Math.max(25, 15 * zoomLevel); // Larger spacing to prevent cards from touching
+                            const containerHeight = sortedResearches.length * (cardHeight + cardSpacing) + 20;
+                            
                             return (
-                              <Card
-                                key={research.id}
-                                className="absolute shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 z-20 border-0 overflow-hidden"
-                                style={{
-                                  left: `${left}px`,
-                                  width: `${width}px`,
-                                  top: `${top}px`,
-                                  height: `${Math.max(80 * zoomLevel, 60)}px`,
-                                  backgroundColor: `${research.color}`,
-                                  borderRadius: `${6 * zoomLevel}px`,
-                                }}
-                                onClick={() => handleResearchClick(research)}
+                              <div 
+                                className="py-2 relative" 
+                                style={{ minHeight: `${containerHeight}px` }}
                               >
-                                <div 
-                                  className="h-full flex flex-col justify-between p-3"
-                                  style={{ 
-                                    padding: `${Math.max(12 * zoomLevel, 8)}px`,
-                                  }}
-                                >
-                                  <div className="flex-1 min-h-0">
-                                    <div 
-                                      className="font-semibold text-white mb-1 leading-tight"
-                                      style={{ 
-                                        fontSize: `${Math.max(14 * zoomLevel, 11)}px`,
-                                        lineHeight: `${Math.max(18 * zoomLevel, 14)}px`,
-                                        marginBottom: `${Math.max(4 * zoomLevel, 2)}px`
-                                      }}
-                                      title={research.name}
-                                    >
-                                      {research.name}
-                                    </div>
-                                    <div 
-                                      className="text-white/90 text-xs leading-tight"
-                                      style={{ 
-                                        fontSize: `${Math.max(11 * zoomLevel, 9)}px`,
-                                        lineHeight: `${Math.max(14 * zoomLevel, 12)}px`,
-                                        marginBottom: `${Math.max(2 * zoomLevel, 1)}px`
-                                      }}
-                                    >
-                                      {viewMode === "teams" ? research.researcher : research.team}
-                                    </div>
-                                  </div>
+                                {sortedResearches.map((research, index) => {
+                                  const { left, width } = getCardPosition(research, monthWidth, minDate, months);
+                                  // Calculate vertical offset with proper spacing
+                                  const verticalOffset = index * (cardHeight + cardSpacing);
                                   
-                                  <div 
-                                    className="flex items-center justify-between mt-auto"
-                                    style={{ 
-                                      marginTop: `${Math.max(6 * zoomLevel, 4)}px`
-                                    }}
-                                  >
-                                    <div 
-                                      className="text-white/80 text-xs font-medium"
-                                      style={{ 
-                                        fontSize: `${Math.max(10 * zoomLevel, 8)}px`
+                                  return (
+                                    <Card
+                                      key={research.id}
+                                      className="shadow-lg cursor-pointer hover:shadow-xl transition-all duration-200 border-0 absolute"
+                                      style={{
+                                        left: `${left}px`,
+                                        top: `${verticalOffset}px`,
+                                        minWidth: `${Math.max(width, 120 * zoomLevel)}px`,
+                                        width: 'fit-content',
+                                        maxWidth: `${Math.max(width * 1.5, 200 * zoomLevel)}px`,
+                                        minHeight: `${Math.max(70 * zoomLevel, 60)}px`,
+                                        backgroundColor: `${research.color}`,
+                                        borderRadius: `${6 * zoomLevel}px`,
                                       }}
+                                      onClick={() => handleResearchClick(research)}
                                     >
-                                      {research.researchType}
-                                    </div>
-                                    <div 
-                                      className="bg-white/20 px-2 py-1 rounded-full text-white text-xs font-medium"
-                                      style={{ 
-                                        fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
-                                        padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
-                                        borderRadius: `${Math.max(12 * zoomLevel, 8)}px`
-                                      }}
-                                      title={research.status}
-                                    >
-                                      {research.status === 'In Progress' ? 'In Progress' : 
-                                       research.status === 'Done' ? 'Done' : 
-                                       research.status === 'Planned' ? 'Planned' : research.status}
-                                    </div>
-                                  </div>
-                                </div>
-                              </Card>
+                                      <div 
+                                        className="flex flex-col p-2 h-full mt-[0px] mb-[0px] pt-[0px] pb-[0px]"
+                                        style={{ 
+                                          padding: `${Math.max(8 * zoomLevel, 6)}px`,
+                                          minWidth: '0', // Allows text to wrap properly
+                                        }}
+                                      >
+                                        {/* Title */}
+                                        <div 
+                                          className="font-semibold text-white mb-1 leading-tight"
+                                          style={{ 
+                                            fontSize: `${Math.max(13 * zoomLevel, 10)}px`,
+                                            lineHeight: `${Math.max(16 * zoomLevel, 12)}px`,
+                                            marginBottom: `${Math.max(3 * zoomLevel, 2)}px`,
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            wordBreak: 'break-word',
+                                            hyphens: 'auto'
+                                          }}
+                                        >
+                                          {research.name}
+                                        </div>
+                                        
+                                        {/* Researcher/Team */}
+                                        <div 
+                                          className="text-white/90 text-xs leading-tight flex-shrink-0"
+                                          style={{ 
+                                            fontSize: `${Math.max(10 * zoomLevel, 8)}px`,
+                                            lineHeight: `${Math.max(12 * zoomLevel, 10)}px`,
+                                            marginBottom: `${Math.max(4 * zoomLevel, 3)}px`,
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            wordBreak: 'break-word',
+                                            hyphens: 'auto'
+                                          }}
+                                        >
+                                          {viewMode === "teams" ? research.researcher : research.team}
+                                        </div>
+                                        
+                                        {/* Bottom section */}
+                                        <div className="mt-auto flex items-center justify-between gap-2 flex-wrap">
+                                          {/* Research Type */}
+                                          <div 
+                                            className="text-white/80 text-xs font-medium flex-1"
+                                            style={{ 
+                                              fontSize: `${Math.max(9 * zoomLevel, 7)}px`,
+                                              display: '-webkit-box',
+                                              WebkitLineClamp: 2,
+                                              WebkitBoxOrient: 'vertical',
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                              minWidth: '0',
+                                              wordBreak: 'break-word',
+                                              hyphens: 'auto'
+                                            }}
+                                          >
+                                            {research.researchType}
+                                          </div>
+                                          
+                                          {/* Status Badge */}
+                                          <div 
+                                            className="bg-white/20 rounded-full text-white text-xs font-medium flex-shrink-0 mt-1"
+                                            style={{ 
+                                              fontSize: `${Math.max(8 * zoomLevel, 6)}px`,
+                                              padding: `${Math.max(2 * zoomLevel, 1)}px ${Math.max(6 * zoomLevel, 4)}px`,
+                                              borderRadius: `${Math.max(10 * zoomLevel, 6)}px`
+                                            }}
+                                          >
+                                            {research.status === 'In Progress' ? 'In Progress' : 
+                                             research.status === 'Done' ? 'Done' : 
+                                             research.status === 'Planned' ? 'Planned' : research.status}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </Card>
+                                  );
+                              })}
+                              </div>
                             );
-                          })}
+                          })()}
                         </td>
                       </tr>
                     );

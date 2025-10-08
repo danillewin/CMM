@@ -14,9 +14,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft,
+  Edit2,
   Loader2,
   ExternalLink,
   Plus as PlusIcon,
+  Users,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -52,8 +54,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import MDEditor from "@uiw/react-md-editor";
+import DOMPurify from "dompurify";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
-import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { useTranslation } from "react-i18next";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -82,8 +87,9 @@ import {
 } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { RangeSlider } from "@/components/ui/range-slider";
+import { SearchMultiselect } from "@/components/search-multiselect";
 import FileUpload from "@/components/file-upload";
-import MDEditor from "@uiw/react-md-editor";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -282,8 +288,16 @@ function ResearchDetailBriefForm({
         brief: data.brief,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
+        // Recruitment fields (preserve existing values)
+        recruitmentQuantity: research.recruitmentQuantity,
+        recruitmentRoles: research.recruitmentRoles,
+        recruitmentSegments: research.recruitmentSegments,
+        recruitmentUsedProducts: research.recruitmentUsedProducts || [],
+        recruitmentUsedChannels: research.recruitmentUsedChannels,
+        recruitmentCqMin: research.recruitmentCqMin,
+        recruitmentCqMax: research.recruitmentCqMax,
+        recruitmentLegalEntityType: research.recruitmentLegalEntityType,
+        recruitmentRestrictions: research.recruitmentRestrictions,
       });
     }
   };
@@ -298,54 +312,6 @@ function ResearchDetailBriefForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Research Type Field */}
-        <FormField
-          control={form.control}
-          name="researchType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                {"Тип исследования"}
-              </FormLabel>
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  handleFieldChange("researchType", value);
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Выберите тип исследования" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CATI (Telephone Survey)">
-                    CATI (Telephone Survey)
-                  </SelectItem>
-                  <SelectItem value="CAWI (Online Survey)">
-                    CAWI (Online Survey)
-                  </SelectItem>
-                  <SelectItem value="Moderated usability testing">
-                    Модерируемое юзабилити-тестирование
-                  </SelectItem>
-                  <SelectItem value="Unmoderated usability testing">
-                    Немодерируемое юзабилити-тестирование
-                  </SelectItem>
-                  <SelectItem value="Co-creation session">
-                    Сессия совместного создания
-                  </SelectItem>
-                  <SelectItem value="Interviews">Интервью</SelectItem>
-                  <SelectItem value="Desk research">
-                    Кабинетное исследование
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         <FormField
           control={form.control}
           name="customerFullName"
@@ -936,6 +902,116 @@ function ResearchDetailBriefForm({
   );
 }
 
+// Component for displaying recruitment data in read-only mode
+function ResearchRecruitmentView({
+  research,
+  onEdit,
+}: {
+  research: Research;
+  onEdit: () => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {/* Edit button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={onEdit}
+          variant="outline"
+          size="sm"
+        >
+          <Edit2 className="w-4 h-4 mr-2" />
+          Редактировать
+        </Button>
+      </div>
+
+      {/* Content in two columns layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left Column */}
+        <div className="space-y-3">
+          {/* Количество респондентов */}
+          <div>
+            <span className="text-base font-semibold text-black">Количество респондентов:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentQuantity || "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Сегменты */}
+          <div>
+            <span className="text-base font-semibold text-black">Сегменты:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentSegments && research.recruitmentSegments.length > 0) 
+                ? research.recruitmentSegments.join(', ') 
+                : "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Роли респондентов */}
+          <div>
+            <span className="text-base font-semibold text-black">Роли респондентов:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentRoles || "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Используемые продукты */}
+          <div>
+            <span className="text-base font-semibold text-black">Используемые продукты:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentUsedProducts && research.recruitmentUsedProducts.length > 0)
+                ? research.recruitmentUsedProducts.join(', ')
+                : "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Используемые каналы */}
+          <div>
+            <span className="text-base font-semibold text-black">Используемые каналы:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentUsedChannels && research.recruitmentUsedChannels.length > 0)
+                ? research.recruitmentUsedChannels.join(', ')
+                : "Не заполнено"}
+            </div>
+          </div>
+        </div>
+        
+        {/* Right Column */}
+        <div className="space-y-3">
+          {/* Тип юридического лица */}
+          <div>
+            <span className="text-base font-semibold text-black">Тип юридического лица:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentLegalEntityType && research.recruitmentLegalEntityType.length > 0)
+                ? research.recruitmentLegalEntityType.join(', ')
+                : "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Ограничения по FISA */}
+          <div>
+            <span className="text-base font-semibold text-black">Ограничения по FISA:</span>
+            <div className="mt-1 text-gray-900">
+              {research.recruitmentRestrictions !== undefined
+                ? (research.recruitmentRestrictions ? "Да" : "Нет")
+                : "Не заполнено"}
+            </div>
+          </div>
+          
+          {/* Диапазон CQ */}
+          <div>
+            <span className="text-base font-semibold text-black">Диапазон CQ:</span>
+            <div className="mt-1 text-gray-900">
+              {(research.recruitmentCqMin !== undefined && research.recruitmentCqMax !== undefined)
+                ? `${research.recruitmentCqMin} - ${research.recruitmentCqMax}`
+                : "Не заполнено"}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Component for Recruitment tab
 function ResearchRecruitmentForm({
   research,
@@ -946,30 +1022,106 @@ function ResearchRecruitmentForm({
   research?: Research;
   onUpdate: (data: InsertResearch) => void;
   isLoading: boolean;
-  onTempDataUpdate?: (data: {
-    clientsWeSearchFor: string;
-    inviteTemplate: string;
-  }) => void;
+  onTempDataUpdate?: (data: Partial<InsertResearch>) => void;
 }) {
-  const form = useForm<{ clientsWeSearchFor: string; inviteTemplate: string }>({
+  // Products list from research-form.tsx
+  const PRODUCT_OPTIONS = [
+    "CDC Integrations",
+    "Lending",
+    "Факторинг",
+    "Аккредитивы",
+    "Гарантии и спец.счета",
+    "АДМ",
+    "Эквайринг",
+    "СБП: B2C, C2B",
+    "СБП: B2B",
+    "Корпоративные карты",
+    "Валютные контракты и платежи",
+    "FX",
+    "Таможенные карты",
+    "Зарплатный проект",
+    "Cash Pooling",
+    "Рублевые платежи (входящие и исходящие)",
+    "Динамическое дисконтирование",
+    "IPS: SWAP и РЕПО",
+    "IPS: инвест. продукты (акции, облигации и т.д.)",
+    "Деривативы",
+    "IB: Advisory (M&A, Securitisation), Digital Advisory",
+    "CDC Mobile",
+    "LORO платежи (рублевые и валютные)",
+    "Custody",
+    "Специальный Депозитарий",
+  ];
+
+  const form = useForm<{
+    recruitmentQuantity?: string;
+    recruitmentRoles?: string;
+    recruitmentSegments?: string[];
+    recruitmentUsedProducts?: string[];
+    recruitmentUsedChannels?: string[];
+    recruitmentCqMin?: number;
+    recruitmentCqMax?: number;
+    recruitmentLegalEntityType?: string[];
+    recruitmentRestrictions?: boolean;
+  }>({
     defaultValues: {
-      clientsWeSearchFor: research?.clientsWeSearchFor || "",
-      inviteTemplate: research?.inviteTemplate || "",
+      recruitmentQuantity: research?.recruitmentQuantity || "",
+      recruitmentRoles: research?.recruitmentRoles || "",
+      recruitmentSegments: research?.recruitmentSegments || [],
+      recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || [],
+      recruitmentCqMin: research?.recruitmentCqMin || 0,
+      recruitmentCqMax: research?.recruitmentCqMax || 10,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || [],
+      recruitmentRestrictions: research?.recruitmentRestrictions || false,
     },
   });
 
   // Reset form when research data changes
   useEffect(() => {
     form.reset({
-      clientsWeSearchFor: research?.clientsWeSearchFor || "",
-      inviteTemplate: research?.inviteTemplate || "",
+      recruitmentQuantity: research?.recruitmentQuantity || "",
+      recruitmentRoles: research?.recruitmentRoles || "",
+      recruitmentSegments: research?.recruitmentSegments || [],
+      recruitmentUsedProducts: research?.recruitmentUsedProducts || [],
+      recruitmentUsedChannels: research?.recruitmentUsedChannels || [],
+      recruitmentCqMin: research?.recruitmentCqMin || 0,
+      recruitmentCqMax: research?.recruitmentCqMax || 10,
+      recruitmentLegalEntityType: research?.recruitmentLegalEntityType || [],
+      recruitmentRestrictions: research?.recruitmentRestrictions || false,
     });
   }, [research, form]);
 
   const handleSubmit = (data: {
-    clientsWeSearchFor: string;
-    inviteTemplate: string;
+    recruitmentQuantity?: string;
+    recruitmentRoles?: string;
+    recruitmentSegments?: string[];
+    recruitmentUsedProducts?: string[];
+    recruitmentUsedChannels?: string[];
+    recruitmentCqMin?: number;
+    recruitmentCqMax?: number;
+    recruitmentLegalEntityType?: string[];
+    recruitmentRestrictions?: boolean;
   }) => {
+    // For new research (no existing research), only save temporary data
+    if (!research) {
+      if (onTempDataUpdate) {
+        onTempDataUpdate({
+          recruitmentQuantity: data.recruitmentQuantity,
+          recruitmentRoles: data.recruitmentRoles,
+          recruitmentSegments: data.recruitmentSegments,
+          recruitmentUsedProducts: data.recruitmentUsedProducts,
+          recruitmentUsedChannels: data.recruitmentUsedChannels,
+          recruitmentCqMin: data.recruitmentCqMin,
+          recruitmentCqMax: data.recruitmentCqMax,
+          recruitmentLegalEntityType: data.recruitmentLegalEntityType,
+          recruitmentRestrictions: data.recruitmentRestrictions,
+        });
+      }
+      return;
+    }
+
+    // For existing research, update the full research
     if (research) {
       onUpdate({
         name: research.name,
@@ -1004,8 +1156,16 @@ function ResearchRecruitmentForm({
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: data.clientsWeSearchFor,
-        inviteTemplate: data.inviteTemplate,
+        // New recruitment fields
+        recruitmentQuantity: data.recruitmentQuantity,
+        recruitmentRoles: data.recruitmentRoles,
+        recruitmentSegments: data.recruitmentSegments,
+        recruitmentUsedProducts: data.recruitmentUsedProducts,
+        recruitmentUsedChannels: data.recruitmentUsedChannels,
+        recruitmentCqMin: data.recruitmentCqMin,
+        recruitmentCqMax: data.recruitmentCqMax,
+        recruitmentLegalEntityType: data.recruitmentLegalEntityType,
+        recruitmentRestrictions: data.recruitmentRestrictions,
       });
     }
   };
@@ -1019,61 +1179,325 @@ function ResearchRecruitmentForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="clientsWeSearchFor"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Клиенты для поиска
-              </FormLabel>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="space-y-4">
+
+          {/* Recruitment Quantity */}
+          <FormField
+            control={form.control}
+            name="recruitmentQuantity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Количество респондентов
+                </FormLabel>
               <FormControl>
-                <WysiwygMarkdownEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("clientsWeSearchFor", newValue);
+                <Input
+                  data-testid="input-quantity"
+                  type="text"
+                  placeholder="Например: 15-20"
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    handleFieldChange("recruitmentQuantity", e.target.value);
                   }}
-                  placeholder="Опишите, кого мы ищем..."
-                  height={300}
-                  className=""
+                  className="max-w-xs"
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="inviteTemplate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">
-                Шаблон приглашения
-              </FormLabel>
+
+          {/* Recruitment Roles */}
+          <FormField
+            control={form.control}
+            name="recruitmentRoles"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Роли респондентов
+                </FormLabel>
               <FormControl>
-                <WysiwygMarkdownEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("inviteTemplate", newValue);
+                <Input
+                  data-testid="input-roles"
+                  placeholder="Например: Руководители, менеджеры, предприниматели"
+                  value={field.value || ""}
+                  onChange={(e) => {
+                    field.onChange(e.target.value);
+                    handleFieldChange("recruitmentRoles", e.target.value);
                   }}
-                  placeholder="Введите шаблон приглашения..."
-                  height={300}
-                  className=""
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Сохранить набор
-        </Button>
+
+          {/* Recruitment Segments - Multiple Selection */}
+          <FormField
+            control={form.control}
+            name="recruitmentSegments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Сегменты клиентов
+                </FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {["SME", "MidMarket", "Large", "International"].map((segment) => (
+                    <label key={segment} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        data-testid={`checkbox-segment-${segment.toLowerCase()}`}
+                        checked={(field.value || []).includes(segment)}
+                        onChange={(e) => {
+                          const currentValues = field.value || [];
+                          let newValues;
+                          if (e.target.checked) {
+                            newValues = [...currentValues, segment];
+                          } else {
+                            newValues = currentValues.filter((v: string) => v !== segment);
+                          }
+                          field.onChange(newValues);
+                          handleFieldChange("recruitmentSegments", newValues);
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{segment}</span>
+                    </label>
+                  ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Used Products */}
+        <FormField
+          control={form.control}
+          name="recruitmentUsedProducts"
+          render={({ field }) => (
+            <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Используемые продукты
+                </FormLabel>
+              <FormControl>
+                <SearchMultiselect
+                  data-testid="multiselect-products"
+                  apiEndpoint="/api/products"
+                  selectedValues={field.value || []}
+                  onSelectionChange={(values) => {
+                    field.onChange(values);
+                    handleFieldChange("recruitmentUsedProducts", values);
+                  }}
+                  placeholder="Выберите продукты"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Used Channels - Beautiful Multi-Select */}
+        <FormField
+          control={form.control}
+          name="recruitmentUsedChannels"
+          render={({ field }) => (
+            <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Используемые каналы
+                </FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between h-auto min-h-[40px] text-left"
+                      data-testid="button-channels"
+                    >
+                      <div className="flex flex-wrap gap-1">
+                        {field.value && field.value.length > 0 ? (
+                          field.value.map((channel) => (
+                            <span
+                              key={channel}
+                              className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {channel}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground">
+                            Выберите каналы...
+                          </span>
+                        )}
+                      </div>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-60 overflow-y-auto p-3">
+                    <div className="space-y-2">
+                      {[
+                        "Интернет-банк", 
+                        "Мобильное приложение", 
+                        "Отделения", 
+                        "Колл-центр",
+                        "Банкоматы",
+                        "Другое"
+                      ].map((channel) => (
+                        <div
+                          key={channel}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={channel}
+                            checked={
+                              (field.value || []).includes(channel)
+                            }
+                            onCheckedChange={(checked) => {
+                              const currentChannels = field.value || [];
+                              let newChannels;
+                              if (checked) {
+                                newChannels = [...currentChannels, channel];
+                              } else {
+                                newChannels = currentChannels.filter((c: string) => c !== channel);
+                              }
+                              field.onChange(newChannels);
+                              handleFieldChange("recruitmentUsedChannels", newChannels);
+                            }}
+                            data-testid={`checkbox-channel-${channel.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                          />
+                          <label
+                            htmlFor={channel}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {channel}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* CQ Range */}
+        <div className="space-y-2">
+            <FormLabel className="text-sm font-medium text-gray-700">
+              Диапазон CQ (от {form.watch("recruitmentCqMin") || 0} до {form.watch("recruitmentCqMax") || 10})
+          </FormLabel>
+          <RangeSlider
+            data-testid="slider-cq"
+            min={0}
+            max={10}
+            step={1}
+            minValue={form.watch("recruitmentCqMin") || 0}
+            maxValue={form.watch("recruitmentCqMax") || 10}
+            onChange={([min, max]) => {
+              // Ensure values are numbers, not strings
+              const minNum = Number(min);
+              const maxNum = Number(max);
+              form.setValue("recruitmentCqMin", isNaN(minNum) ? undefined : minNum, { shouldDirty: true });
+              form.setValue("recruitmentCqMax", isNaN(maxNum) ? undefined : maxNum, { shouldDirty: true });
+              handleFieldChange("recruitmentCqMin", isNaN(minNum) ? undefined : minNum);
+              handleFieldChange("recruitmentCqMax", isNaN(maxNum) ? undefined : maxNum);
+            }}
+            className="w-full"
+          />
+        </div>
+
+        {/* Legal Entity Type - Multiple Selection */}
+        <FormField
+          control={form.control}
+          name="recruitmentLegalEntityType"
+          render={({ field }) => (
+            <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Тип юридического лица
+                </FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {["CNUM", "GCC"].map((entityType) => (
+                    <label key={entityType} className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        data-testid={`checkbox-entity-${entityType.toLowerCase()}`}
+                        checked={(field.value || []).includes(entityType)}
+                        onChange={(e) => {
+                          const currentValues = field.value || [];
+                          let newValues;
+                          if (e.target.checked) {
+                            newValues = [...currentValues, entityType];
+                          } else {
+                            newValues = currentValues.filter((v: string) => v !== entityType);
+                          }
+                          field.onChange(newValues);
+                          handleFieldChange("recruitmentLegalEntityType", newValues);
+                        }}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">{entityType}</span>
+                    </label>
+                  ))}
+                </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Fisa Restrictions - Boolean Yes/No */}
+        <FormField
+          control={form.control}
+          name="recruitmentRestrictions"
+          render={({ field }) => (
+            <FormItem>
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Ограничения по FISA
+                </FormLabel>
+                <div className="flex gap-3">
+                  <label className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      data-testid="radio-fisa-yes"
+                      checked={field.value === true}
+                      onChange={() => {
+                        field.onChange(true);
+                        handleFieldChange("recruitmentRestrictions", true);
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Да</span>
+                  </label>
+                  <label className="inline-flex items-center px-3 py-1 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      data-testid="radio-fisa-no"
+                      checked={field.value === false}
+                      onChange={() => {
+                        field.onChange(false);
+                        handleFieldChange("recruitmentRestrictions", false);
+                      }}
+                      className="mr-2"
+                    />
+                    <span className="text-sm">Нет</span>
+                  </label>
+                </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Сохранить
+          </Button>
+        </div>
       </form>
     </Form>
   );
@@ -1282,8 +1706,6 @@ function ResearchGuideForm({
         })(),
 
         fullText: research.fullText || undefined,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -2577,8 +2999,6 @@ function ResearchResultsForm({
         brief: research.brief || undefined,
         guide: research.guide || undefined,
         fullText: data.fullText,
-        clientsWeSearchFor: research.clientsWeSearchFor || undefined,
-        inviteTemplate: research.inviteTemplate || undefined,
       });
     }
   };
@@ -2660,6 +3080,7 @@ function ResearchDetail() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [recruitmentEditMode, setRecruitmentEditMode] = useState(false);
   const { toast } = useToast();
   // State to manage form data across tabs during creation AND editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertResearch>>({});
@@ -2748,6 +3169,8 @@ function ResearchDetail() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research created successfully" });
       // Redirect to the newly created research detail page
       setLocation(`/researches/${data.id}`);
@@ -2774,6 +3197,8 @@ function ResearchDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
       queryClient.invalidateQueries({ queryKey: ["/api/researches", id] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research updated successfully" });
     },
     onError: (error) => {
@@ -2796,6 +3221,8 @@ function ResearchDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/researches"] });
+      // Invalidate roadmap cache to update timeline view
+      queryClient.invalidateQueries({ queryKey: ["/api/roadmap/researches"] });
       toast({ title: "Research deleted successfully" });
       setLocation("/researches"); // Return to researches list
     },
@@ -2991,12 +3418,22 @@ function ResearchDetail() {
               </TabsContent>
 
               <TabsContent value="recruitment" className="mt-6">
-                <ResearchRecruitmentForm
-                  research={effectiveResearch}
-                  onUpdate={handleSubmit}
-                  isLoading={isPending}
-                  onTempDataUpdate={handleTempDataUpdate}
-                />
+                {recruitmentEditMode || isNew ? (
+                  <ResearchRecruitmentForm
+                    research={effectiveResearch}
+                    onUpdate={(data) => {
+                      handleSubmit(data);
+                      setRecruitmentEditMode(false); // Exit edit mode after save
+                    }}
+                    isLoading={isPending}
+                    onTempDataUpdate={handleTempDataUpdate}
+                  />
+                ) : (
+                  <ResearchRecruitmentView
+                    research={effectiveResearch as Research}
+                    onEdit={() => setRecruitmentEditMode(true)}
+                  />
+                )}
               </TabsContent>
 
               <TabsContent value="results" className="mt-6">
@@ -3020,7 +3457,7 @@ function ResearchDetail() {
                       variant="outline"
                       onClick={() =>
                         setLocation(
-                          `/meetings/new?researchId=${id}&from=research`,
+                          `/meetings/new?source=research&sourceId=${id}`,
                         )
                       }
                       className="flex items-center gap-1"

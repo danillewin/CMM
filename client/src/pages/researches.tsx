@@ -39,6 +39,180 @@ import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { SearchMultiselect } from "@/components/search-multiselect";
 
+// Filter component for Research Type
+function ResearchTypeFilter({ 
+  researchTypes, 
+  selectedFilters, 
+  onFilterChange 
+}: { 
+  researchTypes: string[]; 
+  selectedFilters: string[]; 
+  onFilterChange: (filters: string[]) => void;
+}) {
+  useEffect(() => {
+    const handleClearEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.type === 'clear-filter-research-type') {
+        onFilterChange([]);
+      }
+    };
+    
+    document.addEventListener('clear-filter-research-type', handleClearEvent);
+    return () => document.removeEventListener('clear-filter-research-type', handleClearEvent);
+  }, [onFilterChange]);
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <label className="text-sm font-medium">Тип исследования</label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between bg-white"
+          >
+            {selectedFilters.length === 0
+              ? "Все типы исследований"
+              : `Выбрано: ${selectedFilters.length}`}
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <div className="max-h-60 overflow-auto p-1">
+            <div className="flex items-center px-3 py-2 border-b">
+              <Checkbox
+                checked={selectedFilters.length === 0}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    onFilterChange([]);
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-sm font-medium">Все типы исследований</span>
+            </div>
+            {researchTypes.map((type) => (
+              <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
+                <Checkbox
+                  checked={selectedFilters.includes(type)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      onFilterChange([...selectedFilters, type]);
+                    } else {
+                      onFilterChange(selectedFilters.filter(t => t !== type));
+                    }
+                  }}
+                  className="mr-2"
+                />
+                <span className="text-sm">{type}</span>
+              </div>
+            ))}
+          </div>
+          {selectedFilters.length > 0 && (
+            <div className="border-t p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onFilterChange([])}
+                className="w-full text-xs"
+              >
+                Очистить всё
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+// Filter component for Product
+function ProductFilter({ 
+  products, 
+  selectedFilters, 
+  onFilterChange 
+}: { 
+  products: string[]; 
+  selectedFilters: string[]; 
+  onFilterChange: (filters: string[]) => void;
+}) {
+  useEffect(() => {
+    const handleClearEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.type === 'clear-filter-product') {
+        onFilterChange([]);
+      }
+    };
+    
+    document.addEventListener('clear-filter-product', handleClearEvent);
+    return () => document.removeEventListener('clear-filter-product', handleClearEvent);
+  }, [onFilterChange]);
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <label className="text-sm font-medium">Продукт</label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between bg-white"
+          >
+            {selectedFilters.length === 0
+              ? "Все продукты"
+              : `Выбрано: ${selectedFilters.length}`}
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <div className="max-h-60 overflow-auto p-1">
+            <div className="flex items-center px-3 py-2 border-b">
+              <Checkbox
+                checked={selectedFilters.length === 0}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    onFilterChange([]);
+                  }
+                }}
+                className="mr-2"
+              />
+              <span className="text-sm font-medium">Все продукты</span>
+            </div>
+            {products.map((product) => (
+              <div key={product} className="flex items-center px-3 py-2 hover:bg-gray-50">
+                <Checkbox
+                  checked={selectedFilters.includes(product)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      onFilterChange([...selectedFilters, product]);
+                    } else {
+                      onFilterChange(selectedFilters.filter(p => p !== product));
+                    }
+                  }}
+                  className="mr-2"
+                />
+                <span className="text-sm">{product}</span>
+              </div>
+            ))}
+          </div>
+          {selectedFilters.length > 0 && (
+            <div className="border-t p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onFilterChange([])}
+                className="w-full text-xs"
+              >
+                Очистить всё
+              </Button>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 type ViewMode = "table" | "cards";
 
 export default function Researches() {
@@ -442,69 +616,13 @@ export default function Researches() {
     },
     {
       id: "research-type",
-      name: "Research Type",
+      name: "Тип исследования",
       customComponent: (
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium">Research Type</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                className="w-full justify-between bg-white"
-              >
-                {researchTypeFilters.length === 0
-                  ? "Все типы исследований"
-                  : `${researchTypeFilters.length} selected`}
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <div className="max-h-60 overflow-auto p-1">
-                <div className="flex items-center px-3 py-2 border-b">
-                  <Checkbox
-                    checked={researchTypeFilters.length === 0}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setResearchTypeFilters([]);
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium">All Research Types</span>
-                </div>
-                {researchTypes.map((type) => (
-                  <div key={type} className="flex items-center px-3 py-2 hover:bg-gray-50">
-                    <Checkbox
-                      checked={researchTypeFilters.includes(type)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setResearchTypeFilters([...researchTypeFilters, type]);
-                        } else {
-                          setResearchTypeFilters(researchTypeFilters.filter(t => t !== type));
-                        }
-                      }}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{type}</span>
-                  </div>
-                ))}
-              </div>
-              {researchTypeFilters.length > 0 && (
-                <div className="border-t p-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setResearchTypeFilters([])}
-                    className="w-full text-xs"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
+        <ResearchTypeFilter 
+          researchTypes={researchTypes}
+          selectedFilters={researchTypeFilters}
+          onFilterChange={setResearchTypeFilters}
+        />
       ),
       options: [],
       value: "",
@@ -513,69 +631,13 @@ export default function Researches() {
     },
     {
       id: "product",
-      name: "Product",
+      name: "Продукт",
       customComponent: (
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium">Product</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                className="w-full justify-between bg-white"
-              >
-                {productFilters.length === 0
-                  ? "Все продукты"
-                  : `${productFilters.length} selected`}
-                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0">
-              <div className="max-h-60 overflow-auto p-1">
-                <div className="flex items-center px-3 py-2 border-b">
-                  <Checkbox
-                    checked={productFilters.length === 0}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setProductFilters([]);
-                      }
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium">All Products</span>
-                </div>
-                {products.map((product) => (
-                  <div key={product} className="flex items-center px-3 py-2 hover:bg-gray-50">
-                    <Checkbox
-                      checked={productFilters.includes(product)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setProductFilters([...productFilters, product]);
-                        } else {
-                          setProductFilters(productFilters.filter(p => p !== product));
-                        }
-                      }}
-                      className="mr-2"
-                    />
-                    <span className="text-sm">{product}</span>
-                  </div>
-                ))}
-              </div>
-              {productFilters.length > 0 && (
-                <div className="border-t p-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setProductFilters([])}
-                    className="w-full text-xs"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
+        <ProductFilter 
+          products={products}
+          selectedFilters={productFilters}
+          onFilterChange={setProductFilters}
+        />
       ),
       options: [],
       value: "",

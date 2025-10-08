@@ -70,8 +70,16 @@ export const researches = pgTable("researches", {
   guideMainQuestions: text("guide_main_questions"), // Основные вопросы (JSON string)
   guideConcludingQuestions: text("guide_concluding_questions"), // Заключительные вопросы (JSON string)
   fullText: text("full_text"),
-  clientsWeSearchFor: text("clients_we_search_for"),
-  inviteTemplate: text("invite_template"),
+  // New recruitment fields
+  recruitmentQuantity: text("recruitment_quantity"), // Количество (text input)
+  recruitmentRoles: text("recruitment_roles"), // Роли
+  recruitmentSegments: text("recruitment_segments").array(), // Сегменты (multiple selection)
+  recruitmentUsedProducts: text("recruitment_used_products").array(), // Используемые продукты
+  recruitmentUsedChannels: text("recruitment_used_channels").array(), // Используемые каналы (multiple selection)
+  recruitmentCqMin: integer("recruitment_cq_min"), // CQ минимум (0-10)
+  recruitmentCqMax: integer("recruitment_cq_max"), // CQ максимум (0-10)
+  recruitmentLegalEntityType: text("recruitment_legal_entity_type").array(), // Тип юридического лица (multiple selection)
+  recruitmentRestrictions: boolean("recruitment_restrictions"), // Ограничения (да/нет)
 });
 
 // Jobs to be Done table
@@ -139,10 +147,11 @@ export const insertPositionSchema = createInsertSchema(positions).omit({
 export const insertResearchSchema = createInsertSchema(researches).omit({
   id: true,
 }).extend({
+  name: z.string().optional().default(""),
   dateStart: z.coerce.date().optional().default(() => new Date()),
   dateEnd: z.coerce.date().optional().default(() => new Date()),
-  researcher: z.string().min(1, "Researcher is required"),
-  team: z.string().min(1, "Team is required"),
+  researcher: z.string().optional().default(""),
+  team: z.string().optional().default(""),
   description: z.string().optional().default(""),
   status: z.enum([ResearchStatus.PLANNED, ResearchStatus.IN_PROGRESS, ResearchStatus.DONE])
     .default(ResearchStatus.PLANNED),
@@ -173,6 +182,16 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   guideMainQuestions: z.string().optional(),
   guideConcludingQuestions: z.string().optional(),
   fullText: z.string().optional(),
+  // New recruitment field validations
+  recruitmentQuantity: z.string().optional(), // Changed to string (text input)
+  recruitmentRoles: z.string().optional(),
+  recruitmentSegments: z.array(z.string()).optional(), // Changed to array for multiple selection
+  recruitmentUsedProducts: z.array(z.string()).optional(),
+  recruitmentUsedChannels: z.array(z.string()).optional(), // Changed to array for multiple selection
+  recruitmentCqMin: z.number().int().min(0).max(10).optional(),
+  recruitmentCqMax: z.number().int().min(0).max(10).optional(),
+  recruitmentLegalEntityType: z.array(z.string()).optional(), // Changed to array for multiple selection
+  recruitmentRestrictions: z.boolean().optional(), // Changed to boolean for да/нет
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
@@ -181,7 +200,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   date: z.coerce.date(),
   cnum: z.string().optional().transform((val) => val ? val.toUpperCase() : val),
   gcc: z.string().optional(),
-  status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED])
+  status: z.enum([MeetingStatus.IN_PROGRESS, MeetingStatus.SET, MeetingStatus.DONE, MeetingStatus.DECLINED, MeetingStatus.PLANNED])
     .default(MeetingStatus.IN_PROGRESS),
   respondentName: z.string().min(1, "Respondent is required"),
   respondentPosition: z.string().min(1, "Position is required"),
@@ -192,7 +211,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   researcher: z.string().optional(), // Field inherited from Research (not editable)
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
   salesPerson: z.string().min(1, "Recruiter is required"),
-  researchId: z.number({ required_error: "Research is required" }),
+  researchId: z.number().optional(),
   notes: z.string().optional(),
   fullText: z.string().optional(),
   hasGift: z.enum(["yes", "no"]).default("no"),
@@ -220,7 +239,7 @@ export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type Team = typeof teams.$inferSelect;
 export type InsertPosition = z.infer<typeof insertPositionSchema>;
 export type Position = typeof positions.$inferSelect;
-export type InsertResearch = z.infer<typeof insertResearchSchema>;
+export type InsertResearch = z.input<typeof insertResearchSchema>;
 export type Research = typeof researches.$inferSelect;
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect & {

@@ -403,7 +403,16 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         onClick={() => {
                           // Reset all filters to empty arrays or "ALL"
                           filters?.forEach(filter => {
-                            if (filter.onChange) {
+                            // Check if this filter has an isActive function (custom components)
+                            const hasCustomClearLogic = filter.isActive && typeof filter.isActive === 'function';
+                            
+                            if (hasCustomClearLogic && filter.isActive && filter.isActive()) {
+                              // For custom components with isActive, trigger a custom clear event
+                              // We need to find the clear button within the custom component and click it
+                              // For Research Type and Product filters, we'll dispatch a custom event
+                              const clearEvent = new CustomEvent(`clear-filter-${filter.id}`, { bubbles: true });
+                              document.dispatchEvent(clearEvent);
+                            } else if (filter.onChange) {
                               // For SearchMultiselect components, reset to empty array
                               if (filter.component === "searchMultiselect") {
                                 (filter.onChange as (value: string[]) => void)([]);

@@ -3,6 +3,8 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import { fileURLToPath } from 'url';
+import { migrateAddRecruitmentFields } from "./migration-add-recruitment-fields";
+import { pool } from "./db";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +46,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run migration
+  await migrateAddRecruitmentFields(pool);
+  
   const server = registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

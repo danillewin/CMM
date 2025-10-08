@@ -66,11 +66,18 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
-import DOMPurify from 'dompurify';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import DOMPurify from "dompurify";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatDateShort } from "@/lib/date-utils";
 import MDEditor from "@uiw/react-md-editor";
 import {
@@ -406,53 +413,57 @@ function MeetingResultsForm({
 
         {/* Meeting Results Form */}
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="notes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">Заметки о встрече</FormLabel>
-              <FormControl>
-                <WysiwygMarkdownEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("notes", newValue);
-                  }}
-                  placeholder="Введите заметки о встрече..."
-                  height={300}
-                  className=""
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="fullText"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-lg font-medium">Отчет в текстовом виде</FormLabel>
-              <FormControl>
-                <WysiwygMarkdownEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    const newValue = val || "";
-                    field.onChange(newValue);
-                    handleFieldChange("fullText", newValue);
-                  }}
-                  placeholder="Введите полный текст..."
-                  height={300}
-                  className=""
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg font-medium">
+                  Заметки о встрече
+                </FormLabel>
+                <FormControl>
+                  <WysiwygMarkdownEditor
+                    value={field.value}
+                    onChange={(val) => {
+                      const newValue = val || "";
+                      field.onChange(newValue);
+                      handleFieldChange("notes", newValue);
+                    }}
+                    placeholder="Введите заметки о встрече..."
+                    height={300}
+                    className=""
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="fullText"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-lg font-medium">
+                  Отчет в текстовом виде
+                </FormLabel>
+                <FormControl>
+                  <WysiwygMarkdownEditor
+                    value={field.value}
+                    onChange={(val) => {
+                      const newValue = val || "";
+                      field.onChange(newValue);
+                      handleFieldChange("fullText", newValue);
+                    }}
+                    placeholder="Введите полный текст..."
+                    height={300}
+                    className=""
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Summarization Results Section */}
           {meeting?.id && (
@@ -743,7 +754,7 @@ function MeetingGuideTab({ research }: { research?: Research }) {
 export default function MeetingDetail() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
-  const isNew = params.id === "new";
+  const isNew = location.includes('/meetings/new') || params.id === "new";
   const id = isNew ? null : parseInt(params.id);
 
   // Completely prevent any /api/meetings queries (without ID) on this page
@@ -788,16 +799,21 @@ export default function MeetingDetail() {
   // State to manage form data across tabs during creation and editing
   const [tempFormData, setTempFormData] = useState<Partial<InsertMeeting>>({});
   const { toast } = useToast();
-  
+
   // Parse query parameters for navigation context and new meeting creation
   const searchParams = new URLSearchParams(window.location.search);
-  const preselectedResearchId = isNew ? (searchParams.get("researchId") ? parseInt(searchParams.get("researchId")!) : undefined) : undefined;
   
-  // Parse navigation source context
+  // Parse navigation source context - unified parameters for both new and existing meetings
   const sourceType = searchParams.get("source"); // "research" or null
-  const sourceId = searchParams.get("sourceId") ? parseInt(searchParams.get("sourceId")!) : null;
-  const fromContext = searchParams.get('from'); // This is what research-detail.tsx uses
+  const sourceId = searchParams.get("sourceId")
+    ? parseInt(searchParams.get("sourceId")!)
+    : null;
   
+  // Use sourceId as preselected research ID for new meetings from research context
+  const preselectedResearchId = isNew && sourceType === "research" && sourceId
+    ? sourceId
+    : undefined;
+
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
     useState<Research | null>(null);
@@ -885,8 +901,12 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: async (data) => {
-      // Only invalidate the specific meeting and avoid broad invalidation
+      // Invalidate the meetings list to show the new meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Also invalidate the specific meeting
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", data.id] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
 
       // If there are selected JTBDs, link them to the newly created meeting
       if (selectedJtbdsForNewMeeting.length > 0) {
@@ -910,12 +930,10 @@ export default function MeetingDetail() {
         toast({ title: "Meeting created successfully" });
       }
 
-      // Redirect based on where the user came from
-      if (sourceType === "research" && sourceId) {
-        // If creating from research page, go back to research with new meeting visible
-        setLocation(`/researches/${sourceId}`);
+      // Navigate to the newly created meeting, preserving source context if available
+      if (sourceType && sourceId) {
+        setLocation(`/meetings/${data.id}?source=${sourceType}&sourceId=${sourceId}`);
       } else {
-        // Default behavior - go to the newly created meeting detail page
         setLocation(`/meetings/${data.id}`);
       }
     },
@@ -935,8 +953,11 @@ export default function MeetingDetail() {
       return res.json();
     },
     onSuccess: () => {
-      // Only invalidate the specific meeting, not the entire list
+      // Invalidate the meetings list and specific meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/meetings", id] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
       toast({ title: "Meeting updated successfully" });
     },
     onError: (error) => {
@@ -954,8 +975,10 @@ export default function MeetingDetail() {
       await apiRequest("DELETE", `/api/meetings/${id}`);
     },
     onSuccess: () => {
-      // Only invalidate when actually navigating back to the list
-      // No need to invalidate here as we're redirecting away from the detail page
+      // Invalidate meetings list to remove deleted meeting
+      queryClient.invalidateQueries({ queryKey: ["/api/meetings"] });
+      // Invalidate calendar views to update them as well
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/meetings"] });
       toast({ title: "Meeting deleted successfully" });
       setLocation("/"); // Return to meetings list
     },
@@ -998,11 +1021,8 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (fromContext === "research" && preselectedResearchId) {
-      // If creating from research page, go back to research page
-      setLocation(`/researches/${preselectedResearchId}`);
-    } else if (sourceType === "research" && sourceId) {
-      // If editing existing meeting from research context
+    if (sourceType === "research" && sourceId) {
+      // Return to research page (works for both new and existing meetings)
       setLocation(`/researches/${sourceId}`);
     } else {
       setLocation("/");
@@ -1028,24 +1048,25 @@ export default function MeetingDetail() {
       <div className="container mx-auto max-w-4xl">
         {/* Header with breadcrumb-style navigation */}
         <div className="mb-6 flex items-center text-sm text-gray-500">
-          <Button 
-            variant="ghost" 
-            className="p-1 text-gray-400 hover:text-gray-700 rounded-full" 
+          <Button
+            variant="ghost"
+            className="p-1 text-gray-400 hover:text-gray-700 rounded-full"
             onClick={handleCancel}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="mx-2 text-gray-300">/</span>
-          <span className="hover:text-gray-800 cursor-pointer" onClick={handleCancel}>
-            {fromContext === "research" && preselectedResearch ? 
-              preselectedResearch.name :
-              (sourceType === "research" ? (meeting?.researchName || "Исследования") : "Встречи")
-            }
+          <span
+            className="hover:text-gray-800 cursor-pointer"
+            onClick={handleCancel}
+          >
+            {sourceType === "research"
+              ? preselectedResearch?.name || meeting?.researchName || "Исследования"
+              : "Встречи"}
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">
             {isNew ? "Новая встреча" : meeting?.companyName || "Детали встречи"}
-
           </span>
         </div>
 
