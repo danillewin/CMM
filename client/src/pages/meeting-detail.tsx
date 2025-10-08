@@ -754,7 +754,7 @@ function MeetingGuideTab({ research }: { research?: Research }) {
 export default function MeetingDetail() {
   const [location, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
-  const isNew = params.id === "new";
+  const isNew = location.includes('/meetings/new') || params.id === "new";
   const id = isNew ? null : parseInt(params.id);
 
   // Completely prevent any /api/meetings queries (without ID) on this page
@@ -813,8 +813,6 @@ export default function MeetingDetail() {
   const preselectedResearchId = isNew && sourceType === "research" && sourceId
     ? sourceId
     : undefined;
-  
-  console.log('Meeting detail params:', { isNew, sourceType, sourceId, preselectedResearchId });
 
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -882,14 +880,11 @@ export default function MeetingDetail() {
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
-    console.log('useEffect check:', { isNew, preselectedResearchId });
     if (isNew && preselectedResearchId) {
-      console.log('Loading preselected research:', preselectedResearchId);
       // Load the specific research if preselected via URL
       fetch(`/api/researches/${preselectedResearchId}`)
         .then((res) => res.json())
         .then((research) => {
-          console.log('Loaded preselected research:', research);
           if (research) {
             setPreselectedResearch(research);
           }
@@ -1149,27 +1144,23 @@ export default function MeetingDetail() {
                   onSubmit={handleSubmit}
                   initialData={
                     preselectedResearchId && preselectedResearch
-                      ? (() => {
-                          const data = {
-                            id: 0, // New meeting
-                            researchId: preselectedResearchId,
-                            date: new Date(),
-                            // Default values for required fields
-                            respondentName: "",
-                            respondentPosition: "",
-                            cnum: "",
-                            gcc: null,
-                            companyName: null,
-                            email: "",
-                            researcher: preselectedResearch.researcher || "", // Set the researcher from the selected research
-                            relationshipManager: "",
-                            salesPerson: "",
-                            status: MeetingStatus.IN_PROGRESS,
-                            notes: null,
-                          } as Meeting;
-                          console.log('MeetingForm initialData:', { researchId: data.researchId, researcher: data.researcher, researchName: preselectedResearch.name });
-                          return data;
-                        })()
+                      ? ({
+                          id: 0, // New meeting
+                          researchId: preselectedResearchId,
+                          date: new Date(),
+                          // Default values for required fields
+                          respondentName: "",
+                          respondentPosition: "",
+                          cnum: "",
+                          gcc: null,
+                          companyName: null,
+                          email: "",
+                          researcher: preselectedResearch.researcher || "", // Set the researcher from the selected research
+                          relationshipManager: "",
+                          salesPerson: "",
+                          status: MeetingStatus.IN_PROGRESS,
+                          notes: null,
+                        } as Meeting)
                       : undefined
                   }
                   isLoading={isPending}
