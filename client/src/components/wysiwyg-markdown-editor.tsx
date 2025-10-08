@@ -61,9 +61,14 @@ export const WysiwygMarkdownEditor = ({
           margin: 0 !important;
         }
         
+        .mdxeditor [class*="_listItemChecked_"]::before,
+        .mdxeditor [class*="_listItemUnchecked_"]::before {
+          margin-left: 0 !important;
+        }
+        
         .mdxeditor [class*="_listItemChecked_"],
         .mdxeditor [class*="_listItemUnchecked_"] {
-          margin-left: var(--spacing-4) !important;
+          padding-left: var(--spacing-4) !important;
         }
         
         .mdxeditor ol li,
