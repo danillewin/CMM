@@ -1714,8 +1714,8 @@ export function registerRoutes(app: Express): Server {
     };
   }
 
-  // POST /researches/{researchId}/meetings - Create meeting
-  app.post("/researches/:researchId/meetings", async (req, res) => {
+  // POST /api/researches/{researchId}/meetings - Create meeting
+  app.post("/api/researches/:researchId/meetings", async (req, res) => {
     try {
       const researchId = parseInt(req.params.researchId);
       if (isNaN(researchId)) {
@@ -1765,8 +1765,8 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // PUT /researches/{researchId}/meetings/{meetingId} - Update meeting
-  app.put("/researches/:researchId/meetings/:meetingId", async (req, res) => {
+  // PUT /api/researches/{researchId}/meetings/{meetingId} - Update meeting
+  app.put("/api/researches/:researchId/meetings/:meetingId", async (req, res) => {
     try {
       const researchId = parseInt(req.params.researchId);
       const meetingId = parseInt(req.params.meetingId);
@@ -1836,8 +1836,8 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // DELETE /researches/{researchId}/meetings/{meetingId} - Cancel/delete meeting
-  app.delete("/researches/:researchId/meetings/:meetingId", async (req, res) => {
+  // DELETE /api/researches/{researchId}/meetings/{meetingId} - Cancel/delete meeting
+  app.delete("/api/researches/:researchId/meetings/:meetingId", async (req, res) => {
     try {
       const researchId = parseInt(req.params.researchId);
       const meetingId = parseInt(req.params.meetingId);
