@@ -813,6 +813,8 @@ export default function MeetingDetail() {
   const preselectedResearchId = isNew && sourceType === "research" && sourceId
     ? sourceId
     : undefined;
+  
+  console.log('Meeting detail params:', { isNew, sourceType, sourceId, preselectedResearchId });
 
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -880,11 +882,14 @@ export default function MeetingDetail() {
 
   // Effect to load specific research when preselected via query param
   useEffect(() => {
+    console.log('useEffect check:', { isNew, preselectedResearchId });
     if (isNew && preselectedResearchId) {
+      console.log('Loading preselected research:', preselectedResearchId);
       // Load the specific research if preselected via URL
       fetch(`/api/researches/${preselectedResearchId}`)
         .then((res) => res.json())
         .then((research) => {
+          console.log('Loaded preselected research:', research);
           if (research) {
             setPreselectedResearch(research);
           }
