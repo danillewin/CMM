@@ -1612,6 +1612,8 @@ export function registerRoutes(app: Express): Server {
       salesPerson: dto.employees.length > 0 ? dto.employees[0] : dto.createdBy,
       researcher: dto.employees.length > 1 ? dto.employees[1] : dto.employees[0],
       date: new Date(dto.date + "T00:00:00.000Z"),
+      time: timeRange,
+      meetingLink: dto.location || null,
       notes: dto.comment,
       researchId: researchId,
       status: MeetingStatus.SET, // Default status for external meetings
@@ -1621,9 +1623,15 @@ export function registerRoutes(app: Express): Server {
 
   // Helper function to map internal meeting to OpenAPI DTO format
   function mapMeetingToDto(meeting: Meeting, crmId?: string): ResearchMeetingDto {
-    // Default time values since time field doesn't exist in database
-    const startTime = "09:00";
-    const endTime = "10:00";
+    // Parse time from meeting.time field or use defaults
+    let startTime = "09:00";
+    let endTime = "10:00";
+    
+    if (meeting.time && meeting.time.includes('-')) {
+      const [start, end] = meeting.time.split('-');
+      startTime = start.trim();
+      endTime = end.trim();
+    }
     
     // Parse contact information from respondent data
     const names = meeting.respondentName.split(" ");
@@ -1658,6 +1666,7 @@ export function registerRoutes(app: Express): Server {
         categories: ["Primary Contact"],
         position: meeting.respondentPosition,
       }],
+      location: meeting.meetingLink || null,
     };
   }
 
