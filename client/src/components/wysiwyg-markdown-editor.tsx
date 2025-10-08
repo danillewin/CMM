@@ -39,6 +39,30 @@ export const WysiwygMarkdownEditor = ({
 
   return (
     <div className={`border border-gray-200 rounded-md overflow-hidden ${className}`} style={{ height }}>
+      <style>{`
+        .mdxeditor-root-contenteditable {
+          overflow-y: auto !important;
+          max-height: calc(${height}px - 48px) !important;
+        }
+        
+        .mdxeditor ul li {
+          display: flex !important;
+          align-items: flex-start !important;
+          gap: 0.5rem !important;
+        }
+        
+        .mdxeditor ul li input[type="checkbox"] {
+          margin-top: 0.25rem !important;
+          flex-shrink: 0 !important;
+          width: 1rem !important;
+          height: 1rem !important;
+        }
+        
+        .mdxeditor ol li,
+        .mdxeditor ul li:not(:has(input[type="checkbox"])) {
+          display: list-item !important;
+        }
+      `}</style>
       <MDXEditor
         ref={editorRef}
         markdown={value}
