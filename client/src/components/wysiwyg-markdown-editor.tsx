@@ -61,6 +61,10 @@ export const WysiwygMarkdownEditor = ({
           margin: 0 !important;
         }
         
+        .mdxeditor ul li:has(input[type="checkbox"]) > * {
+          margin-left: var(--spacing-4) !important;
+        }
+        
         .mdxeditor ol li,
         .mdxeditor ul li:not(:has(input[type="checkbox"])) {
           display: list-item !important;
