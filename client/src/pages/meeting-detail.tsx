@@ -802,18 +802,17 @@ export default function MeetingDetail() {
 
   // Parse query parameters for navigation context and new meeting creation
   const searchParams = new URLSearchParams(window.location.search);
-  const preselectedResearchId = isNew
-    ? searchParams.get("researchId")
-      ? parseInt(searchParams.get("researchId")!)
-      : undefined
-    : undefined;
-
-  // Parse navigation source context
+  
+  // Parse navigation source context - unified parameters for both new and existing meetings
   const sourceType = searchParams.get("source"); // "research" or null
   const sourceId = searchParams.get("sourceId")
     ? parseInt(searchParams.get("sourceId")!)
     : null;
-  const fromContext = searchParams.get("from"); // This is what research-detail.tsx uses
+  
+  // Use sourceId as preselected research ID for new meetings from research context
+  const preselectedResearchId = isNew && sourceType === "research" && sourceId
+    ? sourceId
+    : undefined;
 
   // For storing the preselected research details
   const [preselectedResearch, setPreselectedResearch] =
@@ -931,8 +930,12 @@ export default function MeetingDetail() {
         toast({ title: "Meeting created successfully" });
       }
 
-      // Default behavior - go to the newly created meeting detail page
-      setLocation(`/meetings/${data.id}`);
+      // Navigate to the newly created meeting, preserving source context if available
+      if (sourceType && sourceId) {
+        setLocation(`/meetings/${data.id}?source=${sourceType}&sourceId=${sourceId}`);
+      } else {
+        setLocation(`/meetings/${data.id}`);
+      }
     },
     onError: (error) => {
       toast({
@@ -1018,11 +1021,8 @@ export default function MeetingDetail() {
 
   const handleCancel = () => {
     // Navigate back to source if available, otherwise go to meetings
-    if (fromContext === "research" && preselectedResearchId) {
-      // If creating from research page, go back to research page
-      setLocation(`/researches/${preselectedResearchId}`);
-    } else if (sourceType === "research" && sourceId) {
-      // If editing existing meeting from research context
+    if (sourceType === "research" && sourceId) {
+      // Return to research page (works for both new and existing meetings)
       setLocation(`/researches/${sourceId}`);
     } else {
       setLocation("/");
@@ -1060,11 +1060,9 @@ export default function MeetingDetail() {
             className="hover:text-gray-800 cursor-pointer"
             onClick={handleCancel}
           >
-            {fromContext === "research" && preselectedResearch
-              ? preselectedResearch.name
-              : sourceType === "research"
-                ? meeting?.researchName || "Исследования"
-                : "Встречи"}
+            {sourceType === "research" && (preselectedResearch || meeting?.researchName)
+              ? preselectedResearch?.name || meeting?.researchName || "Исследования"
+              : "Встречи"}
           </span>
           <span className="mx-2 text-gray-300">/</span>
           <span className="text-gray-800 font-medium truncate">

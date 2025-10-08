@@ -3457,7 +3457,7 @@ function ResearchDetail() {
                       variant="outline"
                       onClick={() =>
                         setLocation(
-                          `/meetings/new?researchId=${id}&from=research`,
+                          `/meetings/new?source=research&sourceId=${id}`,
                         )
                       }
                       className="flex items-center gap-1"
