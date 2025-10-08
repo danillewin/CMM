@@ -1608,6 +1608,8 @@ export function registerRoutes(app: Express): Server {
         "Not specified",
       email: dto.contacts.length > 0 && dto.contacts[0].emails.length > 0 ? 
         dto.contacts[0].emails[0] : null,
+      phone: dto.contacts.length > 0 && dto.contacts[0].phones.length > 0 ? 
+        dto.contacts[0].phones[0] : null,
       relationshipManager: dto.clientManager || dto.createdBy,
       salesPerson: dto.createdBy, // Рекрутер (Recruiter) - from createdBy
       researcher: researcherFromResearch || dto.createdBy, // Исследователь (Researcher) - from related research

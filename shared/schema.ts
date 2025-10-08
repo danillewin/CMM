@@ -113,6 +113,7 @@ export const meetings = pgTable("meetings", {
   gcc: text("gcc"),
   companyName: text("company_name"),
   email: text("email"),
+  phone: text("phone"),
   researcher: text("researcher"), // Field inherited from Research
   relationshipManager: text("relationship_manager").notNull(),
   salesPerson: text("recruiter").notNull(),
@@ -212,6 +213,7 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   email: z.string().optional().refine((val) => !val || z.string().email().safeParse(val).success, {
     message: "Invalid email format"
   }),
+  phone: z.string().optional(),
   researcher: z.string().optional(), // Field inherited from Research (not editable)
   relationshipManager: z.string().min(1, "Relationship Manager is required"),
   salesPerson: z.string().min(1, "Recruiter is required"),

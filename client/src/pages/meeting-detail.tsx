@@ -376,6 +376,7 @@ function MeetingResultsForm({
         gcc: meeting.gcc || "",
         companyName: meeting.companyName || "",
         email: meeting.email || "",
+        phone: meeting.phone || "",
         researcher: meeting.researcher || "",
         relationshipManager: meeting.relationshipManager,
         salesPerson: meeting.salesPerson,

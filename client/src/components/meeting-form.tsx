@@ -114,6 +114,7 @@ export default function MeetingForm({
       gcc: initialData?.gcc ?? "",
       companyName: initialData?.companyName ?? "",
       email: initialData?.email ?? "",
+      phone: initialData?.phone ?? "",
       researcher: initialData?.researcher ?? "", // Researcher from connected research
       relationshipManager: initialData?.relationshipManager ?? "",
       salesPerson: initialData?.salesPerson ?? "",
@@ -461,6 +462,25 @@ export default function MeetingForm({
                       type="email"
                       className="w-full" 
                       placeholder="Адрес электронной почты..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base">Телефон</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="tel"
+                      className="w-full" 
+                      placeholder="Номер телефона..."
                     />
                   </FormControl>
                   <FormMessage />
