@@ -125,6 +125,7 @@ This is a full-stack web application built for managing research interviews and 
 - October 9, 2025: Implemented Active Directory (LDAP) integration using ldapts library for resolving user logins to full names with concurrency-safe design (fresh client per lookup to prevent race conditions)
 - October 9, 2025: Added AD mock mode for development with configurable environment variables (AD_ENABLED, AD_URL, AD_BASE_DN, AD_BIND_DN, AD_BIND_PASSWORD) for production LDAP integration
 - October 9, 2025: Enhanced AD integration to format user names as "FullName (login)" for better identification in UI and data exports
+- October 9, 2025: Optimized transcription service memory usage to reduce overhead from 7x to 2-3x by implementing direct buffer-to-File conversion, explicit buffer cleanup after processing, incremental string building instead of array accumulation, and clearing processed file references to enable garbage collection
 
 ## User Preferences
 
