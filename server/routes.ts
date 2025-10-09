@@ -23,6 +23,7 @@ import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
 import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
+import { adService } from "./services/ad-service";
 
 // Database initialization is handled by the storage layer
 
@@ -1591,9 +1592,25 @@ export function registerRoutes(app: Express): Server {
   // =========================================
 
   // Helper function to map OpenAPI DTO to internal meeting format
-  function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number, researcherFromResearch?: string): any {
+  async function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number, researcherFromResearch?: string): Promise<any> {
     // Combine startTime and endTime with date to create time and meeting duration
     const timeRange = `${dto.startTime}-${dto.endTime}`;
+    
+    // Collect all user logins to resolve
+    const userLogins = [
+      dto.clientManager,
+      dto.createdBy,
+      ...dto.employees
+    ].filter((login): login is string => Boolean(login));
+    
+    // Resolve logins to full names using AD service
+    const userFullNames = await adService.getUsersFullNames(userLogins);
+    
+    // Helper to get full name or fallback to login
+    const getFullName = (login: string | null | undefined): string => {
+      if (!login) return "";
+      return userFullNames[login] || login;
+    };
     
     return {
       // Map OpenAPI fields to internal meeting fields
@@ -1610,16 +1627,16 @@ export function registerRoutes(app: Express): Server {
         dto.contacts[0].emails[0] : null,
       phone: dto.contacts.length > 0 && dto.contacts[0].phones.length > 0 ? 
         dto.contacts[0].phones[0] : null,
-      relationshipManager: dto.clientManager || dto.createdBy,
-      salesPerson: dto.createdBy, // Рекрутер (Recruiter) - from createdBy
-      researcher: researcherFromResearch || dto.createdBy, // Исследователь (Researcher) - from related research
+      relationshipManager: getFullName(dto.clientManager) || getFullName(dto.createdBy),
+      salesPerson: getFullName(dto.createdBy), // Рекрутер (Recruiter) - from createdBy
+      researcher: researcherFromResearch || getFullName(dto.createdBy), // Исследователь (Researcher) - from related research
       date: new Date(dto.date + "T00:00:00.000Z"),
       time: timeRange,
       meetingLink: dto.location || null,
       notes: dto.comment,
       researchId: researchId,
       status: MeetingStatus.SET, // Default status for external meetings
-      fullText: `CRM ID: ${dto.crmId}\nEmployees: ${dto.employees.join(", ")}\nContacts: ${dto.contacts.map(c => `${c.firstName} ${c.lastName} (${c.position || "N/A"})`).join(", ")}`
+      fullText: `CRM ID: ${dto.crmId}\nEmployees: ${dto.employees.map(login => getFullName(login)).join(", ")}\nContacts: ${dto.contacts.map(c => `${c.firstName} ${c.lastName} (${c.position || "N/A"})`).join(", ")}`
     };
   }
 
@@ -1750,7 +1767,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Map DTO to internal format and create meeting
-      const meetingData = mapDtoToMeeting(result.data, researchId, research.researcher);
+      const meetingData = await mapDtoToMeeting(result.data, researchId, research.researcher);
       const meeting = await storage.createMeeting(meetingData);
 
       // Return the meeting in OpenAPI format
@@ -1815,7 +1832,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Map DTO to internal format and update meeting
-      const updateData = mapDtoToMeeting(result.data as any, researchId, research.researcher);
+      const updateData = await mapDtoToMeeting(result.data as any, researchId, research.researcher);
       const updatedMeeting = await storage.updateMeeting(meetingId, updateData);
 
       if (!updatedMeeting) {

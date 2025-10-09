@@ -87,8 +87,12 @@ class ActiveDirectoryService {
 
       if (searchEntries.length > 0) {
         const cn = searchEntries[0].cn;
-        // cn can be a string or array of strings, handle both cases
-        return Array.isArray(cn) ? cn[0] : cn;
+        // cn can be a string, Buffer, or array - handle all cases
+        if (Array.isArray(cn)) {
+          const first = cn[0];
+          return Buffer.isBuffer(first) ? first.toString() : first;
+        }
+        return Buffer.isBuffer(cn) ? cn.toString() : cn;
       }
 
       // If user not found, return the login
@@ -105,7 +109,7 @@ class ActiveDirectoryService {
    * @returns Object mapping logins to full names
    */
   async getUsersFullNames(logins: string[]): Promise<Record<string, string>> {
-    const uniqueLogins = [...new Set(logins.filter(login => login))];
+    const uniqueLogins = Array.from(new Set(logins.filter(login => login)));
     
     const results = await Promise.all(
       uniqueLogins.map(async (login) => ({
