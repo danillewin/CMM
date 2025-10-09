@@ -96,13 +96,19 @@ class TranscriptionService {
     try {
       const openai = getOpenAIClient();
       
-      // Convert the buffer/file to a File object that OpenAI can use (memory efficient)
+      // Convert the buffer/file to a File object that OpenAI can use (memory optimized)
       let audioFile;
+      
       if (file.buffer) {
-        // For memory storage (buffer available)
+        // For memory storage: Use buffer directly with toFile (most efficient)
         audioFile = await toFile(file.buffer, file.originalname, {
           type: file.mimetype,
         });
+        
+        // Explicitly clear the buffer reference to allow garbage collection
+        // Do this immediately after toFile to minimize memory footprint
+        // @ts-ignore - We're intentionally clearing this for memory optimization
+        file.buffer = null;
       } else if (file.path) {
         // For disk storage (file path available) - more memory efficient
         const fs = require('fs');
@@ -133,7 +139,13 @@ class TranscriptionService {
       console.log(`Successfully transcribed ${file.originalname}: ${transcription.text.length} characters`);
       
       // Format transcription using segments with speaker identification
-      return this.formatTranscriptionWithSpeakers(transcription);
+      const result = this.formatTranscriptionWithSpeakers(transcription);
+      
+      // Clear transcription object to free memory
+      // @ts-ignore
+      transcription.segments = null;
+      
+      return result;
 
     } catch (error) {
       console.error('Error transcribing file:', file.originalname, error);
@@ -203,24 +215,27 @@ class TranscriptionService {
       const startTime = Date.now();
       
       try {
-        // Process files sequentially to avoid overwhelming the API
-        const transcriptions: string[] = [];
-        
-        for (const file of files) {
-          console.log(`Processing file: ${file.originalname} (${file.size} bytes)`);
-          const transcription = await this.transcribeWithRealAPI(file);
-          transcriptions.push(transcription);
-        }
-        
-        // Combine transcriptions
+        // Process files sequentially and build result incrementally (memory optimized)
+        // This avoids keeping all transcriptions in an array
         let combinedTranscription = '';
-        if (files.length === 1) {
-          combinedTranscription = transcriptions[0];
-        } else {
-          // For multiple files, combine with file separators
-          combinedTranscription = transcriptions.map((transcription, index) => {
-            return `\n\n--- File ${index + 1}: ${files[index].originalname} ---\n${transcription}`;
-          }).join('\n');
+        
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          console.log(`Processing file ${i + 1}/${files.length}: ${file.originalname} (${file.size} bytes)`);
+          
+          const transcription = await this.transcribeWithRealAPI(file);
+          
+          // Build result incrementally instead of storing in array
+          if (files.length === 1) {
+            combinedTranscription = transcription;
+          } else {
+            const separator = i === 0 ? '' : '\n';
+            combinedTranscription += `${separator}\n--- File ${i + 1}: ${file.originalname} ---\n${transcription}`;
+          }
+          
+          // Explicitly clear file reference to help garbage collection
+          // @ts-ignore - We're intentionally clearing this for memory optimization
+          files[i] = null;
         }
         
         const processingTime = Date.now() - startTime;
