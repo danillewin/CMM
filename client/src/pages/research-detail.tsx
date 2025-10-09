@@ -11,6 +11,7 @@ import {
   PaginatedResponse,
 } from "@shared/schema";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -3153,6 +3154,7 @@ function ResearchDetail() {
 
   // Search state for linked meetings
   const [linkedMeetingsSearch, setLinkedMeetingsSearch] = useState("");
+  const debouncedLinkedMeetingsSearch = useDebouncedValue(linkedMeetingsSearch, 500);
 
   // Fetch meetings by research ID using infinite scroll
   const {
@@ -3162,7 +3164,7 @@ function ResearchDetail() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<MeetingTableItem>({
-    queryKey: ["/api/meetings", "by-research", id, linkedMeetingsSearch],
+    queryKey: ["/api/meetings", "by-research", id, debouncedLinkedMeetingsSearch],
     queryFn: async ({ pageParam = 1 }) => {
       if (!id) return { data: [], hasMore: false };
       const params = new URLSearchParams({
@@ -3172,8 +3174,8 @@ function ResearchDetail() {
       });
       
       // Add search parameter if present
-      if (linkedMeetingsSearch && linkedMeetingsSearch.trim()) {
-        params.append('search', linkedMeetingsSearch.trim());
+      if (debouncedLinkedMeetingsSearch && debouncedLinkedMeetingsSearch.trim()) {
+        params.append('search', debouncedLinkedMeetingsSearch.trim());
       }
       
       const response = await fetch(`/api/meetings?${params}`);
