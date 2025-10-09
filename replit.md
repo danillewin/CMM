@@ -54,6 +54,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Anthropic AI**: AI-powered features for research assistance
 - **Excel Export**: Data export functionality for reporting
 - **Kafka Integration**: Event streaming for completed meetings and researches with SASL_SSL and Kerberos authentication support
+- **Active Directory**: LDAP integration for resolving user logins to full names with mock mode for development
 
 ## External Dependencies
 
@@ -119,6 +120,11 @@ This is a full-stack web application built for managing research interviews and 
 - August 15, 2025: Added "Not assigned" option to Research Type field dropdown to provide additional flexibility in research classification
 - August 15, 2025: Set "Not assigned" as the default value for Research Type field
 - August 15, 2025: Repositioned Research Type field to center position in Overview tab (Status, Research Type, Color order)
-- August 18, 2025: Implemented intelligent navigation context preservation for research-to-meeting workflow - when users navigate from a research to a connected meeting, the back button now correctly returns them to the originating research instead of the general meetings page## User Preferences
+- August 18, 2025: Implemented intelligent navigation context preservation for research-to-meeting workflow - when users navigate from a research to a connected meeting, the back button now correctly returns them to the originating research instead of the general meetings page
+- October 9, 2025: Added phone field to meetings schema, forms, and database with proper validation and persistence
+- October 9, 2025: Implemented Active Directory (LDAP) integration using ldapts library for resolving user logins to full names with concurrency-safe design (fresh client per lookup to prevent race conditions)
+- October 9, 2025: Added AD mock mode for development with configurable environment variables (AD_ENABLED, AD_URL, AD_BASE_DN, AD_BIND_DN, AD_BIND_PASSWORD) for production LDAP integration
+
+## User Preferences
 
 Preferred communication style: Simple, everyday language.
