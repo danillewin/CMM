@@ -62,7 +62,7 @@ class ActiveDirectoryService {
   /**
    * Get user's full name from Active Directory by their login
    * @param login - User's login/username
-   * @returns Full name of the user or the login if not found
+   * @returns Full name in format "FullName (login)" or just login if not found
    */
   async getUserFullName(login: string): Promise<string> {
     if (!login) {
@@ -71,7 +71,11 @@ class ActiveDirectoryService {
 
     // Use mock data in development mode
     if (this.useMockMode) {
-      return MOCK_USERS[login] || login;
+      const fullName = MOCK_USERS[login];
+      if (fullName) {
+        return `${fullName} (${login})`;
+      }
+      return login;
     }
 
     if (!this.config) {
@@ -97,11 +101,14 @@ class ActiveDirectoryService {
       if (searchEntries.length > 0) {
         const cn = searchEntries[0].cn;
         // cn can be a string, Buffer, or array - handle all cases
+        let fullName: string;
         if (Array.isArray(cn)) {
           const first = cn[0];
-          return Buffer.isBuffer(first) ? first.toString() : first;
+          fullName = Buffer.isBuffer(first) ? first.toString() : first;
+        } else {
+          fullName = Buffer.isBuffer(cn) ? cn.toString() : cn;
         }
-        return Buffer.isBuffer(cn) ? cn.toString() : cn;
+        return `${fullName} (${login})`;
       }
 
       // If user not found, return the login
