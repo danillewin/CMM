@@ -3151,6 +3151,9 @@ function ResearchDetail() {
 
   // Removed duplicate check query - no longer needed
 
+  // Search state for linked meetings
+  const [linkedMeetingsSearch, setLinkedMeetingsSearch] = useState("");
+
   // Fetch meetings by research ID using infinite scroll
   const {
     data: researchMeetings,
@@ -3159,7 +3162,7 @@ function ResearchDetail() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteScroll<MeetingTableItem>({
-    queryKey: ["/api/meetings", "by-research", id],
+    queryKey: ["/api/meetings", "by-research", id, linkedMeetingsSearch],
     queryFn: async ({ pageParam = 1 }) => {
       if (!id) return { data: [], hasMore: false };
       const params = new URLSearchParams({
@@ -3167,6 +3170,12 @@ function ResearchDetail() {
         limit: '20',
         researchId: id.toString(),
       });
+      
+      // Add search parameter if present
+      if (linkedMeetingsSearch && linkedMeetingsSearch.trim()) {
+        params.append('search', linkedMeetingsSearch.trim());
+      }
+      
       const response = await fetch(`/api/meetings?${params}`);
       if (!response.ok) {
         throw new Error("Failed to fetch meetings");
@@ -3563,6 +3572,8 @@ function ResearchDetail() {
                       isFetchingNextPage={isFetchingNextPage}
                       fetchNextPage={fetchNextPage}
                       storeConfigKey="research-meetings-table"
+                      searchValue={linkedMeetingsSearch}
+                      onSearchChange={setLinkedMeetingsSearch}
                       emptyStateMessage="No meetings are connected to this research yet."
                       isLoading={isMeetingsLoading}
                     />
