@@ -7,7 +7,11 @@ import {
   InsertResearch,
   ResearchStatusType,
   Meeting,
+  MeetingTableItem,
+  PaginatedResponse,
 } from "@shared/schema";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import { InfiniteScrollTable } from "@/components/infinite-scroll-table";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -3147,20 +3151,30 @@ function ResearchDetail() {
 
   // Removed duplicate check query - no longer needed
 
-  // Fetch meetings by research ID using a specific API endpoint
-  const { data: researchMeetings = [], isLoading: isMeetingsLoading } =
-    useQuery<Meeting[]>({
-      queryKey: ["/api/meetings", "by-research", id],
-      queryFn: async () => {
-        if (!id) return [];
-        const res = await apiRequest("GET", `/api/meetings?researchId=${id}`);
-        if (!res.ok) throw new Error("Failed to fetch meetings");
-        const result = await res.json();
-        // Handle both paginated response {data: Meeting[]} and direct Meeting[] array
-        return Array.isArray(result) ? result : result.data || [];
-      },
-      enabled: !isNew && !!id, // Only load meetings when viewing an existing research
-    });
+  // Fetch meetings by research ID using infinite scroll
+  const {
+    data: researchMeetings,
+    isLoading: isMeetingsLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteScroll<MeetingTableItem>({
+    queryKey: ["/api/meetings", "by-research", id],
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!id) return { data: [], hasMore: false };
+      const params = new URLSearchParams({
+        page: pageParam.toString(),
+        limit: '20',
+        researchId: id.toString(),
+      });
+      const response = await fetch(`/api/meetings?${params}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch meetings");
+      }
+      return response.json() as Promise<PaginatedResponse<MeetingTableItem>>;
+    },
+    enabled: !isNew && !!id, // Only load meetings when viewing an existing research
+  });
 
   const createMutation = useMutation({
     mutationFn: async (researchData: InsertResearch) => {
@@ -3466,90 +3480,92 @@ function ResearchDetail() {
                     </Button>
                   </CardHeader>
                   <CardContent className="p-0">
-                    {researchMeetings.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        No meetings are connected to this research yet.
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-gray-50/50 hover:bg-gray-50/80 transition-colors duration-200">
-                              <TableHead className="w-[15%]">Статус</TableHead>
-                              <TableHead className="w-[15%]">
-                                Название компании
-                              </TableHead>
-                              <TableHead className="w-[15%]">
-                                Имя респондента
-                              </TableHead>
-                              <TableHead className="w-[15%]">
-                                Должность
-                              </TableHead>
-                              <TableHead className="w-[15%]">Дата</TableHead>
-                              <TableHead className="w-[15%]">
-                                Рекрутер
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {researchMeetings.map((meeting) => (
-                              <TableRow
-                                key={meeting.id}
-                                className="hover:bg-gray-50/80 transition-all duration-200 cursor-pointer"
-                                onClick={() =>
-                                  setLocation(`/meetings/${meeting.id}?source=research&sourceId=${id}`)
-                                }
-                              >
-                                <TableCell>
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
-                                    ${
-                                      meeting.status === "Done"
-                                        ? "bg-green-100 text-green-800"
-                                        : meeting.status === "In Progress"
-                                          ? "bg-blue-100 text-blue-800"
-                                          : meeting.status === "Meeting Set"
-                                            ? "bg-purple-100 text-purple-800"
-                                            : "bg-gray-100 text-gray-800"
-                                    }`}
-                                    title={meeting.status}
-                                  >
-                                    {meeting.status}
-                                  </span>
-                                </TableCell>
-                                <TableCell
-                                  className="font-medium truncate max-w-[150px]"
-                                  title={meeting.companyName || ""}
-                                >
-                                  {meeting.companyName || "—"}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.respondentName}
-                                >
-                                  {meeting.respondentName}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.respondentPosition}
-                                >
-                                  {meeting.respondentPosition}
-                                </TableCell>
-                                <TableCell className="whitespace-nowrap">
-                                  {new Date(meeting.date).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell
-                                  className="truncate max-w-[150px]"
-                                  title={meeting.salesPerson}
-                                >
-                                  {meeting.salesPerson}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    )}
+                    <InfiniteScrollTable
+                      data={researchMeetings}
+                      columns={[
+                        {
+                          id: "status",
+                          name: "Статус",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]
+                              ${
+                                meeting.status === "Done"
+                                  ? "bg-green-100 text-green-800"
+                                  : meeting.status === "In Progress"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : meeting.status === "Meeting Set"
+                                      ? "bg-purple-100 text-purple-800"
+                                      : "bg-gray-100 text-gray-800"
+                              }`}
+                              title={meeting.status}
+                            >
+                              {meeting.status}
+                            </span>
+                          ),
+                        },
+                        {
+                          id: "companyName",
+                          name: "Название компании",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span className="font-medium truncate max-w-[150px]" title={meeting.companyName || ""}>
+                              {meeting.companyName || "—"}
+                            </span>
+                          ),
+                        },
+                        {
+                          id: "respondentName",
+                          name: "Имя респондента",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span className="truncate max-w-[150px]" title={meeting.respondentName}>
+                              {meeting.respondentName}
+                            </span>
+                          ),
+                        },
+                        {
+                          id: "respondentPosition",
+                          name: "Должность",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span className="truncate max-w-[150px]" title={meeting.respondentPosition}>
+                              {meeting.respondentPosition}
+                            </span>
+                          ),
+                        },
+                        {
+                          id: "date",
+                          name: "Дата",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span className="whitespace-nowrap">
+                              {new Date(meeting.date).toLocaleDateString()}
+                            </span>
+                          ),
+                        },
+                        {
+                          id: "salesPerson",
+                          name: "Рекрутер",
+                          visible: true,
+                          render: (meeting: MeetingTableItem) => (
+                            <span className="truncate max-w-[150px]" title={meeting.salesPerson}>
+                              {meeting.salesPerson}
+                            </span>
+                          ),
+                        },
+                      ]}
+                      onRowClick={(meeting) =>
+                        setLocation(`/meetings/${meeting.id}?source=research&sourceId=${id}`)
+                      }
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
+                      fetchNextPage={fetchNextPage}
+                      storeConfigKey="research-meetings-table"
+                      emptyStateMessage="No meetings are connected to this research yet."
+                      isLoading={isMeetingsLoading}
+                    />
                   </CardContent>
                 </Card>
               </div>
