@@ -74,6 +74,7 @@
     "input-otp": "^1.2.4",
     "kafkajs": "^2.2.4",
     "keycloak-js": "^26.2.0",
+    "ldapts": "^8.0.9",
     "lucide-react": "^0.453.0",
     "memorystore": "^1.6.7",
     "multer": "^2.0.2",
