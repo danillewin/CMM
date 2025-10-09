@@ -6,6 +6,7 @@ interface InfiniteScrollTableProps<T extends { id: string | number }> {
   data: T[];
   columns: ColumnConfig[];
   isLoading: boolean;
+  isFetching?: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
@@ -27,6 +28,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
   data,
   columns,
   isLoading,
+  isFetching,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -90,7 +92,7 @@ export function InfiniteScrollTable<T extends { id: string | number }>({
         emptyStateMessage={data.length === 0 ? emptyStateMessage : undefined}
         onApplyFilters={onApplyFilters}
         hasUnappliedFilters={hasUnappliedFilters}
-        isLoading={isLoading}
+        isLoading={isLoading || (isFetching && data.length === 0)}
       />
       
       {/* Load more trigger */}

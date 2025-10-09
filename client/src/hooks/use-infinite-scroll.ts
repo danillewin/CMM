@@ -34,6 +34,7 @@ export function useInfiniteScroll<T>({
   return {
     data,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error,
     hasNextPage,

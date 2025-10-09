@@ -3160,6 +3160,7 @@ function ResearchDetail() {
   const {
     data: researchMeetings,
     isLoading: isMeetingsLoading,
+    isFetching: isMeetingsFetching,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
@@ -3578,6 +3579,7 @@ function ResearchDetail() {
                       onSearchChange={setLinkedMeetingsSearch}
                       emptyStateMessage="No meetings are connected to this research yet."
                       isLoading={isMeetingsLoading}
+                      isFetching={isMeetingsFetching}
                     />
                   </CardContent>
                 </Card>
