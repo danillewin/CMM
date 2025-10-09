@@ -3282,7 +3282,7 @@ function ResearchDetail() {
     setLocation("/researches");
   };
 
-  const isLoading = isResearchLoading || isMeetingsLoading;
+  const isLoading = isResearchLoading;
   const isPending =
     createMutation.isPending ||
     updateMutation.isPending ||
