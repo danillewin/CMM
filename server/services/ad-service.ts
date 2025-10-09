@@ -18,7 +18,6 @@ interface ADConfig {
 }
 
 class ActiveDirectoryService {
-  private client: Client | null = null;
   private config: ADConfig | null = null;
   private useMockMode: boolean;
 
@@ -38,16 +37,26 @@ class ActiveDirectoryService {
         console.warn('Active Directory configuration incomplete. Falling back to mock mode.');
         this.useMockMode = true;
       } else {
-        this.client = new Client({
-          url: this.config.url,
-          timeout: 5000,
-          connectTimeout: 5000,
-        });
         console.log('Active Directory integration enabled');
       }
     } else {
       console.log('Active Directory mock mode enabled (development)');
     }
+  }
+
+  /**
+   * Create a fresh LDAP client for a single operation
+   * This prevents concurrency issues with parallel requests
+   */
+  private createClient(): Client {
+    if (!this.config) {
+      throw new Error('AD configuration not available');
+    }
+    return new Client({
+      url: this.config.url,
+      timeout: 5000,
+      connectTimeout: 5000,
+    });
   }
 
   /**
@@ -65,13 +74,16 @@ class ActiveDirectoryService {
       return MOCK_USERS[login] || login;
     }
 
-    try {
-      if (!this.client || !this.config) {
-        return login;
-      }
+    if (!this.config) {
+      return login;
+    }
 
+    // Create a fresh client for this operation to avoid concurrency issues
+    const client = this.createClient();
+
+    try {
       // Bind to AD server
-      await this.client.bind(this.config.bindDN, this.config.bindPassword);
+      await client.bind(this.config.bindDN, this.config.bindPassword);
 
       // Search for user by sAMAccountName (login)
       const searchOptions = {
@@ -80,10 +92,7 @@ class ActiveDirectoryService {
         attributes: ['cn'], // cn = Common Name (full name)
       };
 
-      const { searchEntries } = await this.client.search(this.config.baseDN, searchOptions);
-
-      // Unbind from AD server
-      await this.client.unbind();
+      const { searchEntries } = await client.search(this.config.baseDN, searchOptions);
 
       if (searchEntries.length > 0) {
         const cn = searchEntries[0].cn;
@@ -100,6 +109,13 @@ class ActiveDirectoryService {
     } catch (error) {
       console.error(`Error fetching user from Active Directory (${login}):`, error);
       return login;
+    } finally {
+      // Always unbind the client to clean up the connection
+      try {
+        await client.unbind();
+      } catch (unbindError) {
+        // Ignore unbind errors
+      }
     }
   }
 
