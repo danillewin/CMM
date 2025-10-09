@@ -124,6 +124,7 @@ This is a full-stack web application built for managing research interviews and 
 - October 9, 2025: Added phone field to meetings schema, forms, and database with proper validation and persistence
 - October 9, 2025: Implemented Active Directory (LDAP) integration using ldapts library for resolving user logins to full names with concurrency-safe design (fresh client per lookup to prevent race conditions)
 - October 9, 2025: Added AD mock mode for development with configurable environment variables (AD_ENABLED, AD_URL, AD_BASE_DN, AD_BIND_DN, AD_BIND_PASSWORD) for production LDAP integration
+- October 9, 2025: Enhanced AD integration to format user names as "FullName (login)" for better identification in UI and data exports
 
 ## User Preferences
 
