@@ -5,11 +5,24 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+function getDatabaseUrl(): string {
+  const databaseUrl = process.env.DATABASE_URL;
+  
+  if (!databaseUrl || databaseUrl.trim() === '') {
+    const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
+    
+    if (PGHOST && PGPORT && PGUSER && PGPASSWORD && PGDATABASE) {
+      return `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=require`;
+    }
+    
+    throw new Error(
+      "DATABASE_URL must be set. Did you forget to provision a database? " +
+      "Please check the Database pane to ensure your database is properly configured."
+    );
+  }
+  
+  return databaseUrl;
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: getDatabaseUrl() });
 export const db = drizzle({ client: pool, schema });
