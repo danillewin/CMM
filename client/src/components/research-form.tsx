@@ -17,7 +17,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FullscreenInput } from "@/components/ui/fullscreen-input";
+import { FullscreenTextarea } from "@/components/ui/fullscreen-textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -429,10 +430,11 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <FullscreenInput
                       {...field}
+                      label="Название исследования"
                       className="w-full"
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         field.onChange(e);
                         handleFieldChange("name", e.target.value);
                       }}
@@ -478,11 +480,12 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <FullscreenInput
                       {...field}
+                      label="Исследователь"
                       className="w-full"
                       placeholder="Введите имя и фамилию"
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const input = e.target.value;
                         // Allow only letters, spaces, and common name characters (hyphens, apostrophes)
                         const filteredInput = input.replace(/[^а-яёА-ЯЁa-zA-Z\s\-']/g, '');

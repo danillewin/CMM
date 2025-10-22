@@ -11,7 +11,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FullscreenInput } from "@/components/ui/fullscreen-input";
+import { FullscreenTextarea } from "@/components/ui/fullscreen-textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -265,15 +266,16 @@ export default function MeetingForm({
                     Время
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <FullscreenInput
                       {...field}
                       type="text"
+                      label="Время"
                       className="w-full font-mono"
                       data-testid="input-meeting-time"
                       placeholder="ЧЧ:ММ (например: 14:30)"
                       pattern="^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$"
                       title="Время в 24-часовом формате (например: 14:30)"
-                      onChange={(e) => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         let value = e.target.value;
                         // Remove any non-digit or colon characters
                         value = value.replace(/[^\d:]/g, '');
@@ -291,7 +293,7 @@ export default function MeetingForm({
                         e.target.value = value;
                         field.onChange(e);
                       }}
-                      onBlur={(e) => {
+                      onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
                         const value = e.target.value;
                         const match = value.match(/^(\d{1,2}):?(\d{0,2})$/);
                         
@@ -326,9 +328,10 @@ export default function MeetingForm({
                     Ссылка на встречу
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <FullscreenInput
                       {...field}
                       type="url"
+                      label="Ссылка на встречу"
                       className="w-full"
                       data-testid="input-meeting-link"
                       placeholder="https://..."
@@ -389,7 +392,7 @@ export default function MeetingForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <Input 
+                    <FullscreenInput 
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -436,7 +439,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Компания</FormLabel>
                   <FormControl>
-                    <Input 
+                    <FullscreenInput 
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -458,7 +461,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Email клиента</FormLabel>
                   <FormControl>
-                    <Input 
+                    <FullscreenInput 
                       {...field} 
                       type="email"
                       className="w-full" 
@@ -477,7 +480,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Телефон</FormLabel>
                   <FormControl>
-                    <Input 
+                    <FullscreenInput 
                       {...field} 
                       type="tel"
                       className="w-full" 
@@ -502,15 +505,16 @@ export default function MeetingForm({
                     <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
-                    <Input
+                    <FullscreenInput
                       {...field}
+                      label="CNUM"
                       className="w-full uppercase"
-                      onChange={e => {
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value.toUpperCase();
                         field.onChange(value);
                         handleCnumChange(value);
                       }}
-                      onBlur={(e) => {
+                      onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
                         field.onBlur(); // Call the original onBlur
                         
                         // Check for duplicates when the field loses focus
@@ -537,7 +541,7 @@ export default function MeetingForm({
                     <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
-                    <Input 
+                    <FullscreenInput 
                       {...field} 
                       className="w-full" 
                       onChange={e => {
@@ -568,7 +572,7 @@ export default function MeetingForm({
                   <FormItem>
                     <FormLabel className="text-base">Исследователь</FormLabel>
                     <FormControl>
-                      <Input 
+                      <FullscreenInput 
                         {...field} 
                         className="w-full bg-gray-50"
                         disabled
@@ -633,7 +637,7 @@ export default function MeetingForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input 
+                      <FullscreenInput 
                         {...field} 
                         className="w-full" 
                         placeholder="Имя RM..."
@@ -654,7 +658,7 @@ export default function MeetingForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <Input 
+                      <FullscreenInput 
                         {...field} 
                         className="w-full" 
                         placeholder="Имя рекрутера..."

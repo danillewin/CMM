@@ -80,6 +80,7 @@ export function ResearchBriefForm({
                   placeholder="Enter research brief..."
                   height={300}
                   className=""
+                  label={t("researches.brief")}
                 />
               </FormControl>
               <FormMessage />
