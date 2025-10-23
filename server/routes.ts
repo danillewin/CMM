@@ -25,6 +25,7 @@ import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
 import { mcpServerManager } from "./mcp-server";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 // Database initialization is handled by the storage layer
 
@@ -1904,35 +1905,26 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // MCP (Model Context Protocol) endpoint for tool execution
-  app.post("/api/mcp/tools/call", async (req, res) => {
+  // MCP (Model Context Protocol) endpoint using StreamableHTTPServerTransport
+  app.post("/api/mcp", async (req, res) => {
     try {
-      const { name, arguments: args } = req.body;
-      
-      if (!name) {
-        return res.status(400).json({ error: "Tool name is required" });
-      }
-
-      const result = await mcpServerManager.callTool(name, args || {});
-      res.json(result);
-    } catch (error: any) {
-      console.error("Error calling MCP tool:", error);
-      res.status(500).json({ 
-        error: error.message || "Failed to execute MCP tool",
-        isError: true 
+      // Create a new transport for each request to prevent request ID collisions
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+        enableJsonResponse: true,
       });
-    }
-  });
 
-  // MCP endpoint to list available tools
-  app.get("/api/mcp/tools", async (req, res) => {
-    try {
-      const tools = await mcpServerManager.listTools();
-      res.json({ tools });
+      res.on("close", () => {
+        transport.close();
+      });
+
+      const mcpServer = mcpServerManager.getServer();
+      await mcpServer.connect(transport);
+      await transport.handleRequest(req, res, req.body);
     } catch (error: any) {
-      console.error("Error listing MCP tools:", error);
-      res.status(500).json({ 
-        error: error.message || "Failed to list MCP tools" 
+      console.error("Error handling MCP request:", error);
+      res.status(500).json({
+        error: error.message || "Failed to handle MCP request",
       });
     }
   });
