@@ -24,6 +24,7 @@ import { transcriptionService } from "./transcription-service";
 import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
+import { mcpServerManager } from "./mcp-server";
 
 // Database initialization is handled by the storage layer
 
@@ -1900,6 +1901,39 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error cancelling meeting via OpenAPI:", error);
       res.status(500).json({ message: "Failed to cancel meeting" });
+    }
+  });
+
+  // MCP (Model Context Protocol) endpoint for tool execution
+  app.post("/api/mcp/tools/call", async (req, res) => {
+    try {
+      const { name, arguments: args } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: "Tool name is required" });
+      }
+
+      const result = await mcpServerManager.callTool(name, args || {});
+      res.json(result);
+    } catch (error: any) {
+      console.error("Error calling MCP tool:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to execute MCP tool",
+        isError: true 
+      });
+    }
+  });
+
+  // MCP endpoint to list available tools
+  app.get("/api/mcp/tools", async (req, res) => {
+    try {
+      const tools = await mcpServerManager.listTools();
+      res.json({ tools });
+    } catch (error: any) {
+      console.error("Error listing MCP tools:", error);
+      res.status(500).json({ 
+        error: error.message || "Failed to list MCP tools" 
+      });
     }
   });
 
