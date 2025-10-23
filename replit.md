@@ -55,6 +55,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Excel Export**: Data export functionality for reporting
 - **Kafka Integration**: Event streaming for completed meetings and researches with SASL_SSL and Kerberos authentication support
 - **Active Directory**: LDAP integration for resolving user logins to full names with mock mode for development
+- **Model Context Protocol (MCP)**: Standardized protocol for LLMs to retrieve system data via 12 tools accessible through HTTP endpoints
 
 ## External Dependencies
 
@@ -126,6 +127,9 @@ This is a full-stack web application built for managing research interviews and 
 - October 9, 2025: Added AD mock mode for development with configurable environment variables (AD_ENABLED, AD_URL, AD_BASE_DN, AD_BIND_DN, AD_BIND_PASSWORD) for production LDAP integration
 - October 9, 2025: Enhanced AD integration to format user names as "FullName (login)" for better identification in UI and data exports
 - October 9, 2025: Optimized transcription service memory usage to reduce overhead from 7x to 2-3x by implementing direct buffer-to-File conversion, explicit buffer cleanup after processing, incremental string building instead of array accumulation, and clearing processed file references to enable garbage collection
+- October 23, 2025: Implemented Model Context Protocol (MCP) integration using @modelcontextprotocol/sdk library to expose system data to LLMs through standardized tools
+- October 23, 2025: Added 12 MCP tools for data retrieval (get_teams, get_positions, get_researches, get_meetings, get_jtbds, get_dashboard_data, get_calendar_meetings, get_calendar_researches, etc.)
+- October 23, 2025: Created HTTP endpoints for MCP: GET /api/mcp/tools (list available tools) and POST /api/mcp/tools/call (execute tools with parameters)
 
 ## User Preferences
 
