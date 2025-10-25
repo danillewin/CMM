@@ -130,6 +130,7 @@ This is a full-stack web application built for managing research interviews and 
 - October 23, 2025: Implemented Model Context Protocol (MCP) integration using @modelcontextprotocol/sdk library to expose system data to LLMs through standardized tools
 - October 23, 2025: Added 12 MCP tools for data retrieval (get_teams, get_positions, get_researches, get_meetings, get_jtbds, get_dashboard_data, get_calendar_meetings, get_calendar_researches, etc.) that reuse the storage layer
 - October 23, 2025: Created MCP endpoint POST /api/mcp using StreamableHTTPServerTransport for JSON-RPC 2.0 protocol compliance, supporting both tools/list and tools/call methods
+- October 25, 2025: Fixed critical bug where meeting summarization status was incorrectly reset to "not_started" when saving from Информация tab - now properly preserves completed/in-progress status across all meeting tabs
 
 ## User Preferences
 
