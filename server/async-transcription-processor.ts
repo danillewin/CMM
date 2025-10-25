@@ -192,8 +192,9 @@ export class AsyncTranscriptionProcessor {
 
   /**
    * Check if all transcriptions are complete for a meeting and trigger summarization
+   * Can be called manually or automatically after transcription completion
    */
-  private async checkAndTriggerSummarization(meetingId: number): Promise<void> {
+  async checkAndTriggerSummarization(meetingId: number): Promise<void> {
     try {
       // Get all attachments for this meeting
       const attachments = await storage.getMeetingAttachments(meetingId);
@@ -216,10 +217,12 @@ export class AsyncTranscriptionProcessor {
         console.log(`All transcriptions complete for meeting ${meetingId}. Triggering Kafka summarization.`);
         console.log(`Found ${successfulTranscriptions.length} successful transcriptions out of ${attachments.length} total files`);
         
-        // Check if summarization has already been initiated
+        // Check if summarization can be triggered (not started, failed, or undefined)
         const meeting = await storage.getMeeting(meetingId);
-        if (meeting && (meeting.summarizationStatus === 'not_started' || !meeting.summarizationStatus)) {
-          // Trigger Kafka summarization
+        if (meeting && (meeting.summarizationStatus === 'not_started' || 
+                        meeting.summarizationStatus === 'failed' || 
+                        !meeting.summarizationStatus)) {
+          // Trigger Kafka summarization (or re-trigger if previously failed)
           await kafkaService.sendMeetingSummarization(meetingId);
         } else {
           console.log(`Summarization already initiated for meeting ${meetingId}. Status: ${meeting?.summarizationStatus}`);

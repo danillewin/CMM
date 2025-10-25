@@ -1156,6 +1156,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Manually trigger summarization check for a meeting
+  app.post("/api/meetings/:meetingId/trigger-summarization", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      // Trigger summarization check
+      await asyncTranscriptionProcessor.checkAndTriggerSummarization(meetingId);
+
+      res.json({
+        message: "Summarization check triggered successfully",
+        meetingId
+      });
+
+    } catch (error) {
+      console.error("Error triggering summarization:", error);
+      res.status(500).json({ message: "Failed to trigger summarization" });
+    }
+  });
+
   // Authentication middleware to extract user info from token
   const extractUser = (req: any, res: any, next: any) => {
     // Check for explicit development mode flag
