@@ -25,7 +25,6 @@ import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
 import { mcpServerManager } from "./mcp-server";
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 // Database initialization is handled by the storage layer
 
@@ -1930,30 +1929,6 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error cancelling meeting via OpenAPI:", error);
       res.status(500).json({ message: "Failed to cancel meeting" });
-    }
-  });
-
-  // MCP (Model Context Protocol) endpoint using StreamableHTTPServerTransport
-  app.post("/api/mcp", async (req, res) => {
-    try {
-      // Create a new transport for each request to prevent request ID collisions
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: undefined,
-        enableJsonResponse: true,
-      });
-
-      res.on("close", () => {
-        transport.close();
-      });
-
-      const mcpServer = mcpServerManager.getServer();
-      await mcpServer.connect(transport);
-      await transport.handleRequest(req, res, req.body);
-    } catch (error: any) {
-      console.error("Error handling MCP request:", error);
-      res.status(500).json({
-        error: error.message || "Failed to handle MCP request",
-      });
     }
   });
 
