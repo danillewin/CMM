@@ -132,6 +132,7 @@ This is a full-stack web application built for managing research interviews and 
 - October 23, 2025: Created MCP endpoint POST /api/mcp using StreamableHTTPServerTransport for JSON-RPC 2.0 protocol compliance, supporting both tools/list and tools/call methods
 - October 25, 2025: Fixed critical bug where meeting summarization status was incorrectly reset to "not_started" when saving from Информация tab - now properly preserves completed/in-progress status across all meeting tabs
 - October 25, 2025: Added manual summarization trigger functionality with "Trigger Analysis" button in Результаты tab allowing users to manually initiate or retry AI interview analysis when status is not_started or failed
+- October 25, 2025: Enhanced manual summarization trigger to support re-analysis of completed interviews - button now shows "Re-analyze" when status is completed, allowing users to request fresh AI analysis even after successful completion (blocked only during in_progress to prevent duplicate concurrent processing)
 
 ## User Preferences
 
