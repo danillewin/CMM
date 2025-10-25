@@ -386,8 +386,7 @@ function MeetingResultsForm({
         notes: data.notes,
         fullText: data.fullText,
         hasGift: (meeting.hasGift as "yes" | "no") || "no",
-        summarizationStatus:
-          (meeting.summarizationStatus as any) || "not_started",
+        summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started", // Use nullish coalescing to preserve existing status including "completed"
       });
     }
   };
