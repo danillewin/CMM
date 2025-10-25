@@ -217,15 +217,14 @@ export class AsyncTranscriptionProcessor {
         console.log(`All transcriptions complete for meeting ${meetingId}. Triggering Kafka summarization.`);
         console.log(`Found ${successfulTranscriptions.length} successful transcriptions out of ${attachments.length} total files`);
         
-        // Check if summarization can be triggered (not started, failed, or undefined)
+        // Check if summarization can be triggered (allow all states except in_progress to support manual re-triggering)
         const meeting = await storage.getMeeting(meetingId);
-        if (meeting && (meeting.summarizationStatus === 'not_started' || 
-                        meeting.summarizationStatus === 'failed' || 
-                        !meeting.summarizationStatus)) {
-          // Trigger Kafka summarization (or re-trigger if previously failed)
+        if (meeting && meeting.summarizationStatus !== 'in_progress') {
+          // Trigger Kafka summarization (supports initial trigger, retry, and re-trigger for completed analyses)
           await kafkaService.sendMeetingSummarization(meetingId);
+          console.log(`Summarization triggered for meeting ${meetingId}. Previous status: ${meeting.summarizationStatus}`);
         } else {
-          console.log(`Summarization already initiated for meeting ${meetingId}. Status: ${meeting?.summarizationStatus}`);
+          console.log(`Summarization already in progress for meeting ${meetingId}. Please wait for it to complete.`);
         }
       } else if (allComplete) {
         console.log(`All transcriptions complete for meeting ${meetingId}, but no successful transcriptions found. Skipping summarization.`);

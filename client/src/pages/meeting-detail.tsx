@@ -475,10 +475,8 @@ function MeetingResultsForm({
                   AI Interview Analysis
                 </h3>
                 
-                {/* Trigger Summarization Button */}
-                {(meeting.summarizationStatus === "not_started" || 
-                  meeting.summarizationStatus === "failed" ||
-                  !meeting.summarizationStatus) && (
+                {/* Trigger Summarization Button - show for all states except in_progress */}
+                {meeting.summarizationStatus !== "in_progress" && (
                   <Button
                     type="button"
                     variant="outline"
@@ -487,9 +485,12 @@ function MeetingResultsForm({
                       try {
                         const res = await apiRequest("POST", `/api/meetings/${meeting.id}/trigger-summarization`);
                         if (res.ok) {
+                          const isRetrigger = meeting.summarizationStatus === "completed";
                           toast({ 
-                            title: "Summarization triggered", 
-                            description: "AI analysis will start if all transcriptions are complete" 
+                            title: isRetrigger ? "Re-analyzing interview" : "Summarization triggered", 
+                            description: isRetrigger 
+                              ? "AI will re-analyze the interview with fresh processing" 
+                              : "AI analysis will start if all transcriptions are complete"
                           });
                           // Refresh meeting data to see updated status
                           queryClient.invalidateQueries({ queryKey: ["/api/meetings", meeting.id] });
@@ -513,7 +514,7 @@ function MeetingResultsForm({
                     data-testid="button-trigger-summarization"
                   >
                     <FileText className="h-3 w-3 mr-1" />
-                    Trigger Analysis
+                    {meeting.summarizationStatus === "completed" ? "Re-analyze" : "Trigger Analysis"}
                   </Button>
                 )}
               </div>
