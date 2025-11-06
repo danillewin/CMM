@@ -15,28 +15,35 @@ export interface FullscreenInputProps extends InputProps {
 }
 
 const FullscreenInput = React.forwardRef<HTMLInputElement, FullscreenInputProps>(
-  ({ className, label, ...props }, ref) => {
+  ({ className, label, value: controlledValue, onChange, onBlur, defaultValue, ...props }, ref) => {
     const [isFullscreen, setIsFullscreen] = React.useState(false);
-    const [value, setValue] = React.useState(props.value || props.defaultValue || "");
+    const [value, setValue] = React.useState(controlledValue || defaultValue || "");
 
     React.useEffect(() => {
-      if (props.value !== undefined) {
-        setValue(props.value);
+      if (controlledValue !== undefined) {
+        setValue(controlledValue);
       }
-    }, [props.value]);
+    }, [controlledValue]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setValue(e.target.value);
-      props.onChange?.(e);
+      onChange?.(e);
     };
 
     const handleFullscreenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setValue(e.target.value);
-      const syntheticEvent = {
-        ...e,
-        target: { ...e.target, value: e.target.value },
-      } as React.ChangeEvent<HTMLInputElement>;
-      props.onChange?.(syntheticEvent);
+      onChange?.(e);
+    };
+
+    const handleDialogClose = (open: boolean) => {
+      setIsFullscreen(open);
+      if (!open && onBlur) {
+        const syntheticEvent = {
+          target: { value, name: props.name },
+          currentTarget: { value, name: props.name },
+        } as React.FocusEvent<HTMLInputElement>;
+        onBlur(syntheticEvent);
+      }
     };
 
     return (
@@ -47,6 +54,8 @@ const FullscreenInput = React.forwardRef<HTMLInputElement, FullscreenInputProps>
             className={cn("pr-10", className)}
             value={value}
             onChange={handleChange}
+            onBlur={onBlur}
+            defaultValue={defaultValue}
             {...props}
           />
           <Button
@@ -61,7 +70,7 @@ const FullscreenInput = React.forwardRef<HTMLInputElement, FullscreenInputProps>
           </Button>
         </div>
 
-        <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+        <Dialog open={isFullscreen} onOpenChange={handleDialogClose}>
           <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
             <DialogHeader>
               <DialogTitle>{label || "Edit Text"}</DialogTitle>
@@ -70,15 +79,16 @@ const FullscreenInput = React.forwardRef<HTMLInputElement, FullscreenInputProps>
               <Input
                 value={value}
                 onChange={handleFullscreenChange}
+                onBlur={onBlur}
                 className="text-lg"
-                placeholder={props.placeholder}
                 autoFocus
                 data-testid="input-fullscreen-edit"
+                {...props}
               />
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
-                  onClick={() => setIsFullscreen(false)}
+                  onClick={() => handleDialogClose(false)}
                   data-testid="button-close-fullscreen"
                 >
                   Done
