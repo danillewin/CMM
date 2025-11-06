@@ -24,6 +24,7 @@ import { transcriptionService } from "./transcription-service";
 import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
+import { mcpServerManager } from "./mcp-server";
 
 // Database initialization is handled by the storage layer
 
@@ -1151,6 +1152,34 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error starting meeting transcription:", error);
       res.status(500).json({ message: "Failed to start meeting transcription" });
+    }
+  });
+
+  // Manually trigger summarization check for a meeting
+  app.post("/api/meetings/:meetingId/trigger-summarization", async (req, res) => {
+    try {
+      const meetingId = parseInt(req.params.meetingId);
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ message: "Invalid meeting ID" });
+      }
+
+      // Verify meeting exists
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        return res.status(404).json({ message: "Meeting not found" });
+      }
+
+      // Trigger summarization check
+      await asyncTranscriptionProcessor.checkAndTriggerSummarization(meetingId);
+
+      res.json({
+        message: "Summarization check triggered successfully",
+        meetingId
+      });
+
+    } catch (error) {
+      console.error("Error triggering summarization:", error);
+      res.status(500).json({ message: "Failed to trigger summarization" });
     }
   });
 

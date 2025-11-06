@@ -192,8 +192,9 @@ export class AsyncTranscriptionProcessor {
 
   /**
    * Check if all transcriptions are complete for a meeting and trigger summarization
+   * Can be called manually or automatically after transcription completion
    */
-  private async checkAndTriggerSummarization(meetingId: number): Promise<void> {
+  async checkAndTriggerSummarization(meetingId: number): Promise<void> {
     try {
       // Get all attachments for this meeting
       const attachments = await storage.getMeetingAttachments(meetingId);
@@ -216,13 +217,14 @@ export class AsyncTranscriptionProcessor {
         console.log(`All transcriptions complete for meeting ${meetingId}. Triggering Kafka summarization.`);
         console.log(`Found ${successfulTranscriptions.length} successful transcriptions out of ${attachments.length} total files`);
         
-        // Check if summarization has already been initiated
+        // Check if summarization can be triggered (allow all states except in_progress to support manual re-triggering)
         const meeting = await storage.getMeeting(meetingId);
-        if (meeting && (meeting.summarizationStatus === 'not_started' || !meeting.summarizationStatus)) {
-          // Trigger Kafka summarization
+        if (meeting && meeting.summarizationStatus !== 'in_progress') {
+          // Trigger Kafka summarization (supports initial trigger, retry, and re-trigger for completed analyses)
           await kafkaService.sendMeetingSummarization(meetingId);
+          console.log(`Summarization triggered for meeting ${meetingId}. Previous status: ${meeting.summarizationStatus}`);
         } else {
-          console.log(`Summarization already initiated for meeting ${meetingId}. Status: ${meeting?.summarizationStatus}`);
+          console.log(`Summarization already in progress for meeting ${meetingId}. Please wait for it to complete.`);
         }
       } else if (allComplete) {
         console.log(`All transcriptions complete for meeting ${meetingId}, but no successful transcriptions found. Skipping summarization.`);

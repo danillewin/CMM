@@ -343,6 +343,7 @@ function MeetingResultsForm({
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
   const form = useForm<{ notes: string; fullText: string }>({
     defaultValues: {
       notes: meeting?.notes || "",
@@ -386,8 +387,7 @@ function MeetingResultsForm({
         notes: data.notes,
         fullText: data.fullText,
         hasGift: (meeting.hasGift as "yes" | "no") || "no",
-        summarizationStatus:
-          (meeting.summarizationStatus as any) || "not_started",
+        summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started", // Use nullish coalescing to preserve existing status including "completed"
       });
     }
   };
@@ -469,10 +469,55 @@ function MeetingResultsForm({
           {/* Summarization Results Section */}
           {meeting?.id && (
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                AI Interview Analysis
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  AI Interview Analysis
+                </h3>
+                
+                {/* Trigger Summarization Button - show for all states except in_progress */}
+                {meeting.summarizationStatus !== "in_progress" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const res = await apiRequest("POST", `/api/meetings/${meeting.id}/trigger-summarization`);
+                        if (res.ok) {
+                          const isRetrigger = meeting.summarizationStatus === "completed";
+                          toast({ 
+                            title: isRetrigger ? "Re-analyzing interview" : "Summarization triggered", 
+                            description: isRetrigger 
+                              ? "AI will re-analyze the interview with fresh processing" 
+                              : "AI analysis will start if all transcriptions are complete"
+                          });
+                          // Refresh meeting data to see updated status
+                          queryClient.invalidateQueries({ queryKey: ["/api/meetings", meeting.id] });
+                        } else {
+                          const error = await res.json();
+                          toast({ 
+                            title: "Failed to trigger summarization", 
+                            description: error.message,
+                            variant: "destructive" 
+                          });
+                        }
+                      } catch (error) {
+                        toast({ 
+                          title: "Error", 
+                          description: "Failed to trigger summarization",
+                          variant: "destructive" 
+                        });
+                      }
+                    }}
+                    className="text-xs"
+                    data-testid="button-trigger-summarization"
+                  >
+                    <FileText className="h-3 w-3 mr-1" />
+                    {meeting.summarizationStatus === "completed" ? "Re-analyze" : "Trigger Analysis"}
+                  </Button>
+                )}
+              </div>
 
               {/* Summarization Status */}
               <div className="mb-4">

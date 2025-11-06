@@ -55,6 +55,7 @@ This is a full-stack web application built for managing research interviews and 
 - **Excel Export**: Data export functionality for reporting
 - **Kafka Integration**: Event streaming for completed meetings and researches with SASL_SSL and Kerberos authentication support
 - **Active Directory**: LDAP integration for resolving user logins to full names with mock mode for development
+- **Model Context Protocol (MCP)**: Standardized protocol for LLMs to retrieve system data via 12 tools accessible through HTTP endpoints
 
 ## External Dependencies
 
@@ -126,6 +127,12 @@ This is a full-stack web application built for managing research interviews and 
 - October 9, 2025: Added AD mock mode for development with configurable environment variables (AD_ENABLED, AD_URL, AD_BASE_DN, AD_BIND_DN, AD_BIND_PASSWORD) for production LDAP integration
 - October 9, 2025: Enhanced AD integration to format user names as "FullName (login)" for better identification in UI and data exports
 - October 9, 2025: Optimized transcription service memory usage to reduce overhead from 7x to 2-3x by implementing direct buffer-to-File conversion, explicit buffer cleanup after processing, incremental string building instead of array accumulation, and clearing processed file references to enable garbage collection
+- October 23, 2025: Implemented Model Context Protocol (MCP) integration using @modelcontextprotocol/sdk library to expose system data to LLMs through standardized tools
+- October 23, 2025: Added 12 MCP tools for data retrieval (get_teams, get_positions, get_researches, get_meetings, get_jtbds, get_dashboard_data, get_calendar_meetings, get_calendar_researches, etc.) that reuse the storage layer
+- October 23, 2025: Created MCP endpoint POST /api/mcp using StreamableHTTPServerTransport for JSON-RPC 2.0 protocol compliance, supporting both tools/list and tools/call methods
+- October 25, 2025: Fixed critical bug where meeting summarization status was incorrectly reset to "not_started" when saving from Информация tab - now properly preserves completed/in-progress status across all meeting tabs
+- October 25, 2025: Added manual summarization trigger functionality with "Trigger Analysis" button in Результаты tab allowing users to manually initiate or retry AI interview analysis when status is not_started or failed
+- October 25, 2025: Enhanced manual summarization trigger to support re-analysis of completed interviews - button now shows "Re-analyze" when status is completed, allowing users to request fresh AI analysis even after successful completion (blocked only during in_progress to prevent duplicate concurrent processing)
 
 ## User Preferences
 

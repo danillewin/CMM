@@ -185,11 +185,14 @@ export default function MeetingForm({
     }
     
     // Convert form data to InsertMeeting type with combined date/time
+    // Preserve summarizationStatus and summarizationResult from initialData if they exist (to avoid resetting them)
     const submitData = {
       ...data,
       date: combinedDateTime,
       time: data.time || null, // Store time separately as well
       meetingLink: data.meetingLink || null, // Store meeting link
+      summarizationStatus: initialData?.summarizationStatus || "not_started", // Preserve existing status
+      summarizationResult: initialData?.summarizationResult || null, // Preserve existing summarization result
     };
     
     onSubmit(submitData as unknown as InsertMeeting);
