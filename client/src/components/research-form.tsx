@@ -17,8 +17,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { FullscreenInput } from "@/components/ui/fullscreen-input";
-import { FullscreenTextarea } from "@/components/ui/fullscreen-textarea";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -430,9 +430,9 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput
+                    <Input
                       {...field}
-                      label="Название исследования"
+                      
                       className="w-full"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         field.onChange(e);
@@ -480,9 +480,9 @@ export default function ResearchForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput
+                    <Input
                       {...field}
-                      label="Исследователь"
+                      
                       className="w-full"
                       placeholder="Введите имя и фамилию"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

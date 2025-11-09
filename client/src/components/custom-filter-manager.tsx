@@ -4,9 +4,9 @@ import { CustomFilter, InsertCustomFilter } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useCurrentUser } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { FullscreenInput } from "@/components/ui/fullscreen-input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FullscreenTextarea } from "@/components/ui/fullscreen-textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
@@ -263,9 +263,9 @@ export default function CustomFilterManager({
           <div className="space-y-4">
             <div>
               <Label htmlFor="filter-name">{"Название"}</Label>
-              <FullscreenInput
+              <Input
                 id="filter-name"
-                label="Название фильтра"
+                
                 value={filterName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFilterName(e.target.value)}
                 placeholder={"Введите название фильтра"}
@@ -273,9 +273,9 @@ export default function CustomFilterManager({
             </div>
             <div>
               <Label htmlFor="filter-description">{"Описание"}</Label>
-              <FullscreenTextarea
+              <Textarea
                 id="filter-description"
-                label="Описание фильтра"
+                
                 value={filterDescription}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFilterDescription(e.target.value)}
                 placeholder={"Дополнительное описание фильтра"}

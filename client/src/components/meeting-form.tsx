@@ -11,8 +11,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { FullscreenInput } from "@/components/ui/fullscreen-input";
-import { FullscreenTextarea } from "@/components/ui/fullscreen-textarea";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -269,10 +269,10 @@ export default function MeetingForm({
                     Время
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput
+                    <Input
                       {...field}
                       type="text"
-                      label="Время"
+                      
                       className="w-full font-mono"
                       data-testid="input-meeting-time"
                       placeholder="ЧЧ:ММ (например: 14:30)"
@@ -331,10 +331,10 @@ export default function MeetingForm({
                     Ссылка на встречу
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput
+                    <Input
                       {...field}
                       type="url"
-                      label="Ссылка на встречу"
+                      
                       className="w-full"
                       data-testid="input-meeting-link"
                       placeholder="https://..."
@@ -395,7 +395,7 @@ export default function MeetingForm({
                     <RequiredFieldIndicator />
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput 
+                    <Input 
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -442,7 +442,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Компания</FormLabel>
                   <FormControl>
-                    <FullscreenInput 
+                    <Input 
                       {...field} 
                       onChange={(e) => {
                         field.onChange(e);
@@ -464,7 +464,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Email клиента</FormLabel>
                   <FormControl>
-                    <FullscreenInput 
+                    <Input 
                       {...field} 
                       type="email"
                       className="w-full" 
@@ -483,7 +483,7 @@ export default function MeetingForm({
                 <FormItem>
                   <FormLabel className="text-base">Телефон</FormLabel>
                   <FormControl>
-                    <FullscreenInput 
+                    <Input 
                       {...field} 
                       type="tel"
                       className="w-full" 
@@ -508,9 +508,9 @@ export default function MeetingForm({
                     <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput
+                    <Input
                       {...field}
-                      label="CNUM"
+                      
                       className="w-full uppercase"
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         const value = e.target.value.toUpperCase();
@@ -544,7 +544,7 @@ export default function MeetingForm({
                     <span className={`text-xs font-normal ml-2 ${validationError ? 'text-red-500' : 'text-gray-500'}`}>(CNUM or GCC required)</span>
                   </FormLabel>
                   <FormControl>
-                    <FullscreenInput 
+                    <Input 
                       {...field} 
                       className="w-full" 
                       onChange={e => {
@@ -575,7 +575,7 @@ export default function MeetingForm({
                   <FormItem>
                     <FormLabel className="text-base">Исследователь</FormLabel>
                     <FormControl>
-                      <FullscreenInput 
+                      <Input 
                         {...field} 
                         className="w-full bg-gray-50"
                         disabled
@@ -640,7 +640,7 @@ export default function MeetingForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <FullscreenInput 
+                      <Input 
                         {...field} 
                         className="w-full" 
                         placeholder="Имя RM..."
@@ -661,7 +661,7 @@ export default function MeetingForm({
                       <RequiredFieldIndicator />
                     </FormLabel>
                     <FormControl>
-                      <FullscreenInput 
+                      <Input 
                         {...field} 
                         className="w-full" 
                         placeholder="Имя рекрутера..."
