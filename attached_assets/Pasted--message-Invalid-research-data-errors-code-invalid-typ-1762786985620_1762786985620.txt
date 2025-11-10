@@ -1,0 +1,77 @@
+{
+    "message": "Invalid research data",
+    "errors": [
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "null",
+            "path": [
+                "recruitmentQuantity"
+            ],
+            "message": "Expected string, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "string",
+            "received": "null",
+            "path": [
+                "recruitmentRoles"
+            ],
+            "message": "Expected string, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "array",
+            "received": "null",
+            "path": [
+                "recruitmentSegments"
+            ],
+            "message": "Expected array, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "array",
+            "received": "null",
+            "path": [
+                "recruitmentUsedChannels"
+            ],
+            "message": "Expected array, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "number",
+            "received": "null",
+            "path": [
+                "recruitmentCqMin"
+            ],
+            "message": "Expected number, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "number",
+            "received": "null",
+            "path": [
+                "recruitmentCqMax"
+            ],
+            "message": "Expected number, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "array",
+            "received": "null",
+            "path": [
+                "recruitmentLegalEntityType"
+            ],
+            "message": "Expected array, received null"
+        },
+        {
+            "code": "invalid_type",
+            "expected": "boolean",
+            "received": "null",
+            "path": [
+                "recruitmentRestrictions"
+            ],
+            "message": "Expected boolean, received null"
+        }
+    ]
+}

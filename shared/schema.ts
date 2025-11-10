@@ -186,15 +186,15 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   guideConcludingQuestions: z.string().optional(),
   fullText: z.string().optional(),
   // New recruitment field validations
-  recruitmentQuantity: z.string().optional(), // Changed to string (text input)
-  recruitmentRoles: z.string().optional(),
-  recruitmentSegments: z.array(z.string()).optional(), // Changed to array for multiple selection
-  recruitmentUsedProducts: z.array(z.string()).optional(),
-  recruitmentUsedChannels: z.array(z.string()).optional(), // Changed to array for multiple selection
-  recruitmentCqMin: z.number().int().min(0).max(10).optional(),
-  recruitmentCqMax: z.number().int().min(0).max(10).optional(),
-  recruitmentLegalEntityType: z.array(z.string()).optional(), // Changed to array for multiple selection
-  recruitmentRestrictions: z.boolean().optional(), // Changed to boolean for да/нет
+  recruitmentQuantity: z.string().nullable().optional(), // Changed to string (text input)
+  recruitmentRoles: z.string().nullable().optional(),
+  recruitmentSegments: z.array(z.string()).nullable().optional(), // Changed to array for multiple selection
+  recruitmentUsedProducts: z.array(z.string()).nullable().optional(),
+  recruitmentUsedChannels: z.array(z.string()).nullable().optional(), // Changed to array for multiple selection
+  recruitmentCqMin: z.number().int().min(0).max(10).nullable().optional(),
+  recruitmentCqMax: z.number().int().min(0).max(10).nullable().optional(),
+  recruitmentLegalEntityType: z.array(z.string()).nullable().optional(), // Changed to array for multiple selection
+  recruitmentRestrictions: z.boolean().nullable().optional(), // Changed to boolean for да/нет
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
