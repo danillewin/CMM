@@ -653,8 +653,9 @@ export class DatabaseStorage implements IStorage {
         meeting.notes || null,
         meeting.fullText || null,
         meeting.hasGift || "no", // Gift indicator field
-        (meeting as any).summarizationStatus || null,
-        (meeting as any).summarizationResult || null,
+        // Preserve existing summarization fields if not provided (Kafka service updates these explicitly)
+        (meeting as any).summarizationStatus ?? originalMeeting?.summarizationStatus ?? null,
+        (meeting as any).summarizationResult ?? originalMeeting?.summarizationResult ?? null,
         id,
       ];
 
