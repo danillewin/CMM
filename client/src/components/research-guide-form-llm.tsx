@@ -191,9 +191,9 @@ ${data.respondent_exp}
 **Роль:**  
 ${data.respondent_role}`;
 
-    // Set the form values
-    form.setValue("guideRespondentRecommendations", recommendations);
-    form.setValue("guideQuestionsSimple", data.interview_script);
+    // Set the form values with shouldDirty and shouldTouch to trigger updates
+    form.setValue("guideRespondentRecommendations", recommendations, { shouldDirty: true, shouldTouch: true });
+    form.setValue("guideQuestionsSimple", data.interview_script, { shouldDirty: true, shouldTouch: true });
 
     // Show recommendations field
     setShowRecommendations(true);
