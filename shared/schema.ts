@@ -69,6 +69,9 @@ export const researches = pgTable("researches", {
   guideIntroQuestions: text("guide_intro_questions"), // Вступительные вопросы (JSON string)
   guideMainQuestions: text("guide_main_questions"), // Основные вопросы (JSON string)
   guideConcludingQuestions: text("guide_concluding_questions"), // Заключительные вопросы (JSON string)
+  guideRespondentRecommendations: text("guide_respondent_recommendations"), // Рекомендации для респондентов (Markdown)
+  guideQuestionsSimple: text("guide_questions_simple"), // Вопросы (Simplified Markdown - bold headings and bullets)
+  llmChatHistory: jsonb("llm_chat_history"), // LLM chat history for the guide tab (array of messages)
   fullText: text("full_text"),
   // New recruitment fields
   recruitmentQuantity: text("recruitment_quantity"), // Количество (text input)
@@ -184,6 +187,9 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   guideIntroQuestions: z.string().optional(),
   guideMainQuestions: z.string().optional(),
   guideConcludingQuestions: z.string().optional(),
+  guideRespondentRecommendations: z.string().optional(),
+  guideQuestionsSimple: z.string().optional(),
+  llmChatHistory: z.any().optional(), // JSONB array of chat messages
   fullText: z.string().optional(),
   // New recruitment field validations
   recruitmentQuantity: z.string().nullable().optional(), // Changed to string (text input)

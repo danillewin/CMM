@@ -1,0 +1,106 @@
+I need to update the "Гайд" tab on the research page to move my LLM experiment from Python to TypeScript, set up mocks for the OpenAI API, and add additional logic for working with the UI.
+
+## First, about the experiment
+
+In this experiment, the LLM receives arbitrary research input from the user, clarifies it if needed, and selects the appropriate method.
+
+The experiment works with a compatible OpenAI API and structured output via Pydantic models.
+
+For structured output, I use four schemas:
+
+- ClarifyingQuestions — for clarifying questions  
+- Usability_Survey — if the LLM selects the "survey" or "usability test" method  
+- InterviewPlan — if the LLM selects the "interview" method  
+- Response — a discriminated union of the three models above
+
+Example Python code:
+
+```python
+class ClarifyingQuestions(BaseModel):
+    type: Literal["question"] = Field(..., description="Use this type if you need to ask clarifying questions.")
+    model_message: str = Field(..., description="Clarifying questions in Markdown format")
+
+class Usability_Survey(BaseModel):
+    type: Literal["email_message"] = Field(..., description="Use this type if a survey or usability test is needed.")
+    content: str = "I currently cannot create a usability test or survey script — please email example@mail.com. Colleagues will help you run the research."
+
+class InterviewPlan(BaseModel):
+    type: Literal["interview"] = Field(..., description="Use this type if an interview is needed.")
+    interview_script: str = Field(..., description="Interview script in Markdown format")
+    respondent_segment: str = Field(..., description="Respondent segment — find in the initial input or clarify with the user")
+    respondent_exp: str = Field(..., description="Respondent experience — choose based on the research goal from the table. Format in Markdown")
+    respondent_role: str = Field(..., description="Respondent role — formulate based on the research goal. Format in Markdown")
+
+class Response(BaseModel):
+    data: ClarifyingQuestions | Usability_Survey | InterviewPlan = Field(..., discriminator="type")
+```
+
+In this setup, the relevant JSON will be in the `data` field — so the actual response should be extracted from there.
+
+I need you to adopt this logic and do the following:
+
+We are updating the "Гайд" tab on each Research page.
+
+In the new version, there will be three fields — listed from top to bottom:
+
+- "Рекомендации для респондентов" — this field is hidden by default  
+- "Вопросы" — visible by default  
+- Chat with LLM via OpenAI API-compatible interface  
+
+### Additional requirements for "Рекомендации для респондентов" and "Вопросы" fields:
+
+Both fields should be editable, support limited Markdown: only bullet lists and bold text. The formatting should be displayed immediately in its final form, not as syntax. The formatting (bold and lists) should be editable using icons in the top area of these two fields. Both fields should be expandable to full screen and collapsible back.
+
+### Additional requirements for the "Вопросы" field:
+
+This field is the new version of "Вопросы0" that supports working with LLM for AI Interview Analysis. Now, the division into question blocks will be based on bold Markdown text. Each bold Markdown heading is a block title, and each list item under the heading is a question. For now, remove the ability to add comments to questions.
+
+### About the chat with an OpenAI API-compatible LLM:
+
+You can use the example of interacting with the model and structured output from the "AI Interview Analysis" function in "meetings". Keep mocks for the model address, token.
+
+If there is no message history with the model in the chat yet, show a placeholder in gray Russian text:
+
+"""
+Напишите, какой продукт, услугу, интерфейс или процесс вы хотите изучить?
+
+Уточните интересуемый сегмент клиентов и прочие детали, которые вы считаете важными
+"""
+
+The chat should preserve message history until the user clicks "Очистить историю". Each Research should have its own chat history.
+
+If the LLM returns a JSON with type "question", display the content of the "model_message" field in the chat as the model's response.
+
+If the LLM returns a JSON with type "email_message", display the content of the "content" field in the chat as the model's response.
+
+If the LLM returns a JSON with type "interview", display the following Russian message in the chat as the model's response:
+
+"""
+Похоже, для вас подходит метод интервью. Я составил вопросы для интервью и рекомендации по выбору респондентов
+"""
+
+At the same time, the user stays at the chat window level. Below the input line, a new button "Смотреть вопросы" appears. Clicking it scrolls the page up to the "Вопросы" block.
+
+Above the "Вопросы" field, a new field "Рекомендации для респондентов" appears. It is automatically filled with Markdown text using the following template:
+
+"""
+**Сегмент:** [content of the respondent_segment field from JSON with type: "interview"]
+
+**Опыт:**  
+[content of the respondent_exp field from JSON with type: "interview"]
+
+**Роль:**  
+[content of the respondent_role field from JSON with type: "interview"]
+"""
+
+The "Вопросы" field is automatically filled with Markdown text from the "interview_script" field of the JSON with type: "interview".
+
+However, the "Questions" field should still be manually editable even without any LLM interaction — users should be able to write their own questions directly.
+
+If the "Вопросы" field already contains data and the user receives a new list of questions from the LLM (from the interview_script field of the JSON with type: "interview"), then show a warning:
+
+"""
+В поле Вопросы уже есть данные. Хотите заменить их на новые вопросы от LLM?
+"""
+
+Show two buttons: "Заменить"and "Отмена".
