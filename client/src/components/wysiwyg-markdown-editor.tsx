@@ -16,7 +16,9 @@ import {
   toolbarPlugin,
   thematicBreakPlugin,
   quotePlugin,
-  MDXEditorMethods
+  MDXEditorMethods,
+  codeBlockPlugin,
+  codeMirrorPlugin
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
 import { Maximize2 } from 'lucide-react'
@@ -35,6 +37,7 @@ interface WysiwygMarkdownEditorProps {
   height?: number
   className?: string
   label?: string
+  simple?: boolean // Show only Bold and Lists toolbar
 }
 
 export const WysiwygMarkdownEditor = ({ 
@@ -43,11 +46,37 @@ export const WysiwygMarkdownEditor = ({
   placeholder = "Start typing...", 
   height = 200, 
   className = "",
-  label
+  label,
+  simple = false
 }: WysiwygMarkdownEditorProps) => {
   const editorRef = useRef<MDXEditorMethods>(null)
   const fullscreenEditorRef = useRef<MDXEditorMethods>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  
+  // Simplified toolbar for simple mode
+  const simpleToolbar = () => (
+    <>
+      <BoldItalicUnderlineToggles options={['Bold']} />
+      <Separator />
+      <ListsToggle />
+    </>
+  )
+  
+  // Full toolbar for normal mode
+  const fullToolbar = () => (
+    <>
+      <UndoRedo />
+      <Separator />
+      <BoldItalicUnderlineToggles />
+      <StrikeThroughSupSubToggles />
+      <Separator />
+      <BlockTypeSelect />
+      <Separator />
+      <CreateLink />
+      <Separator />
+      <ListsToggle />
+    </>
+  )
 
   return (
     <>
@@ -56,6 +85,13 @@ export const WysiwygMarkdownEditor = ({
         .mdxeditor-root-contenteditable {
           overflow-y: auto !important;
           max-height: calc(${height}px - 48px) !important;
+        }
+        
+        /* Placeholder styling - gray text like in SimpleMarkdownEditor */
+        .mdxeditor-root-contenteditable[data-placeholder]:empty:before {
+          color: #9ca3af !important;
+          opacity: 1 !important;
+          white-space: pre-wrap !important;
         }
         
         .mdxeditor ul li:has(input[type="checkbox"]) {
@@ -107,20 +143,7 @@ export const WysiwygMarkdownEditor = ({
           markdownShortcutPlugin(),
           // Toolbar plugin with formatting options
           toolbarPlugin({
-            toolbarContents: () => (
-              <>
-                <UndoRedo />
-                <Separator />
-                <BoldItalicUnderlineToggles />
-                <StrikeThroughSupSubToggles />
-                <Separator />
-                <BlockTypeSelect />
-                <Separator />
-                <CreateLink />
-                <Separator />
-                <ListsToggle />
-              </>
-            )
+            toolbarContents: simple ? simpleToolbar : fullToolbar
           })
         ]}
         />
@@ -196,20 +219,7 @@ export const WysiwygMarkdownEditor = ({
                 linkDialogPlugin(),
                 markdownShortcutPlugin(),
                 toolbarPlugin({
-                  toolbarContents: () => (
-                    <>
-                      <UndoRedo />
-                      <Separator />
-                      <BoldItalicUnderlineToggles />
-                      <StrikeThroughSupSubToggles />
-                      <Separator />
-                      <BlockTypeSelect />
-                      <Separator />
-                      <CreateLink />
-                      <Separator />
-                      <ListsToggle />
-                    </>
-                  )
+                  toolbarContents: simple ? simpleToolbar : fullToolbar
                 })
               ]}
             />

@@ -308,6 +308,7 @@ ${data.respondent_role}`;
                       }}
                       placeholder="Рекомендации по выбору респондентов..."
                       height={250}
+                      simple={true}
                     />
                   </FormControl>
                   <FormMessage />
@@ -337,6 +338,7 @@ ${data.respondent_role}`;
 - Еще один вопрос
 - И еще один`}
                   height={300}
+                  simple={true}
                 />
               </FormControl>
               <FormMessage />
