@@ -42,6 +42,7 @@ export function ResearchGuideFormLLM({
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [pendingInterviewData, setPendingInterviewData] = useState<InterviewPlan | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const questionsRef = useRef<HTMLDivElement>(null);
 
@@ -180,12 +181,7 @@ export function ResearchGuideFormLLM({
 
   const applyInterviewData = (interviewData?: InterviewPlan) => {
     const data = interviewData || pendingInterviewData;
-    if (!data) {
-      console.log("applyInterviewData called but no data available");
-      return;
-    }
-
-    console.log("Applying interview data:", data);
+    if (!data) return;
 
     // Format recommendations
     const recommendations = `**Сегмент:** ${data.respondent_segment}
@@ -196,20 +192,17 @@ ${data.respondent_exp}
 **Роль:**  
 ${data.respondent_role}`;
 
-    console.log("Setting form values...");
-    console.log("Questions to set:", data.interview_script);
-
     // Reset the form with new values to trigger re-render
-    const currentValues = form.getValues();
     form.reset({
       guideRespondentRecommendations: recommendations,
       guideQuestionsSimple: data.interview_script,
     });
 
-    console.log("Form values after reset:", form.getValues());
-
     // Show recommendations field
     setShowRecommendations(true);
+
+    // Force editor re-render
+    setEditorKey(prev => prev + 1);
 
     // Update temp data
     if (onTempDataUpdate) {
@@ -303,7 +296,7 @@ ${data.respondent_role}`;
                 <FormItem>
                   <FormControl>
                     <WysiwygMarkdownEditor
-                      key={field.value}
+                      key={`recommendations-${editorKey}`}
                       value={field.value}
                       onChange={(val) => {
                         field.onChange(val);
@@ -330,7 +323,7 @@ ${data.respondent_role}`;
               <FormLabel className="text-lg font-medium">{"Вопросы"}</FormLabel>
               <FormControl>
                 <WysiwygMarkdownEditor
-                  key={field.value}
+                  key={`questions-${editorKey}`}
                   value={field.value}
                   onChange={(val) => {
                     field.onChange(val);
