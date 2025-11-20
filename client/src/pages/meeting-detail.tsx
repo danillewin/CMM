@@ -682,49 +682,6 @@ const parseQuestionBlocks = (questionsJson: string | null): QuestionBlock[] => {
   }
 };
 
-// Read-only component to display questions recursively
-function ReadOnlyQuestions({ questions }: { questions: Question[] }) {
-  if (!questions || questions.length === 0) return null;
-
-  return (
-    <div className="ml-4 space-y-2">
-      {questions
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map((question, idx) => (
-          <div key={question.id || idx} className="space-y-1">
-            <p className="text-sm text-gray-700">{question.text}</p>
-            {question.comment && (
-              <p className="text-xs text-gray-500 italic ml-2">
-                {question.comment}
-              </p>
-            )}
-          </div>
-        ))}
-    </div>
-  );
-}
-
-// Read-only component to display subblocks recursively
-function ReadOnlySubblocks({ subblocks }: { subblocks: Subblock[] }) {
-  if (!subblocks || subblocks.length === 0) return null;
-
-  return (
-    <div className="ml-4 space-y-4">
-      {subblocks
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map((subblock, idx) => (
-          <div key={subblock.id || idx} className="space-y-2">
-            <h5 className="font-medium text-gray-800 text-sm">
-              {subblock.name}
-            </h5>
-            <ReadOnlyQuestions questions={subblock.questions} />
-            <ReadOnlySubblocks subblocks={subblock.subblocks} />
-          </div>
-        ))}
-    </div>
-  );
-}
-
 // Read-only Guide tab component
 function MeetingGuideTab({ research }: { research?: Research }) {
   if (!research) {
@@ -735,64 +692,58 @@ function MeetingGuideTab({ research }: { research?: Research }) {
     );
   }
 
-  const guideMainQuestions = parseQuestionBlocks(
-    (research.guideMainQuestions as unknown as string) || null,
-  );
+  const hasRecommendations = research.guideRespondentRecommendations?.trim();
+  const hasQuestions = research.guideQuestionsSimple?.trim();
+
+  if (!hasRecommendations && !hasQuestions) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Нет доступного контента гайда для этого исследования.
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Introductory Text */}
-      {research.guideIntroText && (
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Introductory Text</h3>
-          <div className="prose prose-sm max-w-none">
+    <div className="space-y-6">
+      {/* Respondent Recommendations */}
+      {hasRecommendations && (
+        <div className="space-y-3" data-testid="guide-recommendations">
+          <h3 className="text-lg font-semibold">Рекомендации</h3>
+          <div className="prose prose-sm max-w-none bg-blue-50 p-4 rounded-lg">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {research.guideIntroText}
+              {research.guideRespondentRecommendations || ""}
             </ReactMarkdown>
           </div>
         </div>
       )}
 
-      {/* Main Guide Content */}
-      {research.guide && (
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">Guide</h3>
+      {/* Interview Questions (Markdown format) */}
+      {hasQuestions && (
+        <div className="space-y-3" data-testid="guide-questions">
+          <h3 className="text-lg font-semibold">Вопросы</h3>
           <div className="prose prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {research.guide}
+            <ReactMarkdown 
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // Make bold text larger and styled as block titles
+                strong: ({ children, ...props }) => (
+                  <strong className="block text-base font-semibold text-gray-900 mt-4 mb-2" {...props}>
+                    {children}
+                  </strong>
+                ),
+                // Style list items as questions
+                li: ({ children, ...props }) => (
+                  <li className="text-gray-700 ml-4 mb-1" {...props}>
+                    {children}
+                  </li>
+                ),
+              }}
+            >
+              {research.guideQuestionsSimple || ""}
             </ReactMarkdown>
           </div>
         </div>
       )}
-
-      {/* Question Blocks */}
-      {guideMainQuestions && guideMainQuestions.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Questions</h3>
-          <div className="space-y-6">
-            {guideMainQuestions
-              .sort((a, b) => (a.order || 0) - (b.order || 0))
-              .map((block, idx) => (
-                <div
-                  key={block.id || idx}
-                  className="space-y-3 border-l-4 border-blue-200 pl-4"
-                >
-                  <h4 className="font-medium text-gray-900">{block.name}</h4>
-                  <ReadOnlyQuestions questions={block.questions} />
-                  <ReadOnlySubblocks subblocks={block.subblocks} />
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {!research.guideIntroText &&
-        !research.guide &&
-        (!guideMainQuestions || guideMainQuestions.length === 0) && (
-          <div className="text-center py-8 text-gray-500">
-            No guide content available for this research.
-          </div>
-        )}
     </div>
   );
 }

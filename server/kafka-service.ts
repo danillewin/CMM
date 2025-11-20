@@ -571,110 +571,77 @@ class KafkaService {
     };
   }
 
-  // Helper function to parse research guide questions from JSON string
-  private parseGuideQuestions(guideQuestionsJson: string | null): any[] {
-    if (!guideQuestionsJson || typeof guideQuestionsJson !== "string")
-      return [];
+  // Helper function to parse Markdown-formatted questions
+  // Format: Bold headings as block titles, list items as questions
+  private parseMarkdownQuestions(markdownText: string | null): Array<{
+    blockName: string;
+    questions: string[];
+  }> {
+    if (!markdownText || typeof markdownText !== "string") return [];
 
-    try {
-      const parsed = JSON.parse(guideQuestionsJson);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
+    const lines = markdownText.split("\n");
+    const blocks: Array<{ blockName: string; questions: string[] }> = [];
+    let currentBlock: { blockName: string; questions: string[] } | null = null;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // Skip empty lines
+      if (!trimmedLine) continue;
+      
+      // Check for bold heading (block title) - matches **Text** or __Text__ or **Text:** (with optional trailing punctuation)
+      const boldMatch = trimmedLine.match(/^\*\*(.+?)\*\*[:.,!?]?$|^__(.+?)__[:.,!?]?$/);
+      if (boldMatch) {
+        // Save previous block if exists
+        if (currentBlock && currentBlock.questions.length > 0) {
+          blocks.push(currentBlock);
+        }
+        // Start new block - remove trailing punctuation from block name
+        const blockName = (boldMatch[1] || boldMatch[2]).replace(/[:.,!?]+$/, '').trim();
+        currentBlock = { blockName, questions: [] };
+        continue;
+      }
+
+      // Check for list item (question) - matches - Text or * Text (with optional numbers like 1. Text)
+      const listMatch = trimmedLine.match(/^[-*•]\s+(.+)$|^\d+\.\s+(.+)$/);
+      if (listMatch && currentBlock) {
+        const questionText = (listMatch[1] || listMatch[2]).trim();
+        if (questionText) {
+          currentBlock.questions.push(questionText);
+        }
+      }
     }
+
+    // Add last block if exists
+    if (currentBlock && currentBlock.questions.length > 0) {
+      blocks.push(currentBlock);
+    }
+
+    return blocks;
   }
 
   // Map research guide questions to summarization script format
   private mapGuideToScript(research: Research | null): SummarizationScript[] {
     if (!research) return [];
 
-    const guideMainQuestions = this.parseGuideQuestions(
-      research.guideMainQuestions,
+    // Use new Markdown format from guideQuestionsSimple
+    const markdownBlocks = this.parseMarkdownQuestions(
+      research.guideQuestionsSimple,
     );
 
-    return guideMainQuestions
-      .map((block: any, blockIndex: number) => {
-        const blockElements: Array<
-          SummarizationScript | SummarizationQuestion
-        > = [];
+    return markdownBlocks.map((block, blockIndex) => {
+      const blockElements: SummarizationQuestion[] = block.questions.map(
+        (questionText) => ({
+          question: questionText,
+          payAttentionFor: null, // No comments in new format
+        }),
+      );
 
-        // Add direct questions from this block
-        if (block.questions && Array.isArray(block.questions)) {
-          block.questions.forEach((question: any) => {
-            if (question.text) {
-              blockElements.push({
-                question: question.text,
-                payAttentionFor: question.comment || null,
-              });
-            }
-          });
-        }
-
-        // Add subblocks recursively
-        if (block.subblocks && Array.isArray(block.subblocks)) {
-          block.subblocks.forEach((subblock: any, subIndex: number) => {
-            const subElements: Array<
-              SummarizationScript | SummarizationQuestion
-            > = [];
-
-            // Add questions from subblock
-            if (subblock.questions && Array.isArray(subblock.questions)) {
-              subblock.questions.forEach((question: any) => {
-                if (question.text) {
-                  subElements.push({
-                    question: question.text,
-                    payAttentionFor: question.comment || null,
-                  });
-                }
-              });
-            }
-
-            // Add sub-subblocks recursively
-            if (subblock.subblocks && Array.isArray(subblock.subblocks)) {
-              subblock.subblocks.forEach((subSubblock: any) => {
-                const subSubElements: Array<SummarizationQuestion> = [];
-
-                if (
-                  subSubblock.questions &&
-                  Array.isArray(subSubblock.questions)
-                ) {
-                  subSubblock.questions.forEach((question: any) => {
-                    if (question.text) {
-                      subSubElements.push({
-                        question: question.text,
-                        payAttentionFor: question.comment || null,
-                      });
-                    }
-                  });
-                }
-
-                if (subSubElements.length > 0) {
-                  subElements.push({
-                    blockName:
-                      subSubblock.name ||
-                      `Подраздел ${blockIndex + 1}.${subIndex + 1}`,
-                    blockElements: subSubElements,
-                  });
-                }
-              });
-            }
-
-            if (subElements.length > 0) {
-              blockElements.push({
-                blockName:
-                  subblock.name || `Раздел ${blockIndex + 1}.${subIndex + 1}`,
-                blockElements: subElements,
-              });
-            }
-          });
-        }
-
-        return {
-          blockName: block.name || `Часть ${blockIndex + 1}`,
-          blockElements,
-        };
-      })
-      .filter((block) => block.blockElements.length > 0);
+      return {
+        blockName: block.blockName || `Блок ${blockIndex + 1}`,
+        blockElements,
+      };
+    });
   }
 
   // Send Kafka message for meeting summarization
