@@ -257,6 +257,17 @@ function SummarizationBlock({
 
 // Main component to display complete summarization result
 function SummarizationDisplay({ result }: { result: SummarizationResponse }) {
+  // Safety check for invalid or incomplete result
+  if (!result || (!result.items && !result.summary)) {
+    return (
+      <div className="text-center py-8 text-gray-500" data-testid="no-summarization-data">
+        No analysis data available.
+      </div>
+    );
+  }
+
+  const hasItems = Array.isArray(result.items) && result.items.length > 0;
+
   return (
     <div className="space-y-6" data-testid="summarization-display">
       {/* Overall Summary */}
@@ -272,12 +283,14 @@ function SummarizationDisplay({ result }: { result: SummarizationResponse }) {
                 <h3 className="font-semibold text-green-800 mb-2">
                   Meeting Summary
                 </h3>
-                <p
-                  className="text-sm text-green-700"
+                <div
+                  className="text-sm text-green-700 prose prose-sm max-w-none"
                   data-testid="summary-text"
                 >
-                  {result.summary}
-                </p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {result.summary}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -285,20 +298,22 @@ function SummarizationDisplay({ result }: { result: SummarizationResponse }) {
       )}
 
       {/* Detailed Blocks */}
-      <div>
-        <h3
-          className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
-          data-testid="detailed-analysis-title"
-        >
-          <FileText className="h-5 w-5" />
-          Detailed Interview Analysis
-        </h3>
-        <div className="space-y-2" data-testid="analysis-blocks">
-          {result.items.map((item, index) => (
-            <SummarizationBlock key={index} block={item} level={0} />
-          ))}
+      {hasItems && (
+        <div>
+          <h3
+            className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"
+            data-testid="detailed-analysis-title"
+          >
+            <FileText className="h-5 w-5" />
+            Detailed Interview Analysis
+          </h3>
+          <div className="space-y-2" data-testid="analysis-blocks">
+            {result.items.map((item, index) => (
+              <SummarizationBlock key={index} block={item} level={0} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
