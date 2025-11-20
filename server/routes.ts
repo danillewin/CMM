@@ -25,6 +25,7 @@ import { ObjectStorageService } from "./objectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
 import { mcpServerManager } from "./mcp-server";
+import { llmService } from "./llm-service";
 
 // Database initialization is handled by the storage layer
 
@@ -335,6 +336,35 @@ export function registerRoutes(app: Express): Server {
       console.error("Error deleting research:", error);
       res.status(error.message.includes("associated") ? 400 : 500)
         .json({ message: error.message || "Failed to delete research" });
+    }
+  });
+
+  // LLM Chat endpoint for research guide
+  app.post("/api/researches/:id/chat", async (req, res) => {
+    try {
+      const researchId = Number(req.params.id);
+      const { message, chatHistory } = req.body;
+
+      if (!message || typeof message !== "string") {
+        res.status(400).json({ message: "Message is required" });
+        return;
+      }
+
+      // Validate chat history structure
+      const history = Array.isArray(chatHistory) ? chatHistory : [];
+
+      console.log(`LLM chat request for research ${researchId}: "${message.substring(0, 50)}..."`);
+
+      // Generate response using LLM service
+      const response = await llmService.generateChatResponse(message, history);
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error in LLM chat:", error);
+      res.status(500).json({ 
+        message: "Failed to generate response",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
