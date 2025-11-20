@@ -332,7 +332,7 @@ ${data.respondent_role}`;
                     field.onChange(val);
                     handleFieldChange("guideQuestionsSimple", val);
                   }}
-                  placeholder={`Используйте жирный текст для заголовков блоков
+                  placeholder={`Используйте **жирный текст** для заголовков блоков
 
 - Пункты списка для вопросов
 - Еще один вопрос
