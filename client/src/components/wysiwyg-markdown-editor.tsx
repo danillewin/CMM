@@ -21,7 +21,7 @@ import {
   codeMirrorPlugin
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
-import { Maximize2 } from 'lucide-react'
+import { Maximize2, List } from 'lucide-react'
 import { Button } from './ui/button'
 import {
   Dialog,
@@ -29,6 +29,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface WysiwygMarkdownEditorProps {
   value?: string
@@ -53,12 +55,25 @@ export const WysiwygMarkdownEditor = ({
   const fullscreenEditorRef = useRef<MDXEditorMethods>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
   
+  // Handle bullet list insertion
+  const insertBulletList = () => {
+    const editor = editorRef.current
+    if (editor) {
+      editor.focus()
+      // Insert bullet list markdown
+      const currentMarkdown = editor.getMarkdown()
+      if (!currentMarkdown) {
+        editor.setMarkdown('- ')
+      }
+    }
+  }
+
   // Simplified toolbar for simple mode
   const simpleToolbar = () => (
     <>
       <BoldItalicUnderlineToggles options={['Bold']} />
       <Separator />
-      <ListsToggle />
+      <ListsToggle options={['bullet']} />
     </>
   )
   
@@ -87,11 +102,9 @@ export const WysiwygMarkdownEditor = ({
           max-height: calc(${height}px - 48px) !important;
         }
         
-        /* Placeholder styling - gray text like in SimpleMarkdownEditor */
+        /* Hide default placeholder */
         .mdxeditor-root-contenteditable[data-placeholder]:empty:before {
-          color: #9ca3af !important;
-          opacity: 1 !important;
-          white-space: pre-wrap !important;
+          display: none !important;
         }
         
         .mdxeditor ul li:has(input[type="checkbox"]) {
@@ -126,11 +139,39 @@ export const WysiwygMarkdownEditor = ({
           display: list-item !important;
         }
         `}</style>
+        
+        {/* Custom rendered markdown placeholder */}
+        {!value && placeholder && (
+          <div className="absolute top-12 left-0 right-0 p-4 pointer-events-none z-0">
+            <div className="prose prose-sm max-w-none text-gray-400">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  ul: ({ node, ...props }) => (
+                    <ul className="list-disc list-inside space-y-1" {...props} />
+                  ),
+                  li: ({ node, ...props }) => (
+                    <li className="text-gray-400" {...props} />
+                  ),
+                  strong: ({ node, ...props }) => (
+                    <strong className="text-gray-400 font-bold" {...props} />
+                  ),
+                  p: ({ node, ...props }) => (
+                    <p className="text-gray-400 mb-2" {...props} />
+                  ),
+                }}
+              >
+                {placeholder}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
+        
         <MDXEditor
         ref={editorRef}
         markdown={value}
         onChange={onChange}
-        placeholder={placeholder}
+        placeholder=""
         contentEditableClassName="prose prose-sm max-w-none p-4"
         plugins={[
           // Core markdown plugins
