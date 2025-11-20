@@ -167,6 +167,14 @@ export function ResearchGuideFormLLM({
       message: userMessage,
       history: chatHistory,
     });
+    
+    // Reset textarea height after sending
+    setTimeout(() => {
+      const textarea = document.querySelector('[data-testid="input-chat-message"]') as HTMLTextAreaElement;
+      if (textarea) {
+        textarea.style.height = 'auto';
+      }
+    }, 0);
   };
 
   const handleClearHistory = () => {
@@ -404,11 +412,15 @@ ${data.respondent_role}`;
           </ScrollArea>
 
           {/* Chat Input */}
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
+          <div className="flex gap-2 mb-2 items-end">
+            <textarea
               value={userMessage}
-              onChange={(e) => setUserMessage(e.target.value)}
+              onChange={(e) => {
+                setUserMessage(e.target.value);
+                // Auto-resize textarea
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -416,9 +428,10 @@ ${data.respondent_role}`;
                 }
               }}
               placeholder="Опишите вашу задачу..."
-              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden min-h-[40px] max-h-[200px]"
               disabled={chatMutation.isPending}
               data-testid="input-chat-message"
+              rows={1}
             />
             <Button
               type="button"
