@@ -147,7 +147,10 @@ export function SimpleMarkdownEditor({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={handleBold}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleBold();
+          }}
           className="h-8 w-8 p-0"
           title="Bold (Ctrl+B)"
           data-testid="button-bold"
@@ -159,7 +162,10 @@ export function SimpleMarkdownEditor({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={handleBulletList}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleBulletList();
+          }}
           className="h-8 w-8 p-0"
           title="Bullet List"
           data-testid="button-bullet-list"
