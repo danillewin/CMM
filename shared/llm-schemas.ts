@@ -43,3 +43,16 @@ export interface ChatMessage {
   timestamp: number;
   responseData?: ClarifyingQuestions | UsabilitySurvey | InterviewPlan;
 }
+
+// Chat request schema
+export const chatRequestSchema = z.object({
+  message: z.string().min(1, "Message cannot be empty"),
+  chatHistory: z.array(z.object({
+    role: z.enum(["user", "assistant"]),
+    content: z.string(),
+    timestamp: z.number(),
+    responseData: z.any().optional(),
+  })).default([]),
+});
+
+export type ChatRequest = z.infer<typeof chatRequestSchema>;

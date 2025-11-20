@@ -7,6 +7,7 @@ import { SimpleMarkdownEditor } from "@/components/simple-markdown-editor";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Trash2, Eye, EyeOff, ChevronUp } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Research, InsertResearch, ResearchStatusType } from "@shared/schema";
 import type { ChatMessage, InterviewPlan } from "@shared/llm-schemas";
 import ReactMarkdown from "react-markdown";
@@ -35,6 +36,7 @@ export function ResearchGuideFormLLM({
   isLoading,
   onTempDataUpdate,
 }: ResearchGuideFormLLMProps) {
+  const { toast } = useToast();
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userMessage, setUserMessage] = useState("");
   const [showRecommendations, setShowRecommendations] = useState(false);
@@ -144,6 +146,11 @@ export function ResearchGuideFormLLM({
     },
     onError: (error) => {
       console.error("Chat error:", error);
+      toast({
+        title: "Ошибка",
+        description: error instanceof Error ? error.message : "Не удалось получить ответ от ассистента. Попробуйте снова.",
+        variant: "destructive",
+      });
     },
   });
 

@@ -26,6 +26,7 @@ import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
 import { mcpServerManager } from "./mcp-server";
 import { llmService } from "./llm-service";
+import { chatRequestSchema, responseSchema } from "@shared/llm-schemas";
 
 // Database initialization is handled by the storage layer
 
@@ -343,22 +344,36 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/researches/:id/chat", async (req, res) => {
     try {
       const researchId = Number(req.params.id);
-      const { message, chatHistory } = req.body;
-
-      if (!message || typeof message !== "string") {
-        res.status(400).json({ message: "Message is required" });
+      
+      // Validate request body using Zod schema
+      const requestValidation = chatRequestSchema.safeParse(req.body);
+      if (!requestValidation.success) {
+        res.status(400).json({ 
+          message: "Invalid request data",
+          errors: requestValidation.error.errors
+        });
         return;
       }
 
-      // Validate chat history structure
-      const history = Array.isArray(chatHistory) ? chatHistory : [];
+      const { message, chatHistory } = requestValidation.data;
 
       console.log(`LLM chat request for research ${researchId}: "${message.substring(0, 50)}..."`);
 
       // Generate response using LLM service
-      const response = await llmService.generateChatResponse(message, history);
+      const response = await llmService.generateChatResponse(message, chatHistory);
 
-      res.json(response);
+      // Validate response using Zod schema
+      const responseValidation = responseSchema.safeParse(response);
+      if (!responseValidation.success) {
+        console.error("Invalid LLM response:", responseValidation.error);
+        res.status(500).json({ 
+          message: "Invalid response from LLM service",
+          errors: responseValidation.error.errors
+        });
+        return;
+      }
+
+      res.json(responseValidation.data);
     } catch (error) {
       console.error("Error in LLM chat:", error);
       res.status(500).json({ 
