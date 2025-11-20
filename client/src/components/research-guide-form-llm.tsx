@@ -303,6 +303,7 @@ ${data.respondent_role}`;
                 <FormItem>
                   <FormControl>
                     <WysiwygMarkdownEditor
+                      key={field.value}
                       value={field.value}
                       onChange={(val) => {
                         field.onChange(val);
@@ -329,6 +330,7 @@ ${data.respondent_role}`;
               <FormLabel className="text-lg font-medium">{"Вопросы"}</FormLabel>
               <FormControl>
                 <WysiwygMarkdownEditor
+                  key={field.value}
                   value={field.value}
                   onChange={(val) => {
                     field.onChange(val);
