@@ -1,6 +1,9 @@
-import { Pool } from '@neondatabase/serverless';
+import { Pool as NeonPool } from '@neondatabase/serverless';
+import { Pool as PgPool } from 'pg';
 
-export async function migrateAddRecruitmentFields(pool: Pool): Promise<void> {
+type AnyPool = NeonPool | PgPool;
+
+export async function migrateAddRecruitmentFields(pool: AnyPool): Promise<void> {
   console.log("Running migration: Add recruitment fields...");
 
   try {

@@ -1,5 +1,7 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool as NeonPool, neonConfig } from '@neondatabase/serverless';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-serverless';
+import { Pool as PgPool } from 'pg';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
@@ -36,5 +38,13 @@ function getDatabaseUrl(): string {
   return localDbUrl;
 }
 
-export const pool = new Pool({ connectionString: getDatabaseUrl() });
-export const db = drizzle({ client: pool, schema });
+const connectionString = getDatabaseUrl();
+const isLocalDatabase = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+
+export const pool = isLocalDatabase 
+  ? new PgPool({ connectionString })
+  : new NeonPool({ connectionString });
+
+export const db = isLocalDatabase
+  ? drizzlePg({ client: pool as PgPool, schema })
+  : drizzleNeon({ client: pool as NeonPool, schema });
