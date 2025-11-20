@@ -142,6 +142,7 @@ export function ResearchGuideFormLLM({
         
         // Check if questions field already has content
         if (currentQuestions && currentQuestions.trim().length > 0) {
+          setPendingInterviewData(responseData);
           setReplaceDialogOpen(true);
         } else {
           applyInterviewData(responseData);
@@ -279,21 +280,9 @@ ${data.respondent_role}`;
         {/* Respondent Recommendations - Hidden by default, only shown when LLM provides data */}
         {showRecommendations && (
           <div ref={questionsRef}>
-            <div className="flex items-center justify-between mb-2">
-              <FormLabel className="text-lg font-medium">
-                {"Рекомендации для респондентов"}
-              </FormLabel>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowRecommendations(false)}
-                data-testid="button-hide-recommendations"
-              >
-                <EyeOff className="h-4 w-4 mr-2" />
-                Скрыть
-              </Button>
-            </div>
+            <FormLabel className="text-lg font-medium mb-2 block">
+              {"Рекомендации для респондентов"}
+            </FormLabel>
             <FormField
               control={form.control}
               name="guideRespondentRecommendations"
