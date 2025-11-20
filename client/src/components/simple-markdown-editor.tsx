@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, List, Maximize2, Minimize2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -20,18 +20,11 @@ export function SimpleMarkdownEditor({
   id,
 }: SimpleMarkdownEditorProps) {
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Handle bold formatting
   const handleBold = () => {
-    // Ensure we're in editing mode
-    if (!isEditing) {
-      setIsEditing(true);
-      setTimeout(() => handleBold(), 50);
-      return;
-    }
-
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -64,13 +57,6 @@ export function SimpleMarkdownEditor({
 
   // Handle bullet list formatting
   const handleBulletList = () => {
-    // Ensure we're in editing mode
-    if (!isEditing) {
-      setIsEditing(true);
-      setTimeout(() => handleBulletList(), 50);
-      return;
-    }
-
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -126,14 +112,6 @@ export function SimpleMarkdownEditor({
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
   };
-
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current && !isFullScreen) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [value, isFullScreen]);
 
   const containerClasses = isFullScreen
     ? "fixed inset-0 z-50 bg-white p-8 overflow-auto"
@@ -192,66 +170,40 @@ export function SimpleMarkdownEditor({
         </Button>
       </div>
 
-      {/* Editor/Preview Area - Always similar appearance */}
+      {/* Editor/Preview Area - Shows rendered markdown when not focused */}
       <div className="relative">
-        {isEditing ? (
-          <>
-            {/* Rendered placeholder shown underneath textarea when empty */}
-            {!value && placeholder && (
-              <div 
-                className="absolute inset-0 p-3 prose prose-sm max-w-none text-gray-400 pointer-events-none"
-                data-testid="div-markdown-placeholder"
-              >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    ul: ({ node, ...props }) => (
-                      <ul className="list-disc list-inside space-y-1" {...props} />
-                    ),
-                    li: ({ node, ...props }) => (
-                      <li className="text-gray-400" {...props} />
-                    ),
-                    strong: ({ node, ...props }) => (
-                      <strong className="text-gray-400 font-bold" {...props} />
-                    ),
-                    p: ({ node, ...props }) => (
-                      <p className="text-gray-400 mb-2" {...props} />
-                    ),
-                  }}
-                >
-                  {placeholder}
-                </ReactMarkdown>
-              </div>
-            )}
-            <textarea
-              ref={textareaRef}
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onBlur={() => {
-                if (value) {
-                  setIsEditing(false);
-                }
-              }}
-              className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed bg-transparent relative z-10 whitespace-pre-wrap ${
-                isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
-              }`}
-              style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap' }}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-                  e.preventDefault();
-                  handleBold();
-                }
-              }}
-              autoFocus
-              data-testid="textarea-markdown-input"
-            />
-          </>
+        {isFocused ? (
+          /* Editing mode - show textarea with raw markdown */
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={!value ? placeholder : ""}
+            className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed ${
+              isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
+            }`}
+            style={{ fontFamily: 'inherit' }}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                e.preventDefault();
+                handleBold();
+              }
+            }}
+            autoFocus
+            data-testid="textarea-markdown-input"
+          />
         ) : (
+          /* Preview mode - show rendered markdown */
           <div
+            onClick={() => {
+              setIsFocused(true);
+              setTimeout(() => textareaRef.current?.focus(), 0);
+            }}
             className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text hover:bg-gray-50 transition-colors ${
               isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
             } ${!value ? "text-gray-400" : ""}`}
-            onClick={() => setIsEditing(true)}
             data-testid="div-markdown-preview"
           >
             <ReactMarkdown
@@ -267,13 +219,25 @@ export function SimpleMarkdownEditor({
                   <strong className={!value ? "text-gray-400 font-bold" : "text-gray-900 font-bold"} {...props} />
                 ),
                 p: ({ node, ...props }) => (
-                  <p className={!value ? "text-gray-400 mb-2" : "text-gray-900 mb-2"} {...props} />
+                  <p className={!value ? "text-gray-400 mb-2 last:mb-0" : "text-gray-900 mb-2 last:mb-0"} {...props} />
                 ),
               }}
             >
               {value || placeholder}
             </ReactMarkdown>
           </div>
+        )}
+        
+        {/* Hidden textarea to maintain ref */}
+        {!isFocused && (
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            className="absolute opacity-0 pointer-events-none"
+            tabIndex={-1}
+          />
         )}
       </div>
 

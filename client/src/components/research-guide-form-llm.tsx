@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SimpleMarkdownEditor } from "@/components/simple-markdown-editor";
+import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Send, Trash2, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -300,14 +300,14 @@ ${data.respondent_role}`;
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <SimpleMarkdownEditor
+                    <WysiwygMarkdownEditor
                       value={field.value}
                       onChange={(val) => {
                         field.onChange(val);
                         handleFieldChange("guideRespondentRecommendations", val);
                       }}
                       placeholder="Рекомендации по выбору респондентов..."
-                      id="recommendations-editor"
+                      height={250}
                     />
                   </FormControl>
                   <FormMessage />
@@ -325,18 +325,18 @@ ${data.respondent_role}`;
             <FormItem>
               <FormLabel className="text-lg font-medium">{"Вопросы"}</FormLabel>
               <FormControl>
-                <SimpleMarkdownEditor
+                <WysiwygMarkdownEditor
                   value={field.value}
                   onChange={(val) => {
                     field.onChange(val);
                     handleFieldChange("guideQuestionsSimple", val);
                   }}
-                  placeholder={`Используйте **жирный текст** для заголовков блоков
+                  placeholder={`Используйте жирный текст для заголовков блоков
 
 - Пункты списка для вопросов
 - Еще один вопрос
 - И еще один`}
-                  id="questions-editor"
+                  height={300}
                 />
               </FormControl>
               <FormMessage />
