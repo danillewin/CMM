@@ -130,13 +130,6 @@ export function SimpleMarkdownEditor({
     }
   }, [value, isFullScreen]);
 
-  // Switch to edit mode when value is empty
-  useEffect(() => {
-    if (!value) {
-      setIsEditing(true);
-    }
-  }, [value]);
-
   const containerClasses = isFullScreen
     ? "fixed inset-0 z-50 bg-white p-8 overflow-auto"
     : className;
@@ -201,7 +194,7 @@ export function SimpleMarkdownEditor({
               setIsEditing(false);
             }
           }}
-          placeholder={placeholder}
+          placeholder=""
           className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm ${
             isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
           }`}
@@ -218,7 +211,7 @@ export function SimpleMarkdownEditor({
         <div
           className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text hover:bg-gray-50 transition-colors ${
             isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
-          }`}
+          } ${!value ? "text-gray-400" : ""}`}
           onClick={() => setIsEditing(true)}
           data-testid="div-markdown-preview"
         >
@@ -230,19 +223,19 @@ export function SimpleMarkdownEditor({
                 <ul className="list-disc list-inside space-y-1" {...props} />
               ),
               li: ({ node, ...props }) => (
-                <li className="text-gray-900" {...props} />
+                <li className={!value ? "text-gray-400" : "text-gray-900"} {...props} />
               ),
               // Bold text
               strong: ({ node, ...props }) => (
-                <strong className="font-bold text-gray-900" {...props} />
+                <strong className={!value ? "text-gray-400 font-bold" : "text-gray-900 font-bold"} {...props} />
               ),
               // Paragraph
               p: ({ node, ...props }) => (
-                <p className="mb-2 text-gray-900" {...props} />
+                <p className={!value ? "text-gray-400 mb-2" : "text-gray-900 mb-2"} {...props} />
               ),
             }}
           >
-            {value}
+            {value || placeholder}
           </ReactMarkdown>
         </div>
       )}
