@@ -180,7 +180,12 @@ export function ResearchGuideFormLLM({
 
   const applyInterviewData = (interviewData?: InterviewPlan) => {
     const data = interviewData || pendingInterviewData;
-    if (!data) return;
+    if (!data) {
+      console.log("applyInterviewData called but no data available");
+      return;
+    }
+
+    console.log("Applying interview data:", data);
 
     // Format recommendations
     const recommendations = `**Сегмент:** ${data.respondent_segment}
@@ -191,9 +196,17 @@ ${data.respondent_exp}
 **Роль:**  
 ${data.respondent_role}`;
 
-    // Set the form values with shouldDirty and shouldTouch to trigger updates
-    form.setValue("guideRespondentRecommendations", recommendations, { shouldDirty: true, shouldTouch: true });
-    form.setValue("guideQuestionsSimple", data.interview_script, { shouldDirty: true, shouldTouch: true });
+    console.log("Setting form values...");
+    console.log("Questions to set:", data.interview_script);
+
+    // Reset the form with new values to trigger re-render
+    const currentValues = form.getValues();
+    form.reset({
+      guideRespondentRecommendations: recommendations,
+      guideQuestionsSimple: data.interview_script,
+    });
+
+    console.log("Form values after reset:", form.getValues());
 
     // Show recommendations field
     setShowRecommendations(true);
