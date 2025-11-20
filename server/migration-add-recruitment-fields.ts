@@ -1,6 +1,7 @@
 import { Pool as NeonPool } from '@neondatabase/serverless';
-import { Pool as PgPool } from 'pg';
+import pg from 'pg';
 
+const { Pool: PgPool } = pg;
 type AnyPool = NeonPool | PgPool;
 
 export async function migrateAddRecruitmentFields(pool: AnyPool): Promise<void> {
