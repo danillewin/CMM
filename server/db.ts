@@ -6,22 +6,34 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 
 function getDatabaseUrl(): string {
-  const databaseUrl = process.env.DATABASE_URL;
+  const databaseUrl = process.env.DATABASE_URL?.trim();
   
-  if (!databaseUrl || databaseUrl.trim() === '') {
-    const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
-    
-    if (PGHOST && PGPORT && PGUSER && PGPASSWORD && PGDATABASE) {
-      return `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}?sslmode=require`;
-    }
-    
-    throw new Error(
-      "DATABASE_URL must be set. Did you forget to provision a database? " +
-      "Please check the Database pane to ensure your database is properly configured."
-    );
+  if (databaseUrl) {
+    return databaseUrl;
   }
   
-  return databaseUrl;
+  const { PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE } = process.env;
+  
+  const pgHost = PGHOST?.trim();
+  const pgPort = PGPORT?.trim();
+  const pgUser = PGUSER?.trim();
+  const pgPassword = PGPASSWORD?.trim();
+  const pgDatabase = PGDATABASE?.trim();
+  
+  if (pgHost && pgPort && pgUser && pgPassword && pgDatabase) {
+    return `postgresql://${pgUser}:${pgPassword}@${pgHost}:${pgPort}/${pgDatabase}?sslmode=require`;
+  }
+  
+  console.error("Database configuration is missing or incomplete.");
+  console.error("DATABASE_URL:", databaseUrl ? "set but empty" : "not set");
+  console.error("PGHOST:", pgHost || "not set or empty");
+  console.error("PGPORT:", pgPort || "not set or empty");
+  console.error("PGUSER:", pgUser || "not set or empty");
+  console.error("PGDATABASE:", pgDatabase || "not set or empty");
+  
+  const localDbUrl = "postgresql://runner@localhost:5432/replit?sslmode=disable";
+  console.log(`Attempting to use local database: ${localDbUrl}`);
+  return localDbUrl;
 }
 
 export const pool = new Pool({ connectionString: getDatabaseUrl() });
