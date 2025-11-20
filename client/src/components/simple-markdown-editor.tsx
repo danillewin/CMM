@@ -130,74 +130,77 @@ export function SimpleMarkdownEditor({
     }
   }, [value, isFullScreen]);
 
+  // Switch to edit mode when value is empty
+  useEffect(() => {
+    if (!value) {
+      setIsEditing(true);
+    }
+  }, [value]);
+
   const containerClasses = isFullScreen
     ? "fixed inset-0 z-50 bg-white p-8 overflow-auto"
     : className;
 
   return (
     <div className={containerClasses} id={id}>
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleBold}
-          className="h-8 w-8 p-0"
-          title="Bold (Ctrl+B)"
-          data-testid="button-bold"
-        >
-          <Bold className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleBulletList}
-          className="h-8 w-8 p-0"
-          title="Bullet List"
-          data-testid="button-bullet-list"
-        >
-          <List className="h-4 w-4" />
-        </Button>
+      {/* Toolbar - only show when editing */}
+      {isEditing && (
+        <div className="flex items-center gap-2 mb-2 pb-2 border-b">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleBold}
+            className="h-8 w-8 p-0"
+            title="Bold (Ctrl+B)"
+            data-testid="button-bold"
+          >
+            <Bold className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleBulletList}
+            className="h-8 w-8 p-0"
+            title="Bullet List"
+            data-testid="button-bullet-list"
+          >
+            <List className="h-4 w-4" />
+          </Button>
 
-        <div className="flex-1" />
+          <div className="flex-1" />
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsEditing(!isEditing)}
-          className="text-xs px-2"
-          data-testid="button-toggle-edit"
-        >
-          {isEditing ? "Preview" : "Edit"}
-        </Button>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={toggleFullScreen}
-          className="h-8 w-8 p-0"
-          title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-          data-testid="button-toggle-fullscreen"
-        >
-          {isFullScreen ? (
-            <Minimize2 className="h-4 w-4" />
-          ) : (
-            <Maximize2 className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={toggleFullScreen}
+            className="h-8 w-8 p-0"
+            title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+            data-testid="button-toggle-fullscreen"
+          >
+            {isFullScreen ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Editor/Preview Area */}
-      {isEditing || !value ? (
+      {isEditing ? (
         <textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={() => {
+            if (value) {
+              setIsEditing(false);
+            }
+          }}
           placeholder={placeholder}
           className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm ${
             isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
@@ -208,11 +211,12 @@ export function SimpleMarkdownEditor({
               handleBold();
             }
           }}
+          autoFocus
           data-testid="textarea-markdown-input"
         />
       ) : (
         <div
-          className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text bg-gray-50 ${
+          className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text hover:bg-gray-50 transition-colors ${
             isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
           }`}
           onClick={() => setIsEditing(true)}

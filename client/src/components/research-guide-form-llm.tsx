@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { SimpleMarkdownEditor } from "@/components/simple-markdown-editor";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Send, Trash2, Eye, EyeOff, ChevronUp } from "lucide-react";
+import { Loader2, Send, Trash2, EyeOff } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Research, InsertResearch, ResearchStatusType } from "@shared/schema";
@@ -40,7 +40,6 @@ export function ResearchGuideFormLLM({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userMessage, setUserMessage] = useState("");
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const [showScrollButton, setShowScrollButton] = useState(false);
   const [replaceDialogOpen, setReplaceDialogOpen] = useState(false);
   const [pendingInterviewData, setPendingInterviewData] = useState<InterviewPlan | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -60,6 +59,14 @@ export function ResearchGuideFormLLM({
   useEffect(() => {
     if (research?.llmChatHistory && Array.isArray(research.llmChatHistory)) {
       setChatHistory(research.llmChatHistory as ChatMessage[]);
+      
+      // Check if any message in chat history has interview type - if so, show recommendations
+      const hasInterviewResponse = (research.llmChatHistory as ChatMessage[]).some(
+        msg => msg.role === "assistant" && msg.responseData?.type === "interview"
+      );
+      if (hasInterviewResponse && research.guideRespondentRecommendations) {
+        setShowRecommendations(true);
+      }
     } else {
       setChatHistory([]);
     }
@@ -71,22 +78,12 @@ export function ResearchGuideFormLLM({
       guideRespondentRecommendations: research?.guideRespondentRecommendations || "",
       guideQuestionsSimple: research?.guideQuestionsSimple || "",
     });
-
-    // Show recommendations if they exist
-    if (research?.guideRespondentRecommendations) {
-      setShowRecommendations(true);
-    }
   }, [research, form]);
 
   // Auto scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatHistory]);
-
-  // Check if we should show interview response button
-  const lastMessage = chatHistory[chatHistory.length - 1];
-  const showInterviewButton = lastMessage?.role === "assistant" && 
-                               lastMessage?.responseData?.type === "interview";
 
   // LLM chat mutation
   const chatMutation = useMutation({
@@ -139,9 +136,16 @@ export function ResearchGuideFormLLM({
         onTempDataUpdate({ llmChatHistory: newChatHistory });
       }
 
-      // Show scroll button if interview response
+      // Auto-apply interview data when received
       if (responseData.type === "interview") {
-        setShowScrollButton(true);
+        const currentQuestions = form.getValues("guideQuestionsSimple");
+        
+        // Check if questions field already has content
+        if (currentQuestions && currentQuestions.trim().length > 0) {
+          setReplaceDialogOpen(true);
+        } else {
+          applyInterviewData(responseData);
+        }
       }
     },
     onError: (error) => {
@@ -166,7 +170,6 @@ export function ResearchGuideFormLLM({
   const handleClearHistory = () => {
     setChatHistory([]);
     setUserMessage("");
-    setShowScrollButton(false);
     setPendingInterviewData(null);
     
     if (onTempDataUpdate) {
@@ -174,38 +177,22 @@ export function ResearchGuideFormLLM({
     }
   };
 
-  const handleScrollToQuestions = () => {
-    questionsRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleApplyInterview = () => {
-    if (!pendingInterviewData) return;
-
-    const currentQuestions = form.getValues("guideQuestionsSimple");
-    
-    // Check if questions field already has content
-    if (currentQuestions && currentQuestions.trim().length > 0) {
-      setReplaceDialogOpen(true);
-    } else {
-      applyInterviewData();
-    }
-  };
-
-  const applyInterviewData = () => {
-    if (!pendingInterviewData) return;
+  const applyInterviewData = (interviewData?: InterviewPlan) => {
+    const data = interviewData || pendingInterviewData;
+    if (!data) return;
 
     // Format recommendations
-    const recommendations = `**Сегмент:** ${pendingInterviewData.respondent_segment}
+    const recommendations = `**Сегмент:** ${data.respondent_segment}
 
 **Опыт:**  
-${pendingInterviewData.respondent_exp}
+${data.respondent_exp}
 
 **Роль:**  
-${pendingInterviewData.respondent_role}`;
+${data.respondent_role}`;
 
     // Set the form values
     form.setValue("guideRespondentRecommendations", recommendations);
-    form.setValue("guideQuestionsSimple", pendingInterviewData.interview_script);
+    form.setValue("guideQuestionsSimple", data.interview_script);
 
     // Show recommendations field
     setShowRecommendations(true);
@@ -214,11 +201,17 @@ ${pendingInterviewData.respondent_role}`;
     if (onTempDataUpdate) {
       onTempDataUpdate({
         guideRespondentRecommendations: recommendations,
-        guideQuestionsSimple: pendingInterviewData.interview_script,
+        guideQuestionsSimple: data.interview_script,
       });
     }
 
     setReplaceDialogOpen(false);
+    setPendingInterviewData(null);
+    
+    // Scroll to questions field
+    setTimeout(() => {
+      questionsRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
   const handleSubmit = (data: {
@@ -283,7 +276,7 @@ ${pendingInterviewData.respondent_role}`;
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Respondent Recommendations - Hidden by default */}
+        {/* Respondent Recommendations - Hidden by default, only shown when LLM provides data */}
         {showRecommendations && (
           <div ref={questionsRef}>
             <div className="flex items-center justify-between mb-2">
@@ -324,19 +317,6 @@ ${pendingInterviewData.respondent_role}`;
           </div>
         )}
 
-        {!showRecommendations && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowRecommendations(true)}
-            data-testid="button-show-recommendations"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Показать рекомендации для респондентов
-          </Button>
-        )}
-
         {/* Questions Field - Visible by default */}
         <FormField
           control={form.control}
@@ -345,18 +325,36 @@ ${pendingInterviewData.respondent_role}`;
             <FormItem>
               <FormLabel className="text-lg font-medium">{"Вопросы"}</FormLabel>
               <FormControl>
-                <SimpleMarkdownEditor
-                  value={field.value}
-                  onChange={(val) => {
-                    field.onChange(val);
-                    handleFieldChange("guideQuestionsSimple", val);
-                  }}
-                  placeholder="Введите вопросы для интервью...
+                <div>
+                  {!field.value ? (
+                    <div 
+                      className="w-full p-3 border rounded-md min-h-[150px] cursor-text hover:bg-gray-50 transition-colors prose prose-sm max-w-none text-gray-400"
+                      onClick={() => {
+                        const editor = document.getElementById("questions-editor")?.querySelector("textarea");
+                        if (editor) editor.focus();
+                      }}
+                      data-testid="div-questions-placeholder"
+                    >
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {`Используйте **жирный текст** для заголовков блоков
 
-Используйте **жирный текст** для заголовков блоков
-- Пункты списка для вопросов"
-                  id="questions-editor"
-                />
+- Пункты списка для вопросов
+- Еще один вопрос
+- И еще один`}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    <SimpleMarkdownEditor
+                      value={field.value}
+                      onChange={(val) => {
+                        field.onChange(val);
+                        handleFieldChange("guideQuestionsSimple", val);
+                      }}
+                      placeholder="Введите вопросы для интервью..."
+                      id="questions-editor"
+                    />
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -366,19 +364,21 @@ ${pendingInterviewData.respondent_role}`;
         {/* LLM Chat Section */}
         <div className="border rounded-lg p-4 bg-gray-50">
           <FormLabel className="text-lg font-medium mb-4 block">
-            {"Помощник по планированию интервью"}
+            {"Помощник по планированию исследований"}
           </FormLabel>
 
           {/* Chat Messages */}
           <ScrollArea className="h-[400px] mb-4 bg-white rounded border p-4">
             {chatHistory.length === 0 ? (
-              <div className="text-gray-400 text-center py-8 px-4">
-                <p className="mb-2">
-                  Напишите, какой продукт, услугу, интерфейс или процесс вы хотите изучить?
-                </p>
-                <p className="text-sm">
-                  Уточните интересуемый сегмент клиентов и прочие детали, которые вы считаете важными
-                </p>
+              <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[80%]">
+                <div className="prose prose-sm max-w-none">
+                  <p className="mb-2">
+                    Напишите, какой продукт, услугу, интерфейс или процесс вы хотите изучить?
+                  </p>
+                  <p className="text-sm">
+                    Уточните интересуемый сегмент клиентов и прочие детали, которые вы считаете важными
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -396,7 +396,20 @@ ${pendingInterviewData.respondent_role}`;
                       data-testid={`chat-message-${message.role}`}
                     >
                       <div className="prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            p: ({ node, ...props }) => (
+                              <p className={message.role === "user" ? "text-white mb-2" : "text-gray-900 mb-2"} {...props} />
+                            ),
+                            strong: ({ node, ...props }) => (
+                              <strong className={message.role === "user" ? "text-white font-bold" : "text-gray-900 font-bold"} {...props} />
+                            ),
+                            li: ({ node, ...props }) => (
+                              <li className={message.role === "user" ? "text-white" : "text-gray-900"} {...props} />
+                            ),
+                          }}
+                        >
                           {message.content}
                         </ReactMarkdown>
                       </div>
@@ -439,37 +452,6 @@ ${pendingInterviewData.respondent_role}`;
             </Button>
           </div>
 
-          {/* Show interview button if last response was interview type */}
-          {showInterviewButton && (
-            <div className="mb-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleScrollToQuestions}
-                className="w-full"
-                data-testid="button-view-questions"
-              >
-                <ChevronUp className="h-4 w-4 mr-2" />
-                Смотреть вопросы
-              </Button>
-            </div>
-          )}
-
-          {/* Apply interview data button */}
-          {pendingInterviewData && (
-            <div className="mb-2">
-              <Button
-                type="button"
-                variant="default"
-                onClick={handleApplyInterview}
-                className="w-full bg-green-600 hover:bg-green-700"
-                data-testid="button-apply-interview"
-              >
-                Применить рекомендации и вопросы
-              </Button>
-            </div>
-          )}
-
           {/* Clear History Button */}
           <Button
             type="button"
@@ -503,7 +485,7 @@ ${pendingInterviewData.respondent_role}`;
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel data-testid="button-cancel-replace">Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={applyInterviewData} data-testid="button-confirm-replace">
+            <AlertDialogAction onClick={() => applyInterviewData()} data-testid="button-confirm-replace">
               Заменить
             </AlertDialogAction>
           </AlertDialogFooter>
