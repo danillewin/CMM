@@ -83,7 +83,7 @@ export function ResearchGuideFormLLM({
 
   // Auto scroll to bottom of chat
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [chatHistory]);
 
   // LLM chat mutation
