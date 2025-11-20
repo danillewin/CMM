@@ -28,6 +28,16 @@ export async function ensurePostgresRunning(): Promise<void> {
     process.env.DATABASE_URL = process.env.DATABASE_URL?.trim() || 'postgresql://runner@localhost:5432/replit?sslmode=disable';
     console.log(`Using database: ${process.env.DATABASE_URL}`);
     
+    // Check if using a remote database (e.g., Neon)
+    const isRemoteDatabase = process.env.DATABASE_URL.includes('neon.tech') || 
+                             process.env.DATABASE_URL.includes('amazonaws.com') ||
+                             (!process.env.DATABASE_URL.includes('localhost') && !process.env.DATABASE_URL.includes('127.0.0.1'));
+    
+    if (isRemoteDatabase) {
+      console.log('Using remote database, skipping local PostgreSQL startup');
+      return;
+    }
+    
     if (await isPostgresReady()) {
       console.log('PostgreSQL is already running');
       return;
