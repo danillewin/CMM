@@ -78,20 +78,64 @@ export async function generateChatResponse(
     console.log(`Sending request to LLM with ${messages.length} messages`);
 
     // Call OpenAI with structured output
-    const completion = await client.beta.chat.completions.parse({
+    const completion = await client.chat.completions.create({
       model: LLM_MODEL,
       messages: messages,
-      response_format: zodResponseFormat(responseSchema, "research_response"),
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "research_response",
+          schema: {
+            type: "object",
+            properties: {
+              data: {
+                oneOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", enum: ["question"] },
+                      model_message: { type: "string" }
+                    },
+                    required: ["type", "model_message"]
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", enum: ["email_message"] },
+                      content: { type: "string" }
+                    },
+                    required: ["type", "content"]
+                  },
+                  {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", enum: ["interview"] },
+                      interview_script: { type: "string" },
+                      respondent_segment: { type: "string" },
+                      respondent_exp: { type: "string" },
+                      respondent_role: { type: "string" }
+                    },
+                    required: ["type", "interview_script", "respondent_segment", "respondent_exp", "respondent_role"]
+                  }
+                ]
+              }
+            },
+            required: ["data"]
+          }
+        }
+      },
       temperature: 0.7,
     });
 
     const response = completion.choices[0]?.message;
-    if (!response?.parsed) {
-      throw new Error("No parsed response from LLM");
+    if (!response?.content) {
+      throw new Error("No response from LLM");
     }
 
-    console.log(`Received LLM response with type: ${response.parsed.data.type}`);
-    return response.parsed;
+    // Parse the JSON response
+    const parsed = JSON.parse(response.content);
+    console.log(`Received LLM response with type: ${parsed.data.type}`);
+    return parsed;
   } catch (error) {
     console.error("Error calling LLM API:", error);
     throw new Error(`Failed to generate LLM response: ${error instanceof Error ? error.message : 'Unknown error'}`);

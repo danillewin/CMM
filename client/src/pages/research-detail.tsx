@@ -11,6 +11,7 @@ import {
   PaginatedResponse,
 } from "@shared/schema";
 import { ResearchLinkedMeetings } from "@/components/research-linked-meetings";
+import { ResearchGuideFormLLM } from "@/components/research-guide-form-llm";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -3397,7 +3398,7 @@ function ResearchDetail() {
               </TabsContent>
 
               <TabsContent value="guide" className="mt-6">
-                <ResearchGuideForm
+                <ResearchGuideFormLLM
                   research={effectiveResearch}
                   onUpdate={handleSubmit}
                   isLoading={isPending}
