@@ -136,109 +136,108 @@ export function SimpleMarkdownEditor({
 
   return (
     <div className={containerClasses} id={id}>
-      {/* Toolbar - only show when editing */}
-      {isEditing && (
-        <div className="flex items-center gap-2 mb-2 pb-2 border-b">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleBold}
-            className="h-8 w-8 p-0"
-            title="Bold (Ctrl+B)"
-            data-testid="button-bold"
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleBulletList}
-            className="h-8 w-8 p-0"
-            title="Bullet List"
-            data-testid="button-bullet-list"
-          >
-            <List className="h-4 w-4" />
-          </Button>
+      <div className="relative">
+        {/* Toolbar - floating on top when editing */}
+        {isEditing && (
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-white rounded shadow-sm border p-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleBold}
+              className="h-7 w-7 p-0"
+              title="Bold (Ctrl+B)"
+              data-testid="button-bold"
+            >
+              <Bold className="h-3.5 w-3.5" />
+            </Button>
+            
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleBulletList}
+              className="h-7 w-7 p-0"
+              title="Bullet List"
+              data-testid="button-bullet-list"
+            >
+              <List className="h-3.5 w-3.5" />
+            </Button>
 
-          <div className="flex-1" />
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={toggleFullScreen}
-            className="h-8 w-8 p-0"
-            title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
-            data-testid="button-toggle-fullscreen"
-          >
-            {isFullScreen ? (
-              <Minimize2 className="h-4 w-4" />
-            ) : (
-              <Maximize2 className="h-4 w-4" />
+            {isFullScreen && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={toggleFullScreen}
+                className="h-7 w-7 p-0"
+                title="Exit Full Screen"
+                data-testid="button-toggle-fullscreen"
+              >
+                <Minimize2 className="h-3.5 w-3.5" />
+              </Button>
             )}
-          </Button>
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Editor/Preview Area */}
-      {isEditing ? (
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={() => {
-            if (value) {
-              setIsEditing(false);
-            }
-          }}
-          placeholder=""
-          className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm ${
-            isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
-          }`}
-          onKeyDown={(e) => {
-            if (e.ctrlKey && e.key === 'b') {
-              e.preventDefault();
-              handleBold();
-            }
-          }}
-          autoFocus
-          data-testid="textarea-markdown-input"
-        />
-      ) : (
-        <div
-          className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text hover:bg-gray-50 transition-colors ${
-            isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
-          } ${!value ? "text-gray-400" : ""}`}
-          onClick={() => setIsEditing(true)}
-          data-testid="div-markdown-preview"
-        >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            components={{
-              // Custom rendering for lists to ensure proper formatting
-              ul: ({ node, ...props }) => (
-                <ul className="list-disc list-inside space-y-1" {...props} />
-              ),
-              li: ({ node, ...props }) => (
-                <li className={!value ? "text-gray-400" : "text-gray-900"} {...props} />
-              ),
-              // Bold text
-              strong: ({ node, ...props }) => (
-                <strong className={!value ? "text-gray-400 font-bold" : "text-gray-900 font-bold"} {...props} />
-              ),
-              // Paragraph
-              p: ({ node, ...props }) => (
-                <p className={!value ? "text-gray-400 mb-2" : "text-gray-900 mb-2"} {...props} />
-              ),
+        {/* Editor/Preview Area - always looks the same */}
+        {isEditing ? (
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={() => {
+              if (value) {
+                setIsEditing(false);
+              }
             }}
+            placeholder=""
+            className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed ${
+              isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
+            }`}
+            style={{ fontFamily: 'inherit' }}
+            onKeyDown={(e) => {
+              if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                handleBold();
+              }
+            }}
+            autoFocus
+            data-testid="textarea-markdown-input"
+          />
+        ) : (
+          <div
+            className={`w-full p-3 border rounded-md prose prose-sm max-w-none cursor-text hover:bg-gray-50 transition-colors ${
+              isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
+            } ${!value ? "text-gray-400" : ""}`}
+            onClick={() => setIsEditing(true)}
+            data-testid="div-markdown-preview"
           >
-            {value || placeholder}
-          </ReactMarkdown>
-        </div>
-      )}
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={{
+                // Custom rendering for lists to ensure proper formatting
+                ul: ({ node, ...props }) => (
+                  <ul className="list-disc list-inside space-y-1" {...props} />
+                ),
+                li: ({ node, ...props }) => (
+                  <li className={!value ? "text-gray-400" : "text-gray-900"} {...props} />
+                ),
+                // Bold text
+                strong: ({ node, ...props }) => (
+                  <strong className={!value ? "text-gray-400 font-bold" : "text-gray-900 font-bold"} {...props} />
+                ),
+                // Paragraph
+                p: ({ node, ...props }) => (
+                  <p className={!value ? "text-gray-400 mb-2" : "text-gray-900 mb-2"} {...props} />
+                ),
+              }}
+            >
+              {value || placeholder}
+            </ReactMarkdown>
+          </div>
+        )}
+      </div>
 
       {isFullScreen && (
         <div className="mt-4 flex justify-end">
