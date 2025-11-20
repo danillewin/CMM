@@ -25,6 +25,13 @@ export function SimpleMarkdownEditor({
 
   // Handle bold formatting
   const handleBold = () => {
+    // Ensure we're in editing mode
+    if (!isEditing) {
+      setIsEditing(true);
+      setTimeout(() => handleBold(), 50);
+      return;
+    }
+
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -57,6 +64,13 @@ export function SimpleMarkdownEditor({
 
   // Handle bullet list formatting
   const handleBulletList = () => {
+    // Ensure we're in editing mode
+    if (!isEditing) {
+      setIsEditing(true);
+      setTimeout(() => handleBulletList(), 50);
+      return;
+    }
+
     if (!textareaRef.current) return;
 
     const textarea = textareaRef.current;
@@ -212,12 +226,12 @@ export function SimpleMarkdownEditor({
                   setIsEditing(false);
                 }
               }}
-              className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed bg-transparent relative z-10 ${
+              className={`w-full p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed bg-transparent relative z-10 whitespace-pre-wrap ${
                 isFullScreen ? "min-h-[calc(100vh-200px)]" : "min-h-[150px]"
               }`}
-              style={{ fontFamily: 'inherit' }}
+              style={{ fontFamily: 'inherit', whiteSpace: 'pre-wrap' }}
               onKeyDown={(e) => {
-                if (e.ctrlKey && e.key === 'b') {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
                   e.preventDefault();
                   handleBold();
                 }
