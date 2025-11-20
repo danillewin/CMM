@@ -692,10 +692,9 @@ function MeetingGuideTab({ research }: { research?: Research }) {
     );
   }
 
-  const hasRecommendations = research.guideRespondentRecommendations?.trim();
   const hasQuestions = research.guideQuestionsSimple?.trim();
 
-  if (!hasRecommendations && !hasQuestions) {
+  if (!hasQuestions) {
     return (
       <div className="text-center py-8 text-gray-500">
         Нет доступного контента гайда для этого исследования.
@@ -704,46 +703,26 @@ function MeetingGuideTab({ research }: { research?: Research }) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Respondent Recommendations */}
-      {hasRecommendations && (
-        <div className="space-y-3" data-testid="guide-recommendations">
-          <h3 className="text-lg font-semibold">Рекомендации</h3>
-          <div className="prose prose-sm max-w-none bg-blue-50 p-4 rounded-lg">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {research.guideRespondentRecommendations || ""}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
-
-      {/* Interview Questions (Markdown format) */}
-      {hasQuestions && (
-        <div className="space-y-3" data-testid="guide-questions">
-          <h3 className="text-lg font-semibold">Вопросы</h3>
-          <div className="prose prose-sm max-w-none">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]}
-              components={{
-                // Make bold text larger and styled as block titles
-                strong: ({ children, ...props }) => (
-                  <strong className="block text-base font-semibold text-gray-900 mt-4 mb-2" {...props}>
-                    {children}
-                  </strong>
-                ),
-                // Style list items as questions
-                li: ({ children, ...props }) => (
-                  <li className="text-gray-700 ml-4 mb-1" {...props}>
-                    {children}
-                  </li>
-                ),
-              }}
-            >
-              {research.guideQuestionsSimple || ""}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
+    <div className="prose prose-sm max-w-none" data-testid="guide-questions">
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm]}
+        components={{
+          // Make bold text larger and styled as block titles
+          strong: ({ children, ...props }) => (
+            <strong className="block text-base font-semibold text-gray-900 mt-4 mb-2" {...props}>
+              {children}
+            </strong>
+          ),
+          // Style list items as questions
+          li: ({ children, ...props }) => (
+            <li className="text-gray-700 ml-4 mb-1" {...props}>
+              {children}
+            </li>
+          ),
+        }}
+      >
+        {research.guideQuestionsSimple || ""}
+      </ReactMarkdown>
     </div>
   );
 }
@@ -1185,7 +1164,7 @@ export default function MeetingDetail() {
                     value="guide"
                     className="data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md px-4 py-2.5 text-sm font-medium transition-all"
                   >
-                    Guide
+                    Гайд
                   </TabsTrigger>
                   <TabsTrigger
                     value="results"
