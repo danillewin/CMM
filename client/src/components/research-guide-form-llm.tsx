@@ -325,36 +325,19 @@ ${data.respondent_role}`;
             <FormItem>
               <FormLabel className="text-lg font-medium">{"Вопросы"}</FormLabel>
               <FormControl>
-                <div>
-                  {!field.value ? (
-                    <div 
-                      className="w-full p-3 border rounded-md min-h-[150px] cursor-text hover:bg-gray-50 transition-colors prose prose-sm max-w-none text-gray-400"
-                      onClick={() => {
-                        const editor = document.getElementById("questions-editor")?.querySelector("textarea");
-                        if (editor) editor.focus();
-                      }}
-                      data-testid="div-questions-placeholder"
-                    >
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {`Используйте **жирный текст** для заголовков блоков
+                <SimpleMarkdownEditor
+                  value={field.value}
+                  onChange={(val) => {
+                    field.onChange(val);
+                    handleFieldChange("guideQuestionsSimple", val);
+                  }}
+                  placeholder={`Используйте **жирный текст** для заголовков блоков
 
 - Пункты списка для вопросов
 - Еще один вопрос
 - И еще один`}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <SimpleMarkdownEditor
-                      value={field.value}
-                      onChange={(val) => {
-                        field.onChange(val);
-                        handleFieldChange("guideQuestionsSimple", val);
-                      }}
-                      placeholder="Введите вопросы для интервью..."
-                      id="questions-editor"
-                    />
-                  )}
-                </div>
+                  id="questions-editor"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
