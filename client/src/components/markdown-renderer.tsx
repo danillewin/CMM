@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 interface MarkdownRendererProps {
   content: string | null | undefined;
@@ -20,7 +21,7 @@ export function MarkdownRenderer({ content, className = "", maxLength }: Markdow
   return (
     <div className={`prose prose-sm max-w-none ${className}`}>
       <ReactMarkdown 
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         disallowedElements={['script', 'iframe', 'object', 'embed', 'form', 'input', 'button']}
         unwrapDisallowed={true}
       >
