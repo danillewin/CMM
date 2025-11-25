@@ -79,6 +79,9 @@ export class AsyncTranscriptionProcessor {
 
       console.log(`Successfully completed transcription for file: ${attachment.originalName}`);
 
+      // Append transcription text to meeting's fullText field
+      await this.appendTranscriptionToFullText(attachment.meetingId, attachment.originalName, result.text);
+
       // Check if all transcriptions are now complete for this meeting
       await this.checkAndTriggerSummarization(attachment.meetingId);
       
@@ -236,6 +239,52 @@ export class AsyncTranscriptionProcessor {
       }
     } catch (error) {
       console.error(`Error checking summarization trigger for meeting ${meetingId}:`, error);
+    }
+  }
+
+  /**
+   * Append transcription text to meeting's fullText field
+   */
+  private async appendTranscriptionToFullText(meetingId: number, fileName: string, transcriptionText: string): Promise<void> {
+    try {
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) {
+        console.error(`Meeting ${meetingId} not found when appending transcription`);
+        return;
+      }
+
+      // Format the transcription with file header
+      const formattedTranscription = `\n\n---\n\n**Транскрипция файла: ${fileName}**\n\n${transcriptionText}`;
+      
+      // Append to existing fullText or start fresh
+      const currentFullText = meeting.fullText || "";
+      const newFullText = currentFullText + formattedTranscription;
+
+      // Update the meeting with the new fullText (only update fullText field)
+      await storage.updateMeeting(meetingId, {
+        respondentName: meeting.respondentName,
+        respondentPosition: meeting.respondentPosition,
+        cnum: meeting.cnum,
+        gcc: meeting.gcc || "",
+        companyName: meeting.companyName || "",
+        email: meeting.email || "",
+        phone: meeting.phone || "",
+        researcher: meeting.researcher || "",
+        relationshipManager: meeting.relationshipManager,
+        salesPerson: meeting.salesPerson,
+        date: meeting.date,
+        researchId: meeting.researchId,
+        status: meeting.status as "В процессе" | "Встреча назначена" | "Завершено" | "Отклонено" | "Запланировано",
+        notes: meeting.notes || "",
+        fullText: newFullText,
+        hasGift: (meeting.hasGift as "yes" | "no") || "no",
+        summarizationStatus: meeting.summarizationStatus as any,
+        summarizationResult: meeting.summarizationResult,
+      });
+
+      console.log(`Appended transcription for "${fileName}" to meeting ${meetingId} fullText field`);
+    } catch (error) {
+      console.error(`Error appending transcription to fullText for meeting ${meetingId}:`, error);
     }
   }
 }

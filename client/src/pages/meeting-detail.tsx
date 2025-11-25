@@ -45,6 +45,8 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -68,6 +70,7 @@ import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
 import DOMPurify from "dompurify";
 import {
@@ -358,11 +361,32 @@ function MeetingResultsForm({
   onTempDataUpdate?: (data: Partial<InsertMeeting>) => void;
 }) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
-  const form = useForm<{ notes: string; fullText: string }>({
+  
+  // Copy fullText to clipboard
+  const copyFullText = async () => {
+    const fullTextContent = meeting?.fullText || "";
+    if (!fullTextContent) {
+      toast({ 
+        title: "Нет текста для копирования", 
+        description: "Дождитесь завершения транскрипции",
+        variant: "destructive" 
+      });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(fullTextContent);
+      setCopied(true);
+      toast({ title: "Текст скопирован", description: "Полный текст скопирован в буфер обмена" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast({ title: "Ошибка копирования", variant: "destructive" });
+    }
+  };
+  const form = useForm<{ notes: string }>({
     defaultValues: {
       notes: meeting?.notes || "",
-      fullText: meeting?.fullText || "",
     },
   });
 
@@ -371,7 +395,6 @@ function MeetingResultsForm({
     if (meeting) {
       form.reset({
         notes: meeting.notes || "",
-        fullText: meeting.fullText || "",
       });
     }
   }, [meeting, form]);
@@ -383,7 +406,7 @@ function MeetingResultsForm({
     }
   };
 
-  const handleSubmit = (data: { notes: string; fullText: string }) => {
+  const handleSubmit = (data: { notes: string }) => {
     if (meeting) {
       onUpdate({
         respondentName: meeting.respondentName,
@@ -400,9 +423,9 @@ function MeetingResultsForm({
         researchId: meeting.researchId,
         status: meeting.status as any,
         notes: data.notes,
-        fullText: data.fullText,
+        fullText: meeting.fullText || "",
         hasGift: (meeting.hasGift as "yes" | "no") || "no",
-        summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started", // Use nullish coalescing to preserve existing status including "completed"
+        summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started",
       });
     }
   };
@@ -455,31 +478,48 @@ function MeetingResultsForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="fullText"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-lg font-medium">
-                  Отчет в текстовом виде
-                </FormLabel>
-                <FormControl>
-                  <WysiwygMarkdownEditor
-                    value={field.value}
-                    onChange={(val) => {
-                      const newValue = val || "";
-                      field.onChange(newValue);
-                      handleFieldChange("fullText", newValue);
-                    }}
-                    placeholder="Введите полный текст..."
-                    height={300}
-                    className=""
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Read-only fullText display with copy button */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-lg font-medium">
+                Отчет в текстовом виде
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={copyFullText}
+                disabled={!meeting?.fullText}
+                data-testid="button-copy-fulltext"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Скопировано
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-2" />
+                    Копировать
+                  </>
+                )}
+              </Button>
+            </div>
+            <div className="border rounded-md p-4 bg-gray-50 min-h-[300px] max-h-[500px] overflow-y-auto prose prose-sm max-w-none">
+              {meeting?.fullText ? (
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
+                  className="whitespace-pre-wrap"
+                >
+                  {meeting.fullText}
+                </ReactMarkdown>
+              ) : (
+                <p className="text-gray-400 italic">
+                  Текст появится после завершения транскрипции загруженных файлов...
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* Summarization Results Section */}
           {meeting?.id && (
