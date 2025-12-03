@@ -91,6 +91,25 @@ export function AnnotatedTextField({
   });
 
   useEffect(() => {
+    if (!meetingId || annotations.length === 0) return;
+
+    const invalidAnnotations = annotations.filter((annotation) => {
+      if (annotation.endOffset > value.length) {
+        return true;
+      }
+      const currentText = value.substring(annotation.startOffset, annotation.endOffset);
+      if (currentText !== annotation.selectedText) {
+        return true;
+      }
+      return false;
+    });
+
+    invalidAnnotations.forEach((annotation) => {
+      deleteAnnotationMutation.mutate(annotation.id);
+    });
+  }, [value, annotations, meetingId]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popoverOpen) {
         const target = event.target as Node;
