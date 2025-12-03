@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,11 +12,13 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle,
-  Loader2
+  Loader2,
+  Save
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type MeetingAttachment } from "@shared/schema";
+import { AnnotatedTextField } from "./annotated-text-field";
 
 interface FileAttachmentsProps {
   meetingId: number;
@@ -31,6 +34,9 @@ interface TranscriptionSummary {
 
 export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   const { toast } = useToast();
+  
+  // State for tracking edited transcription texts
+  const [editedTranscriptions, setEditedTranscriptions] = useState<Record<number, string>>({});
 
   // Query for file attachments with conditional real-time updates
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
@@ -144,6 +150,61 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
       });
     }
   });
+
+  // Mutation for saving transcription text
+  const saveTranscriptionMutation = useMutation({
+    mutationFn: async ({ attachmentId, transcriptionText }: { attachmentId: number; transcriptionText: string }) => {
+      const response = await apiRequest("PATCH", `/api/files/${attachmentId}`, { transcriptionText });
+      if (!response.ok) {
+        throw new Error('Failed to save transcription');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { attachmentId }) => {
+      toast({
+        title: "Transcription saved",
+        description: "Your changes have been saved.",
+      });
+      // Remove from edited state
+      setEditedTranscriptions(prev => {
+        const updated = { ...prev };
+        delete updated[attachmentId];
+        return updated;
+      });
+      // Invalidate query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'attachments'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to save transcription",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle transcription text change
+  const handleTranscriptionChange = useCallback((attachmentId: number, text: string) => {
+    setEditedTranscriptions(prev => ({
+      ...prev,
+      [attachmentId]: text
+    }));
+  }, []);
+
+  // Get the current text value for a transcription
+  const getTranscriptionText = useCallback((attachment: MeetingAttachment) => {
+    // If the user has edited this transcription, return the edited value
+    if (editedTranscriptions[attachment.id] !== undefined) {
+      return editedTranscriptions[attachment.id];
+    }
+    // Otherwise return the original value
+    return attachment.transcriptionText || '';
+  }, [editedTranscriptions]);
+
+  // Check if a transcription has unsaved changes
+  const hasUnsavedChanges = useCallback((attachmentId: number) => {
+    return editedTranscriptions[attachmentId] !== undefined;
+  }, [editedTranscriptions]);
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('audio/')) {
@@ -408,10 +469,10 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
           <CardHeader className="border-t">
             <CardTitle className="text-base">Transcriptions</CardTitle>
             <CardDescription>
-              Transcribed text from uploaded audio/video files
+              Transcribed text from uploaded audio/video files. Select text to mark errors.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {attachments
               .filter(a => a.transcriptionStatus === 'completed' && a.transcriptionText)
               .map((attachment) => (
@@ -425,15 +486,43 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
                       {getFileIcon(attachment.mimeType)}
                       <span className="font-medium text-sm">{attachment.originalName}</span>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {attachment.transcriptionText!.length} characters
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {getTranscriptionText(attachment).length} characters
+                      </Badge>
+                      {hasUnsavedChanges(attachment.id) && (
+                        <Button
+                          onClick={() => saveTranscriptionMutation.mutate({ 
+                            attachmentId: attachment.id, 
+                            transcriptionText: editedTranscriptions[attachment.id] 
+                          })}
+                          disabled={saveTranscriptionMutation.isPending}
+                          variant="default"
+                          size="sm"
+                          className="h-7"
+                          data-testid={`button-save-transcription-${attachment.id}`}
+                        >
+                          {saveTranscriptionMutation.isPending ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <Save className="h-3 w-3 mr-1" />
+                          )}
+                          Save
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div 
-                    className="p-4 text-sm whitespace-pre-wrap max-h-64 overflow-y-auto bg-white dark:bg-gray-950"
+                    className="p-4 bg-white dark:bg-gray-950"
                     data-testid={`transcription-text-${attachment.id}`}
                   >
-                    {attachment.transcriptionText}
+                    <AnnotatedTextField
+                      meetingId={meetingId}
+                      attachmentId={attachment.id}
+                      value={getTranscriptionText(attachment)}
+                      onChange={(text) => handleTranscriptionChange(attachment.id, text)}
+                      placeholder="Transcription text..."
+                    />
                   </div>
                 </div>
               ))}
