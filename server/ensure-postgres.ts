@@ -70,8 +70,8 @@ export async function ensurePostgresRunning(): Promise<void> {
     // Create socket directory if it doesn't exist
     await execAsync(`mkdir -p ${pgdataDir}/socket && chmod 700 ${pgdataDir}/socket`);
     
-    // Remove stale PID file if it exists
-    await execAsync(`rm -f ${pgdataDir}/postmaster.pid`);
+    // Remove stale PID and lock files if they exist
+    await execAsync(`rm -f ${pgdataDir}/postmaster.pid ${pgdataDir}/socket/.s.PGSQL.5432.lock ${pgdataDir}/socket/.s.PGSQL.5432`);
     
     // Create a clean environment without PG* variables
     const cleanEnv = { ...process.env };
