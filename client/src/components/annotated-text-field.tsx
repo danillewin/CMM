@@ -57,8 +57,8 @@ export function AnnotatedTextField({
   placeholder = "Введите текст...",
   disabled = false,
 }: AnnotatedTextFieldProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
@@ -106,6 +106,13 @@ export function AnnotatedTextField({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
+  const handleScroll = useCallback(() => {
+    if (textareaRef.current && backdropRef.current) {
+      backdropRef.current.scrollTop = textareaRef.current.scrollTop;
+      backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
+    }
+  }, []);
+
   const handleTextSelection = useCallback(() => {
     if (!textareaRef.current || disabled) return;
 
@@ -136,13 +143,24 @@ export function AnnotatedTextField({
     });
   };
 
+  const escapeHtml = (text: string) => {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
   const renderAnnotatedHTML = () => {
-    if (!value) return '';
+    if (!value) {
+      return `<span style="color: #9ca3af;">${escapeHtml(placeholder)}</span>`;
+    }
 
     const sortedAnnotations = [...annotations].sort((a, b) => a.startOffset - b.startOffset);
     
     if (sortedAnnotations.length === 0) {
-      return escapeHtml(value).replace(/\n/g, '<br>');
+      return escapeHtml(value).replace(/\n/g, '<br>') + '<br>';
     }
 
     let result = '';
@@ -155,7 +173,7 @@ export function AnnotatedTextField({
 
       const styles = ERROR_TYPE_STYLES[annotation.errorType];
       const annotatedText = escapeHtml(value.substring(annotation.startOffset, annotation.endOffset));
-      result += `<span style="border-left: 3px solid ${styles?.borderColor}; background-color: ${styles?.bgColor}; padding-left: 4px; padding-right: 2px;" title="${ERROR_TYPE_LABELS[annotation.errorType]?.label}">${annotatedText}</span>`;
+      result += `<mark style="border-left: 3px solid ${styles?.borderColor}; background-color: ${styles?.bgColor}; padding-left: 4px; padding-right: 2px; border-radius: 2px;">${annotatedText}</mark>`;
 
       lastEnd = annotation.endOffset;
     });
@@ -164,13 +182,7 @@ export function AnnotatedTextField({
       result += escapeHtml(value.substring(lastEnd));
     }
 
-    return result.replace(/\n/g, '<br>');
-  };
-
-  const escapeHtml = (text: string) => {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return result.replace(/\n/g, '<br>') + '<br>';
   };
 
   const groupedAnnotations = annotations.reduce((acc, annotation) => {
@@ -190,7 +202,7 @@ export function AnnotatedTextField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed"
           data-testid="annotated-text-textarea-no-meeting"
         />
         <p className="text-sm text-muted-foreground">
@@ -201,15 +213,19 @@ export function AnnotatedTextField({
   }
 
   return (
-    <div className="space-y-4" data-testid="annotated-text-field" ref={containerRef}>
+    <div className="space-y-4" data-testid="annotated-text-field">
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div className="relative">
-        <div 
-          className="absolute inset-0 p-4 pointer-events-none overflow-hidden whitespace-pre-wrap break-words leading-relaxed font-mono text-sm"
-          style={{ 
-            color: 'transparent',
-            background: 'transparent',
+      <div 
+        className="relative border rounded-lg overflow-hidden"
+        style={{ minHeight: '200px' }}
+      >
+        <div
+          ref={backdropRef}
+          className="absolute inset-0 p-4 overflow-hidden pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed"
+          style={{
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
           }}
           dangerouslySetInnerHTML={{ __html: renderAnnotatedHTML() }}
           aria-hidden="true"
@@ -219,24 +235,21 @@ export function AnnotatedTextField({
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onScroll={handleScroll}
           onMouseUp={handleTextSelection}
           onKeyUp={handleTextSelection}
-          placeholder={placeholder}
+          placeholder=""
           disabled={disabled}
           className={cn(
-            "w-full min-h-[200px] p-4 border rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
-            "bg-transparent relative z-10",
+            "relative w-full min-h-[200px] p-4 resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
+            "bg-transparent",
+            "text-transparent caret-black dark:caret-white",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{
-            caretColor: 'black',
+            WebkitTextFillColor: 'transparent',
           }}
           data-testid="annotated-text-textarea"
-        />
-        
-        <div 
-          className="absolute inset-0 p-4 pointer-events-none overflow-hidden whitespace-pre-wrap break-words leading-relaxed font-mono text-sm border rounded-lg"
-          dangerouslySetInnerHTML={{ __html: renderAnnotatedHTML() }}
         />
       </div>
 
