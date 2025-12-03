@@ -64,7 +64,7 @@ export function AnnotatedTextField({
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
 
   const { data: annotationsData, isLoading } = useQuery<TextAnnotation[]>({
-    queryKey: ["/api/meetings", meetingId, "annotations"],
+    queryKey: [`/api/meetings/${meetingId}/annotations`],
     enabled: !!meetingId,
   });
   
@@ -75,7 +75,7 @@ export function AnnotatedTextField({
       return apiRequest("POST", `/api/meetings/${meetingId}/annotations`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings", meetingId, "annotations"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/meetings/${meetingId}/annotations`] });
       setSelectedRange(null);
       setPopoverOpen(false);
     },
@@ -86,7 +86,7 @@ export function AnnotatedTextField({
       return apiRequest("DELETE", `/api/annotations/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/meetings", meetingId, "annotations"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/meetings/${meetingId}/annotations`] });
     },
   });
 
