@@ -19,17 +19,17 @@ interface AnnotatedTextFieldProps {
 const ERROR_TYPE_STYLES: Record<string, { borderColor: string; bgColor: string; textColor: string }> = {
   [TextAnnotationErrorType.SUBSTITUTION]: {
     borderColor: "#eab308",
-    bgColor: "rgba(234, 179, 8, 0.35)",
+    bgColor: "rgba(253, 224, 71, 0.5)",
     textColor: "text-yellow-800 dark:text-yellow-200",
   },
   [TextAnnotationErrorType.INSERTION]: {
     borderColor: "#22c55e",
-    bgColor: "rgba(34, 197, 94, 0.35)",
+    bgColor: "rgba(134, 239, 172, 0.5)",
     textColor: "text-green-800 dark:text-green-200",
   },
   [TextAnnotationErrorType.DELETION]: {
     borderColor: "#ef4444",
-    bgColor: "rgba(239, 68, 68, 0.35)",
+    bgColor: "rgba(252, 165, 165, 0.5)",
     textColor: "text-red-800 dark:text-red-200",
   },
 };
@@ -44,7 +44,7 @@ const ERROR_TYPE_LABELS: Record<string, { label: string; icon: JSX.Element }> = 
     icon: <Plus className="h-3 w-3" />,
   },
   [TextAnnotationErrorType.DELETION]: {
-    label: "Удаление",
+    label: "Пропущенное слово",
     icon: <Minus className="h-3 w-3" />,
   },
 };
