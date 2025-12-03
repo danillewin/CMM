@@ -69,7 +69,6 @@ import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
-import { AnnotatedTextField } from "@/components/annotated-text-field";
 import DOMPurify from "dompurify";
 import {
   Table,
@@ -465,16 +464,17 @@ function MeetingResultsForm({
                   Отчет в текстовом виде
                 </FormLabel>
                 <FormControl>
-                  <AnnotatedTextField
-                    meetingId={meeting?.id}
+                  <textarea
                     value={field.value}
-                    onChange={(val) => {
-                      const newValue = val || "";
+                    onChange={(e) => {
+                      const newValue = e.target.value || "";
                       field.onChange(newValue);
                       handleFieldChange("fullText", newValue);
                     }}
                     placeholder="Введите полный текст..."
                     disabled={isLoading}
+                    className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed"
+                    data-testid="input-fulltext"
                   />
                 </FormControl>
                 <FormMessage />

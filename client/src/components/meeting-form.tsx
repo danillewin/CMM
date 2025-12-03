@@ -28,7 +28,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { PositionAutocomplete } from "./position-autocomplete";
 import { JtbdSelector } from "./jtbd-selector";
 import { WysiwygMarkdownEditor } from "./wysiwyg-markdown-editor";
-import { AnnotatedTextField } from "./annotated-text-field";
 import DOMPurify from 'dompurify';
 import remarkGfm from 'remark-gfm';
 import { RequiredFieldIndicator } from "./required-field-indicator";
@@ -730,7 +729,7 @@ export default function MeetingForm({
               />
             </div>
 
-            {/* Full Text Section with Annotation Support */}
+            {/* Full Text Section */}
             <div className="mb-8">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
                 Отчет в текстовом виде
@@ -742,12 +741,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <AnnotatedTextField
-                        meetingId={initialData?.id}
+                      <textarea
                         value={field.value}
-                        onChange={(value) => field.onChange(value || '')}
+                        onChange={(e) => field.onChange(e.target.value || '')}
                         placeholder="Введите полный текст содержания..."
                         disabled={isLoading}
+                        className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed"
+                        data-testid="input-fulltext"
                       />
                     </FormControl>
                     <FormMessage />
