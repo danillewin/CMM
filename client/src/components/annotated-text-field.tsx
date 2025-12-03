@@ -87,10 +87,13 @@ export function AnnotatedTextField({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
-  const { data: annotations = [], isLoading } = useQuery<TextAnnotation[]>({
+  const { data: annotationsData, isLoading } = useQuery<TextAnnotation[]>({
     queryKey: ["/api/meetings", meetingId, "annotations"],
     enabled: !!meetingId,
   });
+  
+  // Ensure annotations is always an array
+  const annotations = Array.isArray(annotationsData) ? annotationsData : [];
 
   const createAnnotationMutation = useMutation({
     mutationFn: async (data: { errorType: string; startOffset: number; endOffset: number; selectedText: string }) => {
