@@ -216,17 +216,13 @@ export function AnnotatedTextField({
     <div className="space-y-4" data-testid="annotated-text-field">
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div 
-        className="relative border rounded-lg bg-white dark:bg-gray-950"
-        style={{ minHeight: '200px' }}
-      >
+      <div className="relative border rounded-lg bg-white dark:bg-gray-950 overflow-hidden">
         <div
           ref={backdropRef}
-          className="absolute inset-0 p-4 overflow-auto pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100"
+          className="absolute top-0 left-0 right-0 p-4 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100"
           style={{
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
-            zIndex: 1,
           }}
           dangerouslySetInnerHTML={{ __html: renderAnnotatedHTML() }}
           aria-hidden="true"
@@ -242,14 +238,13 @@ export function AnnotatedTextField({
           placeholder=""
           disabled={disabled}
           className={cn(
-            "absolute inset-0 w-full h-full p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
+            "relative w-full min-h-[200px] p-4 resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
             "bg-transparent border-0",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{
             color: 'transparent',
             caretColor: 'black',
-            zIndex: 2,
           }}
           data-testid="annotated-text-textarea"
         />
