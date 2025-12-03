@@ -134,6 +134,11 @@ This is a full-stack web application built for managing research interviews and 
 - October 25, 2025: Added manual summarization trigger functionality with "Trigger Analysis" button in Результаты tab allowing users to manually initiate or retry AI interview analysis when status is not_started or failed
 - October 25, 2025: Enhanced manual summarization trigger to support re-analysis of completed interviews - button now shows "Re-analyze" when status is completed, allowing users to request fresh AI analysis even after successful completion (blocked only during in_progress to prevent duplicate concurrent processing)
 - November 18, 2025: Fixed critical bug where saving meeting details from Results tab was overwriting summarization results with null - enhanced updateMeeting method in storage layer to preserve existing summarization fields when not explicitly provided in update payload, ensuring Kafka service retains exclusive control over summarization data updates
+- December 3, 2025: Implemented text annotation feature for meeting reports allowing users to mark errors in text with three types: Substitution (yellow), Insertion (green), and Deletion (red)
+- December 3, 2025: Added textAnnotations database table with fields for meetingId, errorType, startOffset, endOffset, and selectedText with proper foreign key constraints
+- December 3, 2025: Created AnnotatedTextField component with synchronized textarea overlay for inline annotation display while maintaining text editability
+- December 3, 2025: Added API endpoints for text annotations: GET/POST /api/meetings/:id/annotations, DELETE /api/annotations/:id
+- December 3, 2025: Integrated text annotation feature into meeting Results tab with color-coded highlights and annotation management list
 
 ## User Preferences
 
