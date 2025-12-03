@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit2, AlertCircle, Plus, Minus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,21 +17,24 @@ interface AnnotatedTextFieldProps {
   disabled?: boolean;
 }
 
-const ERROR_TYPE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+const ERROR_TYPE_COLORS: Record<string, { bg: string; border: string; text: string; highlight: string }> = {
   [TextAnnotationErrorType.SUBSTITUTION]: {
-    bg: "bg-yellow-100 dark:bg-yellow-900/30",
-    border: "border-yellow-400",
-    text: "text-yellow-700 dark:text-yellow-300",
+    bg: "bg-yellow-200 dark:bg-yellow-800",
+    border: "border-yellow-500",
+    text: "text-yellow-800 dark:text-yellow-200",
+    highlight: "bg-yellow-300 dark:bg-yellow-700 text-yellow-900 dark:text-yellow-100 font-medium",
   },
   [TextAnnotationErrorType.INSERTION]: {
-    bg: "bg-green-100 dark:bg-green-900/30",
-    border: "border-green-400",
-    text: "text-green-700 dark:text-green-300",
+    bg: "bg-green-200 dark:bg-green-800",
+    border: "border-green-500",
+    text: "text-green-800 dark:text-green-200",
+    highlight: "bg-green-300 dark:bg-green-700 text-green-900 dark:text-green-100 font-medium",
   },
   [TextAnnotationErrorType.DELETION]: {
-    bg: "bg-red-100 dark:bg-red-900/30",
-    border: "border-red-400",
-    text: "text-red-700 dark:text-red-300",
+    bg: "bg-red-200 dark:bg-red-800",
+    border: "border-red-500",
+    text: "text-red-800 dark:text-red-200",
+    highlight: "bg-red-300 dark:bg-red-700 text-red-900 dark:text-red-100 font-medium line-through",
   },
 };
 
@@ -59,16 +61,10 @@ export function AnnotatedTextField({
   placeholder = "Введите текст...",
   disabled = false,
 }: AnnotatedTextFieldProps) {
-  const textRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(value);
-
-  useEffect(() => {
-    setEditValue(value);
-  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,7 +88,6 @@ export function AnnotatedTextField({
     enabled: !!meetingId,
   });
   
-  // Ensure annotations is always an array
   const annotations = Array.isArray(annotationsData) ? annotationsData : [];
 
   const createAnnotationMutation = useMutation({
@@ -116,7 +111,7 @@ export function AnnotatedTextField({
   });
 
   const handleTextSelection = useCallback(() => {
-    if (!textRef.current || isEditing) return;
+    if (!previewRef.current) return;
 
     const selection = window.getSelection();
     if (!selection || selection.isCollapsed || !selection.rangeCount) {
@@ -124,7 +119,7 @@ export function AnnotatedTextField({
     }
 
     const range = selection.getRangeAt(0);
-    const container = textRef.current;
+    const container = previewRef.current;
 
     if (!container.contains(range.commonAncestorContainer)) {
       return;
@@ -147,7 +142,7 @@ export function AnnotatedTextField({
       setSelectedRange({ start, end });
       setPopoverOpen(true);
     }
-  }, [isEditing]);
+  }, []);
 
   const handleAnnotate = (errorType: string) => {
     if (!selectedRange || !meetingId) return;
@@ -162,7 +157,7 @@ export function AnnotatedTextField({
   };
 
   const renderAnnotatedText = () => {
-    if (!value) return <span className="text-muted-foreground">{placeholder}</span>;
+    if (!value) return <span className="text-muted-foreground italic">{placeholder}</span>;
 
     const sortedAnnotations = [...annotations].sort((a, b) => a.startOffset - b.startOffset);
 
@@ -185,8 +180,8 @@ export function AnnotatedTextField({
         <span
           key={`annotation-${annotation.id}`}
           className={cn(
-            "relative cursor-pointer border-b-2 px-0.5 rounded-sm",
-            colors?.bg,
+            "relative px-1 py-0.5 rounded border-b-2",
+            colors?.highlight,
             colors?.border
           )}
           title={`${ERROR_TYPE_LABELS[annotation.errorType]?.label}: "${annotation.selectedText}"`}
@@ -214,16 +209,6 @@ export function AnnotatedTextField({
     return acc;
   }, {} as Record<string, TextAnnotation[]>);
 
-  const handleSaveEdit = () => {
-    onChange(editValue);
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setEditValue(value);
-    setIsEditing(false);
-  };
-
   if (!meetingId) {
     return (
       <div className="space-y-2">
@@ -247,62 +232,28 @@ export function AnnotatedTextField({
     <div className="space-y-4" data-testid="annotated-text-field">
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div className="flex gap-2 mb-2">
-        {!isEditing ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditing(true)}
-            disabled={disabled}
-            data-testid="button-edit-text"
-          >
-            <Edit2 className="h-4 w-4 mr-1" />
-            Редактировать текст
-          </Button>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              onClick={handleSaveEdit}
-              data-testid="button-save-text"
-            >
-              Сохранить
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCancelEdit}
-              data-testid="button-cancel-edit"
-            >
-              Отмена
-            </Button>
-          </>
-        )}
-      </div>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="min-h-[200px] font-mono text-sm"
+        data-testid="annotated-text-textarea"
+      />
 
-      {isEditing ? (
-        <Textarea
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          className="min-h-[300px] font-mono text-sm"
-          data-testid="annotated-text-edit-textarea"
-        />
-      ) : (
-        <>
+      {value && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Предпросмотр с аннотациями (выделите текст мышью для добавления ошибки):
+          </p>
           <div
-            ref={textRef}
+            ref={previewRef}
             className={cn(
-              "min-h-[200px] p-4 border rounded-lg bg-background whitespace-pre-wrap break-words leading-relaxed select-text cursor-text",
+              "min-h-[100px] p-4 border rounded-lg bg-muted/30 whitespace-pre-wrap break-words leading-relaxed select-text cursor-text",
               disabled && "opacity-50 cursor-not-allowed select-none"
             )}
             onMouseUp={handleTextSelection}
-            data-testid="annotated-text-display"
+            data-testid="annotated-text-preview"
           >
             {isLoading ? (
               <span className="text-muted-foreground">Загрузка...</span>
@@ -310,11 +261,7 @@ export function AnnotatedTextField({
               renderAnnotatedText()
             )}
           </div>
-
-          <p className="text-sm text-muted-foreground">
-            Выделите текст мышью, чтобы отметить ошибку
-          </p>
-        </>
+        </div>
       )}
 
       {popoverOpen && selectedRange && (
@@ -391,7 +338,7 @@ export function AnnotatedTextField({
                       className="flex items-center justify-between gap-2 text-sm py-1 px-2 rounded-sm hover:bg-muted"
                       data-testid={`annotation-item-${annotation.id}`}
                     >
-                      <span className="truncate max-w-[300px] font-mono text-xs">
+                      <span className={cn("truncate max-w-[300px] font-mono text-xs px-1 rounded", colors?.highlight)}>
                         "{annotation.selectedText}"
                       </span>
                       <Button
