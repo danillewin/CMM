@@ -69,6 +69,7 @@ import MeetingForm from "@/components/meeting-form";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { WysiwygMarkdownEditor } from "@/components/wysiwyg-markdown-editor";
+import { AnnotatedTextField } from "@/components/annotated-text-field";
 import DOMPurify from "dompurify";
 import {
   Table,
@@ -464,7 +465,8 @@ function MeetingResultsForm({
                   Отчет в текстовом виде
                 </FormLabel>
                 <FormControl>
-                  <WysiwygMarkdownEditor
+                  <AnnotatedTextField
+                    meetingId={meeting?.id}
                     value={field.value}
                     onChange={(val) => {
                       const newValue = val || "";
@@ -472,8 +474,7 @@ function MeetingResultsForm({
                       handleFieldChange("fullText", newValue);
                     }}
                     placeholder="Введите полный текст..."
-                    height={300}
-                    className=""
+                    disabled={isLoading}
                   />
                 </FormControl>
                 <FormMessage />
