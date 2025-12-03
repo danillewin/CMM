@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,9 +11,7 @@ import {
   CheckCircle, 
   Clock, 
   AlertCircle,
-  Loader2,
-  Eye,
-  EyeOff
+  Loader2
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +30,6 @@ interface TranscriptionSummary {
 }
 
 export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
-  const [expandedTranscription, setExpandedTranscription] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Query for file attachments with conditional real-time updates
@@ -224,10 +220,6 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     }
   };
 
-  const toggleTranscriptionView = (fileId: number) => {
-    setExpandedTranscription(expandedTranscription === fileId ? null : fileId);
-  };
-
   if (isLoading) {
     return (
       <Card className="w-full">
@@ -346,7 +338,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
             {attachments.map((attachment) => (
               <div 
                 key={attachment.id}
-                className="border border-gray-200 rounded-lg p-4 space-y-3"
+                className="border border-gray-200 rounded-lg p-4"
                 data-testid={`attachment-${attachment.id}`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -394,57 +386,60 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
                         <RefreshCw className="h-3 w-3" />
                       </Button>
                     )}
-
-                    {attachment.transcriptionStatus === 'completed' && attachment.transcriptionText && (
-                      <Button
-                        onClick={() => toggleTranscriptionView(attachment.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8"
-                        data-testid={`button-view-transcription-${attachment.id}`}
-                      >
-                        {expandedTranscription === attachment.id ? (
-                          <EyeOff className="h-3 w-3" />
-                        ) : (
-                          <Eye className="h-3 w-3" />
-                        )}
-                      </Button>
-                    )}
                   </div>
                 </div>
                 
                 {attachment.errorMessage && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="mt-3">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
                       Error: {attachment.errorMessage}
                     </AlertDescription>
                   </Alert>
                 )}
-
-                {attachment.transcriptionStatus === 'completed' && 
-                 attachment.transcriptionText && 
-                 expandedTranscription === attachment.id && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-sm font-medium">Transcription</h5>
-                      <Badge variant="outline" className="text-xs">
-                        {attachment.transcriptionText.length} characters
-                      </Badge>
-                    </div>
-                    <div 
-                      className="text-sm whitespace-pre-wrap max-h-48 overflow-y-auto"
-                      data-testid={`transcription-text-${attachment.id}`}
-                    >
-                      {attachment.transcriptionText}
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </CardContent>
+
+      {attachments && attachments.some(a => a.transcriptionStatus === 'completed' && a.transcriptionText) && (
+        <>
+          <CardHeader className="border-t">
+            <CardTitle className="text-base">Transcriptions</CardTitle>
+            <CardDescription>
+              Transcribed text from uploaded audio/video files
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {attachments
+              .filter(a => a.transcriptionStatus === 'completed' && a.transcriptionText)
+              .map((attachment) => (
+                <div 
+                  key={`transcription-${attachment.id}`}
+                  className="border border-gray-200 rounded-lg overflow-hidden"
+                  data-testid={`transcription-section-${attachment.id}`}
+                >
+                  <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {getFileIcon(attachment.mimeType)}
+                      <span className="font-medium text-sm">{attachment.originalName}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {attachment.transcriptionText!.length} characters
+                    </Badge>
+                  </div>
+                  <div 
+                    className="p-4 text-sm whitespace-pre-wrap max-h-64 overflow-y-auto bg-white dark:bg-gray-950"
+                    data-testid={`transcription-text-${attachment.id}`}
+                  >
+                    {attachment.transcriptionText}
+                  </div>
+                </div>
+              ))}
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 }
