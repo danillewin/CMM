@@ -301,10 +301,11 @@ export const TextAnnotationErrorType = {
 
 export type TextAnnotationErrorTypeValue = typeof TextAnnotationErrorType[keyof typeof TextAnnotationErrorType];
 
-// Text annotations table for marking errors in fullText field
+// Text annotations table for marking errors in transcription text
 export const textAnnotations = pgTable("text_annotations", {
   id: serial("id").primaryKey(),
   meetingId: integer("meeting_id").references(() => meetings.id, { onDelete: 'cascade' }).notNull(),
+  attachmentId: integer("attachment_id").references(() => meetingAttachments.id, { onDelete: 'cascade' }), // Optional: links to specific attachment transcription
   errorType: text("error_type").notNull(), // substitution, insertion, deletion
   startOffset: integer("start_offset").notNull(), // Character offset where annotation starts
   endOffset: integer("end_offset").notNull(), // Character offset where annotation ends
@@ -363,6 +364,7 @@ export const insertTextAnnotationSchema = createInsertSchema(textAnnotations).om
   createdAt: true,
 }).extend({
   meetingId: z.number({ required_error: "Meeting ID is required" }),
+  attachmentId: z.number().optional(), // Optional: links to specific attachment transcription
   errorType: z.enum([TextAnnotationErrorType.SUBSTITUTION, TextAnnotationErrorType.INSERTION, TextAnnotationErrorType.DELETION]),
   startOffset: z.number().int().min(0, "Start offset must be non-negative"),
   endOffset: z.number().int().min(0, "End offset must be non-negative"),
