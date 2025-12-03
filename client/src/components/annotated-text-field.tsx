@@ -19,17 +19,17 @@ interface AnnotatedTextFieldProps {
 const ERROR_TYPE_STYLES: Record<string, { borderColor: string; bgColor: string; textColor: string }> = {
   [TextAnnotationErrorType.SUBSTITUTION]: {
     borderColor: "#eab308",
-    bgColor: "rgba(234, 179, 8, 0.1)",
+    bgColor: "rgba(234, 179, 8, 0.15)",
     textColor: "text-yellow-800 dark:text-yellow-200",
   },
   [TextAnnotationErrorType.INSERTION]: {
     borderColor: "#22c55e",
-    bgColor: "rgba(34, 197, 94, 0.1)",
+    bgColor: "rgba(34, 197, 94, 0.15)",
     textColor: "text-green-800 dark:text-green-200",
   },
   [TextAnnotationErrorType.DELETION]: {
     borderColor: "#ef4444",
-    bgColor: "rgba(239, 68, 68, 0.1)",
+    bgColor: "rgba(239, 68, 68, 0.15)",
     textColor: "text-red-800 dark:text-red-200",
   },
 };
@@ -57,7 +57,8 @@ export function AnnotatedTextField({
   placeholder = "Введите текст...",
   disabled = false,
 }: AnnotatedTextFieldProps) {
-  const editorRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
@@ -97,7 +98,6 @@ export function AnnotatedTextField({
         if (popoverElement && !popoverElement.contains(target)) {
           setPopoverOpen(false);
           setSelectedRange(null);
-          window.getSelection()?.removeAllRanges();
         }
       }
     };
@@ -106,63 +106,18 @@ export function AnnotatedTextField({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
-  const getTextContent = (element: HTMLElement): string => {
-    let text = '';
-    element.childNodes.forEach(node => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text += node.textContent;
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const el = node as HTMLElement;
-        if (el.tagName === 'BR') {
-          text += '\n';
-        } else if (el.tagName === 'DIV' || el.tagName === 'P') {
-          if (text.length > 0 && !text.endsWith('\n')) {
-            text += '\n';
-          }
-          text += getTextContent(el);
-        } else {
-          text += getTextContent(el);
-        }
-      }
-    });
-    return text;
-  };
-
-  const handleInput = useCallback(() => {
-    if (editorRef.current) {
-      const newValue = getTextContent(editorRef.current);
-      onChange(newValue);
-    }
-  }, [onChange]);
-
   const handleTextSelection = useCallback(() => {
-    if (!editorRef.current || disabled) return;
+    if (!textareaRef.current || disabled) return;
 
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !selection.rangeCount) {
-      return;
-    }
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
 
-    const range = selection.getRangeAt(0);
-    const container = editorRef.current;
-
-    if (!container.contains(range.commonAncestorContainer)) {
-      return;
-    }
-
-    const preSelectionRange = range.cloneRange();
-    preSelectionRange.selectNodeContents(container);
-    preSelectionRange.setEnd(range.startContainer, range.startOffset);
-    const start = preSelectionRange.toString().length;
-
-    const selectedText = selection.toString();
-    const end = start + selectedText.length;
-
-    if (end > start && selectedText.trim().length > 0) {
-      const rect = range.getBoundingClientRect();
+    if (end > start) {
+      const rect = textarea.getBoundingClientRect();
       setPopoverPosition({
         x: rect.left + rect.width / 2,
-        y: rect.bottom + 10,
+        y: rect.top - 10,
       });
       setSelectedRange({ start, end });
       setPopoverOpen(true);
@@ -181,84 +136,41 @@ export function AnnotatedTextField({
     });
   };
 
-  const renderAnnotatedContent = () => {
-    if (!value) {
-      return null;
-    }
+  const renderAnnotatedHTML = () => {
+    if (!value) return '';
 
     const sortedAnnotations = [...annotations].sort((a, b) => a.startOffset - b.startOffset);
     
     if (sortedAnnotations.length === 0) {
-      return value.split('\n').map((line, i) => (
-        <div key={i}>{line || <br />}</div>
-      ));
+      return escapeHtml(value).replace(/\n/g, '<br>');
     }
 
-    const lines = value.split('\n');
-    let currentPos = 0;
-    const result: JSX.Element[] = [];
+    let result = '';
+    let lastEnd = 0;
 
-    lines.forEach((line, lineIndex) => {
-      const lineStart = currentPos;
-      const lineEnd = currentPos + line.length;
-      
-      const lineAnnotations = sortedAnnotations.filter(
-        a => a.startOffset < lineEnd && a.endOffset > lineStart
-      );
-
-      if (lineAnnotations.length === 0) {
-        result.push(<div key={lineIndex}>{line || <br />}</div>);
-      } else {
-        const lineParts: JSX.Element[] = [];
-        let pos = lineStart;
-
-        lineAnnotations.forEach((annotation, annIndex) => {
-          const annStart = Math.max(annotation.startOffset, lineStart);
-          const annEnd = Math.min(annotation.endOffset, lineEnd);
-
-          if (pos < annStart) {
-            lineParts.push(
-              <span key={`text-${lineIndex}-${annIndex}`}>
-                {value.substring(pos, annStart)}
-              </span>
-            );
-          }
-
-          const styles = ERROR_TYPE_STYLES[annotation.errorType];
-          lineParts.push(
-            <span
-              key={`ann-${annotation.id}`}
-              style={{
-                borderLeft: `3px solid ${styles?.borderColor}`,
-                backgroundColor: styles?.bgColor,
-                paddingLeft: '4px',
-                paddingRight: '2px',
-              }}
-              title={`${ERROR_TYPE_LABELS[annotation.errorType]?.label}`}
-              data-testid={`annotation-${annotation.id}`}
-            >
-              {value.substring(annStart, annEnd)}
-            </span>
-          );
-
-          pos = annEnd;
-        });
-
-        if (pos < lineEnd) {
-          lineParts.push(
-            <span key={`text-${lineIndex}-end`}>
-              {value.substring(pos, lineEnd)}
-            </span>
-          );
-        }
-
-        result.push(<div key={lineIndex}>{lineParts.length > 0 ? lineParts : <br />}</div>);
+    sortedAnnotations.forEach((annotation) => {
+      if (annotation.startOffset > lastEnd) {
+        result += escapeHtml(value.substring(lastEnd, annotation.startOffset));
       }
 
-      currentPos = lineEnd + 1;
+      const styles = ERROR_TYPE_STYLES[annotation.errorType];
+      const annotatedText = escapeHtml(value.substring(annotation.startOffset, annotation.endOffset));
+      result += `<span style="border-left: 3px solid ${styles?.borderColor}; background-color: ${styles?.bgColor}; padding-left: 4px; padding-right: 2px;" title="${ERROR_TYPE_LABELS[annotation.errorType]?.label}">${annotatedText}</span>`;
+
+      lastEnd = annotation.endOffset;
     });
 
-    return result;
+    if (lastEnd < value.length) {
+      result += escapeHtml(value.substring(lastEnd));
+    }
+
+    return result.replace(/\n/g, '<br>');
+  };
+
+  const escapeHtml = (text: string) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   };
 
   const groupedAnnotations = annotations.reduce((acc, annotation) => {
@@ -273,15 +185,14 @@ export function AnnotatedTextField({
     return (
       <div className="space-y-2">
         {label && <label className="text-sm font-medium">{label}</label>}
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          className="min-h-[200px] p-4 border rounded-lg bg-background whitespace-pre-wrap break-words leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring"
-          onInput={handleInput}
-          data-testid="annotated-text-editor-no-meeting"
-        >
-          {value || <span className="text-muted-foreground">{placeholder}</span>}
-        </div>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+          data-testid="annotated-text-textarea-no-meeting"
+        />
         <p className="text-sm text-muted-foreground">
           Сохраните встречу, чтобы добавлять аннотации к тексту
         </p>
@@ -290,29 +201,43 @@ export function AnnotatedTextField({
   }
 
   return (
-    <div className="space-y-4" data-testid="annotated-text-field">
+    <div className="space-y-4" data-testid="annotated-text-field" ref={containerRef}>
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div
-        ref={editorRef}
-        contentEditable={!disabled}
-        suppressContentEditableWarning
-        className={cn(
-          "min-h-[200px] p-4 border rounded-lg bg-background whitespace-pre-wrap break-words leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring select-text",
-          disabled && "opacity-50 cursor-not-allowed"
-        )}
-        onInput={handleInput}
-        onMouseUp={handleTextSelection}
-        data-testid="annotated-text-editor"
-        data-placeholder={placeholder}
-      >
-        {isLoading ? (
-          <span className="text-muted-foreground">Загрузка...</span>
-        ) : value ? (
-          renderAnnotatedContent()
-        ) : (
-          <span className="text-muted-foreground">{placeholder}</span>
-        )}
+      <div className="relative">
+        <div 
+          className="absolute inset-0 p-4 pointer-events-none overflow-hidden whitespace-pre-wrap break-words leading-relaxed font-mono text-sm"
+          style={{ 
+            color: 'transparent',
+            background: 'transparent',
+          }}
+          dangerouslySetInnerHTML={{ __html: renderAnnotatedHTML() }}
+          aria-hidden="true"
+        />
+        
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onMouseUp={handleTextSelection}
+          onKeyUp={handleTextSelection}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={cn(
+            "w-full min-h-[200px] p-4 border rounded-lg resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
+            "bg-transparent relative z-10",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
+          style={{
+            caretColor: 'black',
+          }}
+          data-testid="annotated-text-textarea"
+        />
+        
+        <div 
+          className="absolute inset-0 p-4 pointer-events-none overflow-hidden whitespace-pre-wrap break-words leading-relaxed font-mono text-sm border rounded-lg"
+          dangerouslySetInnerHTML={{ __html: renderAnnotatedHTML() }}
+        />
       </div>
 
       <p className="text-xs text-muted-foreground">
@@ -325,7 +250,7 @@ export function AnnotatedTextField({
           style={{
             left: `${popoverPosition.x}px`,
             top: `${popoverPosition.y}px`,
-            transform: "translateX(-50%)",
+            transform: "translate(-50%, -100%)",
           }}
           data-testid="annotation-popover"
         >
