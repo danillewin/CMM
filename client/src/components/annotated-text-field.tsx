@@ -9,6 +9,7 @@ import { TextAnnotation, TextAnnotationErrorType } from "@shared/schema";
 
 interface AnnotatedTextFieldProps {
   meetingId: number | undefined;
+  attachmentId?: number;
   value: string;
   onChange: (value: string) => void;
   label?: string;
@@ -51,6 +52,7 @@ const ERROR_TYPE_LABELS: Record<string, { label: string; icon: JSX.Element }> = 
 
 export function AnnotatedTextField({
   meetingId,
+  attachmentId,
   value,
   onChange,
   label,
@@ -63,19 +65,33 @@ export function AnnotatedTextField({
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
 
+  // Determine API endpoints based on whether this is for an attachment or meeting fullText
+  const annotationsEndpoint = attachmentId 
+    ? `/api/attachments/${attachmentId}/annotations`
+    : `/api/meetings/${meetingId}/annotations`;
+  
+  const queryKeyBase = attachmentId 
+    ? ['/api/attachments', attachmentId, 'annotations'] 
+    : ['/api/meetings', meetingId, 'annotations'];
+
   const { data: annotationsData, isLoading } = useQuery<TextAnnotation[]>({
-    queryKey: [`/api/meetings/${meetingId}/annotations`],
-    enabled: !!meetingId,
+    queryKey: queryKeyBase,
+    queryFn: async () => {
+      const res = await fetch(annotationsEndpoint);
+      if (!res.ok) throw new Error('Failed to fetch annotations');
+      return res.json();
+    },
+    enabled: attachmentId ? !!attachmentId : !!meetingId,
   });
   
   const annotations = Array.isArray(annotationsData) ? annotationsData : [];
 
   const createAnnotationMutation = useMutation({
     mutationFn: async (data: { errorType: string; startOffset: number; endOffset: number; selectedText: string }) => {
-      return apiRequest("POST", `/api/meetings/${meetingId}/annotations`, data);
+      return apiRequest("POST", annotationsEndpoint, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/meetings/${meetingId}/annotations`] });
+      queryClient.invalidateQueries({ queryKey: queryKeyBase });
       setSelectedRange(null);
       setPopoverOpen(false);
     },
@@ -86,12 +102,13 @@ export function AnnotatedTextField({
       return apiRequest("DELETE", `/api/annotations/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/meetings/${meetingId}/annotations`] });
+      queryClient.invalidateQueries({ queryKey: queryKeyBase });
     },
   });
 
   useEffect(() => {
-    if (!meetingId || annotations.length === 0) return;
+    // Skip cleanup if neither meetingId nor attachmentId is set
+    if ((!meetingId && !attachmentId) || annotations.length === 0) return;
 
     const invalidAnnotations = annotations.filter((annotation) => {
       if (annotation.endOffset > value.length) {
@@ -107,7 +124,7 @@ export function AnnotatedTextField({
     invalidAnnotations.forEach((annotation) => {
       deleteAnnotationMutation.mutate(annotation.id);
     });
-  }, [value, annotations, meetingId]);
+  }, [value, annotations, meetingId, attachmentId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -151,7 +168,8 @@ export function AnnotatedTextField({
   }, [disabled]);
 
   const handleAnnotate = (errorType: string) => {
-    if (!selectedRange || !meetingId) return;
+    // Allow annotation if either meetingId or attachmentId is present
+    if (!selectedRange || (!meetingId && !attachmentId)) return;
 
     const selectedText = value.substring(selectedRange.start, selectedRange.end);
     createAnnotationMutation.mutate({
@@ -212,7 +230,8 @@ export function AnnotatedTextField({
     return acc;
   }, {} as Record<string, TextAnnotation[]>);
 
-  if (!meetingId) {
+  // Show fallback without annotations if neither meetingId nor attachmentId is set
+  if (!meetingId && !attachmentId) {
     return (
       <div className="space-y-2">
         {label && <label className="text-sm font-medium">{label}</label>}
