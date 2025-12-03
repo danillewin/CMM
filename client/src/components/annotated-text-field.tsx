@@ -2,7 +2,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit2, AlertCircle, Plus, Minus, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Trash2, Edit2, AlertCircle, Plus, Minus, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { TextAnnotation, TextAnnotationErrorType } from "@shared/schema";
@@ -16,6 +17,11 @@ interface AnnotatedTextFieldProps {
   placeholder?: string;
   disabled?: boolean;
 }
+
+const REQUIRES_CORRECTION_INPUT = [
+  TextAnnotationErrorType.SUBSTITUTION,
+  TextAnnotationErrorType.DELETION,
+];
 
 const ERROR_TYPE_STYLES: Record<string, { borderColor: string; bgColor: string; textColor: string }> = {
   [TextAnnotationErrorType.SUBSTITUTION]: {
@@ -61,9 +67,12 @@ export function AnnotatedTextField({
 }: AnnotatedTextFieldProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
+  const correctionInputRef = useRef<HTMLInputElement>(null);
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
+  const [pendingErrorType, setPendingErrorType] = useState<string | null>(null);
+  const [correctionText, setCorrectionText] = useState("");
 
   // Determine API endpoints based on whether this is for an attachment or meeting fullText
   const annotationsEndpoint = attachmentId 
@@ -87,13 +96,15 @@ export function AnnotatedTextField({
   const annotations = Array.isArray(annotationsData) ? annotationsData : [];
 
   const createAnnotationMutation = useMutation({
-    mutationFn: async (data: { errorType: string; startOffset: number; endOffset: number; selectedText: string }) => {
+    mutationFn: async (data: { errorType: string; startOffset: number; endOffset: number; selectedText: string; correctionText?: string }) => {
       return apiRequest("POST", annotationsEndpoint, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeyBase });
       setSelectedRange(null);
       setPopoverOpen(false);
+      setPendingErrorType(null);
+      setCorrectionText("");
     },
   });
 
@@ -168,16 +179,39 @@ export function AnnotatedTextField({
   }, [disabled]);
 
   const handleAnnotate = (errorType: string) => {
-    // Allow annotation if either meetingId or attachmentId is present
     if (!selectedRange || (!meetingId && !attachmentId)) return;
+
+    if (REQUIRES_CORRECTION_INPUT.includes(errorType as typeof TextAnnotationErrorType.SUBSTITUTION | typeof TextAnnotationErrorType.DELETION)) {
+      setPendingErrorType(errorType);
+      setCorrectionText("");
+      setTimeout(() => correctionInputRef.current?.focus(), 100);
+    } else {
+      const selectedText = value.substring(selectedRange.start, selectedRange.end);
+      createAnnotationMutation.mutate({
+        errorType,
+        startOffset: selectedRange.start,
+        endOffset: selectedRange.end,
+        selectedText,
+      });
+    }
+  };
+
+  const handleSubmitCorrection = () => {
+    if (!selectedRange || !pendingErrorType || (!meetingId && !attachmentId)) return;
 
     const selectedText = value.substring(selectedRange.start, selectedRange.end);
     createAnnotationMutation.mutate({
-      errorType,
+      errorType: pendingErrorType,
       startOffset: selectedRange.start,
       endOffset: selectedRange.end,
       selectedText,
+      correctionText: correctionText.trim() || undefined,
     });
+  };
+
+  const handleCancelCorrection = () => {
+    setPendingErrorType(null);
+    setCorrectionText("");
   };
 
   const escapeHtml = (text: string) => {
@@ -302,41 +336,99 @@ export function AnnotatedTextField({
           }}
           data-testid="annotation-popover"
         >
-          <div className="flex flex-col gap-1">
-            <p className="text-xs text-muted-foreground px-2 py-1">Тип ошибки:</p>
-            {Object.entries(ERROR_TYPE_LABELS).map(([type, { label, icon }]) => {
-              const styles = ERROR_TYPE_STYLES[type];
-              return (
+          {pendingErrorType ? (
+            <div className="flex flex-col gap-2 min-w-[250px]">
+              <div className="flex items-center gap-2 px-2 py-1">
+                {ERROR_TYPE_LABELS[pendingErrorType]?.icon}
+                <span className={cn("text-sm font-medium", ERROR_TYPE_STYLES[pendingErrorType]?.textColor)}>
+                  {ERROR_TYPE_LABELS[pendingErrorType]?.label}
+                </span>
+              </div>
+              <div className="px-2">
+                <p className="text-xs text-muted-foreground mb-1">
+                  {pendingErrorType === TextAnnotationErrorType.SUBSTITUTION 
+                    ? "Введите правильное слово:" 
+                    : "Введите пропущенное слово:"}
+                </p>
+                <Input
+                  ref={correctionInputRef}
+                  type="text"
+                  value={correctionText}
+                  onChange={(e) => setCorrectionText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSubmitCorrection();
+                    } else if (e.key === "Escape") {
+                      handleCancelCorrection();
+                    }
+                  }}
+                  placeholder="Введите слово..."
+                  className="h-8 text-sm"
+                  data-testid="input-correction-text"
+                />
+              </div>
+              <div className="flex gap-1 px-2 pt-1">
                 <Button
-                  key={type}
+                  type="button"
+                  size="sm"
+                  className="flex-1 h-7"
+                  onClick={handleSubmitCorrection}
+                  disabled={createAnnotationMutation.isPending}
+                  data-testid="button-submit-correction"
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  Сохранить
+                </Button>
+                <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className={cn("justify-start", styles?.textColor)}
-                  onClick={() => handleAnnotate(type)}
-                  disabled={createAnnotationMutation.isPending}
-                  data-testid={`button-annotate-${type}`}
+                  className="h-7"
+                  onClick={handleCancelCorrection}
+                  data-testid="button-cancel-correction"
                 >
-                  {icon}
-                  <span className="ml-2">{label}</span>
+                  <X className="h-3 w-3" />
                 </Button>
-              );
-            })}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="justify-start text-muted-foreground"
-              onClick={() => {
-                setPopoverOpen(false);
-                setSelectedRange(null);
-              }}
-              data-testid="button-cancel-annotation"
-            >
-              <X className="h-3 w-3" />
-              <span className="ml-2">Отмена</span>
-            </Button>
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-muted-foreground px-2 py-1">Тип ошибки:</p>
+              {Object.entries(ERROR_TYPE_LABELS).map(([type, { label, icon }]) => {
+                const styles = ERROR_TYPE_STYLES[type];
+                return (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={cn("justify-start", styles?.textColor)}
+                    onClick={() => handleAnnotate(type)}
+                    disabled={createAnnotationMutation.isPending}
+                    data-testid={`button-annotate-${type}`}
+                  >
+                    {icon}
+                    <span className="ml-2">{label}</span>
+                  </Button>
+                );
+              })}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="justify-start text-muted-foreground"
+                onClick={() => {
+                  setPopoverOpen(false);
+                  setSelectedRange(null);
+                }}
+                data-testid="button-cancel-annotation"
+              >
+                <X className="h-3 w-3" />
+                <span className="ml-2">Отмена</span>
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -373,21 +465,31 @@ export function AnnotatedTextField({
                       className="flex items-center justify-between gap-2 text-sm py-1 px-2 rounded-sm hover:bg-muted"
                       data-testid={`annotation-item-${annotation.id}`}
                     >
-                      <span 
-                        className="truncate max-w-[300px] font-mono text-xs px-1 rounded"
-                        style={{ 
-                          borderLeft: `3px solid ${styles?.borderColor}`,
-                          backgroundColor: styles?.bgColor,
-                          paddingLeft: '4px'
-                        }}
-                      >
-                        "{annotation.selectedText}"
-                      </span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span 
+                          className="truncate font-mono text-xs px-1 rounded"
+                          style={{ 
+                            borderLeft: `3px solid ${styles?.borderColor}`,
+                            backgroundColor: styles?.bgColor,
+                            paddingLeft: '4px'
+                          }}
+                        >
+                          "{annotation.selectedText}"
+                        </span>
+                        {annotation.correctionText && (
+                          <>
+                            <span className="text-xs text-muted-foreground">→</span>
+                            <span className="font-mono text-xs px-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 truncate">
+                              "{annotation.correctionText}"
+                            </span>
+                          </>
+                        )}
+                      </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive flex-shrink-0"
                         onClick={() => deleteAnnotationMutation.mutate(annotation.id)}
                         disabled={deleteAnnotationMutation.isPending}
                         data-testid={`button-delete-annotation-${annotation.id}`}
