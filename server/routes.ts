@@ -2056,5 +2056,59 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Attachment-specific annotation routes
+  app.get("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      const annotations = await storage.getTextAnnotationsByAttachment(attachmentId);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations for attachment:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.post("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      
+      // Get the attachment to find the meetingId
+      const attachment = await storage.getMeetingAttachment(attachmentId);
+      if (!attachment) {
+        res.status(404).json({ message: "Attachment not found" });
+        return;
+      }
+      
+      const annotationData = { 
+        ...req.body, 
+        meetingId: attachment.meetingId, 
+        attachmentId 
+      };
+      
+      const result = insertTextAnnotationSchema.safeParse(annotationData);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid annotation data", errors: result.error.errors });
+        return;
+      }
+      
+      const annotation = await storage.createTextAnnotation(result.data);
+      res.status(201).json(annotation);
+    } catch (error) {
+      console.error("Error creating text annotation for attachment:", error);
+      res.status(500).json({ message: "Failed to create text annotation" });
+    }
+  });
+
+  app.delete("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      await storage.deleteTextAnnotationsByAttachment(attachmentId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting all text annotations for attachment:", error);
+      res.status(500).json({ message: "Failed to delete text annotations" });
+    }
+  });
+
   return createServer(app);
 }

@@ -219,10 +219,12 @@ export interface IStorage {
 
   // Text annotation methods
   getTextAnnotations(meetingId: number): Promise<TextAnnotation[]>;
+  getTextAnnotationsByAttachment(attachmentId: number): Promise<TextAnnotation[]>;
   getTextAnnotationsByErrorType(meetingId: number, errorType: string): Promise<TextAnnotation[]>;
   createTextAnnotation(annotation: InsertTextAnnotation): Promise<TextAnnotation>;
   deleteTextAnnotation(id: number): Promise<boolean>;
   deleteTextAnnotationsByMeeting(meetingId: number): Promise<boolean>;
+  deleteTextAnnotationsByAttachment(attachmentId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1890,6 +1892,21 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(textAnnotations)
       .where(eq(textAnnotations.meetingId, meetingId))
+      .returning();
+    return result.length > 0;
+  }
+
+  async getTextAnnotationsByAttachment(attachmentId: number): Promise<TextAnnotation[]> {
+    return db
+      .select()
+      .from(textAnnotations)
+      .where(eq(textAnnotations.attachmentId, attachmentId));
+  }
+
+  async deleteTextAnnotationsByAttachment(attachmentId: number): Promise<boolean> {
+    const result = await db
+      .delete(textAnnotations)
+      .where(eq(textAnnotations.attachmentId, attachmentId))
       .returning();
     return result.length > 0;
   }
