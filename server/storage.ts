@@ -8,6 +8,7 @@ import {
   meetingJtbds,
   meetingAttachments,
   customFilters,
+  textAnnotations,
   type Meeting,
   type InsertMeeting,
   type Research,
@@ -25,6 +26,8 @@ import {
   type UpdateMeetingAttachment,
   type CustomFilter,
   type InsertCustomFilter,
+  type TextAnnotation,
+  type InsertTextAnnotation,
   type PaginatedResponse,
   type PaginationParams,
   type MeetingTableItem,
@@ -213,6 +216,13 @@ export interface IStorage {
     hasMore: boolean;
     total: number;
   }>;
+
+  // Text annotation methods
+  getTextAnnotations(meetingId: number): Promise<TextAnnotation[]>;
+  getTextAnnotationsByErrorType(meetingId: number, errorType: string): Promise<TextAnnotation[]>;
+  createTextAnnotation(annotation: InsertTextAnnotation): Promise<TextAnnotation>;
+  deleteTextAnnotation(id: number): Promise<boolean>;
+  deleteTextAnnotationsByMeeting(meetingId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1840,6 +1850,48 @@ export class DatabaseStorage implements IStorage {
       .where(eq(meetingAttachments.id, id))
       .returning();
     return !!deletedAttachment;
+  }
+
+  // Text annotation methods
+  async getTextAnnotations(meetingId: number): Promise<TextAnnotation[]> {
+    return db
+      .select()
+      .from(textAnnotations)
+      .where(eq(textAnnotations.meetingId, meetingId));
+  }
+
+  async getTextAnnotationsByErrorType(meetingId: number, errorType: string): Promise<TextAnnotation[]> {
+    return db
+      .select()
+      .from(textAnnotations)
+      .where(and(
+        eq(textAnnotations.meetingId, meetingId),
+        eq(textAnnotations.errorType, errorType)
+      ));
+  }
+
+  async createTextAnnotation(annotation: InsertTextAnnotation): Promise<TextAnnotation> {
+    const [newAnnotation] = await db
+      .insert(textAnnotations)
+      .values(annotation)
+      .returning();
+    return newAnnotation;
+  }
+
+  async deleteTextAnnotation(id: number): Promise<boolean> {
+    const [deletedAnnotation] = await db
+      .delete(textAnnotations)
+      .where(eq(textAnnotations.id, id))
+      .returning();
+    return !!deletedAnnotation;
+  }
+
+  async deleteTextAnnotationsByMeeting(meetingId: number): Promise<boolean> {
+    const result = await db
+      .delete(textAnnotations)
+      .where(eq(textAnnotations.meetingId, meetingId))
+      .returning();
+    return result.length > 0;
   }
 }
 

@@ -13,6 +13,8 @@ import {
   updateMeetingAttachmentSchema,
   insertResearchMeetingDtoSchema,
   updateResearchMeetingDtoSchema,
+  insertTextAnnotationSchema,
+  TextAnnotationErrorType,
   ResearchMeetingDto,
   InsertResearchMeetingDto,
   Meeting,
@@ -1974,6 +1976,83 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error cancelling meeting via OpenAPI:", error);
       res.status(500).json({ message: "Failed to cancel meeting" });
+    }
+  });
+
+  // Text annotation routes
+  app.get("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const annotations = await storage.getTextAnnotations(meetingId);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.get("/api/meetings/:meetingId/annotations/:errorType", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const errorType = req.params.errorType;
+      
+      if (!Object.values(TextAnnotationErrorType).includes(errorType as any)) {
+        res.status(400).json({ message: "Invalid error type. Must be: substitution, insertion, or deletion" });
+        return;
+      }
+      
+      const annotations = await storage.getTextAnnotationsByErrorType(meetingId, errorType);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations by type:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.post("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const annotationData = { ...req.body, meetingId };
+      
+      const result = insertTextAnnotationSchema.safeParse(annotationData);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid annotation data", errors: result.error.errors });
+        return;
+      }
+      
+      const annotation = await storage.createTextAnnotation(result.data);
+      res.status(201).json(annotation);
+    } catch (error) {
+      console.error("Error creating text annotation:", error);
+      res.status(500).json({ message: "Failed to create text annotation" });
+    }
+  });
+
+  app.delete("/api/annotations/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteTextAnnotation(id);
+      
+      if (!success) {
+        res.status(404).json({ message: "Annotation not found" });
+        return;
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting text annotation:", error);
+      res.status(500).json({ message: "Failed to delete text annotation" });
+    }
+  });
+
+  app.delete("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      await storage.deleteTextAnnotationsByMeeting(meetingId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting all text annotations for meeting:", error);
+      res.status(500).json({ message: "Failed to delete text annotations" });
     }
   });
 
