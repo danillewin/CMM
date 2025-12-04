@@ -43,11 +43,11 @@ const ERROR_TYPE_STYLES: Record<string, { borderColor: string; bgColor: string; 
 
 const ERROR_TYPE_LABELS: Record<string, { label: string; icon: JSX.Element }> = {
   [TextAnnotationErrorType.SUBSTITUTION]: {
-    label: "Подмена",
+    label: "Написано некорректно",
     icon: <Edit2 className="h-3 w-3" />,
   },
   [TextAnnotationErrorType.INSERTION]: {
-    label: "Вставка",
+    label: "Лишнее слово",
     icon: <Plus className="h-3 w-3" />,
   },
   [TextAnnotationErrorType.DELETION]: {
@@ -348,7 +348,7 @@ export function AnnotatedTextField({
               <div className="px-2">
                 <p className="text-xs text-muted-foreground mb-1">
                   {pendingErrorType === TextAnnotationErrorType.SUBSTITUTION 
-                    ? "Введите правильное слово:" 
+                    ? "Введите корректный вариант:" 
                     : "Введите пропущенное слово:"}
                 </p>
                 <Input
