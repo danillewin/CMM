@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   FileAudio, 
   FileVideo, 
@@ -13,7 +14,9 @@ import {
   Clock, 
   AlertCircle,
   Loader2,
-  Save
+  Save,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +40,9 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
   
   // State for tracking edited transcription texts
   const [editedTranscriptions, setEditedTranscriptions] = useState<Record<number, string>>({});
+  
+  // State for tracking expanded transcription sections (all expanded by default)
+  const [expandedTranscriptions, setExpandedTranscriptions] = useState<Record<number, boolean>>({});
 
   // Query for file attachments with conditional real-time updates
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
@@ -475,57 +481,79 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
           <CardContent className="space-y-6">
             {attachments
               .filter(a => a.transcriptionStatus === 'completed' && a.transcriptionText)
-              .map((attachment) => (
-                <div 
-                  key={`transcription-${attachment.id}`}
-                  className="border border-gray-200 rounded-lg overflow-hidden"
-                  data-testid={`transcription-section-${attachment.id}`}
-                >
-                  <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getFileIcon(attachment.mimeType)}
-                      <span className="font-medium text-sm">{attachment.originalName}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {getTranscriptionText(attachment).length} characters
-                      </Badge>
-                      {hasUnsavedChanges(attachment.id) && (
-                        <Button
-                          onClick={() => saveTranscriptionMutation.mutate({ 
-                            attachmentId: attachment.id, 
-                            transcriptionText: editedTranscriptions[attachment.id] 
-                          })}
-                          disabled={saveTranscriptionMutation.isPending}
-                          variant="default"
-                          size="sm"
-                          className="h-7"
-                          data-testid={`button-save-transcription-${attachment.id}`}
-                        >
-                          {saveTranscriptionMutation.isPending ? (
-                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          ) : (
-                            <Save className="h-3 w-3 mr-1" />
-                          )}
-                          Save
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  <div 
-                    className="p-4 bg-white dark:bg-gray-950"
-                    data-testid={`transcription-text-${attachment.id}`}
+              .map((attachment) => {
+                const isExpanded = expandedTranscriptions[attachment.id] !== false;
+                
+                return (
+                  <Collapsible
+                    key={`transcription-${attachment.id}`}
+                    open={isExpanded}
+                    onOpenChange={(open) => setExpandedTranscriptions(prev => ({
+                      ...prev,
+                      [attachment.id]: open
+                    }))}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    data-testid={`transcription-section-${attachment.id}`}
                   >
-                    <AnnotatedTextField
-                      meetingId={meetingId}
-                      attachmentId={attachment.id}
-                      value={getTranscriptionText(attachment)}
-                      onChange={(text) => handleTranscriptionChange(attachment.id, text)}
-                      placeholder="Transcription text..."
-                    />
-                  </div>
-                </div>
-              ))}
+                    <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b flex items-center justify-between">
+                      <CollapsibleTrigger asChild>
+                        <button 
+                          type="button"
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                          data-testid={`button-toggle-transcription-${attachment.id}`}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          )}
+                          {getFileIcon(attachment.mimeType)}
+                          <span className="font-medium text-sm">{attachment.originalName}</span>
+                        </button>
+                      </CollapsibleTrigger>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {getTranscriptionText(attachment).length} characters
+                        </Badge>
+                        {hasUnsavedChanges(attachment.id) && (
+                          <Button
+                            onClick={() => saveTranscriptionMutation.mutate({ 
+                              attachmentId: attachment.id, 
+                              transcriptionText: editedTranscriptions[attachment.id] 
+                            })}
+                            disabled={saveTranscriptionMutation.isPending}
+                            variant="default"
+                            size="sm"
+                            className="h-7"
+                            data-testid={`button-save-transcription-${attachment.id}`}
+                          >
+                            {saveTranscriptionMutation.isPending ? (
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            ) : (
+                              <Save className="h-3 w-3 mr-1" />
+                            )}
+                            Save
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <CollapsibleContent>
+                      <div 
+                        className="p-4 bg-white dark:bg-gray-950"
+                        data-testid={`transcription-text-${attachment.id}`}
+                      >
+                        <AnnotatedTextField
+                          meetingId={meetingId}
+                          attachmentId={attachment.id}
+                          value={getTranscriptionText(attachment)}
+                          onChange={(text) => handleTranscriptionChange(attachment.id, text)}
+                          placeholder="Transcription text..."
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
           </CardContent>
         </>
       )}

@@ -153,12 +153,13 @@ export function AnnotatedTextField({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [popoverOpen]);
 
-  const handleScroll = useCallback(() => {
-    if (textareaRef.current && backdropRef.current) {
-      backdropRef.current.scrollTop = textareaRef.current.scrollTop;
-      backdropRef.current.scrollLeft = textareaRef.current.scrollLeft;
+  // Auto-resize textarea on mount and when value changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
-  }, []);
+  }, [value]);
 
   const handleTextSelection = useCallback(() => {
     if (!textareaRef.current || disabled) return;
@@ -288,10 +289,10 @@ export function AnnotatedTextField({
     <div className="space-y-4" data-testid="annotated-text-field">
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div className="relative border rounded-lg bg-white dark:bg-gray-950 min-h-[200px] max-h-[500px] overflow-hidden">
+      <div className="relative border rounded-lg bg-white dark:bg-gray-950 min-h-[100px]">
         <div
           ref={backdropRef}
-          className="absolute top-0 left-0 right-0 bottom-0 p-4 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-auto scrollbar-hide"
+          className="absolute top-0 left-0 right-0 bottom-0 p-4 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-hidden"
           style={{
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
@@ -303,21 +304,26 @@ export function AnnotatedTextField({
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onScroll={handleScroll}
+          onChange={(e) => {
+            onChange(e.target.value);
+            // Auto-resize textarea
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+          }}
           onMouseUp={handleTextSelection}
           onKeyUp={handleTextSelection}
           placeholder=""
           disabled={disabled}
           className={cn(
-            "relative w-full h-full min-h-[200px] max-h-[500px] p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
-            "bg-transparent border-0 overflow-y-auto",
+            "relative w-full min-h-[100px] p-4 resize-none focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
+            "bg-transparent border-0 overflow-hidden",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{
             color: 'transparent',
             WebkitTextFillColor: 'transparent',
             caretColor: 'black',
+            height: 'auto',
           }}
           data-testid="annotated-text-textarea"
         />
