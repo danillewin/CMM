@@ -316,6 +316,7 @@ export function AnnotatedTextField({
           )}
           style={{
             color: 'transparent',
+            WebkitTextFillColor: 'transparent',
             caretColor: 'black',
           }}
           data-testid="annotated-text-textarea"
