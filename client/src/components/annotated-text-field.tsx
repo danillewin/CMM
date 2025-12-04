@@ -288,10 +288,10 @@ export function AnnotatedTextField({
     <div className="space-y-4" data-testid="annotated-text-field">
       {label && <label className="text-sm font-medium">{label}</label>}
 
-      <div className="relative border rounded-lg bg-white dark:bg-gray-950 overflow-hidden">
+      <div className="relative border rounded-lg bg-white dark:bg-gray-950">
         <div
           ref={backdropRef}
-          className="absolute top-0 left-0 right-0 p-4 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100"
+          className="absolute top-0 left-0 right-0 bottom-0 p-4 pointer-events-none whitespace-pre-wrap break-words font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100 overflow-hidden"
           style={{
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
@@ -310,8 +310,8 @@ export function AnnotatedTextField({
           placeholder=""
           disabled={disabled}
           className={cn(
-            "relative w-full min-h-[200px] p-4 resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
-            "bg-transparent border-0",
+            "relative w-full min-h-[200px] max-h-[500px] p-4 resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed",
+            "bg-transparent border-0 overflow-y-auto",
             disabled && "opacity-50 cursor-not-allowed"
           )}
           style={{
