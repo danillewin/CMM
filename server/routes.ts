@@ -1046,6 +1046,48 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Update a specific file (e.g., transcription text)
+  app.patch("/api/files/:fileId", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      // Check if file exists
+      const existingAttachment = await storage.getMeetingAttachment(fileId);
+      if (!existingAttachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Allow partial updates - only validate the fields that are provided
+      const updateData: Record<string, any> = {};
+      
+      if (req.body.transcriptionText !== undefined) {
+        updateData.transcriptionText = req.body.transcriptionText;
+      }
+      
+      if (req.body.transcriptionStatus !== undefined) {
+        updateData.transcriptionStatus = req.body.transcriptionStatus;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No valid update fields provided" });
+      }
+
+      const updatedAttachment = await storage.updateMeetingAttachment(fileId, updateData);
+      
+      if (!updatedAttachment) {
+        return res.status(500).json({ message: "Failed to update file" });
+      }
+
+      res.json(updatedAttachment);
+    } catch (error) {
+      console.error("Error updating file:", error);
+      res.status(500).json({ message: "Failed to update file" });
+    }
+  });
+
   // Delete a specific file
   app.delete("/api/files/:fileId", async (req, res) => {
     try {
