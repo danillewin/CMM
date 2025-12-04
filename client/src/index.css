@@ -25,6 +25,15 @@
   .time-24h::-webkit-datetime-edit-minute-field {
     color: inherit;
   }
+
+  /* Hide scrollbar utility class */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Fix checkbox positioning in MDXEditor task lists - ensure full visibility */
