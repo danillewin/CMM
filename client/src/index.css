@@ -34,22 +34,6 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-
-  /* Transparent textarea for annotation overlay - hide text and selection */
-  .annotation-textarea {
-    color: transparent !important;
-    -webkit-text-fill-color: transparent !important;
-    caret-color: black;
-  }
-  .annotation-textarea::selection {
-    background: transparent !important;
-    color: transparent !important;
-    -webkit-text-fill-color: transparent !important;
-  }
-  .annotation-textarea::-moz-selection {
-    background: transparent !important;
-    color: transparent !important;
-  }
 }
 
 /* Fix checkbox positioning in MDXEditor task lists - ensure full visibility */
