@@ -13,6 +13,8 @@ import {
   updateMeetingAttachmentSchema,
   insertResearchMeetingDtoSchema,
   updateResearchMeetingDtoSchema,
+  insertTextAnnotationSchema,
+  TextAnnotationErrorType,
   ResearchMeetingDto,
   InsertResearchMeetingDto,
   Meeting,
@@ -1044,6 +1046,48 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Update a specific file (e.g., transcription text)
+  app.patch("/api/files/:fileId", async (req, res) => {
+    try {
+      const fileId = parseInt(req.params.fileId);
+      if (isNaN(fileId)) {
+        return res.status(400).json({ message: "Invalid file ID" });
+      }
+
+      // Check if file exists
+      const existingAttachment = await storage.getMeetingAttachment(fileId);
+      if (!existingAttachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Allow partial updates - only validate the fields that are provided
+      const updateData: Record<string, any> = {};
+      
+      if (req.body.transcriptionText !== undefined) {
+        updateData.transcriptionText = req.body.transcriptionText;
+      }
+      
+      if (req.body.transcriptionStatus !== undefined) {
+        updateData.transcriptionStatus = req.body.transcriptionStatus;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No valid update fields provided" });
+      }
+
+      const updatedAttachment = await storage.updateMeetingAttachment(fileId, updateData);
+      
+      if (!updatedAttachment) {
+        return res.status(500).json({ message: "Failed to update file" });
+      }
+
+      res.json(updatedAttachment);
+    } catch (error) {
+      console.error("Error updating file:", error);
+      res.status(500).json({ message: "Failed to update file" });
+    }
+  });
+
   // Delete a specific file
   app.delete("/api/files/:fileId", async (req, res) => {
     try {
@@ -1974,6 +2018,137 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error cancelling meeting via OpenAPI:", error);
       res.status(500).json({ message: "Failed to cancel meeting" });
+    }
+  });
+
+  // Text annotation routes
+  app.get("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const annotations = await storage.getTextAnnotations(meetingId);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.get("/api/meetings/:meetingId/annotations/:errorType", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const errorType = req.params.errorType;
+      
+      if (!Object.values(TextAnnotationErrorType).includes(errorType as any)) {
+        res.status(400).json({ message: "Invalid error type. Must be: substitution, insertion, or deletion" });
+        return;
+      }
+      
+      const annotations = await storage.getTextAnnotationsByErrorType(meetingId, errorType);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations by type:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.post("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      const annotationData = { ...req.body, meetingId };
+      
+      const result = insertTextAnnotationSchema.safeParse(annotationData);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid annotation data", errors: result.error.errors });
+        return;
+      }
+      
+      const annotation = await storage.createTextAnnotation(result.data);
+      res.status(201).json(annotation);
+    } catch (error) {
+      console.error("Error creating text annotation:", error);
+      res.status(500).json({ message: "Failed to create text annotation" });
+    }
+  });
+
+  app.delete("/api/annotations/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const success = await storage.deleteTextAnnotation(id);
+      
+      if (!success) {
+        res.status(404).json({ message: "Annotation not found" });
+        return;
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting text annotation:", error);
+      res.status(500).json({ message: "Failed to delete text annotation" });
+    }
+  });
+
+  app.delete("/api/meetings/:meetingId/annotations", async (req, res) => {
+    try {
+      const meetingId = Number(req.params.meetingId);
+      await storage.deleteTextAnnotationsByMeeting(meetingId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting all text annotations for meeting:", error);
+      res.status(500).json({ message: "Failed to delete text annotations" });
+    }
+  });
+
+  // Attachment-specific annotation routes
+  app.get("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      const annotations = await storage.getTextAnnotationsByAttachment(attachmentId);
+      res.json(annotations);
+    } catch (error) {
+      console.error("Error fetching text annotations for attachment:", error);
+      res.status(500).json({ message: "Failed to fetch text annotations" });
+    }
+  });
+
+  app.post("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      
+      // Get the attachment to find the meetingId
+      const attachment = await storage.getMeetingAttachment(attachmentId);
+      if (!attachment) {
+        res.status(404).json({ message: "Attachment not found" });
+        return;
+      }
+      
+      const annotationData = { 
+        ...req.body, 
+        meetingId: attachment.meetingId, 
+        attachmentId 
+      };
+      
+      const result = insertTextAnnotationSchema.safeParse(annotationData);
+      if (!result.success) {
+        res.status(400).json({ message: "Invalid annotation data", errors: result.error.errors });
+        return;
+      }
+      
+      const annotation = await storage.createTextAnnotation(result.data);
+      res.status(201).json(annotation);
+    } catch (error) {
+      console.error("Error creating text annotation for attachment:", error);
+      res.status(500).json({ message: "Failed to create text annotation" });
+    }
+  });
+
+  app.delete("/api/attachments/:attachmentId/annotations", async (req, res) => {
+    try {
+      const attachmentId = Number(req.params.attachmentId);
+      await storage.deleteTextAnnotationsByAttachment(attachmentId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting all text annotations for attachment:", error);
+      res.status(500).json({ message: "Failed to delete text annotations" });
     }
   });
 

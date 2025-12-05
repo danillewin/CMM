@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { ensurePostgresRunning } from "./ensure-postgres";
 import { migrateAddRecruitmentFields } from "./migration-add-recruitment-fields";
+import { migrateAddCorrectionText } from "./migration-add-correction-text";
 import { pool } from "./db";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -50,8 +51,9 @@ app.use((req, res, next) => {
   // Ensure PostgreSQL is running before starting the app
   await ensurePostgresRunning();
   
-  // Run migration
+  // Run migrations
   await migrateAddRecruitmentFields(pool);
+  await migrateAddCorrectionText(pool);
   
   const server = registerRoutes(app);
 

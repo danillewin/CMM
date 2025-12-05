@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   FileAudio, 
   FileVideo, 
@@ -13,12 +14,14 @@ import {
   Clock, 
   AlertCircle,
   Loader2,
-  Eye,
-  EyeOff
+  Save,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { type MeetingAttachment } from "@shared/schema";
+import { AnnotatedTextField } from "./annotated-text-field";
 
 interface FileAttachmentsProps {
   meetingId: number;
@@ -33,8 +36,13 @@ interface TranscriptionSummary {
 }
 
 export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
-  const [expandedTranscription, setExpandedTranscription] = useState<number | null>(null);
   const { toast } = useToast();
+  
+  // State for tracking edited transcription texts
+  const [editedTranscriptions, setEditedTranscriptions] = useState<Record<number, string>>({});
+  
+  // State for tracking expanded transcription sections (all expanded by default)
+  const [expandedTranscriptions, setExpandedTranscriptions] = useState<Record<number, boolean>>({});
 
   // Query for file attachments with conditional real-time updates
   const { data: attachments, isLoading, error, refetch: refetchAttachments } = useQuery<MeetingAttachment[]>({
@@ -149,6 +157,61 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     }
   });
 
+  // Mutation for saving transcription text
+  const saveTranscriptionMutation = useMutation({
+    mutationFn: async ({ attachmentId, transcriptionText }: { attachmentId: number; transcriptionText: string }) => {
+      const response = await apiRequest("PATCH", `/api/files/${attachmentId}`, { transcriptionText });
+      if (!response.ok) {
+        throw new Error('Failed to save transcription');
+      }
+      return response.json();
+    },
+    onSuccess: (_, { attachmentId }) => {
+      toast({
+        title: "Transcription saved",
+        description: "Your changes have been saved.",
+      });
+      // Remove from edited state
+      setEditedTranscriptions(prev => {
+        const updated = { ...prev };
+        delete updated[attachmentId];
+        return updated;
+      });
+      // Invalidate query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'attachments'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to save transcription",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle transcription text change
+  const handleTranscriptionChange = useCallback((attachmentId: number, text: string) => {
+    setEditedTranscriptions(prev => ({
+      ...prev,
+      [attachmentId]: text
+    }));
+  }, []);
+
+  // Get the current text value for a transcription
+  const getTranscriptionText = useCallback((attachment: MeetingAttachment) => {
+    // If the user has edited this transcription, return the edited value
+    if (editedTranscriptions[attachment.id] !== undefined) {
+      return editedTranscriptions[attachment.id];
+    }
+    // Otherwise return the original value
+    return attachment.transcriptionText || '';
+  }, [editedTranscriptions]);
+
+  // Check if a transcription has unsaved changes
+  const hasUnsavedChanges = useCallback((attachmentId: number) => {
+    return editedTranscriptions[attachmentId] !== undefined;
+  }, [editedTranscriptions]);
+
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('audio/')) {
       return <FileAudio className="h-8 w-8 text-blue-500" />;
@@ -222,10 +285,6 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
         variant: "destructive"
       });
     }
-  };
-
-  const toggleTranscriptionView = (fileId: number) => {
-    setExpandedTranscription(expandedTranscription === fileId ? null : fileId);
   };
 
   if (isLoading) {
@@ -346,7 +405,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
             {attachments.map((attachment) => (
               <div 
                 key={attachment.id}
-                className="border border-gray-200 rounded-lg p-4 space-y-3"
+                className="border border-gray-200 rounded-lg p-4"
                 data-testid={`attachment-${attachment.id}`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -394,57 +453,110 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
                         <RefreshCw className="h-3 w-3" />
                       </Button>
                     )}
-
-                    {attachment.transcriptionStatus === 'completed' && attachment.transcriptionText && (
-                      <Button
-                        onClick={() => toggleTranscriptionView(attachment.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8"
-                        data-testid={`button-view-transcription-${attachment.id}`}
-                      >
-                        {expandedTranscription === attachment.id ? (
-                          <EyeOff className="h-3 w-3" />
-                        ) : (
-                          <Eye className="h-3 w-3" />
-                        )}
-                      </Button>
-                    )}
                   </div>
                 </div>
                 
                 {attachment.errorMessage && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="mt-3">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-sm">
                       Error: {attachment.errorMessage}
                     </AlertDescription>
                   </Alert>
                 )}
-
-                {attachment.transcriptionStatus === 'completed' && 
-                 attachment.transcriptionText && 
-                 expandedTranscription === attachment.id && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-sm font-medium">Transcription</h5>
-                      <Badge variant="outline" className="text-xs">
-                        {attachment.transcriptionText.length} characters
-                      </Badge>
-                    </div>
-                    <div 
-                      className="text-sm whitespace-pre-wrap max-h-48 overflow-y-auto"
-                      data-testid={`transcription-text-${attachment.id}`}
-                    >
-                      {attachment.transcriptionText}
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </CardContent>
+
+      {attachments && attachments.some(a => a.transcriptionStatus === 'completed' && a.transcriptionText) && (
+        <>
+          <CardHeader className="border-t">
+            <CardTitle className="text-base">Transcriptions</CardTitle>
+            <CardDescription>
+              Transcribed text from uploaded audio/video files. Select text to mark errors.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {attachments
+              .filter(a => a.transcriptionStatus === 'completed' && a.transcriptionText)
+              .map((attachment) => {
+                const isExpanded = expandedTranscriptions[attachment.id] !== false;
+                
+                return (
+                  <Collapsible
+                    key={`transcription-${attachment.id}`}
+                    open={isExpanded}
+                    onOpenChange={(open) => setExpandedTranscriptions(prev => ({
+                      ...prev,
+                      [attachment.id]: open
+                    }))}
+                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    data-testid={`transcription-section-${attachment.id}`}
+                  >
+                    <div className="bg-gray-50 dark:bg-gray-800 px-4 py-2 border-b flex items-center justify-between">
+                      <CollapsibleTrigger asChild>
+                        <button 
+                          type="button"
+                          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                          data-testid={`button-toggle-transcription-${attachment.id}`}
+                        >
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-500" />
+                          )}
+                          {getFileIcon(attachment.mimeType)}
+                          <span className="font-medium text-sm">{attachment.originalName}</span>
+                        </button>
+                      </CollapsibleTrigger>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {getTranscriptionText(attachment).length} characters
+                        </Badge>
+                        {hasUnsavedChanges(attachment.id) && (
+                          <Button
+                            onClick={() => saveTranscriptionMutation.mutate({ 
+                              attachmentId: attachment.id, 
+                              transcriptionText: editedTranscriptions[attachment.id] 
+                            })}
+                            disabled={saveTranscriptionMutation.isPending}
+                            variant="default"
+                            size="sm"
+                            className="h-7"
+                            data-testid={`button-save-transcription-${attachment.id}`}
+                          >
+                            {saveTranscriptionMutation.isPending ? (
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            ) : (
+                              <Save className="h-3 w-3 mr-1" />
+                            )}
+                            Save
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <CollapsibleContent>
+                      <div 
+                        className="p-4 bg-white dark:bg-gray-950"
+                        data-testid={`transcription-text-${attachment.id}`}
+                      >
+                        <AnnotatedTextField
+                          meetingId={meetingId}
+                          attachmentId={attachment.id}
+                          value={getTranscriptionText(attachment)}
+                          onChange={(text) => handleTranscriptionChange(attachment.id, text)}
+                          placeholder="Transcription text..."
+                        />
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
+          </CardContent>
+        </>
+      )}
     </Card>
   );
 }

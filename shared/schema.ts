@@ -292,6 +292,28 @@ export const customFilters = pgTable("custom_filters", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Text annotation error types
+export const TextAnnotationErrorType = {
+  SUBSTITUTION: "substitution",
+  INSERTION: "insertion",
+  DELETION: "deletion",
+} as const;
+
+export type TextAnnotationErrorTypeValue = typeof TextAnnotationErrorType[keyof typeof TextAnnotationErrorType];
+
+// Text annotations table for marking errors in transcription text
+export const textAnnotations = pgTable("text_annotations", {
+  id: serial("id").primaryKey(),
+  meetingId: integer("meeting_id").references(() => meetings.id, { onDelete: 'cascade' }).notNull(),
+  attachmentId: integer("attachment_id").references(() => meetingAttachments.id, { onDelete: 'cascade' }), // Optional: links to specific attachment transcription
+  errorType: text("error_type").notNull(), // substitution, insertion, deletion
+  startOffset: integer("start_offset").notNull(), // Character offset where annotation starts
+  endOffset: integer("end_offset").notNull(), // Character offset where annotation ends
+  selectedText: text("selected_text").notNull(), // The actual text that was selected
+  correctionText: text("correction_text"), // The correction word entered by user (for substitution/deletion errors)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Meeting attachment schema
 export const insertMeetingAttachmentSchema = createInsertSchema(meetingAttachments).omit({
   id: true,
@@ -336,6 +358,23 @@ export type UpdateMeetingAttachment = z.infer<typeof updateMeetingAttachmentSche
 
 export type CustomFilter = typeof customFilters.$inferSelect;
 export type InsertCustomFilter = z.infer<typeof insertCustomFilterSchema>;
+
+// Text annotation schema
+export const insertTextAnnotationSchema = createInsertSchema(textAnnotations).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  meetingId: z.number({ required_error: "Meeting ID is required" }),
+  attachmentId: z.number().optional(), // Optional: links to specific attachment transcription
+  errorType: z.enum([TextAnnotationErrorType.SUBSTITUTION, TextAnnotationErrorType.INSERTION, TextAnnotationErrorType.DELETION]),
+  startOffset: z.number().int().min(0, "Start offset must be non-negative"),
+  endOffset: z.number().int().min(0, "End offset must be non-negative"),
+  selectedText: z.string().min(1, "Selected text is required"),
+  correctionText: z.string().optional(), // The correction word for substitution/deletion errors
+});
+
+export type TextAnnotation = typeof textAnnotations.$inferSelect;
+export type InsertTextAnnotation = z.infer<typeof insertTextAnnotationSchema>;
 
 // Pagination types
 export type PaginationParams = {

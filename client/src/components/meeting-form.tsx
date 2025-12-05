@@ -741,12 +741,13 @@ export default function MeetingForm({
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
-                      <WysiwygMarkdownEditor
+                      <textarea
                         value={field.value}
-                        onChange={(value) => field.onChange(value || '')}
+                        onChange={(e) => field.onChange(e.target.value || '')}
                         placeholder="Введите полный текст содержания..."
-                        height={300}
-                        className=""
+                        disabled={isLoading}
+                        className="w-full min-h-[200px] p-4 border rounded-lg bg-background resize-y focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm leading-relaxed"
+                        data-testid="input-fulltext"
                       />
                     </FormControl>
                     <FormMessage />
