@@ -162,8 +162,15 @@ export function AnnotatedTextField({
     const end = textarea.selectionEnd;
 
     if (end > start) {
-      // Capture the selected text immediately
-      const selectedText = value.substring(start, end);
+      // Capture the selected text directly from the textarea's value to ensure exact match
+      const selectedText = textarea.value.substring(start, end);
+      
+      console.log('=== SELECTION DEBUG ===');
+      console.log('Offsets:', { start, end });
+      console.log('Selected text from textarea.value:', JSON.stringify(selectedText));
+      console.log('Same text from value prop:', JSON.stringify(value.substring(start, end)));
+      console.log('Values match:', textarea.value === value);
+      console.log('======================');
       
       // Position popover to the right of the selection
       if ('clientX' in event && 'clientY' in event) {
@@ -418,6 +425,10 @@ export function AnnotatedTextField({
             </div>
           ) : (
             <div className="flex flex-col gap-1">
+              <div className="px-2 py-1 mb-1 bg-muted rounded text-xs">
+                <span className="text-muted-foreground">Выбран: </span>
+                <span className="font-mono font-medium">"{selectedRange?.text}"</span>
+              </div>
               <p className="text-xs text-muted-foreground px-2 py-1">Тип ошибки:</p>
               {Object.entries(ERROR_TYPE_LABELS).map(([type, { label, icon }]) => {
                 const styles = ERROR_TYPE_STYLES[type];
