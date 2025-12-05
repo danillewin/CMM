@@ -165,17 +165,17 @@ export function AnnotatedTextField({
       // Capture the selected text immediately
       const selectedText = value.substring(start, end);
       
-      // Use mouse position for more accurate popover placement
+      // Position popover to the right of the selection
       if ('clientX' in event && 'clientY' in event) {
         setPopoverPosition({
-          x: event.clientX,
-          y: event.clientY - 10,
+          x: event.clientX + 15,
+          y: event.clientY,
         });
       } else {
         // Fallback for keyboard selection
         const rect = textarea.getBoundingClientRect();
         setPopoverPosition({
-          x: rect.left + rect.width / 2,
+          x: rect.right + 15,
           y: rect.top + 50,
         });
       }
@@ -354,7 +354,7 @@ export function AnnotatedTextField({
         <div
           className="fixed z-50 bg-popover border rounded-lg shadow-lg p-2"
           style={{
-            left: `${popoverPosition.x + 10}px`,
+            left: `${popoverPosition.x}px`,
             top: `${popoverPosition.y}px`,
             transform: "translateY(-50%)",
           }}
