@@ -68,7 +68,7 @@ export function AnnotatedTextField({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const correctionInputRef = useRef<HTMLInputElement>(null);
-  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null);
+  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number; text: string } | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
   const [pendingErrorType, setPendingErrorType] = useState<string | null>(null);
@@ -162,6 +162,9 @@ export function AnnotatedTextField({
     const end = textarea.selectionEnd;
 
     if (end > start) {
+      // Capture the selected text immediately
+      const selectedText = value.substring(start, end);
+      
       // Use mouse position for more accurate popover placement
       if ('clientX' in event && 'clientY' in event) {
         setPopoverPosition({
@@ -176,10 +179,16 @@ export function AnnotatedTextField({
           y: rect.top + 50,
         });
       }
-      setSelectedRange({ start, end });
+      setSelectedRange({ start, end, text: selectedText });
       setPopoverOpen(true);
+    } else {
+      // Selection collapsed - clear state
+      setSelectedRange(null);
+      setPopoverOpen(false);
+      setPendingErrorType(null);
+      setCorrectionText("");
     }
-  }, [disabled]);
+  }, [disabled, value]);
 
   const handleAnnotate = (errorType: string) => {
     if (!selectedRange || (!meetingId && !attachmentId)) return;
@@ -189,12 +198,12 @@ export function AnnotatedTextField({
       setCorrectionText("");
       setTimeout(() => correctionInputRef.current?.focus(), 100);
     } else {
-      const selectedText = value.substring(selectedRange.start, selectedRange.end);
+      // Use the text captured at selection time
       createAnnotationMutation.mutate({
         errorType,
         startOffset: selectedRange.start,
         endOffset: selectedRange.end,
-        selectedText,
+        selectedText: selectedRange.text,
       });
     }
   };
@@ -202,12 +211,12 @@ export function AnnotatedTextField({
   const handleSubmitCorrection = () => {
     if (!selectedRange || !pendingErrorType || (!meetingId && !attachmentId)) return;
 
-    const selectedText = value.substring(selectedRange.start, selectedRange.end);
+    // Use the text captured at selection time
     createAnnotationMutation.mutate({
       errorType: pendingErrorType,
       startOffset: selectedRange.start,
       endOffset: selectedRange.end,
-      selectedText,
+      selectedText: selectedRange.text,
       correctionText: correctionText.trim() || undefined,
     });
   };
@@ -310,7 +319,14 @@ export function AnnotatedTextField({
         <textarea
           ref={textareaRef}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            // Clear selection state when text is edited to prevent stale offsets
+            setSelectedRange(null);
+            setPopoverOpen(false);
+            setPendingErrorType(null);
+            setCorrectionText("");
+            onChange(e.target.value);
+          }}
           onMouseUp={handleTextSelection}
           onKeyUp={handleTextSelection}
           placeholder=""
