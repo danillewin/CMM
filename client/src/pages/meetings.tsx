@@ -150,6 +150,29 @@ export default function Meetings() {
     setAppliedPositionFilter(positionFilter);
     setAppliedGiftFilter(giftFilter);
   };
+  
+  // Clear all filters function - clears both display and applied states at once
+  const clearFilters = () => {
+    // Clear display filter states
+    setSearch("");
+    setStatusFilter("ALL");
+    setResearchFilter([]);
+    setManagerFilter([]);
+    setRecruiterFilter([]);
+    setResearcherFilter([]);
+    setPositionFilter([]);
+    setGiftFilter("ALL");
+    
+    // Clear applied filter states immediately (avoids race condition)
+    setAppliedSearch("");
+    setAppliedStatusFilter("ALL");
+    setAppliedResearchFilter([]);
+    setAppliedManagerFilter([]);
+    setAppliedRecruiterFilter([]);
+    setAppliedResearcherFilter([]);
+    setAppliedPositionFilter([]);
+    setAppliedGiftFilter("ALL");
+  };
 
   // Auto-apply search when debounced value changes
   useEffect(() => {
@@ -799,6 +822,7 @@ export default function Meetings() {
               onSearchChange={setSearch}
               emptyStateMessage={"Встречи не найдены"}
               onApplyFilters={applyFilters}
+              onClearFilters={clearFilters}
               hasUnappliedFilters={
                 statusFilter !== appliedStatusFilter ||
                 JSON.stringify(researchFilter) !== JSON.stringify(appliedResearchFilter) ||

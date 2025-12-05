@@ -94,6 +94,7 @@ interface ConfigurableTableProps<T> {
   onSearchChange?: (value: string) => void;
   emptyStateMessage?: string;
   onApplyFilters?: () => void;
+  onClearFilters?: () => void; // Directly clear and apply filters (avoids async state race condition)
   hasUnappliedFilters?: boolean;
   isLoading?: boolean;
 }
@@ -162,6 +163,7 @@ export function ConfigurableTable<T extends { id: number | string }>({
   onSearchChange,
   emptyStateMessage,
   onApplyFilters,
+  onClearFilters,
   hasUnappliedFilters,
   isLoading
 }: ConfigurableTableProps<T>) {
@@ -401,7 +403,13 @@ export function ConfigurableTable<T extends { id: number | string }>({
                         size="sm" 
                         className="flex-1 bg-white"
                         onClick={() => {
-                          // Reset all filters to empty arrays or "ALL"
+                          // If onClearFilters is provided, use it directly (handles both display and applied states)
+                          if (onClearFilters) {
+                            onClearFilters();
+                            return;
+                          }
+                          
+                          // Fallback: Reset all filters to empty arrays or "ALL"
                           filters?.forEach(filter => {
                             // Check if this filter has an isActive function (custom components)
                             const hasCustomClearLogic = filter.isActive && typeof filter.isActive === 'function';

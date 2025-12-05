@@ -285,6 +285,25 @@ export default function Researches() {
     setAppliedResearchTypeFilters(researchTypeFilters);
     setAppliedProductFilters(productFilters);
   };
+  
+  // Clear all filters function - clears both display and applied states at once
+  const clearFilters = () => {
+    // Clear display filter states
+    setSearch("");
+    setStatusFilter("ALL");
+    setTeamFilter([]);
+    setResearcherFilter([]);
+    setResearchTypeFilters([]);
+    setProductFilters([]);
+    
+    // Clear applied filter states immediately (avoids race condition)
+    setAppliedSearch("");
+    setAppliedStatusFilter("ALL");
+    setAppliedTeamFilter([]);
+    setAppliedResearcherFilter([]);
+    setAppliedResearchTypeFilters([]);
+    setAppliedProductFilters([]);
+  };
 
   // Auto-apply search when debounced value changes
   useEffect(() => {
@@ -766,6 +785,7 @@ export default function Researches() {
             storeConfigKey="researches-table-columns"
             emptyStateMessage={"Исследования не найдены"}
             onApplyFilters={applyFilters}
+            onClearFilters={clearFilters}
             hasUnappliedFilters={
               statusFilter !== appliedStatusFilter ||
               teamFilter !== appliedTeamFilter ||
