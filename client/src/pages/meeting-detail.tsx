@@ -364,9 +364,26 @@ function MeetingResultsForm({
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   
+  const form = useForm<{ notes: string; fullText: string }>({
+    defaultValues: {
+      notes: meeting?.notes || "",
+      fullText: meeting?.fullText || "",
+    },
+  });
+
+  // Reset form when meeting data changes
+  useEffect(() => {
+    if (meeting) {
+      form.reset({
+        notes: meeting.notes || "",
+        fullText: meeting.fullText || "",
+      });
+    }
+  }, [meeting, form]);
+  
   // Copy fullText to clipboard
   const copyFullText = async () => {
-    const fullTextContent = meeting?.fullText || "";
+    const fullTextContent = form.getValues("fullText") || "";
     if (!fullTextContent) {
       toast({ 
         title: "Нет текста для копирования", 
@@ -384,20 +401,6 @@ function MeetingResultsForm({
       toast({ title: "Ошибка копирования", variant: "destructive" });
     }
   };
-  const form = useForm<{ notes: string }>({
-    defaultValues: {
-      notes: meeting?.notes || "",
-    },
-  });
-
-  // Reset form when meeting data changes
-  useEffect(() => {
-    if (meeting) {
-      form.reset({
-        notes: meeting.notes || "",
-      });
-    }
-  }, [meeting, form]);
 
   // Handle form field changes to update temporary data
   const handleFieldChange = (field: string, value: string) => {
@@ -406,7 +409,7 @@ function MeetingResultsForm({
     }
   };
 
-  const handleSubmit = (data: { notes: string }) => {
+  const handleSubmit = (data: { notes: string; fullText: string }) => {
     if (meeting) {
       onUpdate({
         respondentName: meeting.respondentName,
@@ -423,7 +426,7 @@ function MeetingResultsForm({
         researchId: meeting.researchId,
         status: meeting.status as any,
         notes: data.notes,
-        fullText: meeting.fullText || "",
+        fullText: data.fullText,
         hasGift: (meeting.hasGift as "yes" | "no") || "no",
         summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started",
       });
@@ -478,48 +481,54 @@ function MeetingResultsForm({
             )}
           />
 
-          {/* Read-only fullText display with copy button */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-lg font-medium">
-                Отчет в текстовом виде
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={copyFullText}
-                disabled={!meeting?.fullText}
-                data-testid="button-copy-fulltext"
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Скопировано
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Копировать
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="border rounded-md p-4 bg-gray-50 min-h-[300px] max-h-[500px] overflow-y-auto prose prose-sm max-w-none">
-              {meeting?.fullText ? (
-                <ReactMarkdown 
-                  remarkPlugins={[remarkGfm, remarkBreaks]}
-                  className="whitespace-pre-wrap"
-                >
-                  {meeting.fullText}
-                </ReactMarkdown>
-              ) : (
-                <p className="text-gray-400 italic">
-                  Текст появится после завершения транскрипции загруженных файлов...
-                </p>
-              )}
-            </div>
-          </div>
+          <FormField
+            control={form.control}
+            name="fullText"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-lg font-medium">
+                    Отчет в текстовом виде
+                  </FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={copyFullText}
+                    disabled={!field.value}
+                    data-testid="button-copy-fulltext"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Скопировано
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Копировать
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <FormControl>
+                  <WysiwygMarkdownEditor
+                    value={field.value}
+                    onChange={(val) => {
+                      const newValue = val || "";
+                      field.onChange(newValue);
+                      handleFieldChange("fullText", newValue);
+                    }}
+                    placeholder="Текст появится после завершения транскрипции загруженных файлов..."
+                    height={300}
+                    label="Отчет в текстовом виде"
+                    className=""
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Summarization Results Section */}
           {meeting?.id && (
