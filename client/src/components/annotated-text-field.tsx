@@ -161,7 +161,7 @@ export function AnnotatedTextField({
     }
   }, [value]);
 
-  const handleTextSelection = useCallback(() => {
+  const handleTextSelection = useCallback((event: React.MouseEvent | React.KeyboardEvent) => {
     if (!textareaRef.current || disabled) return;
 
     const textarea = textareaRef.current;
@@ -169,11 +169,20 @@ export function AnnotatedTextField({
     const end = textarea.selectionEnd;
 
     if (end > start) {
-      const rect = textarea.getBoundingClientRect();
-      setPopoverPosition({
-        x: rect.left + rect.width / 2,
-        y: rect.top - 10,
-      });
+      // Use mouse position for more accurate popover placement
+      if ('clientX' in event && 'clientY' in event) {
+        setPopoverPosition({
+          x: event.clientX,
+          y: event.clientY - 10,
+        });
+      } else {
+        // Fallback for keyboard selection
+        const rect = textarea.getBoundingClientRect();
+        setPopoverPosition({
+          x: rect.left + rect.width / 2,
+          y: rect.top + 50,
+        });
+      }
       setSelectedRange({ start, end });
       setPopoverOpen(true);
     }
