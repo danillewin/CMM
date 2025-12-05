@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import {
@@ -47,6 +47,7 @@ import {
   AlertCircle,
   Copy,
   Check,
+  Maximize2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -364,10 +365,17 @@ function MeetingResultsForm({
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
   
-  const form = useForm<{ notes: string; fullText: string }>({
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  
+  // Use a ref to always have access to the latest meeting data (avoid stale closure)
+  const meetingRef = useRef(meeting);
+  useEffect(() => {
+    meetingRef.current = meeting;
+  }, [meeting]);
+  
+  const form = useForm<{ notes: string }>({
     defaultValues: {
       notes: meeting?.notes || "",
-      fullText: meeting?.fullText || "",
     },
   });
 
@@ -376,14 +384,13 @@ function MeetingResultsForm({
     if (meeting) {
       form.reset({
         notes: meeting.notes || "",
-        fullText: meeting.fullText || "",
       });
     }
   }, [meeting, form]);
   
   // Copy fullText to clipboard
   const copyFullText = async () => {
-    const fullTextContent = form.getValues("fullText") || "";
+    const fullTextContent = meeting?.fullText || "";
     if (!fullTextContent) {
       toast({ 
         title: "Нет текста для копирования", 
@@ -409,26 +416,28 @@ function MeetingResultsForm({
     }
   };
 
-  const handleSubmit = (data: { notes: string; fullText: string }) => {
-    if (meeting) {
+  const handleSubmit = (data: { notes: string }) => {
+    // Use meetingRef.current to get the latest meeting data and avoid stale closure issues
+    const latestMeeting = meetingRef.current;
+    if (latestMeeting) {
       onUpdate({
-        respondentName: meeting.respondentName,
-        respondentPosition: meeting.respondentPosition,
-        cnum: meeting.cnum,
-        gcc: meeting.gcc || "",
-        companyName: meeting.companyName || "",
-        email: meeting.email || "",
-        phone: meeting.phone || "",
-        researcher: meeting.researcher || "",
-        relationshipManager: meeting.relationshipManager,
-        salesPerson: meeting.salesPerson,
-        date: meeting.date,
-        researchId: meeting.researchId,
-        status: meeting.status as any,
+        respondentName: latestMeeting.respondentName,
+        respondentPosition: latestMeeting.respondentPosition,
+        cnum: latestMeeting.cnum,
+        gcc: latestMeeting.gcc || "",
+        companyName: latestMeeting.companyName || "",
+        email: latestMeeting.email || "",
+        phone: latestMeeting.phone || "",
+        researcher: latestMeeting.researcher || "",
+        relationshipManager: latestMeeting.relationshipManager,
+        salesPerson: latestMeeting.salesPerson,
+        date: latestMeeting.date,
+        researchId: latestMeeting.researchId,
+        status: latestMeeting.status as any,
         notes: data.notes,
-        fullText: data.fullText,
-        hasGift: (meeting.hasGift as "yes" | "no") || "no",
-        summarizationStatus: (meeting.summarizationStatus as any) ?? "not_started",
+        fullText: latestMeeting.fullText || "",
+        hasGift: (latestMeeting.hasGift as "yes" | "no") || "no",
+        summarizationStatus: (latestMeeting.summarizationStatus as any) ?? "not_started",
       });
     }
   };
@@ -481,22 +490,75 @@ function MeetingResultsForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="fullText"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-lg font-medium">
-                    Отчет в текстовом виде
-                  </FormLabel>
+          {/* Read-only transcription display with copy and fullscreen */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-lg font-medium">
+                Отчет в текстовом виде
+              </label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyFullText}
+                  disabled={!meeting?.fullText}
+                  data-testid="button-copy-fulltext"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Скопировано
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Копировать
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFullscreenOpen(true)}
+                  disabled={!meeting?.fullText}
+                  data-testid="button-fullscreen-fulltext"
+                >
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                  На весь экран
+                </Button>
+              </div>
+            </div>
+            <div 
+              className="border rounded-md p-4 bg-gray-50 h-[200px] overflow-y-auto prose prose-sm max-w-none whitespace-pre-wrap"
+              data-testid="container-fulltext-readonly"
+            >
+              {meeting?.fullText ? (
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                  {meeting.fullText}
+                </ReactMarkdown>
+              ) : (
+                <p className="text-gray-400 italic">
+                  Текст появится после завершения транскрипции загруженных файлов...
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Fullscreen Dialog for transcription */}
+          <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+            <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+              <DialogHeader>
+                <div className="flex items-center justify-between pr-8">
+                  <DialogTitle>Отчет в текстовом виде</DialogTitle>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={copyFullText}
-                    disabled={!field.value}
-                    data-testid="button-copy-fulltext"
+                    disabled={!meeting?.fullText}
+                    data-testid="button-copy-fulltext-fullscreen"
                   >
                     {copied ? (
                       <>
@@ -511,24 +573,20 @@ function MeetingResultsForm({
                     )}
                   </Button>
                 </div>
-                <FormControl>
-                  <WysiwygMarkdownEditor
-                    value={field.value}
-                    onChange={(val) => {
-                      const newValue = val || "";
-                      field.onChange(newValue);
-                      handleFieldChange("fullText", newValue);
-                    }}
-                    placeholder="Текст появится после завершения транскрипции загруженных файлов..."
-                    height={300}
-                    label="Отчет в текстовом виде"
-                    className=""
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              </DialogHeader>
+              <div className="flex-1 overflow-y-auto border rounded-md p-6 bg-gray-50 prose prose-sm max-w-none whitespace-pre-wrap">
+                {meeting?.fullText ? (
+                  <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+                    {meeting.fullText}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-gray-400 italic">
+                    Текст появится после завершения транскрипции загруженных файлов...
+                  </p>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Summarization Results Section */}
           {meeting?.id && (
