@@ -346,9 +346,9 @@ export function AnnotatedTextField({
         <div
           className="fixed z-50 bg-popover border rounded-lg shadow-lg p-2"
           style={{
-            left: `${popoverPosition.x}px`,
+            left: `${popoverPosition.x + 10}px`,
             top: `${popoverPosition.y}px`,
-            transform: "translate(-50%, -100%)",
+            transform: "translateY(-50%)",
           }}
           data-testid="annotation-popover"
         >
