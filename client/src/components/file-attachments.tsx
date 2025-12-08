@@ -16,7 +16,8 @@ import {
   Loader2,
   Save,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -183,6 +184,33 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
     onError: (error) => {
       toast({
         title: "Failed to save transcription",
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation for deleting attachment
+  const deleteAttachmentMutation = useMutation({
+    mutationFn: async (fileId: number) => {
+      const response = await apiRequest("DELETE", `/api/files/${fileId}`);
+      if (!response.ok) {
+        throw new Error('Failed to delete file');
+      }
+      return fileId;
+    },
+    onSuccess: () => {
+      toast({
+        title: "File deleted",
+        description: "The file has been removed.",
+      });
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'attachments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/meetings', meetingId, 'transcription-summary'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete file",
         description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive"
       });
@@ -453,6 +481,17 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
                         <RefreshCw className="h-3 w-3" />
                       </Button>
                     )}
+                    
+                    <Button
+                      onClick={() => deleteAttachmentMutation.mutate(attachment.id)}
+                      disabled={deleteAttachmentMutation.isPending}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      data-testid={`button-delete-${attachment.id}`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
                 

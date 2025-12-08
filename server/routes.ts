@@ -1096,6 +1096,21 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "Invalid file ID" });
       }
 
+      // Get attachment info first to delete from object storage
+      const attachment = await storage.getMeetingAttachment(fileId);
+      if (!attachment) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      // Delete from object storage
+      try {
+        const objectStorageService = new ObjectStorageService();
+        await objectStorageService.deleteObject(attachment.objectPath);
+      } catch (storageError) {
+        console.error("Error deleting file from object storage:", storageError);
+        // Continue with database deletion even if storage deletion fails
+      }
+
       const success = await storage.deleteMeetingAttachment(fileId);
       if (!success) {
         return res.status(404).json({ message: "File not found" });
