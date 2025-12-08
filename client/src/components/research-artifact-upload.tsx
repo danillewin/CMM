@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useQuery } from "@tanstack/react-query";
 import {
   Upload,
   FileText,
@@ -14,11 +15,10 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { ResearchAttachment } from "@shared/schema";
 
 interface ResearchArtifactUploadProps {
   researchId: number | null;
-  currentFileName?: string | null;
-  currentFileSize?: number | null;
   onUploadComplete?: () => void;
   onDeleteComplete?: () => void;
 }
@@ -32,18 +32,27 @@ interface SelectedFile {
 
 export default function ResearchArtifactUpload({
   researchId,
-  currentFileName,
-  currentFileSize,
   onUploadComplete,
   onDeleteComplete,
 }: ResearchArtifactUploadProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const { data: attachments = [], isLoading } = useQuery<ResearchAttachment[]>({
+    queryKey: ["/api/researches", researchId, "attachments"],
+    queryFn: async () => {
+      if (!researchId) return [];
+      const response = await fetch(`/api/researches/${researchId}/attachments`);
+      if (!response.ok) throw new Error("Failed to fetch attachments");
+      return response.json();
+    },
+    enabled: !!researchId,
+  });
 
   const acceptedTypes = [
     "application/pdf",
@@ -72,39 +81,51 @@ export default function ResearchArtifactUpload({
   const getFileIcon = (fileName: string) => {
     const ext = fileName.toLowerCase().split('.').pop();
     if (ext === 'pdf') {
-      return <FileText className="h-6 w-6 text-red-500" />;
+      return <FileText className="h-5 w-5 text-red-500" />;
     } else if (ext === 'xls' || ext === 'xlsx') {
-      return <FileSpreadsheet className="h-6 w-6 text-green-600" />;
+      return <FileSpreadsheet className="h-5 w-5 text-green-600" />;
     } else if (ext === 'doc' || ext === 'docx') {
-      return <FileText className="h-6 w-6 text-blue-600" />;
+      return <FileText className="h-5 w-5 text-blue-600" />;
     } else if (ext === 'txt') {
-      return <FileText className="h-6 w-6 text-gray-600" />;
+      return <FileText className="h-5 w-5 text-gray-600" />;
     }
-    return <FileIcon className="h-6 w-6 text-gray-500" />;
+    return <FileIcon className="h-5 w-5 text-gray-500" />;
   };
 
   const handleFiles = useCallback((files: FileList | null) => {
     if (!files || files.length === 0) return;
 
-    const file = files[0];
-    
-    if (!isValidFileType(file)) {
-      setError("Неверный тип файла. Поддерживаются только PDF, TXT, DOC, DOCX, XLS, XLSX.");
-      return;
-    }
+    const newFiles: SelectedFile[] = [];
+    const errors: string[] = [];
 
-    if (file.size > 50 * 1024 * 1024) {
-      setError("Файл слишком большой. Максимальный размер 50 МБ.");
-      return;
-    }
+    Array.from(files).forEach((file) => {
+      if (!isValidFileType(file)) {
+        errors.push(`${file.name}: неверный тип файла`);
+        return;
+      }
 
-    setError(null);
-    setSelectedFile({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      file,
+      if (file.size > 50 * 1024 * 1024) {
+        errors.push(`${file.name}: слишком большой (макс. 50 МБ)`);
+        return;
+      }
+
+      newFiles.push({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file,
+      });
     });
+
+    if (errors.length > 0) {
+      setError(errors.join("; "));
+    } else {
+      setError(null);
+    }
+
+    if (newFiles.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+    }
   }, []);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -123,7 +144,7 @@ export default function ResearchArtifactUpload({
       e.stopPropagation();
       setDragActive(false);
 
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         handleFiles(e.dataTransfer.files);
       }
     },
@@ -133,18 +154,24 @@ export default function ResearchArtifactUpload({
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       handleFiles(e.target.files);
+      e.target.value = "";
     },
     [handleFiles]
   );
 
-  const clearSelection = () => {
-    setSelectedFile(null);
+  const removeSelectedFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     setError(null);
   };
 
-  const uploadFile = async () => {
-    if (!selectedFile || !researchId) {
-      setError("Необходимо выбрать файл и сохранить исследование.");
+  const clearAllSelected = () => {
+    setSelectedFiles([]);
+    setError(null);
+  };
+
+  const uploadFiles = async () => {
+    if (selectedFiles.length === 0 || !researchId) {
+      setError("Необходимо выбрать файлы и сохранить исследование.");
       return;
     }
 
@@ -152,42 +179,37 @@ export default function ResearchArtifactUpload({
     setProgress(0);
     setError(null);
 
+    const totalFiles = selectedFiles.length;
+    let uploadedCount = 0;
+
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile.file);
+      for (const selectedFile of selectedFiles) {
+        const formData = new FormData();
+        formData.append("file", selectedFile.file);
 
-      const progressInterval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
+        const response = await apiRequest(
+          "POST",
+          `/api/researches/${researchId}/attachments`,
+          formData
+        );
 
-      const response = await apiRequest(
-        "POST",
-        `/api/researches/${researchId}/artifact`,
-        formData
-      );
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Ошибка загрузки ${selectedFile.name}`);
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Ошибка загрузки файла");
+        uploadedCount++;
+        setProgress(Math.round((uploadedCount / totalFiles) * 100));
       }
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
       toast({
-        title: "Файл загружен успешно",
-        description: `${selectedFile.name} загружен.`,
+        title: "Файлы загружены",
+        description: `Загружено ${uploadedCount} файл(ов).`,
       });
 
-      setSelectedFile(null);
+      setSelectedFiles([]);
       
-      queryClient.invalidateQueries({ queryKey: ["/api/researches", researchId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/researches", researchId, "attachments"] });
 
       if (onUploadComplete) {
         onUploadComplete();
@@ -208,11 +230,9 @@ export default function ResearchArtifactUpload({
     }
   };
 
-  const downloadFile = async () => {
-    if (!researchId || !currentFileName) return;
-
+  const downloadFile = async (attachmentId: number) => {
     try {
-      window.open(`/api/researches/${researchId}/artifact/download`, '_blank');
+      window.open(`/api/research-attachments/${attachmentId}/download`, '_blank');
     } catch (error) {
       console.error("Download error:", error);
       toast({
@@ -223,16 +243,14 @@ export default function ResearchArtifactUpload({
     }
   };
 
-  const deleteFile = async () => {
-    if (!researchId) return;
-
-    setIsDeleting(true);
+  const deleteFile = async (attachmentId: number) => {
+    setDeletingId(attachmentId);
     setError(null);
 
     try {
       const response = await apiRequest(
         "DELETE",
-        `/api/researches/${researchId}/artifact`
+        `/api/research-attachments/${attachmentId}`
       );
 
       if (!response.ok) {
@@ -242,10 +260,10 @@ export default function ResearchArtifactUpload({
 
       toast({
         title: "Файл удален",
-        description: "Артефакт успешно удален.",
+        description: "Файл успешно удален.",
       });
 
-      queryClient.invalidateQueries({ queryKey: ["/api/researches", researchId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/researches", researchId, "attachments"] });
 
       if (onDeleteComplete) {
         onDeleteComplete();
@@ -261,11 +279,9 @@ export default function ResearchArtifactUpload({
         variant: "destructive",
       });
     } finally {
-      setIsDeleting(false);
+      setDeletingId(null);
     }
   };
-
-  const hasExistingFile = currentFileName && currentFileName.length > 0;
 
   return (
     <div className="space-y-4">
@@ -275,143 +291,169 @@ export default function ResearchArtifactUpload({
         </Alert>
       )}
 
-      {hasExistingFile && (
-        <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {getFileIcon(currentFileName)}
-              <div>
-                <p className="font-medium text-sm" data-testid="text-artifact-filename">{currentFileName}</p>
-                {currentFileSize && (
-                  <p className="text-xs text-gray-500">{formatFileSize(currentFileSize)}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={downloadFile}
-                data-testid="button-download-artifact"
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Скачать
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={deleteFile}
-                disabled={isDeleting}
-                data-testid="button-delete-artifact"
-              >
-                {isDeleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Удалить
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
+      {isLoading && (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
       )}
 
-      {!hasExistingFile && (
-        <>
-          {!researchId && (
-            <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
-              Сохраните исследование перед загрузкой файла артефакта
-            </div>
-          )}
-          <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragActive
-                ? "border-primary bg-primary/5"
-                : "border-gray-300 hover:border-gray-400"
-            } ${isUploading || !researchId ? "pointer-events-none opacity-50" : ""}`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              accept=".pdf,.txt,.doc,.docx,.xls,.xlsx"
-              onChange={handleFileInput}
-              className="hidden"
-              id="artifact-upload"
-              disabled={isUploading}
-            />
-
-            <div className="flex flex-col items-center gap-3">
-              <Upload className="h-10 w-10 text-gray-400" />
-              <div>
-                <p className="text-sm font-medium">
-                  {dragActive
-                    ? "Перетащите файл сюда"
-                    : "Перетащите файл или нажмите для выбора"}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PDF, TXT, DOC, DOCX, XLS, XLSX (макс. 50 МБ)
-                </p>
-              </div>
-              <label
-                htmlFor="artifact-upload"
-                className="cursor-pointer inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Выбрать файл
-              </label>
-            </div>
-          </div>
-
-          {selectedFile && (
-            <div className="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800">
+      {attachments.length > 0 && (
+        <div className="space-y-2">
+          {attachments.map((attachment) => (
+            <div
+              key={attachment.id}
+              className="p-3 border rounded-lg bg-gray-50 dark:bg-gray-800"
+            >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {getFileIcon(selectedFile.name)}
-                  <div>
-                    <p className="font-medium text-sm">{selectedFile.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  {getFileIcon(attachment.originalName)}
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate" data-testid={`text-attachment-filename-${attachment.id}`}>
+                      {attachment.originalName}
+                    </p>
+                    <p className="text-xs text-gray-500">{formatFileSize(attachment.fileSize)}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadFile(attachment.id)}
+                    data-testid={`button-download-attachment-${attachment.id}`}
+                  >
+                    <Download className="h-4 w-4 mr-1" />
+                    Скачать
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deleteFile(attachment.id)}
+                    disabled={deletingId === attachment.id}
+                    data-testid={`button-delete-attachment-${attachment.id}`}
+                  >
+                    {deletingId === attachment.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Удалить
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!researchId && (
+        <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
+          Сохраните исследование перед загрузкой файлов
+        </div>
+      )}
+
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+          dragActive
+            ? "border-primary bg-primary/5"
+            : "border-gray-300 hover:border-gray-400"
+        } ${isUploading || !researchId ? "pointer-events-none opacity-50" : ""}`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <input
+          type="file"
+          accept=".pdf,.txt,.doc,.docx,.xls,.xlsx"
+          onChange={handleFileInput}
+          className="hidden"
+          id="attachment-upload"
+          disabled={isUploading}
+          multiple
+        />
+
+        <div className="flex flex-col items-center gap-3">
+          <Upload className="h-10 w-10 text-gray-400" />
+          <div>
+            <p className="text-sm font-medium">
+              {dragActive
+                ? "Перетащите файлы сюда"
+                : "Перетащите файлы или нажмите для выбора"}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              PDF, TXT, DOC, DOCX, XLS, XLSX (макс. 50 МБ на файл)
+            </p>
+          </div>
+          <label
+            htmlFor="attachment-upload"
+            className="cursor-pointer inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Выбрать файлы
+          </label>
+        </div>
+      </div>
+
+      {selectedFiles.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Выбранные файлы ({selectedFiles.length})</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllSelected}
+              disabled={isUploading}
+            >
+              Очистить все
+            </Button>
+          </div>
+          {selectedFiles.map((file, index) => (
+            <div key={index} className="p-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  {getFileIcon(file.name)}
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{file.name}</p>
+                    <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={clearSelection}
+                  onClick={() => removeSelectedFile(index)}
                   disabled={isUploading}
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 flex-shrink-0"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-          )}
+          ))}
+        </div>
+      )}
 
-          {isUploading && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Загрузка файла...</span>
-                <span className="text-sm text-gray-500">{progress}%</span>
-              </div>
-              <Progress value={progress} className="w-full" />
-            </div>
-          )}
+      {isUploading && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Загрузка файлов...</span>
+            <span className="text-sm text-gray-500">{progress}%</span>
+          </div>
+          <Progress value={progress} className="w-full" />
+        </div>
+      )}
 
-          {selectedFile && !isUploading && (
-            <Button
-              onClick={uploadFile}
-              disabled={!researchId}
-              className="w-full"
-              data-testid="button-upload-artifact"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              Загрузить артефакт
-            </Button>
-          )}
-        </>
+      {selectedFiles.length > 0 && !isUploading && (
+        <Button
+          onClick={uploadFiles}
+          disabled={!researchId}
+          className="w-full"
+          data-testid="button-upload-attachments"
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Загрузить {selectedFiles.length} файл(ов)
+        </Button>
       )}
     </div>
   );

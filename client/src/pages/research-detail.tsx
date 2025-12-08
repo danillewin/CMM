@@ -3043,13 +3043,11 @@ function ResearchResultsForm({
           )}
         />
 
-        {/* Artifact File Upload */}
+        {/* Research Files Upload */}
         <div className="space-y-2">
-          <label className="text-lg font-medium">Файл артефакта</label>
+          <label className="text-lg font-medium">Файлы к исследованию</label>
           <ResearchArtifactUpload
             researchId={research?.id || null}
-            currentFileName={research?.artifactFileName}
-            currentFileSize={research?.artifactFileSize}
             onUploadComplete={() => {
               queryClient.invalidateQueries({ queryKey: ["/api/researches", research?.id] });
             }}
