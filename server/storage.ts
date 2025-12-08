@@ -7,6 +7,7 @@ import {
   researchJtbds,
   meetingJtbds,
   meetingAttachments,
+  researchAttachments,
   customFilters,
   textAnnotations,
   type Meeting,
@@ -24,6 +25,8 @@ import {
   type MeetingAttachment,
   type InsertMeetingAttachment,
   type UpdateMeetingAttachment,
+  type ResearchAttachment,
+  type InsertResearchAttachment,
   type CustomFilter,
   type InsertCustomFilter,
   type TextAnnotation,
@@ -107,6 +110,14 @@ export interface IStorage {
     attachment: UpdateMeetingAttachment,
   ): Promise<MeetingAttachment | undefined>;
   deleteMeetingAttachment(id: number): Promise<boolean>;
+
+  // Research attachments methods
+  getResearchAttachments(researchId: number): Promise<ResearchAttachment[]>;
+  getResearchAttachment(id: number): Promise<ResearchAttachment | undefined>;
+  createResearchAttachment(
+    attachment: InsertResearchAttachment,
+  ): Promise<ResearchAttachment>;
+  deleteResearchAttachment(id: number): Promise<boolean>;
 
   // Custom filters methods
   getCustomFilters(
@@ -1879,6 +1890,40 @@ export class DatabaseStorage implements IStorage {
     const [deletedAttachment] = await db
       .delete(meetingAttachments)
       .where(eq(meetingAttachments.id, id))
+      .returning();
+    return !!deletedAttachment;
+  }
+
+  // Research attachments methods
+  async getResearchAttachments(researchId: number): Promise<ResearchAttachment[]> {
+    return db
+      .select()
+      .from(researchAttachments)
+      .where(eq(researchAttachments.researchId, researchId));
+  }
+
+  async getResearchAttachment(id: number): Promise<ResearchAttachment | undefined> {
+    const [attachment] = await db
+      .select()
+      .from(researchAttachments)
+      .where(eq(researchAttachments.id, id));
+    return attachment;
+  }
+
+  async createResearchAttachment(
+    attachment: InsertResearchAttachment,
+  ): Promise<ResearchAttachment> {
+    const [newAttachment] = await db
+      .insert(researchAttachments)
+      .values(attachment)
+      .returning();
+    return newAttachment;
+  }
+
+  async deleteResearchAttachment(id: number): Promise<boolean> {
+    const [deletedAttachment] = await db
+      .delete(researchAttachments)
+      .where(eq(researchAttachments.id, id))
       .returning();
     return !!deletedAttachment;
   }

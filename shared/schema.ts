@@ -287,6 +287,18 @@ export const meetingAttachments = pgTable("meeting_attachments", {
   errorMessage: text("error_message"), // Store error message for failed transcriptions
 });
 
+// Research file attachments table (for multiple file uploads)
+export const researchAttachments = pgTable("research_attachments", {
+  id: serial("id").primaryKey(),
+  researchId: integer("research_id").references(() => researches.id, { onDelete: 'cascade' }).notNull(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  objectPath: text("object_path").notNull(),
+  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
+});
+
 export const customFilters = pgTable("custom_filters", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -355,6 +367,22 @@ export const insertCustomFilterSchema = createInsertSchema(customFilters, {
 
 export type MeetingAttachment = typeof meetingAttachments.$inferSelect;
 export type InsertMeetingAttachment = z.infer<typeof insertMeetingAttachmentSchema>;
+
+// Research attachment schema
+export const insertResearchAttachmentSchema = createInsertSchema(researchAttachments).omit({
+  id: true,
+  uploadedAt: true,
+}).extend({
+  researchId: z.number({ required_error: "Research ID is required" }),
+  fileName: z.string().min(1, "File name is required"),
+  originalName: z.string().min(1, "Original name is required"),
+  fileSize: z.number().positive("File size must be positive"),
+  mimeType: z.string().min(1, "MIME type is required"),
+  objectPath: z.string().min(1, "Object path is required"),
+});
+
+export type ResearchAttachment = typeof researchAttachments.$inferSelect;
+export type InsertResearchAttachment = z.infer<typeof insertResearchAttachmentSchema>;
 
 // Update type for meeting attachments that allows updating transcription fields
 export const updateMeetingAttachmentSchema = insertMeetingAttachmentSchema.partial().extend({
