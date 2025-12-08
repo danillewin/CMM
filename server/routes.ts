@@ -1272,6 +1272,178 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Configure multer for research artifact uploads (documents)
+  const researchArtifactUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit for documents
+      files: 1, // Only 1 file per upload
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept common document formats
+      const allowedTypes = [
+        'application/pdf',
+        'text/plain',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ];
+      
+      const isValidType = allowedTypes.includes(file.mimetype) || 
+                         /\.(pdf|txt|doc|docx|xls|xlsx)$/i.test(file.originalname);
+      
+      if (isValidType) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only PDF, TXT, DOC, DOCX, XLS, and XLSX files are allowed.'));
+      }
+    }
+  });
+
+  // Research artifact file upload endpoint
+  app.post("/api/researches/:researchId/artifact", researchArtifactUpload.single('file'), async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      if (isNaN(researchId)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+
+      // Verify research exists
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      const file = req.file as Express.Multer.File;
+      if (!file) {
+        return res.status(400).json({ message: "No file provided" });
+      }
+
+      console.log(`Artifact upload for research ${researchId}: ${file.originalname}, size: ${file.size} bytes`);
+
+      // Get upload URL from object storage
+      const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+      
+      // Upload file to storage
+      const response = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file.buffer,
+        headers: {
+          'Content-Type': file.mimetype,
+          'Content-Length': file.size.toString(),
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed with status: ${response.status}`);
+      }
+
+      // Get the object path from the upload URL
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
+
+      // Update research with artifact file info
+      const updatedResearch = await storage.updateResearch(researchId, {
+        artifactFileName: file.originalname,
+        artifactFilePath: objectPath,
+        artifactFileSize: file.size,
+      });
+
+      console.log(`Successfully uploaded artifact: ${file.originalname} for research ${researchId}`);
+
+      res.status(201).json({
+        message: "Artifact uploaded successfully",
+        fileName: file.originalname,
+        fileSize: file.size,
+        research: updatedResearch
+      });
+
+    } catch (error) {
+      console.error("Artifact upload error:", error);
+      res.status(500).json({ 
+        message: "Artifact upload failed", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Download research artifact file
+  app.get("/api/researches/:researchId/artifact/download", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      if (isNaN(researchId)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      if (!research.artifactFilePath || !research.artifactFileName) {
+        return res.status(404).json({ message: "No artifact file attached to this research" });
+      }
+
+      // Get the file from object storage
+      const objectFile = await objectStorageService.getObjectEntityFile(research.artifactFilePath);
+      
+      // Set filename header
+      res.set('Content-Disposition', `attachment; filename="${research.artifactFileName}"`);
+      
+      // Stream the file
+      await objectStorageService.downloadObject(objectFile, res);
+      
+    } catch (error) {
+      console.error("Error downloading artifact:", error);
+      res.status(500).json({ message: "Failed to download artifact" });
+    }
+  });
+
+  // Delete research artifact file
+  app.delete("/api/researches/:researchId/artifact", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      if (isNaN(researchId)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+
+      const research = await storage.getResearch(researchId);
+      if (!research) {
+        return res.status(404).json({ message: "Research not found" });
+      }
+
+      if (!research.artifactFilePath) {
+        return res.status(404).json({ message: "No artifact file attached to this research" });
+      }
+
+      // Delete file from object storage
+      try {
+        await objectStorageService.deleteObject(research.artifactFilePath);
+      } catch (storageError) {
+        console.error("Error deleting from object storage:", storageError);
+        // Continue anyway to clear the database reference
+      }
+
+      // Clear artifact fields in research
+      const updatedResearch = await storage.updateResearch(researchId, {
+        artifactFileName: null,
+        artifactFilePath: null,
+        artifactFileSize: null,
+      });
+
+      console.log(`Successfully deleted artifact for research ${researchId}`);
+
+      res.status(200).json({
+        message: "Artifact deleted successfully",
+        research: updatedResearch
+      });
+
+    } catch (error) {
+      console.error("Error deleting artifact:", error);
+      res.status(500).json({ message: "Failed to delete artifact" });
+    }
+  });
+
   // Authentication middleware to extract user info from token
   const extractUser = (req: any, res: any, next: any) => {
     // Check for explicit development mode flag
