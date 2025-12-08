@@ -61,6 +61,14 @@ export interface IStorage {
     id: number,
     research: InsertResearch,
   ): Promise<Research | undefined>;
+  updateResearchArtifact(
+    id: number,
+    artifact: {
+      artifactFileName: string | null;
+      artifactFilePath: string | null;
+      artifactFileSize: number | null;
+    },
+  ): Promise<Research | undefined>;
   deleteResearch(id: number): Promise<boolean>;
 
   getPositions(): Promise<Position[]>;
@@ -947,6 +955,27 @@ export class DatabaseStorage implements IStorage {
         await kafkaService.sendCompletedResearch(updatedResearch, isUpdate);
       }
     }
+
+    return updatedResearch;
+  }
+
+  async updateResearchArtifact(
+    id: number,
+    artifact: {
+      artifactFileName: string | null;
+      artifactFilePath: string | null;
+      artifactFileSize: number | null;
+    },
+  ): Promise<Research | undefined> {
+    const [updatedResearch] = await db
+      .update(researches)
+      .set({
+        artifactFileName: artifact.artifactFileName,
+        artifactFilePath: artifact.artifactFilePath,
+        artifactFileSize: artifact.artifactFileSize,
+      })
+      .where(eq(researches.id, id))
+      .returning();
 
     return updatedResearch;
   }

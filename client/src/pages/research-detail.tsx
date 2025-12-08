@@ -94,6 +94,7 @@ import { Separator } from "@/components/ui/separator";
 import { RangeSlider } from "@/components/ui/range-slider";
 import { SearchMultiselect } from "@/components/search-multiselect";
 import FileUpload from "@/components/file-upload";
+import ResearchArtifactUpload from "@/components/research-artifact-upload";
 
 // Helper type for handling Research with ID
 type ResearchWithId = Research;
@@ -3041,6 +3042,22 @@ function ResearchResultsForm({
             </FormItem>
           )}
         />
+
+        {/* Artifact File Upload */}
+        <div className="space-y-2">
+          <label className="text-lg font-medium">Файл артефакта</label>
+          <ResearchArtifactUpload
+            researchId={research?.id || null}
+            currentFileName={research?.artifactFileName}
+            currentFileSize={research?.artifactFileSize}
+            onUploadComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/researches", research?.id] });
+            }}
+            onDeleteComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/researches", research?.id] });
+            }}
+          />
+        </div>
 
         <FormField
           control={form.control}

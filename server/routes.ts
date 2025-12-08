@@ -1343,7 +1343,7 @@ export function registerRoutes(app: Express): Server {
       const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
 
       // Update research with artifact file info
-      const updatedResearch = await storage.updateResearch(researchId, {
+      const updatedResearch = await storage.updateResearchArtifact(researchId, {
         artifactFileName: file.originalname,
         artifactFilePath: objectPath,
         artifactFileSize: file.size,
@@ -1425,7 +1425,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Clear artifact fields in research
-      const updatedResearch = await storage.updateResearch(researchId, {
+      const updatedResearch = await storage.updateResearchArtifact(researchId, {
         artifactFileName: null,
         artifactFilePath: null,
         artifactFileSize: null,

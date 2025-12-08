@@ -320,6 +320,11 @@ export default function ResearchArtifactUpload({
 
       {!hasExistingFile && (
         <>
+          {!researchId && (
+            <div className="text-sm text-amber-600 dark:text-amber-400 mb-2">
+              Сохраните исследование перед загрузкой файла артефакта
+            </div>
+          )}
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               dragActive
