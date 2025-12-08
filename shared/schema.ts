@@ -62,6 +62,9 @@ export const researches = pgTable("researches", {
   relatedResearches: text("related_researches").array(), // Related researches links field
   figmaPrototypeLink: text("figma_prototype_link"), // Figma prototype link field
   artifactLink: text("artifact_link"), // Artifact link field for Results tab
+  artifactFileName: text("artifact_file_name"), // Name of the uploaded artifact file
+  artifactFilePath: text("artifact_file_path"), // Object storage path of the artifact file
+  artifactFileSize: integer("artifact_file_size"), // Size of the artifact file in bytes
   brief: text("brief"),
   guide: text("guide"),
   // Guide structure fields
@@ -201,6 +204,10 @@ export const insertResearchSchema = createInsertSchema(researches).omit({
   recruitmentCqMax: z.number().int().min(0).max(10).nullable().optional(),
   recruitmentLegalEntityType: z.array(z.string()).nullable().optional(), // Changed to array for multiple selection
   recruitmentRestrictions: z.boolean().nullable().optional(), // Changed to boolean for да/нет
+  // Artifact file fields
+  artifactFileName: z.string().nullable().optional(),
+  artifactFilePath: z.string().nullable().optional(),
+  artifactFileSize: z.number().int().nullable().optional(),
 });
 
 export const insertMeetingSchema = createInsertSchema(meetings).omit({
