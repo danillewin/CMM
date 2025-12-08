@@ -144,6 +144,9 @@ This is a full-stack web application built for managing research interviews and 
 - December 3, 2025: Enhanced text annotations with correctionText field allowing users to enter correction words for Подмена (Substitution) and Пропущенное слово (Deletion) error types
 - December 3, 2025: Added popup input dialog in AnnotatedTextField for entering correction text when marking substitution or deletion errors
 - December 3, 2025: Display correction text in annotations list with arrow notation showing "original → correction"
+- December 8, 2025: Implemented research artifact file upload feature with upload/download/delete functionality for documents (pdf, txt, doc, docx, xls, xlsx) up to 50MB
+- December 8, 2025: Added artifactFileName, artifactFilePath, artifactFileSize fields to researches schema with dedicated updateResearchArtifact storage method for safe partial updates
+- December 8, 2025: Created ResearchArtifactUpload component with drag-and-drop, file validation, progress tracking, and integration with object storage service
 
 ## User Preferences
 
