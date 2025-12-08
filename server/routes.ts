@@ -1272,12 +1272,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Configure multer for research artifact uploads (documents)
-  const researchArtifactUpload = multer({ 
+  // Configure multer for research attachment uploads (documents)
+  const researchAttachmentUpload = multer({ 
     storage: multer.memoryStorage(),
     limits: {
       fileSize: 50 * 1024 * 1024, // 50MB limit for documents
-      files: 1, // Only 1 file per upload
+      files: 1, // Only 1 file per upload request
     },
     fileFilter: (req, file, cb) => {
       // Accept common document formats
@@ -1301,8 +1301,24 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Research artifact file upload endpoint
-  app.post("/api/researches/:researchId/artifact", researchArtifactUpload.single('file'), async (req, res) => {
+  // Get research attachments
+  app.get("/api/researches/:researchId/attachments", async (req, res) => {
+    try {
+      const researchId = parseInt(req.params.researchId);
+      if (isNaN(researchId)) {
+        return res.status(400).json({ message: "Invalid research ID" });
+      }
+
+      const attachments = await storage.getResearchAttachments(researchId);
+      res.json(attachments);
+    } catch (error) {
+      console.error("Error getting research attachments:", error);
+      res.status(500).json({ message: "Failed to get attachments" });
+    }
+  });
+
+  // Research attachment file upload endpoint
+  app.post("/api/researches/:researchId/attachments", researchAttachmentUpload.single('file'), async (req, res) => {
     try {
       const researchId = parseInt(req.params.researchId);
       if (isNaN(researchId)) {
@@ -1320,7 +1336,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "No file provided" });
       }
 
-      console.log(`Artifact upload for research ${researchId}: ${file.originalname}, size: ${file.size} bytes`);
+      console.log(`Attachment upload for research ${researchId}: ${file.originalname}, size: ${file.size} bytes`);
 
       // Get upload URL from object storage
       const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
@@ -1342,105 +1358,90 @@ export function registerRoutes(app: Express): Server {
       // Get the object path from the upload URL
       const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
 
-      // Update research with artifact file info
-      const updatedResearch = await storage.updateResearchArtifact(researchId, {
-        artifactFileName: file.originalname,
-        artifactFilePath: objectPath,
-        artifactFileSize: file.size,
-      });
-
-      console.log(`Successfully uploaded artifact: ${file.originalname} for research ${researchId}`);
-
-      res.status(201).json({
-        message: "Artifact uploaded successfully",
-        fileName: file.originalname,
+      // Create attachment record in database
+      const attachment = await storage.createResearchAttachment({
+        researchId,
+        fileName: objectPath.split('/').pop() || file.originalname,
+        originalName: file.originalname,
         fileSize: file.size,
-        research: updatedResearch
+        mimeType: file.mimetype,
+        objectPath,
       });
+
+      console.log(`Successfully uploaded attachment: ${file.originalname} for research ${researchId}`);
+
+      res.status(201).json(attachment);
 
     } catch (error) {
-      console.error("Artifact upload error:", error);
+      console.error("Attachment upload error:", error);
       res.status(500).json({ 
-        message: "Artifact upload failed", 
+        message: "Attachment upload failed", 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });
 
-  // Download research artifact file
-  app.get("/api/researches/:researchId/artifact/download", async (req, res) => {
+  // Download research attachment file
+  app.get("/api/research-attachments/:attachmentId/download", async (req, res) => {
     try {
-      const researchId = parseInt(req.params.researchId);
-      if (isNaN(researchId)) {
-        return res.status(400).json({ message: "Invalid research ID" });
+      const attachmentId = parseInt(req.params.attachmentId);
+      if (isNaN(attachmentId)) {
+        return res.status(400).json({ message: "Invalid attachment ID" });
       }
 
-      const research = await storage.getResearch(researchId);
-      if (!research) {
-        return res.status(404).json({ message: "Research not found" });
-      }
-
-      if (!research.artifactFilePath || !research.artifactFileName) {
-        return res.status(404).json({ message: "No artifact file attached to this research" });
+      const attachment = await storage.getResearchAttachment(attachmentId);
+      if (!attachment) {
+        return res.status(404).json({ message: "Attachment not found" });
       }
 
       // Get the file from object storage
-      const objectFile = await objectStorageService.getObjectEntityFile(research.artifactFilePath);
+      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath);
       
       // Set filename header
-      res.set('Content-Disposition', `attachment; filename="${research.artifactFileName}"`);
+      res.set('Content-Disposition', `attachment; filename="${attachment.originalName}"`);
       
       // Stream the file
       await objectStorageService.downloadObject(objectFile, res);
       
     } catch (error) {
-      console.error("Error downloading artifact:", error);
-      res.status(500).json({ message: "Failed to download artifact" });
+      console.error("Error downloading attachment:", error);
+      res.status(500).json({ message: "Failed to download attachment" });
     }
   });
 
-  // Delete research artifact file
-  app.delete("/api/researches/:researchId/artifact", async (req, res) => {
+  // Delete research attachment file
+  app.delete("/api/research-attachments/:attachmentId", async (req, res) => {
     try {
-      const researchId = parseInt(req.params.researchId);
-      if (isNaN(researchId)) {
-        return res.status(400).json({ message: "Invalid research ID" });
+      const attachmentId = parseInt(req.params.attachmentId);
+      if (isNaN(attachmentId)) {
+        return res.status(400).json({ message: "Invalid attachment ID" });
       }
 
-      const research = await storage.getResearch(researchId);
-      if (!research) {
-        return res.status(404).json({ message: "Research not found" });
-      }
-
-      if (!research.artifactFilePath) {
-        return res.status(404).json({ message: "No artifact file attached to this research" });
+      const attachment = await storage.getResearchAttachment(attachmentId);
+      if (!attachment) {
+        return res.status(404).json({ message: "Attachment not found" });
       }
 
       // Delete file from object storage
       try {
-        await objectStorageService.deleteObject(research.artifactFilePath);
+        await objectStorageService.deleteObject(attachment.objectPath);
       } catch (storageError) {
         console.error("Error deleting from object storage:", storageError);
         // Continue anyway to clear the database reference
       }
 
-      // Clear artifact fields in research
-      const updatedResearch = await storage.updateResearchArtifact(researchId, {
-        artifactFileName: null,
-        artifactFilePath: null,
-        artifactFileSize: null,
-      });
+      // Delete attachment record from database
+      await storage.deleteResearchAttachment(attachmentId);
 
-      console.log(`Successfully deleted artifact for research ${researchId}`);
+      console.log(`Successfully deleted attachment ${attachmentId}`);
 
       res.status(200).json({
-        message: "Artifact deleted successfully",
-        research: updatedResearch
+        message: "Attachment deleted successfully",
       });
 
     } catch (error) {
-      console.error("Error deleting artifact:", error);
-      res.status(500).json({ message: "Failed to delete artifact" });
+      console.error("Error deleting attachment:", error);
+      res.status(500).json({ message: "Failed to delete attachment" });
     }
   });
 
