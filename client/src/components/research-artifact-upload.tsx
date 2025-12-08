@@ -61,12 +61,14 @@ export default function ResearchArtifactUpload({
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   ];
 
   const isValidFileType = (file: File): boolean => {
     return (
       acceptedTypes.includes(file.type) ||
-      /\.(pdf|txt|doc|docx|xls|xlsx)$/i.test(file.name)
+      /\.(pdf|txt|doc|docx|xls|xlsx|ppt|pptx)$/i.test(file.name)
     );
   };
 
@@ -88,6 +90,8 @@ export default function ResearchArtifactUpload({
       return <FileText className="h-5 w-5 text-blue-600" />;
     } else if (ext === 'txt') {
       return <FileText className="h-5 w-5 text-gray-600" />;
+    } else if (ext === 'ppt' || ext === 'pptx') {
+      return <FileText className="h-5 w-5 text-orange-500" />;
     }
     return <FileIcon className="h-5 w-5 text-gray-500" />;
   };
@@ -366,7 +370,7 @@ export default function ResearchArtifactUpload({
       >
         <input
           type="file"
-          accept=".pdf,.txt,.doc,.docx,.xls,.xlsx"
+          accept=".pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
           onChange={handleFileInput}
           className="hidden"
           id="attachment-upload"
