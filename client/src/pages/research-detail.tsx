@@ -3045,7 +3045,7 @@ function ResearchResultsForm({
 
         {/* Research Files Upload */}
         <div className="space-y-2">
-          <label className="text-lg font-medium">Файлы к исследованию</label>
+          <label className="text-lg font-medium">Добавленные файлы</label>
           <ResearchArtifactUpload
             researchId={research?.id || null}
             onUploadComplete={() => {
