@@ -3,7 +3,6 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
 import { fileURLToPath } from 'url';
-import { ensurePostgresRunning } from "./ensure-postgres";
 import { migrateAddRecruitmentFields } from "./migration-add-recruitment-fields";
 import { pool } from "./db";
 
@@ -47,9 +46,6 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Ensure PostgreSQL is running before starting the app
-  await ensurePostgresRunning();
-  
   // Run migrations
   await migrateAddRecruitmentFields(pool);
   
