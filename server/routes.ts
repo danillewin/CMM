@@ -1911,10 +1911,27 @@ export function registerRoutes(app: Express): Server {
   // OpenAPI-compatible Meeting Endpoints
   // =========================================
 
+  // Helper function to convert UTC time (HH:MM:SS) to Moscow time (UTC+3)
+  function convertUtcToMoscow(utcTime: string): string {
+    // Parse HH:MM:SS format
+    const parts = utcTime.split(':');
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    const seconds = parts[2] || '00';
+    
+    // Add 3 hours for Moscow timezone (UTC+3)
+    hours = (hours + 3) % 24;
+    
+    // Format back to HH:MM (without seconds for display)
+    return `${hours.toString().padStart(2, '0')}:${minutes}`;
+  }
+
   // Helper function to map OpenAPI DTO to internal meeting format
   async function mapDtoToMeeting(dto: InsertResearchMeetingDto, researchId: number, researcherFromResearch?: string): Promise<any> {
-    // Combine startTime and endTime with date to create time and meeting duration
-    const timeRange = `${dto.startTime}-${dto.endTime}`;
+    // Convert UTC time to Moscow time (UTC+3) and combine for time range
+    const moscowStartTime = convertUtcToMoscow(dto.startTime);
+    const moscowEndTime = convertUtcToMoscow(dto.endTime);
+    const timeRange = `${moscowStartTime}-${moscowEndTime}`;
     
     // Collect all user logins to resolve
     const userLogins = [

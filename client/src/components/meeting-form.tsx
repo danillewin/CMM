@@ -260,13 +260,14 @@ export default function MeetingForm({
               )}
             />
             
+            {/* Время указывается по московскому времени (МСК, UTC+3) */}
             <FormField
               control={form.control}
               name="time"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base">
-                    Время
+                    Время (МСК)
                   </FormLabel>
                   <FormControl>
                     <Input
