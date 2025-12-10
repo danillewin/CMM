@@ -74,7 +74,7 @@ export class AsyncTranscriptionProcessor {
         destination: '',
         filename: attachment.fileName,
         path: '', // No path for memory storage
-        stream: objectReadStream as any,
+        stream: undefined as any, // Stream not used - buffer is used instead
       };
 
       // Transcribe the file using memory buffer
