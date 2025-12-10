@@ -23,7 +23,8 @@ import {
 
 import { kafkaService } from "./kafka-service";
 import { transcriptionService } from "./transcription-service";
-import { ObjectStorageService } from "./objectStorage";
+import { getObjectStorageService, isMockStorage } from "./storageFactory";
+import { mockObjectStorageService } from "./mockObjectStorage";
 import { asyncTranscriptionProcessor } from "./async-transcription-processor";
 import { adService } from "./services/ad-service";
 import { mcpServerManager } from "./mcp-server";
@@ -905,8 +906,8 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Initialize object storage service
-  const objectStorageService = new ObjectStorageService();
+  // Initialize object storage service (uses mock in development if PRIVATE_OBJECT_DIR not set)
+  const objectStorageService = getObjectStorageService();
 
   // Meeting file attachment API routes
   
@@ -936,25 +937,32 @@ export function registerRoutes(app: Express): Server {
       // Process each file
       for (const file of files) {
         try {
-          // Get upload URL from object storage
-          const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+          let objectPath: string;
           
-          // Upload file to storage using memory buffer (K8s compatible)
-          const response = await fetch(uploadUrl, {
-            method: 'PUT',
-            body: file.buffer,
-            headers: {
-              'Content-Type': file.mimetype,
-              'Content-Length': file.size.toString(),
-            },
-          });
+          if (isMockStorage()) {
+            // Mock storage: directly save file to local filesystem
+            const { randomUUID } = await import('crypto');
+            const objectId = randomUUID();
+            objectPath = await mockObjectStorageService.uploadFile(objectId, file.buffer, file.originalname);
+          } else {
+            // Real storage: use signed URL upload
+            const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+            
+            const response = await fetch(uploadUrl, {
+              method: 'PUT',
+              body: file.buffer,
+              headers: {
+                'Content-Type': file.mimetype,
+                'Content-Length': file.size.toString(),
+              },
+            });
 
-          if (!response.ok) {
-            throw new Error(`Upload failed with status: ${response.status}`);
+            if (!response.ok) {
+              throw new Error(`Upload failed with status: ${response.status}`);
+            }
+
+            objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
           }
-
-          // Get the object path from the upload URL
-          const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
 
           // Save metadata to database
           const attachmentData = {
@@ -1032,7 +1040,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get the file from object storage
-      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath);
+      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath) as any;
       
       // Set filename header
       res.set('Content-Disposition', `attachment; filename="${attachment.originalName}"`);
@@ -1104,7 +1112,6 @@ export function registerRoutes(app: Express): Server {
 
       // Delete from object storage
       try {
-        const objectStorageService = new ObjectStorageService();
         await objectStorageService.deleteObject(attachment.objectPath);
       } catch (storageError) {
         console.error("Error deleting file from object storage:", storageError);
@@ -1353,25 +1360,32 @@ export function registerRoutes(app: Express): Server {
 
       console.log(`Attachment upload for research ${researchId}: ${file.originalname}, size: ${file.size} bytes`);
 
-      // Get upload URL from object storage
-      const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+      let objectPath: string;
       
-      // Upload file to storage
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file.buffer,
-        headers: {
-          'Content-Type': file.mimetype,
-          'Content-Length': file.size.toString(),
-        },
-      });
+      if (isMockStorage()) {
+        // Mock storage: directly save file to local filesystem
+        const { randomUUID } = await import('crypto');
+        const objectId = randomUUID();
+        objectPath = await mockObjectStorageService.uploadFile(objectId, file.buffer, file.originalname);
+      } else {
+        // Real storage: use signed URL upload
+        const uploadUrl = await objectStorageService.getObjectEntityUploadURL();
+        
+        const response = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file.buffer,
+          headers: {
+            'Content-Type': file.mimetype,
+            'Content-Length': file.size.toString(),
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed with status: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Upload failed with status: ${response.status}`);
+        }
+
+        objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
       }
-
-      // Get the object path from the upload URL
-      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadUrl);
 
       // Create attachment record in database
       const attachment = await storage.createResearchAttachment({
@@ -1410,7 +1424,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get the file from object storage
-      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath);
+      const objectFile = await objectStorageService.getObjectEntityFile(attachment.objectPath) as any;
       
       // Set filename header
       res.set('Content-Disposition', `attachment; filename="${attachment.originalName}"`);

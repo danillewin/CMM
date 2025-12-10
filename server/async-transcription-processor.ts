@@ -1,16 +1,17 @@
 import { storage } from "./storage";
 import { transcriptionService } from "./transcription-service";
-import { ObjectStorageService } from "./objectStorage";
+import { getObjectStorageService, isMockStorage, StorageServiceType } from "./storageFactory";
+import { mockObjectStorageService } from "./mockObjectStorage";
 import { kafkaService } from "./kafka-service";
 
 const MAX_RETRY_COUNT = 3;
 const RETRY_DELAY_MS = 5000; // 5 seconds
 
 export class AsyncTranscriptionProcessor {
-  private objectStorageService: ObjectStorageService;
+  private objectStorageService: StorageServiceType;
   
   constructor() {
-    this.objectStorageService = new ObjectStorageService();
+    this.objectStorageService = getObjectStorageService();
   }
 
   /**
@@ -32,26 +33,35 @@ export class AsyncTranscriptionProcessor {
         lastTranscriptionAttempt: new Date()
       });
 
-      // K8s-compatible: Download file from object storage directly to memory buffer
-      const objectFile = await this.objectStorageService.getObjectEntityFile(attachment.objectPath);
-      const [metadata] = await objectFile.getMetadata();
+      // Download file from object storage directly to memory buffer
+      let fileBuffer: Buffer;
       
-      console.log(`Processing file for transcription: ${attachment.originalName} (${attachment.fileSize} bytes)`);
-      
-      // Stream file to memory buffer (K8s compatible - no disk storage)
-      const chunks: Buffer[] = [];
-      const objectReadStream = objectFile.createReadStream();
-      
-      await new Promise<void>((resolve, reject) => {
-        objectReadStream.on('data', (chunk: Buffer) => {
-          chunks.push(chunk);
+      if (isMockStorage()) {
+        // Mock storage: read file directly from local filesystem
+        fileBuffer = await mockObjectStorageService.getFileBuffer(attachment.objectPath);
+        console.log(`[Mock Storage] Loaded file to memory buffer: ${fileBuffer.length} bytes`);
+      } else {
+        // Real storage: stream from cloud storage
+        const objectFile = await this.objectStorageService.getObjectEntityFile(attachment.objectPath) as any;
+        const [metadata] = await objectFile.getMetadata();
+        
+        console.log(`Processing file for transcription: ${attachment.originalName} (${attachment.fileSize} bytes)`);
+        
+        // Stream file to memory buffer (K8s compatible - no disk storage)
+        const chunks: Buffer[] = [];
+        const objectReadStream = objectFile.createReadStream();
+        
+        await new Promise<void>((resolve, reject) => {
+          objectReadStream.on('data', (chunk: Buffer) => {
+            chunks.push(chunk);
+          });
+          objectReadStream.on('end', () => resolve());
+          objectReadStream.on('error', (error) => reject(error));
         });
-        objectReadStream.on('end', () => resolve());
-        objectReadStream.on('error', (error) => reject(error));
-      });
 
-      const fileBuffer = Buffer.concat(chunks);
-      console.log(`File loaded to memory buffer: ${fileBuffer.length} bytes`);
+        fileBuffer = Buffer.concat(chunks);
+        console.log(`File loaded to memory buffer: ${fileBuffer.length} bytes`);
+      }
 
       // Create a file object with memory buffer (K8s compatible)
       const multerFile: Express.Multer.File = {
