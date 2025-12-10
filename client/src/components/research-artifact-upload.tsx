@@ -234,14 +234,33 @@ export default function ResearchArtifactUpload({
     }
   };
 
-  const downloadFile = async (attachmentId: number) => {
+  const downloadFile = async (attachmentId: number, fileName: string) => {
     try {
-      window.open(`/api/research-attachments/${attachmentId}/download`, '_blank');
+      const response = await apiRequest("GET", `/api/research-attachments/${attachmentId}/download`);
+      if (!response.ok) {
+        throw new Error('Не удалось скачать файл');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Скачивание началось",
+        description: `Скачивание ${fileName}...`,
+      });
     } catch (error) {
       console.error("Download error:", error);
       toast({
         title: "Ошибка скачивания",
-        description: "Не удалось скачать файл",
+        description: error instanceof Error ? error.message : "Не удалось скачать файл",
         variant: "destructive",
       });
     }
@@ -322,7 +341,7 @@ export default function ResearchArtifactUpload({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => downloadFile(attachment.id)}
+                    onClick={() => downloadFile(attachment.id, attachment.originalName)}
                     data-testid={`button-download-attachment-${attachment.id}`}
                   >
                     <Download className="h-4 w-4 mr-1" />
