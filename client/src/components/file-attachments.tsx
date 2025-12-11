@@ -521,7 +521,7 @@ export default function FileAttachments({ meetingId }: FileAttachmentsProps) {
             {attachments
               .filter(a => a.transcriptionStatus === 'completed' && a.transcriptionText)
               .map((attachment) => {
-                const isExpanded = expandedTranscriptions[attachment.id] !== false;
+                const isExpanded = expandedTranscriptions[attachment.id] === true;
                 
                 return (
                   <Collapsible
