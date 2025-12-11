@@ -46,8 +46,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Run migrations
-  await migrateAddRecruitmentFields(pool);
+  // Run migrations (skip if database not available)
+  try {
+    await migrateAddRecruitmentFields(pool);
+  } catch (error: any) {
+    console.warn('Migration skipped - database not available:', error.message);
+  }
   
   const server = registerRoutes(app);
 
