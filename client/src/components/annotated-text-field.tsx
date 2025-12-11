@@ -263,7 +263,7 @@ export function AnnotatedTextField({
 
       const styles = ERROR_TYPE_STYLES[annotation.errorType];
       const annotatedText = escapeHtml(value.substring(annotation.startOffset, annotation.endOffset));
-      result += `<mark style="border-left: 3px solid ${styles?.borderColor}; background-color: ${styles?.bgColor}; padding-left: 4px; padding-right: 2px; border-radius: 2px;">${annotatedText}</mark>`;
+      result += `<mark style="border-bottom: 2px solid ${styles?.borderColor}; background-color: ${styles?.bgColor}; border-radius: 2px;">${annotatedText}</mark>`;
 
       lastEnd = annotation.endOffset;
     });
