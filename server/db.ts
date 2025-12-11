@@ -12,13 +12,9 @@ function createPool() {
     return new Pool({ connectionString: databaseUrl });
   }
   
-  console.log('Using local PostgreSQL database');
-  return new Pool({
-    host: '/home/runner/workspace/pgdata/socket',
-    port: 5432,
-    user: 'runner',
-    database: 'runner'
-  });
+  console.log('WARNING: DATABASE_URL not found. Waiting for database provisioning...');
+  console.log('Please ensure the database is set up in your Replit environment.');
+  throw new Error('DATABASE_URL environment variable is not set. The database connection is not available.');
 }
 
 export const pool = createPool();
